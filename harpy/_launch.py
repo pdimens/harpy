@@ -16,6 +16,10 @@ EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
 SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .environments --conda-cleanup-pkgs cache --apptainer-prefix .environments --directory ."
+# quiet = 0 : print all things, full progressbar
+# quiet = 1 : print all text, only "Total" progressbar
+# quiet = 2 : print nothing, no progressbar
+
 # logic to properly refresh progress bar for jupyter sessions
 try:
     __IPYTHON__
@@ -57,7 +61,7 @@ def purge_empty_logs(target_dir):
 def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
     """launch snakemake with the given commands"""
     start_time = datetime.now()
-    if not quiet:
+    if quiet < 2:
         print_onstart(starttext, workflow.replace("_", " "))
     exitcode = None
     try:
@@ -72,7 +76,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
                 exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in output else exitcode
                 break
-            if not quiet:
+            if quiet < 2:
                 console = Console()
                 with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
                     while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
@@ -137,7 +141,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         break
                 if process.poll() or exitcode:
                     break
-                task_ids = {"total_progress" : progress.add_task("[bold blue]Total", total=job_inventory["total"][1])}
+                total_text = "[bold blue]Total" if quiet == 0 else "[bold blue]Progress"
+                task_ids = {"total_progress" : progress.add_task(total_text, total=job_inventory["total"][1])}
 
                 while output:
                     output = process.stderr.readline()
@@ -154,7 +159,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     if rulematch:
                         rule = rulematch.group().replace(":","").split()[-1]
                         if rule not in task_ids:
-                            task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1])
+                            task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1], visible = quiet != 1)
                         continue
                     # store the job id in the inventory so we can later look up which rule it's associated with
                     jobidmatch = re.search(r"jobid:\s\d+", string = output)
@@ -179,7 +184,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
         if process.returncode < 1:
             gzip_file(sm_logfile)
             purge_empty_logs(outdir)
-            if not quiet:
+            if quiet < 2:
                 end_time = datetime.now()
                 elapsed_time = end_time - start_time
                 print_onsuccess(outdir, summaryfile, elapsed_time)

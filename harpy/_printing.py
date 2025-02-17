@@ -9,7 +9,7 @@ from rich.panel import Panel
 
 console = Console(stderr=True)
 
-def print_error(errortitle, errortext):
+def print_error(errortitle: str, errortext: str) -> None:
     """Print a yellow panel with error text"""
     rprint(
         Panel(
@@ -22,7 +22,7 @@ def print_error(errortitle, errortext):
         file = sys.stderr
     )
 
-def print_solution(solutiontext):
+def print_solution(solutiontext: str) -> None:
     """Print a blue panel with solution text"""
     rprint(
         Panel(solutiontext,
@@ -34,7 +34,7 @@ def print_solution(solutiontext):
         file = sys.stderr
     )
 
-def print_solution_with_culprits(solutiontext, culprittext):
+def print_solution_with_culprits(solutiontext: str, culprittext: str) -> None:
     """Print a blue panel with solution text and culprittext as the subtitle to introducethe list of offenders below it."""
     rprint(
         Panel(solutiontext,
@@ -47,7 +47,7 @@ def print_solution_with_culprits(solutiontext, culprittext):
         file = sys.stderr
     )
 
-def print_notice(noticetext):
+def print_notice(noticetext: str) -> None:
     """Print a white panel with information text text"""
     rprint(
         Panel(
@@ -60,13 +60,13 @@ def print_notice(noticetext):
         file = sys.stderr
     )
 
-def print_onstart(text, title):
+def print_onstart(text: str, title: str) -> None:
     """Print a panel of info on workflow run"""
     rprint("")
     console.rule(f"[bold]harpy {title}", style = "light_steel_blue")
     console.print(text)
 
-def print_setup_error(exitcode):
+def print_setup_error(exitcode: int) -> None:
     """Print a red panel with snakefile or conda/singularity error text"""
     if exitcode == 1:
         errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
@@ -78,7 +78,7 @@ def print_setup_error(exitcode):
     console.print(errortext)
     console.rule("[bold]Error Reported by Snakemake", style = "red")
 
-def print_onsuccess(outdir, summary = None, time = None):
+def print_onsuccess(outdir: str, summary = None, time = None) -> None:
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
     days = time.days
     seconds = time.seconds
@@ -95,7 +95,7 @@ def print_onsuccess(outdir, summary = None, time = None):
     console.rule("[bold]Workflow Finished!", style="green")
     console.print(datatable)
 
-def print_onerror(logfile):
+def print_onerror(logfile: str) -> None:
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
     console.rule("[bold]Workflow Error", style = "red")
     console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/bold]")

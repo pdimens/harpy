@@ -125,4 +125,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")
+    launch_snakemake(command, "qc", start_text, output_dir, sm_log, int(quiet), "workflow/qc.summary")

@@ -9,27 +9,29 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
 from ._printing import print_error, print_solution
 
-def harpy_progressbar(quiet):
+def harpy_progressbar(quiet: int) -> Progress:
     """
     The pre-configured transient progress bar that workflows and validations use
     """
+    progress_text =  "[progress.percentage]{task.percentage:>3.0f}%" if quiet == 1 else "[progress.remaining]{task.completed}/{task.total}"
+    # TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta")
     return Progress(
         SpinnerColumn(spinner_name = "arc", style = "dim"),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(complete_style="yellow", finished_style="blue"),
-        TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta"),
+        TaskProgressColumn(progress_text, style="magenta"),
         TimeElapsedColumn(),
-        transient=True,
-        disable=quiet
+        transient = True,
+        disable = quiet == 2
     )
 
-def harpy_pulsebar(quiet, desc_text):
+def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
     """
     The pre-configured transient pulsing progress bar that workflows use, typically for
     installing the software dependencies/container
@@ -38,16 +40,16 @@ def harpy_pulsebar(quiet, desc_text):
         TextColumn("[progress.description]{task.description}"),
         BarColumn(bar_width= 70 - len(desc_text), pulse_style = "grey46"),
         TimeElapsedColumn(),
-        transient=True,
-        disable=quiet
+        transient = True,
+        disable = quiet == 2
     )
 
-def symlink(original, destination):
+def symlink(original: str, destination: str) -> None:
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).resolve())
 
-def fetch_script(workdir, target):
+def fetch_script(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy script and write it into workdir/scripts
     """
@@ -60,7 +62,7 @@ def fetch_script(workdir, target):
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
-def fetch_rule(workdir, target):
+def fetch_rule(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy rule and write it into the workdir
     """
@@ -73,7 +75,7 @@ def fetch_rule(workdir, target):
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
-def fetch_report(workdir, target):
+def fetch_report(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy report and write it into workdir/report
     """
@@ -114,7 +116,7 @@ def fetch_report(workdir, target):
                 print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
 
-def snakemake_log(outdir, workflow):
+def snakemake_log(outdir: str, workflow: str) -> str:
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")
     if not attempts:
@@ -122,14 +124,14 @@ def snakemake_log(outdir, workflow):
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
     return f"{outdir}/logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
 
-def gzip_file(infile):
+def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
     if os.path.exists(infile):
         with open(infile, 'rb') as f_in, gzip.open(infile + '.gz', 'wb', 6) as f_out:
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
 
-def safe_read(file_path):
+def safe_read(file_path: str):
     """returns the proper file opener for reading if a file_path is gzipped"""
     try:
         with gzip.open(file_path, 'rt') as f:

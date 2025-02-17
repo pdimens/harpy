@@ -21,7 +21,7 @@ try:
 except NameError:
     _in_ipython_session = False
 
-def is_gzip(file_path):
+def is_gzip(file_path: str) -> bool:
     """helper function to determine if a file is gzipped"""
     try:
         with gzip.open(file_path, 'rt') as f:
@@ -30,7 +30,7 @@ def is_gzip(file_path):
     except gzip.BadGzipFile:
         return False
 
-def is_plaintext(file_path):
+def is_plaintext(file_path: str) -> bool:
     """helper function to determine if a file is plaintext"""
     try:
         with open(file_path, 'r') as f:
@@ -39,7 +39,7 @@ def is_plaintext(file_path):
     except UnicodeDecodeError:
         return False
 
-def check_impute_params(parameters):
+def check_impute_params(parameters: str) -> dict:
     """Validate the STITCH parameter file for column names, order, types, missing values, etc."""
     with open(parameters, "r", encoding="utf-8") as paramfile:
         header = paramfile.readline().rstrip().lower()
@@ -140,7 +140,7 @@ def check_impute_params(parameters):
             sys.exit(1)        
         return data
 
-def validate_bam_RG(bamlist, threads, quiet):
+def validate_bam_RG(bamlist: str, threads: int, quiet: int) -> None:
     """Validate BAM files bamlist to make sure the sample name inferred from the file matches the @RG tag within the file"""
     culpritfiles = []
     culpritIDs   = []
@@ -170,7 +170,7 @@ def validate_bam_RG(bamlist, threads, quiet):
             click.echo(f"{i}\t{j}", file = sys.stderr)
         sys.exit(1)
 
-def check_phase_vcf(infile):
+def check_phase_vcf(infile: str) -> None:
     """Check to see if the input VCf file is phased or not, govered by the presence of ID=PS or ID=HP tags"""
     vcfheader = subprocess.run(f"bcftools view -h {infile}".split(), stdout = subprocess.PIPE, check = False).stdout.decode('utf-8')
     if ("##FORMAT=<ID=PS" in vcfheader) or ("##FORMAT=<ID=HP" in vcfheader):
@@ -181,7 +181,7 @@ def check_phase_vcf(infile):
         print_solution(f"Phase [bold]{bn}[/bold] into haplotypes using [blue bold]harpy phase[/blue bold] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/green] or [green]FORMAT/HP[/green] tags.")
         sys.exit(1)
 
-def validate_popfile(infile):
+def validate_popfile(infile: str) -> None:
     """Validate the input population file to make sure there are two entries per row"""
     with open(infile, "r", encoding="utf-8") as f:
         rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
@@ -195,7 +195,7 @@ def validate_popfile(infile):
             _ = [click.echo(f"{i[0]+1}\t{i[1]}", file = sys.stderr) for i in invalids]
             sys.exit(1)
 
-def vcf_sample_match(vcf, bamlist, vcf_samples):
+def vcf_sample_match(vcf: str, bamlist: list[str], vcf_samples: bool) -> list[str]:
     """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'vcf_samples', which prioritizes the sample list in the vcf file, rather than bamlist."""
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", vcf], stdout=subprocess.PIPE)
     vcfsamples = bcfquery.stdout.read().decode().split()
@@ -219,7 +219,7 @@ def vcf_sample_match(vcf, bamlist, vcf_samples):
         sys.exit(1)
     return(query)
 
-def vcf_contig_match(contigs, vcf):
+def vcf_contig_match(contigs: list[str], vcf: str) -> None:
     vcf_contigs = []
     vcf_header = subprocess.run(["bcftools", "head", vcf], capture_output = True, text = True)
     for i in vcf_header.stdout.split("\n"):
@@ -237,14 +237,14 @@ def vcf_contig_match(contigs, vcf):
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
 
-def validate_popsamples(infiles, popfile, quiet):
+def validate_popsamples(infiles: list[str], popfile: str, quiet: int) -> None:
     """Validate the presence of samples listed in 'populations' to be in the input files"""
     with open(popfile, "r", encoding="utf-8") as f:
         popsamples = [i.split()[0] for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
     in_samples = [Path(i).stem for i in infiles]
     missing_samples = [x for x in popsamples if x not in in_samples]
     overlooked = [x for x in in_samples if x not in popsamples]
-    if len(overlooked) > 0 and not quiet:
+    if len(overlooked) > 0 and not quiet != 2:
         print_notice(f"There are [bold]{len(overlooked)}[/bold] samples found in the inputs that weren\'t included in [blue]{popfile}[/blue]. This will [bold]not[/bold] cause errors and can be ignored if it was deliberate. Commenting or removing these lines will avoid this message. The samples are:\n" + ", ".join(overlooked))
     if len(missing_samples) > 0:
         print_error("mismatched inputs", f"There are [bold]{len(missing_samples)}[/bold] samples included in [blue]{popfile}[/blue] that weren\'t found in in the inputs. Terminating Harpy to avoid downstream errors.")
@@ -255,7 +255,7 @@ def validate_popsamples(infiles, popfile, quiet):
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
 
-def validate_demuxschema(infile):
+def validate_demuxschema(infile:str) -> None:
     """Validate the file format of the demultiplex schema"""
     code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
     segment_ids = set()
@@ -294,21 +294,19 @@ def validate_demuxschema(infile):
         click.echo(", ".join(code_letters))
         sys.exit(1)
 
-def validate_regions(regioninput, genome):
+def validate_regions(regioninput: int | str, genome: str) -> str:
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
     try:
         # is an int
         region = int(regioninput)
+        if region < 10:
+            print_error("window size too small", "Input for [green bold]--regions[/green bold] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/green bold] must be greater than or equal to [green bold]10[/green bold].")
+            sys.exit(1)
+        else:
+            return "windows"
     except:
         region = regioninput
-    if isinstance(region, int) and region < 10:
-        print_error("window size too small", "Input for [green bold]--regions[/green bold] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/green bold] must be greater than or equal to [green bold]10[/green bold].")
-        sys.exit(1)
-    elif isinstance(region, int) and region >= 10:
-        return "windows"
-    else:
-        pass
-    # is a string
+        # is a string
     reg = re.split(r"[\:-]", regioninput)
     if len(reg) == 3:
         # is a single region, check the types to be [str, int, int]
@@ -375,7 +373,7 @@ def validate_regions(regioninput, genome):
             sys.exit(1)
     return "file"
 
-def check_fasta(genofile):
+def check_fasta(genofile: str) -> str:
     """perform validations on fasta file for extensions and file contents"""
     # validate fasta file contents
     line_num = 0
@@ -420,7 +418,7 @@ def check_fasta(genofile):
         print_solution(solutiontext + "\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/")
         sys.exit(1)
 
-def fasta_contig_match(contigs, fasta):
+def fasta_contig_match(contigs: str, fasta: str) -> None:
     """Checks whether a list of contigs are present in a fasta file"""
     valid_contigs = []
     with safe_read(fasta) as gen_open:
@@ -440,7 +438,7 @@ def fasta_contig_match(contigs, fasta):
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
 
-def validate_fastq_bx(fastq_list, threads, quiet):
+def validate_fastq_bx(fastq_list: list[str], threads: int, quiet: int) -> None:
     """
     Parse a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
     """
@@ -470,7 +468,7 @@ def validate_fastq_bx(fastq_list, threads, quiet):
         for future in as_completed(futures):
             progress.update(task_progress, advance=1, refresh = _in_ipython_session)
 
-def validate_barcodefile(infile, return_len = False, quiet = False, limit = 140):
+def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
     if is_gzip(infile):
         print_error("incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/blue] and try again.")
