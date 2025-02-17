@@ -74,7 +74,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     if snakemake:
         command += f" {snakemake}"
 
-    validate_demuxschema(schema)
+    validate_demuxschema(schema, return_len = False)
     os.makedirs(f"{workflowdir}", exist_ok=True)
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")
