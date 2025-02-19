@@ -3,12 +3,7 @@ title: "NAIBR SV - `r params$sample`"
 include-in-header:
   - text: |
       <style>
-      .BioCircosSNPTooltip {
-        z-index: 10;
-      }
-      </style>
-  - text: |
-      <style>
+      .BioCircosSNPTooltip,
       .BioCircosARCTooltip {
         z-index: 10;
       }
