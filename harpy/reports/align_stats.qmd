@@ -1,5 +1,12 @@
 ---
 title: "Alignment Summary - `r params$sample`"
+include-in-header:
+  - text: |
+      <style>
+      .BioCircosHISTOGRAMTooltip {
+        z-index: 10;
+      }
+      </style>
 params:
   bxstats: 'sample.bxstats.gz'
   coverage: 'sample.cov.gz'

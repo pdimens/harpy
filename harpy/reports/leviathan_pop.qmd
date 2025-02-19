@@ -1,5 +1,13 @@
 ---
 title: "LEVIATHAN SV - Summary"
+include-in-header:
+  - text: |
+      <style>
+      .BioCircosSNPTooltip,
+      .BioCircosARCTooltip {
+        z-index: 10;
+      }
+      </style>
 params:
   faidx: 'genome.fasta.fai'
   statsdir: 'reports/data/'
