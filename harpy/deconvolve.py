@@ -16,10 +16,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--density", "--dropout", "--kmer-length", "--window-size"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

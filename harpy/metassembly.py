@@ -17,10 +17,12 @@ docstring = {
         {
             "name": "Metassembly Parameters",
             "options": ["--bx-tag", "--extra-params", "--ignore-bx","--kmer-length", "--max-memory", "--metassembly", "--organism-type"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

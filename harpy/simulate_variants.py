@@ -24,73 +24,89 @@ docstring = {
     "harpy simulate snpindel": [
         {
             "name": "Known Variants",
-            "options": ["--indel-vcf", "--snp-vcf"]
+            "options": ["--indel-vcf", "--snp-vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"]
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate inversion": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"]
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate cnv": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"]
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate translocation": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"]
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

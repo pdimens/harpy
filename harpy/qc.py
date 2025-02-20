@@ -18,10 +18,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

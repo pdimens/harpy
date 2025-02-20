@@ -29,10 +29,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--keep-unknown", "--qx-rx","--schema"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

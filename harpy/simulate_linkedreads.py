@@ -15,11 +15,13 @@ docstring = {
     "harpy simulate linkedreads": [
         {
             "name": "Parameters",
-            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"]
+            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         }
     ]
 }

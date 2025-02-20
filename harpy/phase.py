@@ -18,10 +18,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--extra-params", "--genome", "--ignore-bx", "--molecule-distance", "--prune-threshold", "--vcf", "--vcf-samples"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },     
     ]
 }

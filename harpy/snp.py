@@ -29,20 +29,24 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy snp freebayes": [
         {
             "name": "Parameters",
             "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

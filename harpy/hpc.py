@@ -26,6 +26,7 @@ docstring = {
         {
             "name": "Submission Systems",
             "commands": ["generic", "googlebatch", "htcondor", "lsf", "slurm"],
+            "panel_styles": {"border_style": "blue"}
         },
     ]
 }

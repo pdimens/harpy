@@ -17,14 +17,17 @@ docstring = {
         {
             "name": "Assembly Parameters",
             "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--organism-type"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Scaffolding Parameters",
             "options": ["--arcs-extra", "--contig-length", "--links", "--min-aligned", "--min-quality", "--mismatch", "--molecule-distance", "--molecule-length", "--seq-identity", "--span"],            
+            "panel_styles": {"border_style": "green"}
         },
         {
-            "name": "Other Options",
+            "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }

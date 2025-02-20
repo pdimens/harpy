@@ -59,10 +59,12 @@ simulate_commandstring = {
         {
             "name": "Linked Read Sequences",
             "commands": ["linkedreads"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Genomic Variants",
             "commands": ["cnv", "inversion", "snpindel", "translocation"],
+            "panel_styles": {"border_style": "green"}
         }
     ]
 }
@@ -94,24 +96,27 @@ cli.add_command(deconvolve.deconvolve)
 cli.add_command(metassembly.metassembly)
 cli.add_command(assembly.assembly)
 cli.add_command(diagnose.diagnose)
-## the workflows ##
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
             {
                 "name": "Workflows",
-                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"])
+                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"]),
+                "panel_styles": {"border_style": "blue"}
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup"])
+                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup"]),
+                "panel_styles": {"border_style": "dim green"}
             },
             {
                 "name": "Troubleshoot",
-                "commands": sorted(["view", "resume", "diagnose", "preflight"])
+                "commands": sorted(["view", "resume", "diagnose", "preflight"]),
+                "panel_styles": {"border_style": "dim"}
             }
         ],
  } | simulate_commandstring | hpc.docstring
 
+click.rich_click.OPTIONS_PANEL_TITLE = None
 for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate_linkedreads, simulate_variants, snp, sv, assembly, metassembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring

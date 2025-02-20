@@ -16,10 +16,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": sorted(["--downsample", "--invalid", "--random-seed", "--prefix"]),
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }
