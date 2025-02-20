@@ -155,7 +155,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
-                    rulematch = re.search(r"rule\s\w+:", output)
+                    rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
                     if rulematch:
                         rule = rulematch.group().replace(":","").split()[-1]
                         if rule not in task_ids:
