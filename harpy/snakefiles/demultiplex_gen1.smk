@@ -2,18 +2,26 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import logging
+import subprocess
 
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
 keep_unknown = config["keep_unknown"]
-
+n_chunks = min(int(workflow.cores * 2.5), 999)
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
     os.makedirs(f"{outdir}/reports/data", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
+    try:
+        os.remove(f"{outdir}/reads.R1.fq.gz")
+        os.remove(f"{outdir}/reads.R2.fq.gz")
+        os.remove(f"{outdir}/reads.I1.fq.gz")
+        os.remove(f"{outdir}/reads.I2.fq.gz")
+    except FileNotFoundError:
+        pass
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
@@ -21,7 +29,7 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-def parse_schema(smpl, keep_unknown):
+def parse_schema(smpl: str, keep_unknown: bool) -> dict:
     d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
@@ -41,9 +49,24 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
-print(samplenames)
-fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
+def setup_chunks(fq1: str, fq2: str, parts: int) -> dict:
+    # find the minimum number of reads between R1 and R2 files
+    count_r1 = subprocess.check_output(["zgrep", "-c", "-x", '+', fq1])
+    count_r2 = subprocess.check_output(["zgrep", "-c", "-x", '+', fq2])
+    read_min = min(int(count_r1), int(count_r2))
+    chunks_length = read_min // parts
+    starts = list(range(1, read_min, max(chunks_length,20)))
+    ends = [i-1 for i in starts[1:]]
+    # the last end should be -1, which is the "end" in a seqkit range
+    ends[-1] = -1
+    formatted_parts = [f"{i:03d}" for i in range(1, parts + 1)]
+    # format  {part : (start, end)}
+    # example {"001": (1, 5000)}
+    return dict(zip(formatted_parts, zip(starts, ends)))
+
+chunk_dict = setup_chunks(config["inputs"]["R1"], config["inputs"]["R2"], n_chunks)
+fastq_parts = list(chunk_dict.keys())
 rule barcode_segments:
     output:
         collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
@@ -54,45 +77,46 @@ rule barcode_segments:
     shell:
         "haplotag_acbd.py {params}"
 
-rule partition_reads:
+rule link_input:
     input:
         r1 = config["inputs"]["R1"],
-        r2 = config["inputs"]["R2"]       
+        r2 = config["inputs"]["R2"],
+        i1 = config["inputs"]["I1"],
+        i2 = config["inputs"]["I2"]
     output:
         r1 = temp(f"{outdir}/reads.R1.fq.gz"),
         r2 = temp(f"{outdir}/reads.R2.fq.gz"),
-        parts = temp(collect(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-    log:
-        outdir + "/logs/partition.reads.log"
-    threads:
-        workflow.cores
+        i1 = temp(f"{outdir}/reads.I1.fq.gz"),
+        i2 = temp(f"{outdir}/reads.I2.fq.gz")
+    run:
+        for i,o in zip(input,output):
+            if os.path.exists(o) or os.path.islink(o):
+                os.remove(o)
+            os.symlink(i, o)
+
+rule partition_reads:
+    group: "partition"
+    input:
+        outdir + "/reads.R{FR}.fq.gz"
+    output:
+        temp(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz")
     params:
-        chunks = min(workflow.cores, 999),
-        outdir = f"{outdir}/reads_chunks"
+        lambda wc: f"-r {chunk_dict[wc.part][0]}:{chunk_dict[wc.part][1]}"
     conda:
         f"{envdir}/demultiplex.yaml"
     shell:
-        """
-        ln -sr {input.r1} {output.r1}
-        ln -sr {input.r2} {output.r2}
-        seqkit split2 -f --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
-        """
+        "seqkit range {params} -o {output} {input}"
 
 use rule partition_reads as partition_index with:
+    group: "partition"
     input:
-        r1 = config["inputs"]["I1"],
-        r2 = config["inputs"]["I2"]       
+        outdir + "/reads.I{FR}.fq.gz"
     output:
-        r1 = temp(f"{outdir}/reads.I1.fq.gz"),
-        r2 = temp(f"{outdir}/reads.I2.fq.gz"),
-        parts = temp(collect(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-    log:
-        outdir + "/logs/partition.index.log"
-    params:
-        chunks = min(workflow.cores, 999),
-        outdir = f"{outdir}/index_chunks"
+        temp(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz")
 
-rule demultiplex:
+checkpoint demultiplex:
+    group: "partition"
+    priority: 100
     input:
         R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
         R2 = outdir + "/reads_chunks/reads.R2.part_{part}.fq.gz",
@@ -243,6 +267,9 @@ rule workflow_summary:
         inputs += f"\tindex 2: {params.I2}"
         inputs += f"Sample demultiplexing schema: {samplefile}"
         summary.append(inputs)
+        chunking = "Input data was partitioned into smaller chunks using:\n"
+        chunking += "\tseqkit -r start:stop -o output.fq input.fq"
+        summary.append(chunking)
         demux = "Samples were demultiplexed using:\n"
         demux += "\tworkflow/scripts/demultiplex_gen1.py"
         summary.append(demux)
