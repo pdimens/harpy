@@ -74,7 +74,7 @@ docstring = {
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
+@click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -95,8 +95,8 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Harpy will post-processes the alignments using the specified `--molecule-distance`
-    to assign alignments to unique molecules. Use `--molecule-distance 0` to ignore
-    alignment distance during molecule assignment.
+    to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
+    harpy perform alignment-distance based barcode deconvolution.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -272,7 +272,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff to split molecules (bp)')
+@click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
@@ -293,9 +293,8 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
-    not use barcodes when mapping, so Harpy will post-processes the alignments using the
-    specified `--molecule-distance` to assign alignments to unique molecules. Use 
-    `--molecule-distance 0` to ignore alignment distance during molecule assignment.
+    not use barcodes when mapping. Use a value >`0` for `--molecule-distance` to have
+    harpy perform alignment-distance based barcode deconvolution.
     
     The `--read-length` is an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
     The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
