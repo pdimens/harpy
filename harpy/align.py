@@ -34,30 +34,36 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--depth-window", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy align ema": [
         {
             "name": "Parameters",
             "options": ["--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--barcode-list"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--depth-window", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy align strobe": [
         {
             "name": "Parameters",
             "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--depth-window", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }
@@ -76,13 +82,13 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using `BWA MEM`
+    Align sequences to genome using BWA MEM
  
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
@@ -166,13 +172,13 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using `EMA`
+    Align sequences to genome using EMA
 
     Provide the input fastq files and/or directories at the end of the
     command as individual files/folders, using shell wildcards
@@ -275,13 +281,13 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using `strobealign`
+    Align sequences to genome using strobealign
  
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.

@@ -130,31 +130,33 @@ class ArcsParams(click.ParamType):
         return sanitize_shell(value)
 
 class StitchParams(click.ParamType):
-    """A class for a click type that validates stitch extra-params."""
+    """A class for a click type that validates stitch extra-params. Sanitizes and corrects different input styles to work with STITCH cli"""
     name = "stitch_params"
     def convert(self, value, param, ctx):
         harpy_options = "--method --posfile --bamlist --nCores --nGen --chr --K --S --use_bx_tag --bxTagUpperLimit --outputdir --output_filename --tempdir".split() 
         valid_options = "--nStarts --genfile --B_bit_prob --outputInputInVCFFormat --downsampleToCov --downsampleFraction --readAware --chrStart --chrEnd --regionStart --regionEnd --buffer --maxDifferenceBetweenReads --maxEmissionMatrixDifference --alphaMatThreshold --emissionThreshold --iSizeUpperLimit --bqFilter --niterations --shuffleHaplotypeIterations --splitReadIterations --expRate --maxRate --minRate --Jmax --regenerateInput --originalRegionName --keepInterimFiles --keepTempDir --switchModelIteration --generateInputOnly --restartIterations --refillIterations --downsampleSamples --downsampleSamplesKeepList --subsetSNPsfile --useSoftClippedBases --outputBlockSize --outputSNPBlockSize --inputBundleBlockSize --genetic_map_file --reference_haplotype_file --reference_legend_file --reference_sample_file --reference_populations --reference_phred --reference_iterations --reference_shuffleHaplotypeIterations --initial_min_hapProb --initial_max_hapProb --regenerateInputWithDefaultValues --plot_shuffle_haplotype_attempts --save_sampleReadsInfo --gridWindowSize --shuffle_bin_nSNPs --shuffle_bin_radius --keepSampleReadsInRAM --useTempdirWhileWriting --output_haplotype_dosages".split()
         opts = 0
         docs = "https://github.com/rwdavies/STITCH/blob/master/Options.md"
+        clean_args = []
         for i in shellsplit(value):
-            if not i.startswith("--"):
-                self.fail(f"{i} is in the wrong format and needs to begin with a double-dash for the command-line version of STITCH. Try using --{i}=VAL instead", param, ctx)
+            if not i.startswith("-"):
+                i = "--" + i.lstrip("-")
             if "=" in i:
                 opts += 1
-                argsplit = i.split("=")
+                argsplit = [j.strip() for j in i.split("=")]
                 if len(argsplit) != 2:
-                    self.fail(f"{i} is not in the proper format for STITCH. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
-                arg = argsplit[0].strip()
+                    self.fail(f"{i} is not in the proper format for STITCH. STITCH options must be in the form ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
+                arg = argsplit[0]
                 if arg in harpy_options:
                     self.fail(f"{arg} is already used by Harpy when calling STITCH.", param, ctx)
                 if arg not in valid_options:
                     self.fail(f"{arg} is not a valid STITCH option. See the STITCH documentation for a list of available options: {docs}", param, ctx)
+                clean_args.append("=".join(argsplit))
             else:
-                self.fail(f"{i} is not in the proper format for STITCH. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
+                self.fail(f"{i} is not in the proper format for STITCH. STITCH options must be in the form ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. STITCH options begin with a double-dash and must be in the form --ARG=VAL (e.g. --downsampleFraction=0.5). See the stitch documentation for a list of available options: {docs}.", param, ctx)
-        return sanitize_shell(value)
+        return sanitize_shell(" ".join(clean_args))
 
 class HapCutParams(click.ParamType):
     """A class for a click type that validates hapcut2 extra-params."""
@@ -202,9 +204,8 @@ class NaibrParams(click.ParamType):
         valid_options = "blacklist candidates".split()
         opts = 0
         docs = "https://github.com/pontushojer/NAIBR?tab=readme-ov-file#running-naibr"
-        for idx,i in enumerate(shellsplit(value)):
-            if i.startswith("-"):
-                self.fail(f"{i} begins with a dash, which is the wrong format. Try using " + i.lstrip("-") + " VAL instead", param, ctx)
+        clean_args = []
+        for idx,i in enumerate(shellsplit(value.replace("-", ""))):
             # if it's an even index, it's the argument name of an arg-val pair
             if idx % 2 == 0:
                 opts += 1
@@ -212,9 +213,10 @@ class NaibrParams(click.ParamType):
                     self.fail(f"{i} is already used by Harpy when calling naibr.", param, ctx)
                 if i not in valid_options:
                     self.fail(f"{i} is not a valid naibr option. See the naibr documentation for a list of available options: {docs}.", param, ctx)
+            clean_args.append(i.strip())
         if opts < 1:
-            self.fail(f"No valid options recognized. Available naibr options begin without dashes in the form of ARG<space>VAL (e.g. blacklist inversions.ignore). See the naibr documentation for a list of available options: {docs}.", param, ctx)
-        return sanitize_shell(value)
+            self.fail(f"No valid options recognized. Available naibr options begin without dashes in the form of ARG<space>VAL (e.g. blacklist inversions.txt). See the naibr documentation for a list of available options: {docs}.", param, ctx)
+        return sanitize_shell(" ".join(clean_args))
     
 class MpileupParams(click.ParamType):
     """A class for a click type that validates mpileup extra-params."""

@@ -16,10 +16,12 @@ docstring = {
         {
             "name": "Parameters",
             "options": sorted(["--downsample", "--invalid", "--random-seed", "--prefix"]),
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }
@@ -30,7 +32,7 @@ docstring = {
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 1, max = 999), help = 'Number of threads to use')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)

@@ -24,73 +24,89 @@ docstring = {
     "harpy simulate snpindel": [
         {
             "name": "Known Variants",
-            "options": ["--indel-vcf", "--snp-vcf"]
+            "options": ["--indel-vcf", "--snp-vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"]
+            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate inversion": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"]
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate cnv": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"]
+            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy simulate translocation": [
         {
             "name": "Known Variants",
-            "options": ["--vcf"]
+            "options": ["--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"]
+            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
+            "panel_styles": {"border_style": "green"}
         },
         {
             "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"]
+            "options": ["--heterozygosity", "--only-vcf"],
+            "panel_styles": {"border_style": "yellow"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }
@@ -115,7 +131,7 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -238,7 +254,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -341,7 +357,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
@@ -448,7 +464,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)

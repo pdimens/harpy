@@ -33,26 +33,30 @@ docstring = {
         {
             "name": "Parameters",
             "options": ["--duplicates", "--extra-params", "--genome", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy sv naibr": [
         {
             "name": "Module Parameters",
             "options": ["--extra-params", "--genome", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
+            "name": "Workflow Options",
             "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         },
     ]
 }
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
-@click.option('-x', '--extra-params', type = str, help = 'Additional leviathan parameters, in quotes')
+@click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
 @click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10, max_open = True), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1, max_open = True), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
@@ -66,7 +70,7 @@ docstring = {
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
@@ -151,7 +155,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
     launch_snakemake(command, "sv_leviathan", start_text, output_dir, sm_log, quiet, "workflow/sv.leviathan.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
-@click.option('-x', '--extra-params', type = str, help = 'Additional naibr parameters, in quotes')
+@click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
 @click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for calling variants')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1, max_open = True), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
@@ -165,7 +169,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)

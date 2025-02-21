@@ -15,11 +15,13 @@ docstring = {
     "harpy simulate linkedreads": [
         {
             "name": "Parameters",
-            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"]
+            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
+            "panel_styles": {"border_style": "blue"}
         },
         {
-            "name": "Workflow Controls",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"]
+            "name": "Workflow Options",
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "panel_styles": {"border_style": "dim"}
         }
     ]
 }
@@ -38,7 +40,7 @@ docstring = {
 @click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = 'Verbosity of output. `0` shows all output, `1` shows single progress bar, `2` suppressess all output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome_hap1', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
 @click.argument('genome_hap2', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)

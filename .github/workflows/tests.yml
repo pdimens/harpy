@@ -637,7 +637,7 @@ jobs:
 #          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr  -x "-min_sv 5000" test/bam_phased && rm -r Genome
+        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr test/bam_phased && rm -r Genome
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
