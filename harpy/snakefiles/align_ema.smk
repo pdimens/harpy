@@ -27,6 +27,7 @@ genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 windowsize  = config["depth_windowsize"]
+sequencer_buffer   = 100 if config["sequencer"] == "hiseq" else 2500
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
@@ -200,7 +201,8 @@ rule mark_duplicates:
     log:
         outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        optical_buffer = f"-d {sequencer_buffer}"
     resources:
         mem_mb = 500
     container:
@@ -212,7 +214,7 @@ rule mark_duplicates:
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
+            samtools markdup -@ {threads} -S {params.optical_buffer} -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 
@@ -389,7 +391,8 @@ rule workflow_summary:
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4",
-        frag_opt = "-d" if frag_opt else ""
+        frag_opt = "-d" if frag_opt else "",
+        optical_buffer = f"-d {sequencer_buffer}"
     run:
         summary = ["The harpy align ema workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
@@ -412,7 +415,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} |\n"
-        duplicates += "\tsamtools markdup -S"
+        duplicates += "\tsamtools markdup -S {params.optical_buffer}"
         summary.append(duplicates)
         merged = "Alignments were merged using:\n"
         merged += "\tsamtools cat barcode.bam nobarcode.bam > concat.bam"

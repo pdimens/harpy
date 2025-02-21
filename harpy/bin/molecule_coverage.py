@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(
     one contiguous alignment, even though the reads that make
     up that molecule don't cover its entire length. Requires a
     FASTA fai index (like the kind created using samtools faidx)
-    to know the actual sizes of the contigs. Prints binary
+    to know the actual sizes of the contigs. Prints binary to stdout.
     """,
     usage = "molecule_coverage.py -f genome.fasta.fai statsfile > output.cov",
     exit_on_error = False
