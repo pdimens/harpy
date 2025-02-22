@@ -53,9 +53,10 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
         contigs[contig] = int(length)
 
 def new_intervals(contig_len, windowsize) -> list:
-    starts = list(range(1, contig_len + 1, windowsize))
+    starts = list(range(0, contig_len + 1, windowsize))
     ends = [i for i in starts[1:]]
-    ends[-1] = contig_len + 1
+    if ends[-1] != contig_len:
+        ends.append(contig_len)
     return [range(i,j) for i,j in zip(starts,ends)]
 
 def which_overlap(start: int, end: int, binlist: list):
@@ -65,7 +66,7 @@ def which_overlap(start: int, end: int, binlist: list):
 def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
     for idx,int_bin in enumerate(counter_obj):
-        sys.stdout.write(f"{contig}\t{intervals[idx].start}\t{counter_obj[int_bin]}\n")
+        sys.stdout.write(f"{contig}\t{intervals[idx].stop}\t{counter_obj[int_bin]}\n")
 
 with gzip.open(args.statsfile, "rt") as statsfile:
     aln_ranges = []
