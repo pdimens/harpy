@@ -95,7 +95,7 @@ rule link_input:
             os.symlink(i, o)
 
 rule partition_reads:
-    group: "partition"
+    group: "partition.{part}"
     input:
         outdir + "/reads.R{FR}.fq.gz"
     output:
@@ -108,14 +108,14 @@ rule partition_reads:
         "seqkit range {params} -o {output} {input}"
 
 use rule partition_reads as partition_index with:
-    group: "partition"
+    group: "partition.{part}"
     input:
         outdir + "/reads.I{FR}.fq.gz"
     output:
         temp(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz")
 
-checkpoint demultiplex:
-    group: "partition"
+rule demultiplex:
+    group: "partition.{part}"
     priority: 100
     input:
         R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
