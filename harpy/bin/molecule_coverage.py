@@ -105,4 +105,3 @@ with gzip.open(args.statsfile, "rt") as statsfile:
         LASTCONTIG = contig
     # print last contig
     print_depth_counts(LASTCONTIG, counter, geno_intervals)
- 

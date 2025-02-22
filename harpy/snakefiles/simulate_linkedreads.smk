@@ -7,15 +7,6 @@ import logging
 from pathlib import Path
 from itertools import product
 
-onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
-wildcard_constraints:
-    hap = r"[01]"
-
 outdir   = config["output_directory"]
 envdir   = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 gen_hap1 = config["inputs"]["genome_hap1"]
@@ -23,6 +14,17 @@ gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
 genodict = {"0": gen_hap1, "1": gen_hap2}
+
+onstart:
+    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+onsuccess:
+    os.remove(logger.logfile)
+    shutil.rmtree('_Inline', ignore_errors=True)
+onerror:
+    os.remove(logger.logfile)
+    shutil.rmtree('_Inline', ignore_errors=True)
+wildcard_constraints:
+    hap = r"[01]"
 
 rule barcode_keymap:
     input:
