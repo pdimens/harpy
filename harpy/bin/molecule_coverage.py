@@ -61,12 +61,15 @@ def new_intervals(contig_len, windowsize) -> list:
 
 def which_overlap(start: int, end: int, binlist: list):
     """return a list of which genomic intervals the molecule spans"""
-    return [idx for idx, val in enumerate(binlist) if start in val or end in val]
+    startstop = [idx for idx, val in enumerate(binlist) if start in val or end in val]
+    if startstop:
+        startstop = range(startstop[0], startstop[-1] + 1)
+    return startstop
 
 def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
-    for idx,int_bin in enumerate(counter_obj):
-        sys.stdout.write(f"{contig}\t{intervals[idx].stop}\t{counter_obj[int_bin]}\n")
+    for idx,int_bin in enumerate(intervals):
+        sys.stdout.write(f"{contig}\t{int_bin.stop}\t{counter_obj[idx]}\n")
 
 with gzip.open(args.statsfile, "rt") as statsfile:
     aln_ranges = []
