@@ -25,7 +25,6 @@ windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
 keep_unmapped = config["keep_unmapped"]
-sequencer_buffer   = 100 if config["sequencer"] == "hiseq" else 2500
 readlen = config["average_read_length"]
 autolen = isinstance(readlen, str)
 skip_reports = config["reports"]["skip"]
@@ -114,8 +113,7 @@ rule mark_duplicates:
         outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        optical_buffer = f"-d {sequencer_buffer}"
+        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
     resources:
         mem_mb = 2000
     threads:
@@ -124,10 +122,16 @@ rule mark_duplicates:
         None
     shell:
         """
+        SAMHEADER=$(samtools head -h 0 -n 1 {input.sam} | cut -d: -f1)
+        if grep -q "^[ABCD]" <<< $SAMHEADER; then
+            OPTICAL_BUFFER=2500
+        else
+            OPTICAL_BUFFER=100
+        fi
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} {params.optical_buffer} -f {log} - {output}
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 

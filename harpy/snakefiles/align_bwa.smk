@@ -22,7 +22,6 @@ ignore_bx = config["ignore_bx"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 bn 			= os.path.basename(genomefile)
-sequencer_buffer   = 100 if config["sequencer"] == "hiseq" else 2500
 genome_zip  = True if bn.lower().endswith(".gz") else False
 bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
 skip_reports = config["reports"]["skip"]
@@ -123,8 +122,7 @@ rule mark_duplicates:
         outdir + "/logs/markdup/{sample}.markdup.log"
     params: 
         tmpdir = lambda wc: outdir + "/." + d[wc.sample],
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        optical_buffer = f"-d {sequencer_buffer}"
+        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
     resources:
         mem_mb = 2000
     container:
@@ -133,10 +131,16 @@ rule mark_duplicates:
         4
     shell:
         """
+        SAMHEADER=$(samtools head -h 0 -n 1 {input.sam} | cut -d: -f1)
+        if grep -q "^[ABCD]" <<< $SAMHEADER; then
+            OPTICAL_BUFFER=2500
+        else
+            OPTICAL_BUFFER=100
+        fi
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} {params.optical_buffer} -f {log} - {output}
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 
@@ -315,7 +319,6 @@ rule workflow_summary:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",\
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        optical_buffer = f"-d {sequencer_buffer}",
         extra   = extra
     run:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
@@ -328,7 +331,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} {params.optical_buffer}"
+        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

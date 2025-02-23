@@ -33,7 +33,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--sequencer"],
+            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -45,7 +45,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality", "--sequencer"],
+            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -57,7 +57,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length", "--sequencer"],
+            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -75,7 +75,6 @@ docstring = {
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff for molecule assignment (bp)')
-@click.option('-s', '--sequencer', default = "novaseq", show_default = True, type = click.Choice(["hiseq", "novaseq"], case_sensitive=False), help = 'Sequencer that generated the reads\n[`hiseq`,`novaseq`]')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -87,7 +86,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, sequencer, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to genome using BWA MEM
  
@@ -97,8 +96,7 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, sequencer,
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Harpy will post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
-    harpy perform alignment-distance based barcode deconvolution. The `--sequencer` option is to
-    improve detection of optical duplicates.
+    harpy perform alignment-distance based barcode deconvolution.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -126,7 +124,6 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, sequencer,
         "workflow" : "align bwa",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
-        "sequencer": sequencer.lower(),
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
@@ -169,7 +166,6 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, sequencer,
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
-@click.option('-s', '--sequencer', default = "novaseq", show_default = True, type = click.Choice(["hiseq", "novaseq"], case_sensitive=False), help = 'Sequencer that generated the reads\n[`hiseq`,`novaseq`]')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -180,7 +176,7 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, sequencer,
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, sequencer, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to genome using EMA
 
@@ -191,8 +187,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     EMA may improve mapping, but it also marks split reads as secondary
     reads, making it less useful for variant calling with leviathan. The barcode
     list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
-    sequences at the beginning of the forward reads are known barcodes. The `--sequencer` option is to
-    improve detection of optical duplicates.
+    sequences at the beginning of the forward reads are known barcodes.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -235,7 +230,6 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
         "workflow" : "align ema",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
-        "sequencer": sequencer.lower(),
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "fragment_density_optimization": fragment_density,
@@ -281,7 +275,6 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0, max_open = True), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
-@click.option('-s', '--sequencer', default = "novaseq", show_default = True, type = click.Choice(["hiseq", "novaseq"], case_sensitive=False), help = 'Sequencer that generated the reads\n[`hiseq`,`novaseq`]')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -292,7 +285,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, sequencer, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to genome using strobealign
  
@@ -301,8 +294,7 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
     
     strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
     not use barcodes when mapping. Use a value >`0` for `--molecule-distance` to have
-    harpy perform alignment-distance based barcode deconvolution. The `--sequencer` option is to
-    improve detection of optical duplicates.
+    harpy perform alignment-distance based barcode deconvolution.
     
     The `--read-length` is an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
     The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
@@ -334,7 +326,6 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
         "workflow" : "align strobe",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
-        "sequencer": sequencer.lower(),
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "ignore_bx": ignore_bx,
