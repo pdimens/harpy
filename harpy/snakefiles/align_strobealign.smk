@@ -312,7 +312,6 @@ rule workflow_summary:
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        optical_buffer = f"-d {sequencer_buffer}",
         extra   = extra
     run:
         summary = ["The harpy align strobe workflow ran using these parameters:"]
@@ -331,7 +330,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} {params.optical_buffer}"
+        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
