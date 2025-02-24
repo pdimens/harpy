@@ -209,8 +209,7 @@ rule mark_duplicates:
         2
     shell:
         """
-        SAMHEADER=$(samtools head -h 0 -n 1 {input.sam} | cut -d: -f1)
-        if grep -q "^[ABCD]" <<< $SAMHEADER; then
+        if grep -q "^[ABCD]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
             OPTICAL_BUFFER=2500
         else
             OPTICAL_BUFFER=100
@@ -255,7 +254,7 @@ rule concat_alignments:
             samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
         """
 
-rule calculate_depth:
+rule alignment_coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
