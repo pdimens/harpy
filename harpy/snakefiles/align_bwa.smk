@@ -131,10 +131,15 @@ rule mark_duplicates:
         4
     shell:
         """
+        if grep -q "^[ABCD]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
+            OPTICAL_BUFFER=2500
+        else
+            OPTICAL_BUFFER=100
+        fi
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} -f {log} - {output}
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 
@@ -181,7 +186,7 @@ rule molecule_coverage:
     shell:
         "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
 
-rule calculate_depth:
+rule alignment_coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -325,7 +330,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode}"
+        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"

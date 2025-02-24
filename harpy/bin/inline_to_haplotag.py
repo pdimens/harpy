@@ -5,6 +5,7 @@ import sys
 import gzip
 import sqlite3
 import argparse
+import subprocess
 from itertools import zip_longest
 import pysam
 
@@ -119,15 +120,17 @@ del bc_mem_data
 with (
     pysam.FastxFile(args.forward) as fw,
     pysam.FastxFile(args.reverse) as rv,
-    gzip.open(f"{args.prefix}.R1.fq.gz", "wb", 6) as fw_out,
-    gzip.open(f"{args.prefix}.R2.fq.gz", "wb", 6) as rv_out,
+    open(f"{args.prefix}.R1.fq.gz", "wb") as fw_out,
+    open(f"{args.prefix}.R2.fq.gz", "wb") as rv_out,
 ):
+    gzip_R1 = subprocess.Popen(['gzip'], stdin=subprocess.PIPE, stdout=fw_out)
+    gzip_R2 = subprocess.Popen(['gzip'], stdin=subprocess.PIPE, stdout=rv_out)
     for fw_record, rv_record in zip_longest(fw, rv):
         new_fw, new_rv = process_record(fw_record, rv_record, bc_db, bc_len)
         if new_fw:
-            fw_out.write(new_fw.encode("utf-8"))
+            gzip_R1.stdin.write(new_fw.encode("utf-8"))
         if new_rv:
-            rv_out.write(new_rv.encode("utf-8"))
+            gzip_R2.stdin.write(new_rv.encode("utf-8"))
 
 bc_db.cursor().close()
 

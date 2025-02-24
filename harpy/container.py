@@ -8,7 +8,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_rule
 
-@click.command(no_args_is_help = False, hidden = True)
+@click.command(hidden = True)
 def containerize():
     """
     Configure conda and docker environments

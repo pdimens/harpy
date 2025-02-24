@@ -209,10 +209,15 @@ rule mark_duplicates:
         2
     shell:
         """
+        if grep -q "^[ABCD]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
+            OPTICAL_BUFFER=2500
+        else
+            OPTICAL_BUFFER=100
+        fi
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S --barcode-tag BX -f {log} - {output}
+            samtools markdup -@ {threads} -S -d $OPTICAL_BUFFER -f {log} - {output}
         rm -rf {params.tmpdir}
         """
 
@@ -249,7 +254,7 @@ rule concat_alignments:
             samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
         """
 
-rule calculate_depth:
+rule alignment_coverage:
     input: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -412,7 +417,7 @@ rule workflow_summary:
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} |\n"
-        duplicates += "\tsamtools markdup -S"
+        duplicates += "\tsamtools markdup -S -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         merged = "Alignments were merged using:\n"
         merged += "\tsamtools cat barcode.bam nobarcode.bam > concat.bam"

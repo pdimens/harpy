@@ -4,8 +4,8 @@
 import os
 import sys
 import gzip
-import sqlite3
 import argparse
+from collections import Counter
 
 parser = argparse.ArgumentParser(
     prog = 'molecule_coverage.py',
@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(
     one contiguous alignment, even though the reads that make
     up that molecule don't cover its entire length. Requires a
     FASTA fai index (like the kind created using samtools faidx)
-    to know the actual sizes of the contigs. Prints binary
+    to know the actual sizes of the contigs. Prints binary to stdout.
     """,
     usage = "molecule_coverage.py -f genome.fasta.fai statsfile > output.cov",
     exit_on_error = False
@@ -42,10 +42,8 @@ if err:
 if args.window == 0:
     parser.error("--window must be greater than 0")
 
-# main program
 contigs = {}
 LASTCONTIG = None
-
 # read the fasta index file as a dict of contig lengths
 with open(args.fai, "r", encoding= "utf-8") as fai:
     for line in fai:
@@ -54,48 +52,24 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
         length = splitline[1]
         contigs[contig] = int(length)
 
-def initialize_contig(length):
-    """Initialize the database table to feature all positions of the contig"""
-    cursor.executemany(
-        'INSERT INTO number_counts (number, count) VALUES (?, ?)',
-        [(i, 0) for i in range(1, length + 1)]
-    )
+def new_intervals(contig_len, windowsize) -> list:
+    starts = list(range(0, contig_len + 1, windowsize))
+    ends = [i for i in starts[1:]]
+    if ends[-1] != contig_len:
+        ends.append(contig_len)
+    return [range(i,j) for i,j in zip(starts,ends)]
 
-def process_alignment(start, end):
-    """Function to insert or update counts for numbers in a given range"""
-    cursor.execute(
-        'UPDATE number_counts SET count = count + 1 WHERE number BETWEEN ? AND ?',
-        (start,end)
-    )
+def which_overlap(start: int, end: int, binlist: list):
+    """return a list of which genomic intervals the molecule spans"""
+    startstop = [idx for idx, val in enumerate(binlist) if start in val or end in val]
+    if startstop:
+        startstop = range(startstop[0], startstop[-1] + 1)
+    return startstop
 
-def print_windowed_depth(contig, window):
-    """Query all rows in the table to get counts for all position. If window > 1, will sum across intervals"""
-    if args.window == 1:
-        cursor.execute('SELECT number, count FROM number_counts')
-        for position,count in cursor.fetchall():
-            sys.stdout.write(f"{contig}\t{position}\t{count}\n")
-    else:
-        # build the query, creating windows of a specific size and grouping by said windows
-        query = f'''
-            SELECT
-                (ROWID - 1) / {window} AS window,  -- Create a window group
-                SUM(count) AS total_count    -- Sum the counts in each window
-            FROM number_counts
-            GROUP BY window
-            ORDER BY window;
-        '''
-        cursor.execute(query)
-        contig_end = contigs[contig]
-        # Fetch and print the results
-        for win,depth in cursor.fetchall():
-            actual_window = win * window
-            # correction for the last window, which is usually shorter than the full size
-            if (win+1) * window > contig_end:
-                depth /= (contig_end - actual_window)
-            else:
-                depth /= window
-            sys.stdout.write(f"{contig}\t{actual_window}\t{depth}\n")
-    conn.close()
+def print_depth_counts(contig, counter_obj, intervals):
+    """Print the Counter object to stdout"""
+    for idx,int_bin in enumerate(intervals):
+        sys.stdout.write(f"{contig}\t{int_bin.stop}\t{counter_obj[idx]}\n")
 
 with gzip.open(args.statsfile, "rt") as statsfile:
     aln_ranges = []
@@ -116,13 +90,7 @@ with gzip.open(args.statsfile, "rt") as statsfile:
             IDX_END = idx
     if IDX_CONTIG is None or IDX_START is None or IDX_END is None:
         parser.error("Required columns 'contig', 'start', or 'end' not found in header\n")
-    while True:
-        line = statsfile.readline()
-        if not line:
-            if LASTCONTIG:
-                # write the last contig to file
-                print_windowed_depth(LASTCONTIG, args.window)
-            break
+    for line in statsfile:
         if line.startswith("#"):
             continue
         splitline = line.split()
@@ -130,18 +98,13 @@ with gzip.open(args.statsfile, "rt") as statsfile:
         if contig != LASTCONTIG:
             if LASTCONTIG:
                 # write to file when contig changes
-                print_windowed_depth(LASTCONTIG, args.window)
-            # create/reset database
-            conn = sqlite3.connect(':memory:')
-            cursor = conn.cursor()
-            cursor.execute('''
-                CREATE TABLE number_counts (
-                    number INTEGER PRIMARY KEY,
-                    count INTEGER
-                )
-            ''')
-            initialize_contig(contigs[contig])
+                print_depth_counts(LASTCONTIG, counter, geno_intervals)
+            # create/reset counter object and genomic intervals
+            geno_intervals = new_intervals(contigs[contig], args.window)
+            counter = Counter({key: 0 for key in range(len(geno_intervals))})
         aln_start = int(splitline[IDX_START])
         aln_end = int(splitline[IDX_END])
-        process_alignment(aln_start, aln_end)
+        counter.update(which_overlap(aln_start, aln_end, geno_intervals))
         LASTCONTIG = contig
+    # print last contig
+    print_depth_counts(LASTCONTIG, counter, geno_intervals)

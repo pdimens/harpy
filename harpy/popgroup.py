@@ -9,7 +9,7 @@ import rich_click as click
 from ._printing import print_error, print_solution, print_notice
 
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.option('-o', '--output', type=str, default = "samples.groups", help = "Output file name")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def popgroup(inputdir, output):

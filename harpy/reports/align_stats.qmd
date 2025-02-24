@@ -311,8 +311,8 @@ highchart() |>
   hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
   hc_title(text = "Inferred Molecule Length") |>
   hc_subtitle(text = "lengths reported as kilobases (kbp)") |>
-  hc_xAxis(max = 100, title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
-  hc_yAxis(title = list(text = "% of molecules")) |>
+  hc_xAxis(title = list(text = "Inferred Molecule length (kbp)"), type = "logarithmic") |>
+  hc_yAxis(max = 100, title = list(text = "% of molecules")) |>
   hc_caption(
     text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
   ) |>
