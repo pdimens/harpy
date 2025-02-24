@@ -29,7 +29,7 @@ docstring = {
 }
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), default = (0,0,0,0), help = "`k` `w` `d` `a` QuickDeconvolution parameters")
+@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), nargs=4, help = "`k` `w` `d` `a` QuickDeconvolution parameters")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
@@ -52,17 +52,17 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     
-    The input reads can be quality trimmed using:
+    **Standard trimming**
     - a sliding window from front to tail
     - poly-G tail removal
+
+    **Optional quality checks**
     - `-a` remove adapters
-      - accepts `auto` to automatically detect adapters
-      - accepts a FASTA file of adapters to remove
+      - accepts `auto` to automatically detect adapters or a FASTA file of adapters to remove
     - `-d` finds and removes optical PCR duplicates
       - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
-    - `-c` resolves barcodes clashing between unrelated sequences
-      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces
-      - use `21 40 3 0` for QuickDeconvolution defaults (or adjust as needed)
+    - `-c` resolves barcodes shared between unrelated sequences
+      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces. `21 40 3 0` would be the QuickDeconvolution defaults
       - use `harpy deconvolve` to perform this task separately
     """
     output_dir = output_dir.rstrip("/")
@@ -91,7 +91,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "qc")
     conda_envs = ["qc", "r"]
-    k,w,d,a = deconvolve
     configs = {
         "workflow" : "qc",
         "snakemake_log" : sm_log,
@@ -103,11 +102,11 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "max_len" : max_length,
         **({'extra': extra_params} if extra_params else {}),
         **({'deconvolve': {
-            "kmer_length" : k,
-            "window_size" : w,
-            "density" : d,
-            "dropout" : a
-        }} if sum(deconvolve) > 0 else {}),
+            "kmer_length" : deconvolve[0],
+            "window_size" : deconvolve[1],
+            "density" : deconvolve[2],
+            "dropout" : deconvolve[3]
+        }} if deconvolve else {}),
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
@@ -123,7 +122,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Samples:", sample_count),
         ("Trim Adapters:", "yes" if trim_adapters else "no"),
         ("Deduplicate:", "yes" if deduplicate else "no"),
-        ("Deconvolve:", "yes" if sum(deconvolve) > 0 else "no"),
+        ("Deconvolve:", "yes" if deconvolve else "no"),
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
