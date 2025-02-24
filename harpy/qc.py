@@ -7,7 +7,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_report, fetch_rule, snakemake_log
-from ._cli_types_generic import convert_to_int, HPCProfile, IntList, SnakemakeParams
+from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
 from ._printing import workflow_info
@@ -28,14 +28,14 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', type = IntList(4), default = "0,0,0,0", help = 'Accepts the QuickDeconvolution parameters for `k`,`w`,`d`,`a` (in that order)')
+@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
+@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), default = (0,0,0,0), help = "`k` `w` `d` `a` QuickDeconvolution parameters, separated by spaces")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
 @click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "QC", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(min = 4, max = 999), help = 'Number of threads to use')
+@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')

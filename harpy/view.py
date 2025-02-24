@@ -38,7 +38,7 @@ def check_terminal_colors():
     return ncol
 
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(context_settings=dict(allow_interspersed_args=False))
 @click.option('-s', '--snakefile',  is_flag = True, show_default = True, default = False, help = "View the snakefile instead")
 @click.option('-c', '--config',  is_flag = True, show_default = True, default = False, help = "View the workflow config file instead")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))

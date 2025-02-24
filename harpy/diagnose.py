@@ -7,7 +7,7 @@ from rich.console import Console
 from rich import print as rprint
 from ._printing import print_error
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def diagnose(directory):
     """
