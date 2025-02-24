@@ -29,7 +29,7 @@ docstring = {
 }
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), default = (0,0,0,0), help = "`k` `w` `d` `a` QuickDeconvolution parameters, separated by spaces")
+@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), default = (0,0,0,0), help = "`k` `w` `d` `a` QuickDeconvolution parameters")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
@@ -61,8 +61,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     - `-d` finds and removes optical PCR duplicates
       - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     - `-c` resolves barcodes clashing between unrelated sequences
-      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by commas
-      - use `21,40,3,0` for QuickDeconvolution defaults (or adjust as needed)
+      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces
+      - use `21 40 3 0` for QuickDeconvolution defaults (or adjust as needed)
       - use `harpy deconvolve` to perform this task separately
     """
     output_dir = output_dir.rstrip("/")
