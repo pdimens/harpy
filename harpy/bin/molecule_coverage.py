@@ -55,7 +55,7 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))
     ends = [i for i in starts[1:]]
-    if ends[-1] != contig_len:
+    if not ends or ends[-1] != contig_len:
         ends.append(contig_len)
     return [range(i,j) for i,j in zip(starts,ends)]
 
