@@ -176,7 +176,7 @@ rule contig_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         STATS=$(realpath {input.statsfile})
         PLOTDIR=$(realpath {input.plotdir})
         quarto render {output.qmd} --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
@@ -268,7 +268,7 @@ rule impute_reports:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         COMPARE=$(realpath {input.comparison})
         INFOSCORE=$(realpath {input.infoscore})
         quarto render {output.qmd} --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}

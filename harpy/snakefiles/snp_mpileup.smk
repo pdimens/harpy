@@ -256,7 +256,7 @@ rule variant_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         INPATH=$(realpath {input.data})
         quarto render {output.qmd} --log {log} --quiet -P infile:$INPATH {params}
         """

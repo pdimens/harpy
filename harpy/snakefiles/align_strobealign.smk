@@ -224,7 +224,7 @@ rule sample_reports:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         BXSTATS=$(realpath {input.bxstats})
         COVFILE=$(realpath {input.coverage})
         MOLCOV=$(realpath {input.molecule_coverage})
@@ -293,7 +293,7 @@ rule barcode_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         INPATH=$(realpath {params})
         quarto render {output.qmd} --log {log} --quiet -P indir:$INPATH
         """

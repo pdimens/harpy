@@ -214,7 +214,7 @@ rule sample_reports:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
         quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}

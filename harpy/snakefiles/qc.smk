@@ -176,7 +176,7 @@ rule barcode_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         INPATH=$(realpath {params})
         quarto render {output.qmd} --log {log} --quiet -P indir:$INPATH
         """

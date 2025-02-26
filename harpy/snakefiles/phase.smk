@@ -14,9 +14,6 @@ onerror:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-##TODO MANUAL PRUNING OF SWITCH ERRORS
-# https://github.com/vibansal/HapCUT2/blob/master/outputformat.md
-
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
@@ -282,7 +279,7 @@ rule phase_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
         quarto render {output.qmd} --log {log} --quiet -P blockfile:$INFILE
         """

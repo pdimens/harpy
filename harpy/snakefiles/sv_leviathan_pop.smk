@@ -269,7 +269,7 @@ rule group_reports:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
         quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
@@ -294,7 +294,7 @@ rule aggregate_report:
         f"{envdir}/r.yaml"
     shell:
         """
-        cp {input.qmd} {output.qmd}
+        cp -f {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         INPATH=$(realpath {params.statsdir})
         quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
