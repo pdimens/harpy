@@ -3,7 +3,7 @@
 import os
 import re
 import sys
-import gzip
+import subprocess
 import argparse
 import pysam
 
@@ -45,13 +45,11 @@ def writestats(x, writechrom, destination):
         else:
             x[_mi]["covered_inserts"] = 0
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
-        destination.write(outtext.encode() + b"\n")
+        destination.stdin.write(f"{outtext}\n".encode("utf-8"))
 
-with(
-    pysam.AlignmentFile(args.input) as alnfile,
-    gzip.open(sys.stdout.buffer, "wb", 6) as outfile
-):
-    outfile.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
+with pysam.AlignmentFile(args.input) as alnfile:
+    gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout)
+    gzip.stdin.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
 
     d = {}
     all_bx = set()
@@ -62,7 +60,7 @@ with(
         # check if the current chromosome is different from the previous one
         # if so, print the dict to file and empty it (a consideration for RAM usage)
         if LAST_CONTIG and chrom != LAST_CONTIG:
-            writestats(d, LAST_CONTIG, outfile)
+            writestats(d, LAST_CONTIG, gzip)
             d = {}
         LAST_CONTIG = chrom
         # skip duplicates, unmapped, and secondary alignments
@@ -154,6 +152,6 @@ with(
             d[mi]["end"] = max(pos_end, d[mi]["end"])
 
     # print the last entry
-    writestats(d, LAST_CONTIG, outfile)
+    writestats(d, LAST_CONTIG, gzip)
     # write comment on the last line with the total number of unique BX barcodes
-    outfile.write(f"#total unique barcodes: {len(all_bx)}\n".encode())
+    gzip.stdin.write(f"#total unique barcodes: {len(all_bx)}\n".encode("utf-8"))
