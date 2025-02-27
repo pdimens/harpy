@@ -2,26 +2,18 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import logging
-import subprocess
 
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
 keep_unknown = config["keep_unknown"]
-n_chunks = min(int(workflow.cores * 2.5), 999)
+
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
     os.makedirs(f"{outdir}/reports/data", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)
-    try:
-        os.remove(f"{outdir}/reads.R1.fq.gz")
-        os.remove(f"{outdir}/reads.R2.fq.gz")
-        os.remove(f"{outdir}/reads.I1.fq.gz")
-        os.remove(f"{outdir}/reads.I2.fq.gz")
-    except FileNotFoundError:
-        pass
 onerror:
     os.remove(logger.logfile)
 wildcard_constraints:
@@ -29,11 +21,11 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-def parse_schema(smpl: str, keep_unknown: bool) -> dict:
+def parse_schema(smpl, keep_unknown):
     d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
-            # a casual way to ignore empty lines or lines with !=2 fields
+            # ignore empty lines or lines with !=2 fields
             try:
                 sample, bc = i.split()
                 id_segment = bc[0]
@@ -49,24 +41,8 @@ def parse_schema(smpl: str, keep_unknown: bool) -> dict:
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
+fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
-def setup_chunks(fq1: str, fq2: str, parts: int) -> dict:
-    # find the minimum number of reads between R1 and R2 files
-    count_r1 = subprocess.check_output(["zgrep", "-c", "-x", '+', fq1])
-    count_r2 = subprocess.check_output(["zgrep", "-c", "-x", '+', fq2])
-    read_min = min(int(count_r1), int(count_r2))
-    chunks_length = read_min // parts
-    starts = list(range(1, read_min, max(chunks_length,20)))
-    ends = [i-1 for i in starts[1:]]
-    # the last end should be -1, which is the "end" in a seqkit range
-    ends[-1] = -1
-    formatted_parts = [f"{i:03d}" for i in range(1, parts + 1)]
-    # format  {part : (start, end)}
-    # example {"001": (1, 5000)}
-    return dict(zip(formatted_parts, zip(starts, ends)))
-
-chunk_dict = setup_chunks(config["inputs"]["R1"], config["inputs"]["R2"], n_chunks)
-fastq_parts = list(chunk_dict.keys())
 rule barcode_segments:
     output:
         collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
@@ -77,45 +53,45 @@ rule barcode_segments:
     shell:
         "haplotag_acbd.py {params}"
 
-rule link_input:
+rule partition_reads:
     input:
         r1 = config["inputs"]["R1"],
-        r2 = config["inputs"]["R2"],
-        i1 = config["inputs"]["I1"],
-        i2 = config["inputs"]["I2"]
+        r2 = config["inputs"]["R2"]       
     output:
         r1 = temp(f"{outdir}/reads.R1.fq.gz"),
         r2 = temp(f"{outdir}/reads.R2.fq.gz"),
-        i1 = temp(f"{outdir}/reads.I1.fq.gz"),
-        i2 = temp(f"{outdir}/reads.I2.fq.gz")
-    run:
-        for i,o in zip(input,output):
-            if os.path.exists(o) or os.path.islink(o):
-                os.remove(o)
-            os.symlink(i, o)
-
-rule partition_reads:
-    group: "partition.{part}"
-    input:
-        outdir + "/reads.R{FR}.fq.gz"
-    output:
-        temp(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz")
+        parts = temp(collect(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+    log:
+        outdir + "/logs/partition.reads.log"
+    threads:
+        workflow.cores
     params:
-        lambda wc: f"-r {chunk_dict[wc.part][0]}:{chunk_dict[wc.part][1]}"
+        chunks = min(workflow.cores, 999),
+        outdir = f"{outdir}/reads_chunks"
     conda:
         f"{envdir}/demultiplex.yaml"
     shell:
-        "seqkit range {params} -o {output} {input}"
+        """
+        ln -sr {input.r1} {output.r1}
+        ln -sr {input.r2} {output.r2}
+        seqkit split2 -f --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
+        """
 
 use rule partition_reads as partition_index with:
-    group: "partition.{part}"
     input:
-        outdir + "/reads.I{FR}.fq.gz"
+        r1 = config["inputs"]["I1"],
+        r2 = config["inputs"]["I2"]       
     output:
-        temp(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz")
+        r1 = temp(f"{outdir}/reads.I1.fq.gz"),
+        r2 = temp(f"{outdir}/reads.I2.fq.gz"),
+        parts = temp(collect(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+    log:
+        outdir + "/logs/partition.index.log"
+    params:
+        chunks = min(workflow.cores, 999),
+        outdir = f"{outdir}/index_chunks"
 
 rule demultiplex:
-    group: "partition.{part}"
     priority: 100
     input:
         R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
@@ -128,7 +104,7 @@ rule demultiplex:
         segment_d = f"{outdir}/workflow/segment_D.bc",
         schema = samplefile
     output:
-        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
+        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq.gz", sample = samplenames, FR = [1,2])),
         bx_info = temp(f"{outdir}/logs/part.{{part}}.barcodes")
     log:
         f"{outdir}/logs/demultiplex.{{part}}.log"
@@ -144,7 +120,7 @@ rule demultiplex:
 
 rule merge_partitions:
     input:
-        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
+        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq.gz", part = fastq_parts)
     output:
         outdir + "/{sample}.R{FR}.fq.gz"
     log:
@@ -152,30 +128,40 @@ rule merge_partitions:
     container:
         None
     shell:
-        "cat {input} | gzip > {output} 2> {log}"
+        "cat {input} > {output} 2> {log}"
 
 rule merge_barcode_logs:
     input:
         bc = collect(outdir + "/logs/part.{part}.barcodes", part = fastq_parts)
     output:
+        concat = temp(f"{outdir}/logs/barcodes.concat"),
         log = f"{outdir}/logs/barcodes.log"
     run:
-        bc_dict = {}
-        for i in input.bc:
-            with open(i, "r") as bc_log:
-                # skip first row of column names
-                _ = bc_log.readline()
-                for line in bc_log:
-                    barcode,total,correct,corrected = line.split()
-                    bc_stats = [int(total), int(correct), int(corrected)]
-                    if barcode not in bc_dict:
-                        bc_dict[barcode] = bc_stats
-                    else:
-                        bc_dict[barcode] = list(map(lambda x,y: x+y, bc_stats, bc_dict[barcode]))
-        with open(output.log, "w") as f:
-            f.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
-            for k,v in bc_dict.items():
-                f.write(k + "\t" + "\t".join([str(i) for i in v]) + "\n")
+        shell("cat {input.bc} | sort -k1,1 > {output.concat}")
+        #shell("cat {input.bc} | sort -k1,1 > /home/pdimens/test.concat")
+        with open(output.concat, "r") as file, open(output.log, "w") as file_out:
+            file_out.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
+            prev_bc, prev_1, prev_2, prev_3 = file.readline().split()
+            # protect against the headers appearing at the top, just in case
+            while prev_bc == "Barcode":
+                prev_bc, prev_1, prev_2, prev_3 = file.readline.split()
+            for line in file:
+                # another redundancy
+                if line.startswith("Barcode"):
+                    continue
+                bc, c1, c2, c3 = line.split()
+                if bc != prev_bc:
+                    # the barcode is different, write the previous line to file
+                    _ = file_out.write(f"{prev_bc}\t{prev_1}\t{prev_2}\t{prev_3}\n")
+                    # current becomes the basis for comparison (previous)
+                    prev_bc, prev_1, prev_2, prev_3 = bc, c1, c2, c3
+                else:
+                    # the barcode is the same, sum the count columns
+                    # the summed row becomes the basis of comparison
+                    prev_bc = bc
+                    prev_1 = int(prev_1) + int(c1)
+                    prev_2 = int(prev_2) + int(c2)
+                    prev_3 = int(prev_3) + int(c3)
 
 rule assess_quality:
     input:
@@ -184,13 +170,11 @@ rule assess_quality:
         outdir + "/reports/data/{sample}.R{FR}.fastqc"
     log:
         outdir + "/logs/{sample}.R{FR}.qc.log"
-    threads:
-        1
     conda:
         f"{envdir}/qc.yaml"
     shell:
         """
-        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
+        ( falco --quiet --threads 1 -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
 cat <<EOF > {output}
 ##Falco	1.2.4
 >>Basic Statistics	fail
@@ -267,9 +251,6 @@ rule workflow_summary:
         inputs += f"\tindex 2: {params.I2}"
         inputs += f"Sample demultiplexing schema: {samplefile}"
         summary.append(inputs)
-        chunking = "Input data was partitioned into smaller chunks using:\n"
-        chunking += "\tseqkit -r start:stop -o output.fq input.fq"
-        summary.append(chunking)
         demux = "Samples were demultiplexed using:\n"
         demux += "\tworkflow/scripts/demultiplex_gen1.py"
         summary.append(demux)

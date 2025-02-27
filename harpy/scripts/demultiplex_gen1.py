@@ -1,8 +1,10 @@
 #!/usr/bin/env python
-f = open(snakemake.log[0], "w")
 import sys
+
+f = open(snakemake.log[0], "w")
 sys.stderr = sys.stdout = f
 
+import subprocess
 import pysam
 from Levenshtein import distance
 
@@ -105,9 +107,13 @@ id_letter, samples_dict = read_schema(schema)
 samples = list(set(samples_dict.values()))
 if keep_unknown:
     samples.append("_unknown_sample")
-#create an array of files (one per sample) for writing
-R1_output = {sample: open(f"{outdir}/{sample}.{part}.R1.fq", 'w') for sample in samples}
-R2_output = {sample: open(f"{outdir}/{sample}.{part}.R2.fq", 'w') for sample in samples}
+# create an array of files (one per sample) for writing
+R1_output = {}
+R2_output = {}
+for sample in samples:
+    R1_output[sample] = subprocess.Popen(["gzip"], stdin = subprocess.PIPE , stdout = open(f"{outdir}/{sample}.{part}.R1.fq.gz", 'wb'))
+    R2_output[sample] = subprocess.Popen(["gzip"], stdin = subprocess.PIPE , stdout = open(f"{outdir}/{sample}.{part}.R2.fq.gz", 'wb'))
+
 segments = {'A':'', 'B':'', 'C':'', 'D':''}
 clear_read_map={}
 with (
@@ -131,8 +137,8 @@ with (
         sample_name = samples_dict.get(segments[id_letter], "_unknown_sample")
         if sample_name == "_unknown_sample" and not keep_unknown:
             continue
-        R1_output[sample_name].write(f"{r1_rec}\n")
-        R2_output[sample_name].write(f"{r2_rec}\n")
+        R1_output[sample_name].stdin.write(f"{r1_rec}\n".encode("utf-8"))
+        R2_output[sample_name].stdin.write(f"{r2_rec}\n".encode("utf-8"))
 
         if "unclear" in statuses:
             continue
@@ -148,9 +154,9 @@ with (
                 else:
                     clear_read_map[BX_code] = [1,0]          
 
-    for sample_name in samples:
-        R1_output[sample_name].close()
-        R2_output[sample_name].close()
+    #for sample_name in samples:
+    #    R1_output[sample_name].terminate()
+    #    R2_output[sample_name].terminate()
 
     BC_log.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
     for code in clear_read_map:
