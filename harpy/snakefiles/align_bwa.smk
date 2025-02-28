@@ -74,6 +74,24 @@ rule samtools_faidx:
         fi
         """
 
+rule make_depth_intervals:
+    input:
+        f"Genome/{bn}.fai"
+    output:
+        outdir + "/reports/data/coverage/coverage.bed"
+    run:
+        with open(input[0], "r") as fai, open(output[0], "w") as bed:
+            for line in fai:
+                splitline = line.split()
+                contig = splitline[0]
+                length = int(splitline[1])
+                starts = list(range(0, length, windowsize))
+                ends = [i - 1 for i in starts[1:]]
+                if not ends or ends[-1] != length:
+                    ends.append(length)
+                for start,end in zip(starts,ends):
+                    bed.write(f"{contig}\t{start}\t{end}\n")
+
 rule bwa_index:
     input: 
         f"Genome/{bn}"
@@ -189,7 +207,8 @@ rule molecule_coverage:
 rule alignment_coverage:
     input: 
         bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bai = outdir + "/{sample}.bam.bai",
+        bed = outdir + "/reports/data/coverage/coverage.bed"
     output: 
         outdir + "/reports/data/coverage/{sample}.cov.gz"
     params:
@@ -197,7 +216,7 @@ rule alignment_coverage:
     container:
         None
     shell:
-        "samtools depth -a {input.bam} | depth_windows.py {params} | gzip > {output}"
+        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / {params}; print }}' | gzip > {output}"
 
 rule report_config:
     input:

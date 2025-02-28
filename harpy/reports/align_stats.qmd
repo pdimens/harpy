@@ -407,6 +407,8 @@ tb <- read.table(covfile, header = F)
 if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
   knitr::knit_exit()
+} else {
+  tb <- tb[, c(1,2,3,5)]
 }
 tbmol <- read.table(molcovfile, header = F)
 if(nrow(tbmol) == 0){
@@ -416,9 +418,9 @@ if(nrow(tbmol) == 0){
 ```
 
 ```{r setup_cov_table}
-colnames(tb) <- c("contig", "position", "depth")
-colnames(tbmol) <- c("contig", "position", "mol_depth")
-tb <- merge(tb, tbmol, by = c("contig", "position"))
+colnames(tb) <- c("contig", "position", "position_end", "depth")
+colnames(tbmol) <- c("contig", "position", "position_end", "mol_depth")
+tb <- merge(tb, tbmol, by = c("contig", "position", "position_end"))
 q99 <- quantile(tb$depth, 0.99)
 mol_q99 <- quantile(tb$mol_depth, 0.99)
 names(q99) <- NULL
@@ -434,8 +436,8 @@ mol_global_avg <- mean(tb$mol_depth)
 mol_global_sd <- sd(tb$mol_depth)
 
 tb$outlier <- tb$depth > q99
-outliers <- tb[tb$outlier, -5]
-nonoutliers <- tb[!(tb$outlier), -5]
+outliers <- tb[tb$outlier, -6]
+nonoutliers <- tb[!(tb$outlier), -6]
 
 contig_avg <- group_by(tb, contig) %>%
   summarize(average = mean(depth), mol_average = mean(mol_depth), sdv = sd(depth), mol_sdv = sd(mol_depth))
@@ -608,13 +610,6 @@ DT::datatable(
 :::
 
 # Depth Plot
-```{r disttext}
-if(params$mol_dist > 0){
-  dist_text <- paste0("from the linked-read information with a distance threshold of ", params$mol_dist)
-} else {
-  dist_text <- "by the internal EMA aligner heuristics"
-}
-```
 ##
 ::: {.card title="Depth and Coverage, Visualized" fill="false"}
 This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided).
@@ -624,7 +619,7 @@ Each arc (segment) is a different contig, from position 0 to the end of the cont
 The internal (grey) rings are a barplot where each bar represents the alignment depth at a `r windowskb` kilobase
 genomic interval. The inner ring (grey bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
 "proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (magenta bars),
-is the number of _molecules_ spanning that interval, where molecules are inferred `r dist_text`.
+is the number of _molecules_ spanning that interval.
 :::
 
 ##
@@ -639,7 +634,6 @@ be able to scroll the report instead of zooming on the plot.
 ###
 ```{r limit_contigs}
 plot_contigs <- params$contigs
-#plot_contigs <- "default"
 # Find the 30 largest contigs
 contigs <- group_by(tb, contig) %>%
   summarize(size = max(position)) %>%
@@ -679,7 +673,7 @@ for (i in names(genomeChr)){
   tracks <- tracks + BioCircosBarTrack(
     paste0("cov_", i),
     chromosome = i, 
-    starts = chrcov$position - windowsize, ends = chrcov$position,
+    starts = chrcov$position, ends = chrcov$position_end,
     values = pmin(chrcov$depth, q99),
     color = "#757575",
     minRadius = inner[1],
@@ -688,7 +682,7 @@ for (i in names(genomeChr)){
   tracks <- tracks + BioCircosBarTrack(
     paste0("molcov_", i),
     chromosome = i, 
-    starts = chrcov$position - windowsize, ends = chrcov$position,
+    starts = chrcov$position, ends = chrcov$position_end,
     values = pmin(chrcov$mol_depth, mol_q99),
     color = "#9c3b94",
     minRadius = outer[1],
@@ -717,9 +711,10 @@ BioCircos(
   chrPad = 0.02,
   genomeTicksDisplay = F,
   BARMouseOverColor = "#1cff42",
-  BARMouseOverTooltipsHtml05 = "Mean Depth: ",
+  BARMouseOverTooltipsHtml05 = "Depth: ",
   genomeLabelDy = 0,
-  width = "100%"
+  width = "100%",
+  height = 1000
 )
 ```
 

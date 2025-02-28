@@ -47,6 +47,10 @@ def highlight_params(text):
         return text.replace("container:", "[bold default]container:[/bold default]").rstrip()
     if text.startswith("    shell:"): 
         return text.replace("shell:", "[bold default]shell:[/bold default]").rstrip()
+    if text.startswith("    wildcards:"): 
+        return text.replace("wildcards:", "[bold default]wildcards:[/bold default]").rstrip()
+    if text.startswith("    affected files:"): 
+        return text.replace("affected files:", "[bold default]affected files:[/bold default]").rstrip()
     return text.rstrip()
 
 def purge_empty_logs(target_dir):
