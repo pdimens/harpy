@@ -718,6 +718,8 @@ BioCircos(
 ```
 
 ```{r circosplot, out.height="900px"}
+#| title: Depth and Coverage Across the Genome (refresh browser if not loading)
+
 aln_depth <- CircosHistogram(
   'DEPTH',
   data = data.frame(chr = tb$contig, start = tb$position, end = tb$position_end, name = "sequence", value = pmin(tb$depth, q99)),

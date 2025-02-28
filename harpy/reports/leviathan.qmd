@@ -26,7 +26,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","DT","BioCircos", "htmltools")
+using("dplyr","DT","interacCircos", "htmltools")
 ```
 
 # General Stats
@@ -171,17 +171,17 @@ DT::datatable(
 
 # Per-Contig Plot
 ```{r filter_contigs}
-fa.sizes <- read.table(fai, header = F) %>% arrange(desc(2))
+fa.sizes <- read.table(fai, header = F)[,1:2] %>% arrange(desc(2))
 colnames(fa.sizes) <- c("contig", "size")
 
 plot_contigs <- params$contigs
 if (all(plot_contigs == "default")){
   # make sure that the contigs with SV are the ones being plotted, not the others
-  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig), 1:2]
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% unique(sv$contig),]
   # limit the data to only the 30 of the largest present contigs
   fa.sizes <- fa.sizes[1:min(nrow(fa.sizes), 30), ]
 } else {
-  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs, 1:2]
+  fa.sizes <- fa.sizes[fa.sizes$contig %in% plot_contigs,]
 }
 
 # filter out variants that aren't on one of these contigs
@@ -207,7 +207,7 @@ calculate_luminance <- function(hex) {
   return(luminance)
 }
 
-# Function to decide text color based on background luminance
+# Function to decide text color based on background luminence
 get_text_color <- function(background_color) {
   luminance <- calculate_luminance(background_color)
   if (luminance > 0.5) {
@@ -236,16 +236,16 @@ DT::datatable(
   # Adjust text color dynamically
   color = styleEqual(names(color.palette), sapply(color.palette, get_text_color))
 )
+genomeChr <- fa.sizes$size
+names(genomeChr) <- fa.sizes$contig
+genomeChr <- as.list(genomeChr)
 ```
 :::
 
 ###
-```{r circos}
+```{r circos, eval = FALSE}
 #| title: "Putative Structural Variants (refresh browser if not appearing)"
 
-genomeChr <- fa.sizes$size
-names(genomeChr) <- fa.sizes$contig
-genomeChr <- as.list(genomeChr)
 tracks <- BioCircosTracklist()
 radius <- 0.3
 
@@ -346,5 +346,101 @@ BioCircos(
   width = "100%",
   height = "1000px",
   elementId = "circosplot" 
+)
+```
+
+```{r circosplot_background}
+#| title: "Putative Structural Variants (refresh browser if not appearing)"
+
+# breakends outer rim
+tracks <- CircosBackground(
+  "BG_INVERSIONS",
+  minRadius = 0.75 * 385,
+  maxRadius = 0.89 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+tracks <- tracks + CircosBackground(
+  "BG_BREAKENDS",
+  minRadius = 0.9 * 385,
+  maxRadius = 0.98 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+tracks <- tracks + CircosBackground(
+  "BG_DUPLICATIONS",
+  minRadius = 0.45 * 385,
+  maxRadius = 0.59 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+tracks <- tracks + CircosBackground(
+  "BG_DELETIONS",
+  minRadius = 0.6 * 385,
+  maxRadius = 0.74 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+```
+
+```{r circos_tracks}
+# Add one track for each SV type
+# inversions
+inv <- sv[sv$type == "INV",]
+if(nrow(inv) > 0){
+  tracks <- tracks + CircosArc(
+    'INVERSIONS',
+    data = data.frame(chr = inv$contig, start = inv$position_start, end = inv$position_end, value = 0, des = "inversion", color = color.palette["inversion"]),
+    innerRadius = 0.76 * 385,
+    outerRadius = 0.88 * 385,
+    )
+}
+
+# deletions
+del <- sv[sv$type == "DEL",]
+if(nrow(del) > 0){
+  tracks <- tracks + CircosSnp(
+    'DELETIONS',
+    minRadius = 0.6 * 385,
+    maxRadius = 0.74 * 385,
+    data = data.frame(chr = del$contig, pos = del$position_start, value = del$position_end - del$position_start ,des = "deletion"),
+    fillColor = color.palette["deletion"],
+  )
+}
+
+# duplications
+dup <- sv[sv$type == "DUP",]
+if(nrow(dup) > 0){
+  tracks <- tracks + CircosCnv(
+    'DUPLICATIONS',
+    data = data.frame(chr = dup$contig, start = dup$position_start, end = dup$position_end, value = "duplication"),
+    minRadius = 0.45 * 385,
+    maxRadius = 0.59 * 385,
+    color = color.palette["duplication"],
+    strokeColor = color.palette["duplication"]
+  )
+}
+
+# breakends
+bnd <- sv[sv$type == "BND",]
+if(nrow(bnd) > 0){
+  tracks <- tracks + CircosScatter(
+    'BREAKENDS',
+    radius = .95 * 385,
+    data = data.frame(chr = bnd$contig, start = bnd$position_start, start = bnd$position_end, name = "breakend"),
+    innerCirclecolor = color.palette["breakend"],
+    outerCirclecolor = color.palette["breakend"],
+  )
+}
+```
+
+```{r circos_plot, out.height="900px"}
+Circos(
+  moduleList = tracks,
+  genome = genomeChr,
+  innerRadius = 385,
+  outerRadius = 400,
+  height = 800,
+  width = "100%",
 )
 ```
