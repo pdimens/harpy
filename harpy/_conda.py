@@ -65,6 +65,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "conda-forge::r-tidyr",
             "conda-forge::r-viridislite", 
             "conda-forge::r-xml2",
+            "bioconda::bioconductor-interaccircos",
             "r::r-biocircos"
         ],
         "simulations" : [

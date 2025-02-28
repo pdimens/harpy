@@ -3,7 +3,7 @@ title: "Alignment Summary - `r params$sample`"
 include-in-header:
   - text: |
       <style>
-      .BioCircosHISTOGRAMTooltip {
+      .NGCircosHISTOGRAMTooltip {
         z-index: 10;
       }
       </style>
@@ -29,7 +29,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","highcharter","DT","BioCircos")
+using("dplyr","highcharter","DT","interacCircos")
 ```
 
 ```{r import_file, results = F}
@@ -651,15 +651,14 @@ if (all(plot_contigs == "default")){
   .contigs <- filter(contigs, contig %in% plot_contigs)
   tb <- filter(tb, contig %in% plot_contigs)
 }
-
-```
-
-```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
-#| title: Depth and Coverage Across the Genome
-
 genomeChr <- .contigs$size
 names(genomeChr) <- .contigs$contig
 genomeChr <- as.list(genomeChr)
+```
+
+```{r circleplot, fig.align='center', out.width= "80%", out.height="900px", eval = FALSE}
+#| title: Depth and Coverage Across the Genome
+
 inner <- c(0.2, 0.6)
 outer <- c(0.61, 0.97)
 tracks <- BioCircosTracklist()
@@ -715,6 +714,52 @@ BioCircos(
   genomeLabelDy = 0,
   width = "100%",
   height = 1000
+)
+```
+
+```{r circosplot, out.height="900px"}
+aln_depth <- CircosHistogram(
+  'DEPTH',
+  data = data.frame(chr = tb$contig, start = tb$position, end = tb$position_end, name = "sequence", value = pmin(tb$depth, q99)),
+  fillColor= "#757575",
+  minRadius = 0.2 * 385,
+  maxRadius = 0.55 * 385,
+  animationDisplay = FALSE
+) + CircosBackground(
+  "BG_DEPTH",
+  minRadius = 0.19 * 385,
+  maxRadius = 0.59 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+
+mol_depth <- CircosHistogram(
+  'MOLDEPTH',
+  data = data.frame(chr = tb$contig, start = tb$position, end = tb$position_end, name = "molecule", value = pmin(tb$mol_depth, mol_q99)),
+  fillColor= "#9c3b94",
+  minRadius = 0.64 * 385,
+  maxRadius = 0.96 * 385,
+  animationDisplay = FALSE
+) + CircosBackground(
+  "BG_MOLDEPTH",
+  minRadius = 0.62 * 385,
+  maxRadius = 0.98 * 385,
+  fillColors = "#f3f3f3",
+  borderColors = "#C9C9C9"
+  )
+
+Circos(
+  moduleList = aln_depth + mol_depth,
+  genome = genomeChr,
+  innerRadius = 385,
+  outerRadius = 400,
+  height = 800,
+  width = "100%",
+  HISTOGRAMMouseOverColor = "#1cff42",
+  HISTOGRAMMouseOverDisplay = TRUE,
+  HISTOGRAMMouseOutDisplay = TRUE,
+  HISTOGRAMMouseOutColor = NULL,
+  displayGenomeBorder = FALSE
 )
 ```
 
