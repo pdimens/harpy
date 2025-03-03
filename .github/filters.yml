@@ -56,8 +56,7 @@ bwa: &bwa
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
   - 'harpy/bin/assign_mi.py'
-  - 'harpy/bin/make_windows.py'
-  - 'harpy/bin/depth_windows.py'
+  - 'harpy/bin/molecule_coverage.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
@@ -68,8 +67,7 @@ ema: &ema
   - 'harpy/reports/align_bxstats.qmd'
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
-  - 'harpy/bin/make_windows.py'
-  - 'harpy/bin/depth_windows.py'
+  - 'harpy/bin/molecule_coverage.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -81,8 +79,7 @@ strobealign: &strobealign
   - 'harpy/bin/assign_mi.py'
   - 'harpy/bin/bx_stats.py'
   - 'harpy/bin/count_bx.py'
-  - 'harpy/bin/make_windows.py'
-  - 'harpy/bin/depth_windows.py'
+  - 'harpy/bin/molecule_coverage.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
