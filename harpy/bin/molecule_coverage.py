@@ -69,7 +69,7 @@ def which_overlap(start: int, end: int, binlist: list):
 def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
     for idx,int_bin in enumerate(intervals):
-        sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/(int_bin.end - int_bin.start)}\n")
+        sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/(int_bin.stop - int_bin.start)}\n")
 
 with gzip.open(args.statsfile, "rt") as statsfile:
     aln_ranges = []
