@@ -211,12 +211,10 @@ rule alignment_coverage:
         bed = outdir + "/reports/data/coverage/coverage.bed"
     output: 
         outdir + "/reports/data/coverage/{sample}.cov.gz"
-    params:
-        windowsize
     container:
         None
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / {params}; print }}' | gzip > {output}"
+        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / ($3 - $2); print }}' | gzip > {output}"
 
 rule report_config:
     input:
