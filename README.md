@@ -1,11 +1,11 @@
 [![logo](https://github.com/pdimens/harpy/blob/docs/static/logo_trans.png?raw=true)](https://pdimens.github.io/harpy)
 
-[![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=hackthebox&logoColor=ffffff)](https://github.com/pdimens/harpy/releases)
-[![documentation badge](https://img.shields.io/badge/read%20the-documentation-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://pdimens.github.io/harpy) 
-[![Anaconda-Server Badge](https://img.shields.io/conda/dn/bioconda/harpy.svg?style=for-the-badge&color=8870c3&logo=anaconda&logoColor=ffffff)](https://anaconda.org/bioconda/harpy)
+[![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=anaconda&logoColor=ffffff)](https://github.com/pdimens/harpy/releases)
+[![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://pdimens.github.io/harpy)
+[![haplotagging badge](https://img.shields.io/badge/Haplotagging%20-info-c9c9c9?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 
-[Haplotagging](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw reads to assemblies, genotypes, or phased haplotypes or your 💰 back.
+[Haplotagging](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw linked-reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋.
 
 
 ## 📥 Install 
