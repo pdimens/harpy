@@ -1,4 +1,7 @@
 contact_links:
-  - name: Harpy Documentation
+  - name: Harpy documentation
     url: https://pdimens.github.io/harpy/
     about: Make sure to first check the documentation.
+  - name: Start a discussion
+    url: https://github.com/pdimens/harpy/discussions/new/choose
+    about: Things about Harpy that aren't issues
