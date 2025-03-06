@@ -4,7 +4,6 @@ import sys
 f = open(snakemake.log[0], "w")
 sys.stderr = sys.stdout = f
 
-import subprocess
 import pysam
 from Levenshtein import distance
 
@@ -111,8 +110,8 @@ if keep_unknown:
 R1_output = {}
 R2_output = {}
 for sample in samples:
-    R1_output[sample] = subprocess.Popen(["gzip"], stdin = subprocess.PIPE , stdout = open(f"{outdir}/{sample}.{part}.R1.fq.gz", 'wb'))
-    R2_output[sample] = subprocess.Popen(["gzip"], stdin = subprocess.PIPE , stdout = open(f"{outdir}/{sample}.{part}.R2.fq.gz", 'wb'))
+    R1_output[sample] = open(f"{outdir}/{sample}.{part}.R1.fq", 'w')
+    R2_output[sample] = open(f"{outdir}/{sample}.{part}.R2.fq", 'w')
 
 segments = {'A':'', 'B':'', 'C':'', 'D':''}
 clear_read_map={}
@@ -137,8 +136,8 @@ with (
         sample_name = samples_dict.get(segments[id_letter], "_unknown_sample")
         if sample_name == "_unknown_sample" and not keep_unknown:
             continue
-        R1_output[sample_name].stdin.write(f"{r1_rec}\n".encode("utf-8"))
-        R2_output[sample_name].stdin.write(f"{r2_rec}\n".encode("utf-8"))
+        R1_output[sample_name].write(f"{r1_rec}\n")
+        R2_output[sample_name].write(f"{r2_rec}\n")
 
         if "unclear" in statuses:
             continue
@@ -153,10 +152,6 @@ with (
                     clear_read_map[BX_code][0] += 1
                 else:
                     clear_read_map[BX_code] = [1,0]          
-
-    #for sample_name in samples:
-    #    R1_output[sample_name].terminate()
-    #    R2_output[sample_name].terminate()
 
     BC_log.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
     for code in clear_read_map:
