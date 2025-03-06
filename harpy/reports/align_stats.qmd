@@ -450,7 +450,7 @@ contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = gl
 #| content: valuebox
 #| title: "Contigs"
 list(
-  color = "#ffffff",
+  color = "light",
   value = scales::comma(length(unique(tb$contig)))
 )
 ```
