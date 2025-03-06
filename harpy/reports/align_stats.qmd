@@ -655,7 +655,7 @@ if (all(plot_contigs == "default")){
 ```
 
 ```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
-#| title: Depth and Coverage Across the Genome
+#| title: Depth and Coverage Across the Genome (refresh browser window if not showing up)
 
 genomeChr <- .contigs$size
 names(genomeChr) <- .contigs$contig
