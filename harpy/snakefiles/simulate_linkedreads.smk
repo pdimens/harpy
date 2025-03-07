@@ -129,7 +129,7 @@ rule create_molecules:
     conda:
         f"{envdir}/simulations.yaml"
     shell: 
-        "perl {params} -z {threads} -o 1 -d 2 2> {log}"
+        "perl {params} -z {threads} -d 2 2> {log}"
 
 rule sort_molecules:
     input:
