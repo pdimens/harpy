@@ -25,7 +25,7 @@ def parse_schema(smpl, keep_unknown):
     d = {}
     with open(smpl, "r") as f:
         for i in f.readlines():
-            # ignore empty lines or lines with !=2 fields
+            # a casual way to ignore empty lines or lines with !=2 fields
             try:
                 sample, bc = i.split()
                 id_segment = bc[0]
@@ -41,6 +41,7 @@ def parse_schema(smpl, keep_unknown):
 
 samples = parse_schema(samplefile, keep_unknown)
 samplenames = [i for i in samples]
+print(samplenames)
 fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
 rule barcode_segments:
@@ -92,7 +93,6 @@ use rule partition_reads as partition_index with:
         outdir = f"{outdir}/index_chunks"
 
 rule demultiplex:
-    priority: 100
     input:
         R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
         R2 = outdir + "/reads_chunks/reads.R2.part_{part}.fq.gz",
@@ -104,7 +104,7 @@ rule demultiplex:
         segment_d = f"{outdir}/workflow/segment_D.bc",
         schema = samplefile
     output:
-        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq.gz", sample = samplenames, FR = [1,2])),
+        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
         bx_info = temp(f"{outdir}/logs/part.{{part}}.barcodes")
     log:
         f"{outdir}/logs/demultiplex.{{part}}.log"
@@ -120,7 +120,7 @@ rule demultiplex:
 
 rule merge_partitions:
     input:
-        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq.gz", part = fastq_parts)
+        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
         outdir + "/{sample}.R{FR}.fq.gz"
     log:
@@ -128,7 +128,7 @@ rule merge_partitions:
     container:
         None
     shell:
-        "cat {input} > {output} 2> {log}"
+        "cat {input} | gzip > {output} 2> {log}"
 
 rule merge_barcode_logs:
     input:
@@ -170,11 +170,13 @@ rule assess_quality:
         outdir + "/reports/data/{sample}.R{FR}.fastqc"
     log:
         outdir + "/logs/{sample}.R{FR}.qc.log"
+    threads:
+        1
     conda:
         f"{envdir}/qc.yaml"
     shell:
         """
-        ( falco --quiet --threads 1 -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
+        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
 cat <<EOF > {output}
 ##Falco	1.2.4
 >>Basic Statistics	fail
