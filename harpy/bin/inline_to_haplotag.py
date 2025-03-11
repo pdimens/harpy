@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(
     exit_on_error = False
     )
 parser.add_argument("-p", "--prefix", required = True, type = str, help = "Prefix for outfile files (e.g. <prefix>.R1.fq.gz)")
+parser.add_argument("-k", "--keep-tags", action='store_true', help = "Keep the existing tags/comments in the FASTQ header")
 parser.add_argument("-b", "--barcodes", required = True, type=str, help="Barcode conversion key file with format: ATCG<tab>ACBD")
 parser.add_argument("forward", type = str, help = "Forward reads of paired-end FASTQ file pair")
 parser.add_argument("reverse", type = str, help = "Reverse reads of paired-end FASTQ file pair")
@@ -58,12 +59,18 @@ def process_record(fw_rec, rv_rec, barcode_database, bc_len):
     if fw_rec and len(fw_rec.sequence) > bc_len:
         bc_inline = fw_rec.sequence[:bc_len]
         bc_hap = get_value_by_key(barcode_database, bc_inline)
-        fw_rec.comment = fw_rec.comment.split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+        if args.keep_tags:
+            fw_rec.comment += f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+        else:
+            fw_rec.comment = f"OX:Z:{bc_inline}\tBX:Z:{bc_hap}"
         fw_rec.sequence = fw_rec.sequence[bc_len:]
         fw_rec.quality = fw_rec.quality[bc_len:]
         _new_fw = str(fw_rec) + "\n"
         if rv_rec:
-            rv_rec.comment = rv_rec.comment.split()[0] + f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+            if args.keep_tags:
+                rv_rec.comment += f"\tOX:Z:{bc_inline}\tBX:Z:{bc_hap}"
+            else:
+                rv_rec.comment = f"OX:Z:{bc_inline}\tBX:Z:{bc_hap}"
             _new_rv = str(rv_rec) + "\n"
         else:
             _new_rv = None
@@ -71,7 +78,10 @@ def process_record(fw_rec, rv_rec, barcode_database, bc_len):
         _new_fw = None
         # no forward read, therefore no barcode to search for
         if rv_rec:
-            rv_rec.comment = rv_rec.comment.split()[0] + "\tBX:Z:A00C00B00D00"
+            if args.keep_tags:
+                rv_rec.comment += "\tBX:Z:A00C00B00D00"
+            else:
+                rv_rec.comment = "BX:Z:A00C00B00D00"
             _new_rv = str(rv_rec) + "\n"
         else:
             _new_rv = None
