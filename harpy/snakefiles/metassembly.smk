@@ -28,6 +28,7 @@ lineage_map = {
     "bacteria": "bacteria"
 }
 lineagedb = lineage_map.get(organism, "bacteria")
+odb_version = 12
 
 rule sort_by_barcode:
     input:
@@ -261,7 +262,7 @@ rule BUSCO_analysis:
     input:
         f"{outdir}/athena/athena.asm.fa"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
         f"{outdir}/logs/busco.log"
     params:
@@ -281,7 +282,7 @@ rule BUSCO_analysis:
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
         f"{outdir}/quast/report.tsv"
     output:
         f"{outdir}/reports/assembly.metrics.html"

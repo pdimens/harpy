@@ -22,7 +22,7 @@ lineage_map = {
     "bacteria": "bacteria"
 }
 lineagedb = lineage_map.get(organism, "bacteria")
-
+odb_version = 12
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -143,13 +143,13 @@ rule BUSCO_analysis:
     input:
         f"{outdir}/scaffolds.fasta"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb12.busco.txt"
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
         f"{outdir}/logs/busco.log"
     params:
         output_folder = outdir,
         out_prefix = "-o busco",
-        lineage = f"-l {lineagedb}_odb12",
+        lineage = f"-l {lineagedb}_odb{odb_version}",
         download_path = f"--download_path {outdir}/busco",
         metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
     threads:
@@ -161,7 +161,7 @@ rule BUSCO_analysis:
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb12.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
         f"{outdir}/quast/report.tsv"
     output:
         f"{outdir}/reports/assembly.metrics.html"
