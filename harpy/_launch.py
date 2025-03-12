@@ -128,8 +128,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     try:
                         rule,count = output.split()
                         rule_desc = rule.replace("_", " ")
-                        # rule : display_name, count_total, count_complete, set of job_id's
-                        job_inventory[rule] = [rule_desc, int(count), 0, set()]
+                        # rule : display_name, count_total, set of job_id's
+                        job_inventory[rule] = [rule_desc, int(count), set()]
                     except ValueError:
                         pass
                 # checkpoint
@@ -163,22 +163,18 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     if jobidmatch:
                         job_id = int(re.search(r"\d+",output).group())
                         # rule should be the most previous rule recorded
-                        job_inventory[rule][3].add(job_id)
+                        job_inventory[rule][2].add(job_id)
                         continue
                     # check which rule the job is associated with and update the corresponding progress bar
                     finishmatch = re.search(r"Finished\sjob\s\d+", output)
                     if finishmatch:
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
-                            if completed in details[3]:
+                            if completed in details[2]:
                                 progress.advance(task_ids[job])
                                 progress.advance(task_ids["total_progress"])
-                                details[2] += 1
-                                # make the task name dim and green if it's completed
-                                if details[2] >= details[1]:
-                                    progress.update(task_ids[job], description = f"[dim green]{job_inventory[rule][0]}")
                                 # remove the job to save memory. wont be seen again
-                                details[3].discard(completed)
+                                details[2].discard(completed)
                                 break
 
         process.wait()
