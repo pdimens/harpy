@@ -155,7 +155,7 @@ def validate_bam_RG(bamlist: str, threads: int, quiet: int) -> None:
         futures = [executor.submit(check_RG, i) for i in bamlist]
         for future in as_completed(futures):
             result = future.result()
-            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
+            progress.advance(task_progress)
             if result:
                 culpritfiles.append(result[0])
                 culpritIDs.append(result[1])
@@ -470,7 +470,7 @@ def validate_fastq_bx(fastq_list: list[str], threads: int, quiet: int) -> None:
         task_progress = progress.add_task("[green]Validating FASTQ inputs", total=len(fastq_list))
         futures = [executor.submit(validate, i) for i in fastq_list]
         for future in as_completed(futures):
-            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
+            progress.advance(task_progress)
 
 def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
@@ -510,7 +510,7 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
                 print_error("barcodes too long", f"Barcodes in [blue]{infile}[/blue] are [yellow]{length}bp[/yellow] and cannot exceed a length of [bold]{limit}bp[/bold]. Please use shorter barcodes.")
                 sys.exit(1)
             lengths.add(length)
-            progress.update(task_progress, advance=1, refresh = _in_ipython_session)
+            progress.advance(task_progress)
     if len(lengths) > 1:
         print_error("incorrect format", f"Barcodes in [blue]{infile}[/blue] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/yellow]")
         sys.exit(1)

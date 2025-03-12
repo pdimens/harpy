@@ -22,12 +22,13 @@ def harpy_progressbar(quiet: int) -> Progress:
     progress_text =  "[progress.percentage]{task.percentage:>3.0f}%" if quiet == 1 else "[progress.remaining]{task.completed}/{task.total}"
     # TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta")
     return Progress(
-        SpinnerColumn(spinner_name = "arc", style = "dim"),
+        SpinnerColumn(spinner_name = "dots12", style = "blue dim"),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(complete_style="yellow", finished_style="blue"),
         TaskProgressColumn(progress_text, style="magenta"),
         TimeElapsedColumn(),
         transient = True,
+        auto_refresh = True,
         disable = quiet == 2
     )
 
@@ -40,6 +41,7 @@ def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
         TextColumn("[progress.description]{task.description}"),
         BarColumn(bar_width= 70 - len(desc_text), pulse_style = "grey46"),
         TimeElapsedColumn(),
+        auto_refresh = True,
         transient = True,
         disable = quiet == 2
     )

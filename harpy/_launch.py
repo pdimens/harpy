@@ -20,12 +20,12 @@ SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-trigger
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
 
-# logic to properly refresh progress bar for jupyter sessions
-try:
-    __IPYTHON__
-    _in_ipython_session = True
-except NameError:
-    _in_ipython_session = False
+## logic to properly refresh progress bar for jupyter sessions
+#try:
+#    __IPYTHON__
+#    _in_ipython_session = True
+#except NameError:
+#    _in_ipython_session = False
 
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
@@ -178,8 +178,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
-                                progress.update(task_ids[job], advance = 1, refresh = _in_ipython_session)
-                                progress.update(task_ids["total_progress"], advance=1, refresh = _in_ipython_session)
+                                progress.advance(task_ids[job])
+                                progress.advance(task_ids["total_progress"])
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break

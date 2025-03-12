@@ -540,7 +540,7 @@ column_description <- c(
   "name of the contig",
   "average alignment depth",
   "standard deviation of alignment depth",
-  "average depth of inferred molecules, which includes gaps between linked-reads",
+  "average depth including gaps between linked-reads",
   "standard deviation of the inferred molecule alignment depth"
   )
 
