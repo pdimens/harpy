@@ -2,6 +2,7 @@ containerized: "docker://pdimens/harpy:latest"
 
 import os
 import logging
+from urllib.request import urlopen
 
 onstart:
     logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
@@ -22,6 +23,12 @@ lineage_map = {
     "bacteria": "bacteria"
 }
 lineagedb = lineage_map.get(organism, "bacteria")
+def get_orthoDB_version():
+    """Use the orthoDB API to retrieve the version number to"""
+    output = urlopen("https://data.orthodb.org/v12/orthodb_release_id").read().decode("utf-8")
+    return output.replace('"',"").split(".")[0].lstrip("v")
+odb_version = get_orthoDB_version()
+
 # SPADES
 max_mem      = config["spades"]["max_memory"]
 k_param      = config["spades"]["k"]
@@ -142,13 +149,13 @@ rule BUSCO_analysis:
     input:
         f"{outdir}/scaffolds.fasta"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt"
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
         f"{outdir}/logs/busco.log"
     params:
         output_folder = outdir,
         out_prefix = "-o busco",
-        lineage = f"-l {lineagedb}",
+        lineage = f"-l {lineagedb}_odb{odb_version}",
         download_path = f"--download_path {outdir}/busco",
         metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
     threads:
@@ -160,7 +167,7 @@ rule BUSCO_analysis:
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb10.busco.txt",
+        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
         f"{outdir}/quast/report.tsv"
     output:
         f"{outdir}/reports/assembly.metrics.html"
