@@ -395,7 +395,6 @@ rm(hs_mult)
 rm(valids)
 rm(invalids)
 rm(non_singletons)
-#knitr::knit_exit()
 ```
 ```{r imports}
 covfile <- params$coverage
@@ -484,7 +483,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Mol. Average Depth"
+#| title: "Linked Depth"
 list(
   color = "#d4d4d4",
   value = round(mol_global_avg,2)
@@ -493,7 +492,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Mol. Stdev Depth"
+#| title: "Stdev Linked Depth"
 list(
   color = "#d4d4d4",
   value = round(mol_global_sd,2)
@@ -503,7 +502,8 @@ list(
 ## Distdesc header
 ::: {.card title="Alignment Depth Distribution"}
 These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
-For visual clarity, the distribution of alignment-depths (not molecule depths) is truncated at the 99% quantile, which is **`r q99`** for the alignment data.
+For visual clarity, the distributions are truncated at the 99% quantile, which is **`r q99`** for the alignments
+and **`r mol_q99`** for the inferred molecules.
 
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
@@ -515,11 +515,11 @@ hs_mol <- data.frame(val = hs_mol$breaks[-1], freq = hs_mol$counts)
 
 highchart() |>
   hc_chart(type = "area", animation = F) |>
-  hc_add_series(data = hs, type = "areaspline", color = "#757575", name = "by alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
-  hc_add_series(data = hs_mol, type = "areaspline", hcaes(x = val, y = freq), color = "#9c3b94", name = "by inferred molecules", marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs, type = "areaspline", color = "#757575", name = "alignments", hcaes(x = val, y = freq),  marker = list(enabled = FALSE)) |>
+  hc_add_series(data = hs_mol, type = "areaspline", hcaes(x = val, y = freq), color = "#9c3b94", name = "inferred molecules", marker = list(enabled = FALSE)) |>
   hc_xAxis(max = mol_q99, title = list(text = "depth")) |>
   hc_yAxis(title = list(text = "% intervals"))  |>
-  hc_caption(text = "inferred molecules calculate \"effective\" or \"molecule\" coverage") |>
+  hc_caption(text = "inferred molecules provide \"linked\" coverage") |>
   hc_title(text = "Distribution of Alignment Depths")  |>
   hc_exporting(
     enabled = T, filename = paste0(samplename, ".cov"),
@@ -541,7 +541,7 @@ column_description <- c(
   "average alignment depth",
   "standard deviation of alignment depth",
   "average depth including gaps between linked-reads",
-  "standard deviation of the inferred molecule alignment depth"
+  "standard deviation of the depth including gaps between linked-reads"
   )
 
 headerCallback <- c(
@@ -557,7 +557,7 @@ DT::datatable(
   contig_avg, 
   rownames = F, 
   extensions = 'Buttons', 
-  colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Depth (molecules)', 'Standard Deviation (Molecules)'),
+  colnames = c('Contig', 'Average Depth', 'Standard Deviation', 'Average Linked Depth', 'Standard Deviation Linked'),
   fillContainer=T,
   options = list(
     dom = 'Brtp',
@@ -573,7 +573,7 @@ DT::datatable(
 ###
 ::: {.card title="Depth Outliers"}
 This table shows the `r windowskb`kbp intervals considered outliers, as determined by 
-having depth greater than the 99th percentile (`r q99`) of aligment depths. 
+having depth greater than the 99% quantile (`r q99`) of aligment depths. 
 
 ```{r depth_plot}
 column_description <- c(
@@ -596,7 +596,7 @@ DT::datatable(
   outliers, 
   rownames = F, 
   extensions = 'Buttons', 
-  colnames = c('Contig', 'Interval', 'Depth', 'Depth (molecules)'),
+  colnames = c('Contig', 'Interval', 'Depth', 'Linked Depth'),
   fillContainer=T,
   options = list(
     dom = 'Brtp',
@@ -613,22 +613,25 @@ DT::datatable(
 ##
 ::: {.card title="Depth and Coverage, Visualized" fill="false"}
 This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided).
-For clarity, this visualization truncates coverage at the 99th percentile (`r q99` for alignments and `r mol_q99` for molecule coverage).
+For clarity, this visualization truncates coverage at the 99% quantile (`r q99` for alignments and `r mol_q99` for inferred molecules).
 If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome. 
 Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
-The internal (grey) rings are a barplot where each bar represents the alignment depth at a `r windowskb` kilobase
-genomic interval. The inner ring (grey bars) is the number of reads that had a _proper_ alignment in the `r windowskb` kilobase interval, where
+The internal (grey) rings are a histogram where each bar represents the alignment depth at a `r windowskb` kilobase
+genomic interval. These reads are considered to have _proper_ alignment in the `r windowskb` kilobase interval, where
 "proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (magenta bars),
-is the number of _molecules_ spanning that interval.
+is the number of _molecules_ spanning that interval. The outer ring (magenta) is linked depth, which is the alignment depth of the molecules
+inferred from linked-read data, included unsequenced segments between reads sharing the same linked-read barcode. It's common for the
+linked depth histogram to gradually increase towards the center of a contig (your plot may resemble petals of a flower) due
+to the likelihood of linked molecules spanning the center of a contig.
 :::
 
 ##
 ### {width=20%}
 ::: {.card title="Navigating the Plot"}
-You may hover your cursor over variants to view their positions, pan by clicking and dragging,
+You may hover your cursor over bars to view their positions and depths, pan by clicking and dragging,
 and zoom using scroll (mouse or touchpad). In case you become unable to scroll up from the plot due to these interactive 
-features, place your cursor over this left column and you will
-be able to scroll the report instead of zooming on the plot.
+features, place your cursor over this left column and you will be able to scroll the report instead of zooming on the plot.
+Try refreshing the browser window if no plot is appearing in the pane. Note: The depth values are rounded to 4 decimal places.
 :::
 
 ###
@@ -655,7 +658,7 @@ if (all(plot_contigs == "default")){
 ```
 
 ```{r circleplot, fig.align='center', out.width= "80%", out.height="900px"}
-#| title: Depth and Coverage Across the Genome (refresh browser window if not showing up)
+#| title: Depth and Coverage Across the Genome
 
 genomeChr <- .contigs$size
 names(genomeChr) <- .contigs$contig
@@ -674,19 +677,19 @@ for (i in names(genomeChr)){
     paste0("cov_", i),
     chromosome = i, 
     starts = chrcov$position, ends = chrcov$position_end,
-    values = pmin(chrcov$depth, q99),
+    values = round(pmin(chrcov$depth, q99),3),
     color = "#757575",
-    minRadius = inner[1],
-    maxRadius = inner[2]
+    minRadius = inner[1] + 0.02,
+    maxRadius = inner[2] - 0.02
   )
   tracks <- tracks + BioCircosBarTrack(
     paste0("molcov_", i),
     chromosome = i, 
     starts = chrcov$position, ends = chrcov$position_end,
-    values = pmin(chrcov$mol_depth, mol_q99),
+    values = round(pmin(chrcov$mol_depth, mol_q99),3),
     color = "#9c3b94",
-    minRadius = outer[1],
-    maxRadius = outer[2]
+    minRadius = outer[1] + 0.02,
+    maxRadius = outer[2] - 0.02
   )
 }
 # Add background
@@ -755,12 +758,35 @@ aligned_bp
 :::
 
 ###
-::: {.card title="Interpreting Barcode Validity"}
-BX barcode validity is classified into one of two categories:
+::: {.card title="Interpreting Linked-Read Terminology"}
+BX barcode validity is classified into one of three categories:
 
-valid BX
-: a complete BX barcode was present in the read (i.e. no 00 for any segments)
+Valid
+: A complete BX barcode was present in the read (i.e. no 00 for any segments)
 
-invalid BX
-: a barcode was present in the read, but it contained 00 in at least one of the barcode segments
+Invalid
+: A barcode was present in the read, but it contained 00 in at least one of the barcode segments
+
+Missing
+: There is no barcode in the read. For technical reasons this is usually equivalent to `invalid`
+
+Linked-read data is specific for the definition of a "molecule":
+
+Unique/Inferred Molecules
+: Given linked-read barcode information, the original piece of DNA from which the sequenced fragments are considered to originate from.
+
+Inferred Sequence
+: While somewhat similar to "inferred molecule", the inferred sequence describes the original DNA fragment that was put on the sequencer. If the fragment was longer than the sequencer could fully sequence, e.g. 400bp fragment and the sequencer can only sequence 300bp, then the inferred sequence is 400bp long, even though only 300bp are represented in the sequence data. If the entire fragment was sequenced, then the inferred length and sequence lengths should be identical.
+
+There are several kinds of "coverage" when working with linked-read data:
+
+Aligned Depth/Coverage
+: The standard interpretation of depth comparing the number of aligned base-pairs to the genome or contigs
+
+Molecule Coverage
+: The coverage breadth or depth of sequences onto _unique molecules_ (rather than the genome), as inferred from linked-read barcodes
+
+Linked Depth/Coverage
+: The coverage breadth or depth that _includes unsequenced gaps between linked sequences_ that are associated with a single unique molecule. For example, if two 300bp paired-end reads share the same barcode and map 2000bp apart, the calculation *includes* the 1400bp between the sequences as if they were present. This is similar to _inferred sequences_ described above, except spanning across linked sequences rather than within a paired-end sequence.
+
 :::
