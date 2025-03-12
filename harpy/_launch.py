@@ -20,13 +20,6 @@ SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-trigger
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
 
-## logic to properly refresh progress bar for jupyter sessions
-#try:
-#    __IPYTHON__
-#    _in_ipython_session = True
-#except NameError:
-#    _in_ipython_session = False
-
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
