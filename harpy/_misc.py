@@ -9,7 +9,7 @@ import urllib.request
 from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn, MofNCompleteColumn
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
@@ -19,13 +19,11 @@ def harpy_progressbar(quiet: int) -> Progress:
     """
     The pre-configured transient progress bar that workflows and validations use
     """
-    progress_text =  "[progress.percentage]{task.percentage:>3.0f}%" if quiet == 1 else "[progress.remaining]{task.completed}/{task.total}"
-    # TextColumn("[progress.remaining]{task.completed}/{task.total}", style = "magenta")
     return Progress(
         SpinnerColumn(spinner_name = "dots12", style = "blue dim"),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(complete_style="yellow", finished_style="blue"),
-        TaskProgressColumn(progress_text, style="magenta"),
+        TaskProgressColumn("[progress.remaining]{task.completed}/{task.total}") if quiet == 0 else TaskProgressColumn(),
         TimeElapsedColumn(),
         transient = True,
         auto_refresh = True,
