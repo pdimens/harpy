@@ -6,18 +6,16 @@ from . import diagnose, resume, view
 from . import deconvolve
 from . import demultiplex
 from . import container
-from . import hpc
 from . import impute
 from . import assembly, metassembly
 from . import qc
 from . import phase
 from . import preflight
-from . import simulate_linkedreads, simulate_variants
+from . import simulate
 from . import snp
 from . import sv
-from .popgroup import popgroup
 from . import downsample
-from .imputeparams import imputeparams
+from . import template
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -41,44 +39,8 @@ def cli():
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
 
-## unify simulate commands
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-def simulate():
-    """
-    Simulate variants or linked-reads from a genome
-
-    To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
-    to get more information about that workflow. The variant simulator (`simuG`) can only simulate
-    one type of variant at a time, so you may need to run it a few times if you want multiple variant types.
-    Use `simulate linkedreads` to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
-    genomic variants.
-    """
-
-simulate_commandstring = {
-    "harpy simulate": [
-        {
-            "name": "Linked Read Sequences",
-            "commands": ["linkedreads"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Genomic Variants",
-            "commands": ["cnv", "inversion", "snpindel", "translocation"],
-            "panel_styles": {"border_style": "green"}
-        }
-    ]
-}
-
-simulate.add_command(simulate_linkedreads.linkedreads)
-simulate.add_command(simulate_variants.snpindel)
-simulate.add_command(simulate_variants.inversion)
-simulate.add_command(simulate_variants.cnv)
-simulate.add_command(simulate_variants.translocation)
-
 # main program
 cli.add_command(downsample.downsample)
-cli.add_command(popgroup)
-cli.add_command(imputeparams)
 cli.add_command(view.view)
 cli.add_command(preflight.preflight)
 cli.add_command(demultiplex.demultiplex)
@@ -88,14 +50,14 @@ cli.add_command(snp.snp)
 cli.add_command(sv.sv)
 cli.add_command(impute.impute)
 cli.add_command(phase.phase)
-cli.add_command(simulate)
+cli.add_command(simulate.simulate)
 cli.add_command(container.containerize)
-cli.add_command(hpc.hpc)
 cli.add_command(resume.resume)
 cli.add_command(deconvolve.deconvolve)
 cli.add_command(metassembly.metassembly)
 cli.add_command(assembly.assembly)
 cli.add_command(diagnose.diagnose)
+cli.add_command(template.template)
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
@@ -106,8 +68,8 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "downsample", "hpc", "imputeparams", "popgroup"]),
-                "panel_styles": {"border_style": "dim green"}
+                "commands": sorted(["deconvolve", "downsample", "template"]),
+                "panel_styles": {"border_style": "green"}
             },
             {
                 "name": "Troubleshoot",
@@ -115,8 +77,8 @@ click.rich_click.COMMAND_GROUPS = {
                 "panel_styles": {"border_style": "dim"}
             }
         ],
- } | simulate_commandstring | hpc.docstring
+ } | simulate.docstring | template.docstring
 
 click.rich_click.OPTIONS_PANEL_TITLE = None
-for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate_linkedreads, simulate_variants, snp, sv, assembly, metassembly]:
+for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly, metassembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring

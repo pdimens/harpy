@@ -7,17 +7,44 @@ import glob
 from rich import print as rprint
 import rich_click as click
 from ._printing import print_error, print_solution, print_notice
+from .hpc import hpc_generic, hpc_googlebatch, hpc_htcondor, hpc_lsf, hpc_slurm
 
+docstring = {
+    "harpy template": [
+        {
+            "name": "Input Files",
+            "commands": ["groupings", "impute"],
+            "panel_styles": {"border_style": "blue"}
+        },
+        {
+            "name": "HPC Configurations",
+            "commands": ["hpc-generic", "hpc-googlebatch", "hpc-htcondor", "hpc-lsf", "hpc-slurm"],
+            "panel_styles": {"border_style": "green"}
+        },
+    ]
+}
+
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+def template():
+    """
+    Create template files and HPC configs for workflows
+
+    Call any one of the sub-commands with `--help` to see its usage.
+    - `groupings` creates the optional grouping file for variant calling
+    - `impute` create the parameter input for `harpy impute` 
+    - use `hpc-*` so harpy/snakemake submit HPC jobs on your behalf
+      - the `hpc-` commands are run without options or inputs
+    """
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.option('-o', '--output', type=str, default = "samples.groups", help = "Output file name")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
-def popgroup(inputdir, output):
+def groupings(inputdir, output):
     """
     Create a template sample-grouping file
 
-    With this command you can generate a sample grouping file (for variant calling). Provide the 
-    input fastq/bam directory at the end of the command.
+    This command generates a sample grouping file, like the kind optional for variant calling.
+    Provide the input fastq/bam directory at the end of the command.
     By default, the output file will be named `samples.groups`.
     **Note** that Harpy cannot reliably infer populations from filenames, therefore all samples
     will be assigned to `pop1`. Please modify this file with appropriate population
@@ -57,3 +84,37 @@ def popgroup(inputdir, output):
         for i in samplenames:
             _ = file.write(i + '\tpop1\n')
     print_notice(f"Created sample population grouping file [blue]{output}[/blue]. Please review it, as all samples have been grouped into a single population")
+
+@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.option('-o', '--output', type=str, required = True, help = 'Output file name')
+def impute(output):
+    """
+    Create a template imputation parameter file
+
+    With this command you can create a template parameter
+    file necessary for imputation via `harpy impute`. The resulting
+    file will have generic values and should be modified to be appropriate
+    for your study system.
+    """
+    if os.path.exists(output):
+        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
+        if overwrite not in ["yes", "y"]:
+            click.echo("Please suggest a different name for the output file")
+            sys.exit(0)
+    with open(output, "w", encoding="utf-8") as file:
+        _ = file.write('name\tmodel\tusebx\tbxlimit\tk\ts\tngen\n')
+        _ = file.write('k10_ng50\tdiploid\tTRUE\t50000\t10\t1\t50\n')
+        _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
+        _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
+    print_notice(
+        f"Created template imputation parameter file: [blue]{output}[/blue]\n" +
+        "Modify the model parameters as needed, but [yellow bold]do not add/remove columns."
+    )
+
+template.add_command(impute)
+template.add_command(groupings)
+template.add_command(hpc_generic)
+template.add_command(hpc_googlebatch)
+template.add_command(hpc_htcondor)
+template.add_command(hpc_lsf)
+template.add_command(hpc_slurm)
