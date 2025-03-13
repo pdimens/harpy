@@ -17,7 +17,7 @@ def package_exists(pkg):
             exists = True
     if not exists:
         print_notice(Markdown(f"""
-Using this scheduler requires installing an additional Snakemake plugin, which wasn't detected in this environment.
+Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment.
 It can be installed with:
     
 ```bash
