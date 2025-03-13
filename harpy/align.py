@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import shutil
 from pathlib import Path
 import rich_click as click
 from ._conda import create_conda_recipes
@@ -105,7 +106,9 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
     command += f" --snakefile {workflowdir}/align_bwa.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
@@ -196,7 +199,9 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     command += f" --snakefile {workflowdir}/align_ema.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
@@ -307,7 +312,9 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
     command += f" --snakefile {workflowdir}/align_strobealign.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

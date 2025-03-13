@@ -2,6 +2,7 @@
 import os
 import sys
 import yaml
+import shutil
 from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
@@ -62,7 +63,9 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     command += f" --snakefile {workflowdir}/simulate_linkedreads.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

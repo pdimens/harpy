@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import shutil
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
@@ -66,7 +67,9 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     command += f" --snakefile {workflowdir}/preflight_bam.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

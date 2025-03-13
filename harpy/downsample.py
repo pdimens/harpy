@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import yaml
+import shutil
 from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams
@@ -32,11 +33,12 @@ docstring = {
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
+@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)
-def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setup_only, snakemake, threads, quiet):
+def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc, setup_only, snakemake, threads, quiet):
     """
     Downsample data by barcode
 
@@ -71,6 +73,10 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     command = f'{SNAKEMAKE_CMD} --cores {threads}'
     command += f" --snakefile {workflowdir}/{workflow}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
