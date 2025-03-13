@@ -5,6 +5,7 @@
 - `--ignore-bx` added to `harpy qc` and `harpy align` to skip linked-read routines and make the workflows suitable for non linked-read data
 ### Modules
 - `harpy diagnose` to view snakemake's `--debug-diag` output for troubleshooting
+- `harpy template` to create template files (see breaking changes below)
 ### Options
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
@@ -12,8 +13,13 @@
 - `harpy downsample` adds `--hpc`
 
 ## Breaking Changes
+### Renamed Commands
+- `harpy popgroup` is now `harpy template groupings`
+- `harpy imputeparams` is now `harpy template impute`
+- `harpy hpc` is now `harpy template hpc-*`
+  - where `*` is the type of scheduler, e.g. `harpy template hpc-slurm`
 ### HPC support
-- `harpy hpc` now outputs `hpc/system.yaml` rather than `hpc/system/config.yaml`
+- `harpy template hpc-*` now outputs `hpc/system.yaml` rather than `hpc/system/config.yaml`
 - the `--hpc` option for workflows now takes the configuration yaml file directly, directory input is disabled
     - a copy is made to `outdir/workflow/hpc/config.yaml` and the snakemake workflow is configured to run off of that copy
     - input yaml file is tested for proper yaml syntax
@@ -41,7 +47,7 @@
 - the BUSCO analysis in `harpy assembly` and `harpy metassembly` is now hardcoded to use orthoDB v12
 
 ## Fixes
-- special error handling in quarto-based reports when there are NAs or NaNs, or too few data points to make a histogram
+- improved error handling in quarto-based reports when there are NAs or NaNs, or too few data points to make a histogram
 - threads are capped at `999` for workflows to prevent Snakemake from getting in your face about it
 - html injection into reports with circos plots to make sure the tooltip isn't hidden behind the plot
 - bugfixes in the `lsf` profile from `harpy hpc lsf`
@@ -50,3 +56,9 @@
   - prevents the "broken pipe" message after closing a gzipped file
   - no more [direct] reliance on `subprocess` calls
   - calls `pygmentize` directly through python API
+- updated mentions of `popgroup` and `stitchparams` (legacy) to `harpy template`
+
+## Internal
+- `popgroup.py` and `imputeparams.py` merged into `template.py`
+- the `click` bindings for `simulate` were moved out of `__main__.py` and into `simulate.py`
+  - result is less cluttered and more intuitive `__main__.py`
