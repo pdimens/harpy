@@ -15,7 +15,7 @@ from ._printing import workflow_info
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def preflight():
     """
-    File format checks for haplotag data
+    File format checks for haplotagging data
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
