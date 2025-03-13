@@ -89,15 +89,32 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using BWA MEM
- 
-    Provide the input fastq files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+    Align sample sequences to a reference genome using BWA MEM.
     
-    BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
-    Harpy will post-processes the alignments using the specified `--molecule-distance`
-    to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
-    harpy perform alignment-distance based barcode deconvolution.
+    This function sets up and executes a Snakemake workflow to perform sequence alignment using BWA MEM.
+    It processes input FASTQ files or directories (supporting shell wildcards), validates the reference genome,
+    and optionally verifies contig matches. An HPC YAML configuration file can be provided to customize HPC
+    submission, and a positive molecule distance triggers post-alignment barcode deconvolution. When setup_only
+    is enabled, the workflow configuration is generated and the function exits without launching the workflow.
+    
+    Args:
+        inputs: Input FASTQ files or directories (supports shell wildcards).
+        output_dir: Directory for creating workflow outputs and configuration files.
+        genome: Path to the reference genome FASTA file.
+        depth_window: Window size used for depth calculations.
+        ignore_bx: Flag to ignore barcode information during alignment.
+        threads: Number of CPU threads to allocate.
+        keep_unmapped: Flag indicating whether to retain unmapped reads.
+        extra_params: Additional parameters for customizing the workflow.
+        min_quality: Minimum mapping quality threshold.
+        molecule_distance: Distance threshold for grouping alignments into unique molecules.
+        snakemake: Extra command-line arguments appended to the Snakemake command.
+        skip_reports: Flag to skip report generation.
+        quiet: Flag to run the workflow in quiet mode.
+        hpc: Path to an HPC submission YAML configuration file.
+        container: Flag indicating whether to use containerized execution.
+        contigs: Optional file specifying contig names for validating the reference genome.
+        setup_only: If true, prepares the workflow without launching it.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -181,17 +198,39 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using EMA
-
-    Provide the input fastq files and/or directories at the end of the
-    command as individual files/folders, using shell wildcards
-    (e.g. `data/axolotl*.fastq.gz`), or both.
-
-    EMA may improve mapping, but it also marks split reads as secondary
-    reads, making it less useful for variant calling with leviathan. The barcode
-    list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
-    sequences at the beginning of the forward reads are known barcodes.
-    """
+        Align sequences to a reference genome using the EMA algorithm.
+    
+        Sets up and executes a Snakemake workflow to align input FASTQ data to a
+        reference genome using EMA. The function validates input FASTQ files,
+        the genome FASTA, and—depending on the sequencing platform—a required barcode
+        list (for "10x" and "tellseq" platforms). For "haplotag" data, any provided
+        barcode list is ignored. It configures workflow parameters including fragment
+        density optimization, depth window, and alignment quality, and it supports
+        HPC configuration and containerization. A YAML configuration file is written
+        to the workflow directory, and the workflow is launched unless run in setup-only
+        mode.
+        
+        Args:
+            inputs: File paths or directories containing FASTQ data; supports shell wildcards.
+            output_dir: Directory for workflow artifacts, configuration, and logs.
+            platform: Sequencing platform identifier (e.g., "10x", "tellseq", "haplotag").
+            barcode_list: Path to a file with known barcodes (one per line); required for some platforms.
+            fragment_density: Option for optimizing fragment density.
+            genome: Path to the reference genome in FASTA format.
+            depth_window: Size of the window for calculating read depth.
+            keep_unmapped: Boolean flag to retain unmapped reads.
+            threads: Number of computing threads to use.
+            ema_bins: EMA-specific binary or flag parameters.
+            skip_reports: Flag to skip generating workflow reports.
+            extra_params: Additional parameters to customize the Snakemake command.
+            min_quality: Minimum quality threshold for alignments.
+            snakemake: Extra arguments to append to the Snakemake command.
+            quiet: Boolean to suppress non-critical output.
+            hpc: Path to the HPC submission YAML configuration file.
+            container: Flag indicating whether to use containerization.
+            contigs: Optional specification for contig validation against the reference genome.
+            setup_only: If True, prepares the workflow configuration without launching it.
+        """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     sdm = "conda" if not container else "conda apptainer"
@@ -292,18 +331,17 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using strobealign
- 
-    Provide the input fastq files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+    Align sequences using strobealign and configure the Snakemake workflow.
     
-    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
-    not use barcodes when mapping. Use a value >`0` for `--molecule-distance` to have
-    harpy perform alignment-distance based barcode deconvolution.
-    
-    The `--read-length` is an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
-    The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
-    `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
+    This function sets up and launches a Snakemake workflow for aligning sequencing data with
+    strobealign, an ultra-fast aligner optimized for reads longer than 100bp that does not use
+    barcodes by default. It processes input FASTQ files or directories (supporting shell wildcards),
+    validates the reference genome (and optionally checks contigs), and prepares a YAML configuration
+    file that includes parameters such as the approximate read length, alignment quality, and molecule
+    distance for barcode deconvolution. If an HPC submission configuration is provided via the `hpc`
+    parameter, the corresponding YAML file is copied into a dedicated subdirectory and linked in the
+    workflow command. The function also creates necessary conda recipes and, unless run in setup-only
+    mode, launches the alignment workflow.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

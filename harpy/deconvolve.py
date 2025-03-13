@@ -42,13 +42,17 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, container, setup_only):
     """
-    Resolve shared barcodes between unrelated molecules
-
-    Provide the input fastq files and/or directories at the end of the command
-    as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
+    Configure and run the deconvolution workflow for barcode separation.
     
-    The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
-    `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
+    This function sets up the execution environment for processing FASTQ files or directories,
+    preparing the necessary directory structure and configuration for a deconvolution workflow.
+    It constructs a Snakemake command that incorporates parameters such as k-mer length, window
+    size, density, and dropout, and selects the appropriate software deployment method (Conda
+    or container-based). If an HPC YAML configuration is provided, a dedicated HPC directory is
+    created, the configuration file is copied, and the workflow profile is updated accordingly.
+    A YAML configuration file summarizing the workflow parameters is generated, and Conda
+    recipes are built for the required environments. When the setup_only flag is enabled, the
+    function completes the setup and then exits without launching the workflow.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

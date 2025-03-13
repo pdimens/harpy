@@ -50,15 +50,13 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
-    Run validity checks on haplotagged BAM files
-
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/betula*.bam`), or both.
+    Run preflight validations on haplotagged BAM files.
     
-    It will check that alignments have BX:Z: tags, that haplotag
-    barcodes are properly formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
-    This **will not** fix your data, but it will report the number of records that feature errors  to help
-    you diagnose if file formatting will cause downstream issues. 
+    Validates that the provided BAM alignments possess the required BX:Z: tag, that haplotag barcodes follow
+    the pattern 'AxxCxxBxxDxx', and that filenames match the '@RG ID' tag. This function sets up the Snakemake
+    workflow by generating a configuration file, creating necessary directories, and optionally integrating an
+    HPC submission YAML configuration. When the setup-only flag is set, it exits after setup without running the
+    complete workflow.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -113,16 +111,9 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
 def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
-    Run validity checks on haplotagged FASTQ files.
-
-    Provide the input fastq files and/or directories at the end of the command as 
-    individual files/folders, using shell wildcards (e.g. `data/wombat*.fastq.gz`), or both.
+    Perform preflight validity checks on haplotagged FASTQ files.
     
-    It will check that fastq reads have `BX:Z:` tags, that haplotag
-    barcodes are propery formatted (`AxxCxxBxxDxx`) and that the comments in the
-    read headers conform to the SAM specification of `TAG:TYPE:VALUE`. This **will not**
-    fix your data, but it will report the number of reads that feature errors to help
-    you diagnose if file formatting will cause downstream issues. 
+    This function validates FASTQ inputs—specified as individual files, directories, or wildcards—by verifying that each read includes a `BX:Z:` tag, the haplotag barcode is properly formatted (e.g. `AxxCxxBxxDxx`), and header comments adhere to the SAM specification (`TAG:TYPE:VALUE`). It reports any detected formatting issues without modifying the data.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

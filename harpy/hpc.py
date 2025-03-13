@@ -11,14 +11,13 @@ from ._printing import print_notice
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def hpc():
     """
-    Profile templates for cluster job submissions
-
-    If running Harpy on an HPC system, you can leverage Snakemake
-    to handle all the job submissions on your behalf. This command creates templates
-    for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `system.yaml` in an `hpc/` directory (where `system`
-    is one of the options below). You will also need to install the associated Snakemake
-    executor plugin for HPC job submission to work.
+    Profile templates for cluster job submissions.
+    
+    This command group provides subcommands to generate scheduler-specific YAML
+    configuration files (e.g., "generic.yaml", "lsf.yaml", "htcondor.yaml", "slurm.yaml",
+    or "googlebatch.yaml") in the "hpc/" directory. These profiles enable Snakemake to manage
+    job submissions on HPC clusters. Ensure that the corresponding Snakemake executor plugin
+    is installed for the intended scheduler.
     """
 
 docstring = {
@@ -32,7 +31,16 @@ docstring = {
 }
 
 def package_exists(pkg):
-    """helper function to search for a package in the active conda environment"""
+    """Verify the installation of a required Snakemake executor plugin.
+    
+    This function checks if a package named "snakemake-executor-plugin-{pkg}" is
+    installed in the active conda environment. If not, it prints a markdown-formatted
+    notice with instructions to install the missing plugin using either conda or pixi.
+    
+    Args:
+        pkg: Suffix of the plugin package name; the complete name is formed as
+             "snakemake-executor-plugin-{pkg}".
+    """
     search_pkg = subprocess.run(f"conda list snakemake-executor-plugin-{pkg}".split(), capture_output = True, text = True)
     exists = False
     for i in search_pkg.stdout.split("\n"):
@@ -52,7 +60,15 @@ pixi add snakemake-executor-plugin-{pkg}
 
 @click.command()
 def generic():
-    """Configuration for a generic scheduler"""
+    """
+    Generates a YAML configuration file for a generic scheduler.
+    
+    This function creates or overwrites the "hpc/generic.yaml" file with default
+    configuration settings used by the generic HPC scheduler for Snakemake. It ensures
+    the necessary "hpc" directory exists, verifies that the "cluster-generic" package is
+    installed, and writes key settings such as memory allocation, job limits, and commands
+    for job submission, status querying, cancellation, and sidecar processing.
+    """
     outfile = "hpc/generic.yaml"
     os.makedirs("hpc", exist_ok=True)
     if os.path.exists(outfile):
@@ -88,7 +104,14 @@ def generic():
 
 @click.command()
 def lsf():
-    """Configuration for LSF"""
+    """
+    Generate a YAML configuration file for the LSF scheduler.
+    
+    This function creates the 'hpc' directory (if it does not exist) and writes the LSF
+    configuration to 'hpc/lsf.yaml'. It verifies that the required LSF executor package is
+    installed and overwrites any existing configuration file. The output YAML includes default
+    resource settings and job submission parameters, with placeholder values for further customization.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/lsf.yaml"
     if os.path.exists(outfile):
@@ -118,7 +141,15 @@ def lsf():
 
 @click.command()
 def htcondor():
-    """Configuration for HTCondor"""
+    """
+    Generate a YAML configuration file for the HTCondor scheduler.
+    
+    This function ensures the "hpc" directory exists and creates or overwrites the 
+    "hpc/htcondor.yaml" file with default configuration settings for running Snakemake 
+    jobs on an HTCondor cluster. It warns if an existing file is being overwritten and 
+    checks that the HTCondor executor plugin is installed. The configuration includes 
+    default resource parameters and a commented section for advanced scratch directory setup.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/htcondor.yaml"
     if os.path.exists(outfile):
@@ -147,7 +178,16 @@ def htcondor():
 
 @click.command()
 def slurm():
-    """Configuration for SLURM"""
+    """
+    Generate a SLURM configuration file for HPC execution.
+    
+    This function creates or overwrites the "hpc/slurm.yaml" file with default
+    configuration settings for running jobs on a SLURM scheduler. It ensures the
+    required SLURM plugin is installed and writes YAML-formatted parameters,
+    including default resource allocations, job count, latency wait, and retry
+    settings. Commented sections provide options for configuring advanced scratch
+    directory usage.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/slurm.yaml"
     if os.path.exists(outfile):
@@ -176,7 +216,12 @@ def slurm():
 
 @click.command()
 def googlebatch():
-    """Configuration for Google Batch"""
+    """Generate a Google Batch HPC profile configuration file.
+    
+    Creates or overwrites the 'hpc/googlebatch.yaml' file with default settings for
+    Google Batch job submission. Verifies that the required 'googlebatch' plugin is
+    installed before writing the configuration.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/googlebatch.yaml"
     if os.path.exists(outfile):

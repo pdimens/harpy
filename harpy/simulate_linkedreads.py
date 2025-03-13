@@ -47,14 +47,20 @@ docstring = {
 @click.argument('genome_hap2', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
 def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, container, setup_only):
     """
-    Create linked reads from a genome
- 
-    Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
-    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/blog/simulate_diploid/).
-
-    If not providing a file for `--barcodes`, Harpy will generate a file containing the original
-    (96^4) set of 24-basepair haplotagging barcodes (~2GB disk space). The `--barcodes` file is expected to have one
-    linked-read barcode per line, given as nucleotides.
+    Simulate linked-reads from two haplotype genomes.
+    
+    This function configures and initiates a simulation workflow to generate linked reads from two 
+    input FASTA files representing genomic haplotypes. It accepts various simulation parameters such as 
+    outer distance, mutation rate, distance standard deviation, read pairs, molecule length, and partition 
+    details. If no barcode file is provided, a default set of 24-basepair haplotagging barcodes is generated.
+    
+    An optional HPC configuration file (via the --hpc option) can be supplied to set up an HPC workflow 
+    profile; the file is copied into the workflow for subsequent use. The complete workflow configuration 
+    is written to a YAML file, and the Snakemake workflow is launched unless the setup-only flag is set, 
+    in which case the function exits after setup.
+    
+    Two FASTA files representing the haplotypes are required; if a diploid genome is not available, it can 
+    be simulated with `harpy simulate` as described in the online documentation.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

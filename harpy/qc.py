@@ -48,23 +48,21 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Remove adapters and quality-control sequences
-
-    Provide the input fastq files and/or directories at the end of the command
-    as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
+    Perform quality control on sequencing data by trimming adapters and applying optional checks.
     
-    **Standard trimming**
-    - a sliding window from front to tail
-    - poly-G tail removal
-
-    **Optional quality checks**
-    - `-a` remove adapters
-      - accepts `auto` to automatically detect adapters or a FASTA file of adapters to remove
-    - `-d` finds and removes optical PCR duplicates
-      - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
-    - `-c` resolves barcodes shared between unrelated sequences
-      - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces. `21 40 3 0` would be the QuickDeconvolution defaults
-      - use `harpy deconvolve` to perform this task separately
+    This CLI command processes input FASTQ files or directories, performing standard trimming
+    (with a sliding window and poly-G tail removal) and optional quality control steps:
+      - Adapter removal (-a): auto-detects adapters or uses a provided FASTA file (validated for
+        existence, read permissions, and proper format).
+      - Optical duplicate removal (-d): eliminates PCR duplicates.
+      - Barcode deconvolution (-c): resolves shared barcodes using four integer parameters.
+    
+    Additional options allow configuring trimming length constraints, deduplication, barcode
+    ignoring, extra Fastp parameters, and containerized execution. When a HPC YAML configuration
+    file is provided via --hpc, it is copied into the workflow directory and used as the workflow profile.
+    If the setup-only flag is set, the workflow is configured without launching the Snakemake run.
+    
+    Input files may be specified individually or with shell wildcards.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

@@ -69,19 +69,18 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Call variants from using bcftools mpileup
+    Run SNP variant calling with bcftools mpileup through a Snakemake workflow.
     
-    Provide the input alignment (`.bam`) files and/or directories
-    at the end of the command as individual files/folders, using shell wildcards
-    (e.g. `data/scarab*.bam`), or both.
-    
-    The `--regions` option specifies what genomic regions to call variants
-    with. If a BED or tab delimited file is provided, variant calling will be parallelized
-    over those regions. If a single region is provided in the format `chrom:start-end`, only
-    that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire genome.
-
-    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
+    This function configures a Snakemake workflow to call variants from provided
+    alignment files and directories using bcftools mpileup. It validates the input BAM
+    files and genome FASTA, prepares a regions file based on a BED file, a single
+    region string (e.g. "chr:start-end"), or a specified window size for genome-wide
+    parallel processing, and writes a corresponding YAML configuration. Optional
+    parameters allow for population-aware variant calling, passing extra command-line
+    arguments, and incorporating HPC configuration by copying a provided submission YAML
+    to the workflow directory. When a container is used, the software deployment method is
+    adjusted accordingly. If the setup_only flag is enabled, the function configures the
+    workflow and exits without launching Snakemake.
     """   
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -173,19 +172,19 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Call variants using freebayes
+    Call variants using FreeBayes.
     
-    Provide the input alignment (`.bam`) files and/or directories
-    at the end of the command as individual files/folders, using shell wildcards
-    (e.g. `data/jellyfish*.bam`), or both.
+    This function configures and launches a Snakemake workflow for SNP variant calling with FreeBayes.
+    Input alignment files (.bam) or directories (specified with shell wildcards) are parsed to create the
+    workflow sample list. The genomic regions for variant calling can be defined by providing a BED or
+    tab-delimited file (to enable parallel processing over regions), a single region string (e.g. "chr1:1000-2000"),
+    or an integer value indicating uniform interval sizes for genome-wide variant calling.
     
-    The `--regions` option specifies what genomic regions to call variants
-    with. If a BED or tab delimited file is provided, variant calling will be parallelized
-    over those regions. If a single region is provided in the format `chrom:start-end`, only
-    that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire genome.
-
-    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
+    Optionally, a population grouping file can be provided for population-aware variant calling. If an
+    HPC submission YAML configuration file is specified, it is copied into the workflow directory to customize
+    job scheduling parameters. The container flag adjusts the software deployment method, and extra parameters
+    can be supplied to modify FreeBayes execution. After validating inputs and preparing the configuration,
+    the function either sets up the workflow or launches it based on the setup_only flag.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

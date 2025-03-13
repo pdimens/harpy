@@ -77,15 +77,11 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Call structural variants using LEVIATHAN
+    Set up and optionally run a Snakemake workflow for Leviathan-based SV calling.
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
-    individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
-
-    Optionally specify `--populations` for population-pooled variant calling
-    (**harpy popgroup** can create that file). If you suspect Leviathan is missing certain variants
-    you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
-    have to be the same across the different size classes.
+    This function configures a workflow to call structural variants using the LEVIATHAN method. It validates alignment inputs and the reference genome, and optionally checks provided contig and population files for individual or population-pooled analyses. Based on parameters such as minimum variant size, barcode requirements, iteration count, duplicate handling, and variant sharing thresholds, it generates a YAML configuration file and prepares the required workflow directories and logs.
+    
+    If an HPC submission YAML configuration file is provided via the hpc parameter, an HPC subdirectory is created and its configuration is incorporated into the workflow profile. When the container flag is enabled, the software deployment method is adjusted accordingly. If setup_only is set, the function exits after configuration without launching the workflow.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -178,18 +174,16 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Call structural variants using NAIBR
+    Call structural variants using the NAIBR workflow.
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
-    individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
-
-    NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
-    in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA/EMA do not phase alignments), then provide a **phased** `--vcf` file such
-     as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
-    to phase your input bam files prior to calling variants with NAIBR.
-
-    Optionally specify `--populations` for population-pooled variant calling (**harpy popgroup** can create that file).
+    Prepares and optionally executes a Snakemake pipeline for NAIBR-based variant calling.
+    This function processes input alignment files (or directories containing .bam files) and
+    validates the genome assembly and, if provided, contigs and population data. It ensures
+    the input BAM files are phased; if necessary, a phased VCF file is used to phase alignments.
+    An optional HPC submission YAML configuration file can be supplied via the hpc parameter,
+    in which case it is copied into the workflow directory and referenced as the workflow profile.
+    A YAML configuration file is generated, required Conda recipes are created, and if setup_only
+    is not set, the workflow is launched with appropriate logging.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

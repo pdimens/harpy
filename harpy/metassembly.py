@@ -49,11 +49,32 @@ docstring = {
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
-    Create a metassembly from linked-reads
-
-    The linked-read barcodes must be in `BX:Z` or `BC:Z` FASTQ header tags. If provided, values for `-k` must be
-    separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
-    the input FASTQ files with `harpy deconvolve`.
+    Set up and optionally run a linked-read metassembly workflow.
+    
+    This function configures and executes a Snakemake-based metassembly workflow for linked-read data.
+    It validates paired FASTQ files with barcode headers (in "BX:Z" or "BC:Z" format), prepares the workflow
+    directory, writes the configuration (including SPAdes parameters and optional HPC settings), and creates
+    the required conda environments. When the 'setup_only' flag is True, the workflow is configured and the
+    process exits without launching Snakemake.
+    
+    Args:
+        fastq_r1: Path to the first FASTQ file.
+        fastq_r2: Path to the second FASTQ file.
+        bx_tag: Barcode tag identifier (e.g. "BX" or "BC") used to extract linked-read barcodes.
+        kmer_length: Kmer lengths for SPAdes assembly as a list of integers or "auto" for automatic selection.
+        max_memory: Maximum memory allocation for SPAdes.
+        ignore_bx: Flag indicating whether to ignore linked-read barcodes during assembly.
+        output_dir: Directory where workflow files, logs, and outputs will be stored.
+        extra_params: Additional parameters for SPAdes assembly.
+        container: Boolean flag indicating whether to deploy software using a container.
+        threads: Number of threads to allocate for the workflow.
+        snakemake: Extra command-line arguments to pass to Snakemake.
+        quiet: Flag to suppress verbose output.
+        hpc: Path to an HPC submission YAML configuration file; if provided, it is copied to the workflow's
+             HPC directory.
+        organism_type: Specifies the organism type for report configuration.
+        setup_only: If True, only sets up the workflow without launching Snakemake.
+        skip_reports: If True, generation of reports is skipped.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

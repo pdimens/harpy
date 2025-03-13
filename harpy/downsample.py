@@ -7,7 +7,7 @@ import yaml
 import shutil
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
+from ._cli_types_generic import convert_to_int, SnakemakeParams
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._printing import workflow_info
@@ -33,27 +33,26 @@ docstring = {
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
--from ._cli_types_generic import convert_to_int, SnakemakeParams
-+from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)
 def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc, setup_only, snakemake, threads, quiet):
     """
-    Downsample data by barcode
-
-    Downsamples FASTQ or BAM file(s) by barcode in the `BX` tag to keep all reads
-    from `-d` barcodes. The `BX:Z` tag must be the **last tag** in either the BAM
-    or FASTQ file(s). If the `BX` tag isn't terminal, use `bx_to_end.py` (provided
-    by Harpy) to move the tag to the end. Input can be:
-    - one BAM file
-    - two FASTQ files (R1 and R2 of a paired-end read set)
+    Downsample reads by barcode from FASTQ or BAM files.
     
-    Use `--invalid` to specify the proportion of invalid barcodes to consider for sampling:
-    - `0` removes all invalid barcodes from the barcode pool
-    - `1` adds all invalid barcodes to the barcode pool
-    - 0<`i`<1 (e.g. `0.25`) keeps that proprotion of invalid barcodes in the barcode pool
+    This function down-samples input read files based on the terminal "BX:Z" barcode tag
+    to retain all reads associated with a specified number of barcodes. Input must be a single
+    BAM file or a pair of FASTQ files (for paired-end reads). If the "BX:Z" tag is not terminal,
+    use the bx_to_end.py utility to reposition it.
+    
+    The invalid barcode proportion is configurable: a value of 0 excludes all invalid barcodes,
+    1 includes all invalid barcodes, and a fractional value between 0 and 1 retains that fraction.
+    An optional HPC submission YAML configuration file may be provided via the hpc parameter.
+    When specified, it is copied into the workflow directory and applied as a workflow profile.
+    If setup_only is enabled, the workflow environment is configured and the function exits
+    without executing the workflow.
     """
     # validate input files as either 1 bam or 2 fastq
     if len(input) > 2:

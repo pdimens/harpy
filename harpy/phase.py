@@ -49,15 +49,34 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Phase SNPs into haplotypes
-
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
-    individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
+    Configure and run haplotype phasing workflow using Snakemake.
     
-    You may choose to omit barcode information with `--ignore-bx`, although it's usually
-    better to include that information. Use `--vcf-samples` to phase only
-    the samples present in your input `--vcf` file rather than all the samples present in
-    the `INPUT` alignments.
+    This function sets up the necessary workflow environment by creating required
+    directories and generating a YAML configuration file based on provided inputs.
+    It processes alignment files (BAMs) and a VCF file with variant calls while
+    applying optional filters such as sample restriction and barcode omission.
+    When an HPC configuration file is provided, it is copied into a dedicated subdirectory
+    and referenced in the workflow command. If not in setup-only mode, the function
+    launches the Snakemake workflow to phase SNPs into haplotypes.
+    
+    Args:
+        inputs: Input BAM files or directories; supports shell wildcards.
+        output_dir: Root directory for workflow outputs, configuration, and logs.
+        vcf: VCF file containing variant calls used for phasing.
+        threads: Number of CPU cores allocated for the workflow.
+        molecule_distance: Maximum allowed distance between molecules for linking.
+        prune_threshold: Pruning threshold as a percentage (divided by 100 in config).
+        vcf_samples: If True, phase only the samples present in the VCF file.
+        genome: Path to the genome FASTA file, necessary for indel phasing.
+        snakemake: Additional command-line arguments to append to the Snakemake command.
+        extra_params: Extra configuration parameters to merge into the YAML configuration.
+        ignore_bx: If True, omit barcode information from the analysis.
+        skip_reports: If True, skip generation of workflow reports.
+        quiet: If True, reduce output verbosity.
+        hpc: Path to an HPC submission YAML configuration file for remote execution.
+        container: If True, use containerized execution (e.g., Apptainer) in the workflow.
+        contigs: Optional contig specification for filtering or plotting VCF data.
+        setup_only: If True, set up the workflow without launching the execution.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

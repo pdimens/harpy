@@ -263,14 +263,14 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
 def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
-    Introduce inversions into a genome
- 
-    ### Haploid
-    Use either a VCF file to simulate known inversions or the command line options listed below to simulate random inversions.
-
-    ### Diploid
-    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Simulate genomic inversions in a genome.
+    
+    This function sets up and optionally launches a workflow to simulate genomic inversions.
+    When a VCF file is provided, known inversions are simulated; otherwise, random inversions are
+    generated based on the provided count and inversion size limits. For diploid genomes, a
+    heterozygosity value greater than 0 triggers the simulation of heterozygous and homozygous
+    inversions, and the only_vcf flag can be used to generate only the variant VCF file(s) without
+    constructing the complete diploid genome.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
@@ -368,21 +368,21 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
 def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
-    Introduce copy number variants into a genome
- 
-    ### Haploid
-    Use either a VCF file to simulate known CNVs or the command line options listed below to simulate random CNVs.
-      
-    ### Diploid
-    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
- 
-    The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
+    Simulate copy number variants (CNVs) in a genome workflow.
     
-    | ratio | meaning | `9999` | `0` |
-    |:----|:----|:---|:----|
-    | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
-    | `--gain-ratio` | copy gain / loss | gain only | loss only| 
+    This function generates a workflow to simulate CNVs either from a provided VCF file or by using
+    randomly generated parameters. For a haploid genome, it applies known CNVs (via VCF) or random CNVs,
+    while for a diploid genome, setting heterozygosity above zero simulates both heterozygous and homozygous
+    variants. When simulating diploid CNVs, using the only_vcf option generates variant VCF file(s) without
+    creating the complete diploid genome.
+    
+    The duplication and gain ratio parameters have special meanings:
+      - A duplication ratio of 9999 forces tandem CNVs only, while 0 forces dispersed CNVs only.
+      - A gain ratio of 9999 simulates copy gains only, whereas 0 simulates copy losses only.
+    
+    The function sets up the necessary workflow directories and configuration files, manages HPC configuration
+    if provided, and launches the Snakemake workflow. It prints an error and exits if conflicting or missing
+    simulation parameters are detected.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
@@ -477,14 +477,36 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
-    Introduce translocations into a genome
- 
-    ### Haploid
-    Use either a VCF file to simulate known translocations or the command line options listed below to simulate random translocations.
-      
-    ### Diploid
-    To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Configure and launch a workflow to simulate genomic translocations.
+    
+    This function prepares the environment for a translocation simulation by generating
+    a Snakemake workflow configuration based on either known translocations from a VCF
+    file or a specified number of random translocation events. It supports both haploid
+    and diploid genome simulations; for diploid mode, a heterozygosity value greater than
+    0 should be provided. An optional HPC configuration file can be included, which is
+    copied into the workflow directory for submission.
+    
+    Args:
+        genome: Path to the input genome in FASTA format.
+        output_dir: Directory where workflow files, configurations, and logs are stored.
+        prefix: Prefix used for naming output files.
+        vcf: Path to a VCF file with known translocations; mutually exclusive with count.
+        only_vcf: If True, output only the variant VCF file(s) without building a diploid genome.
+        count: Number of random translocations to simulate; used when vcf is not provided.
+        centromeres: Optional path to a centromere annotation file.
+        genes: Optional path to a gene annotation file.
+        heterozygosity: Ratio for diploid simulation; values greater than 0 indicate diploid mode.
+        exclude_chr: Optional path to a file listing chromosomes to exclude from simulation.
+        random_seed: Optional seed to ensure reproducibility of random translocation events.
+        snakemake: Additional command-line arguments to pass to the Snakemake execution.
+        quiet: If True, suppress non-essential output messages.
+        hpc: Optional path to an HPC submission YAML configuration file.
+        container: If True, run the workflow using containerized software deployment.
+        setup_only: If True, only set up the workflow configuration without launching execution.
+    
+    Side Effects:
+        Creates directories and configuration files for the simulation workflow and exits
+        the program if required options are missing or if mutually exclusive options are provided.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")

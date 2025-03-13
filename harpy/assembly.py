@@ -64,11 +64,43 @@ docstring = {
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
     """
-    Create an assembly from linked-reads
-
-    The linked-read barcodes must be in `BX:Z` or `BC:Z` FASTQ header tags. If provided, values for `-k` must be
-    separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
-    the input FASTQ files with `harpy deconvolve`.
+    Create a metassembly workflow from linked-read sequencing data.
+    
+    This function configures and optionally launches a Snakemake workflow to perform an
+    assembly from paired FASTQ files containing linked-read data. It validates the input
+    FASTQ files for proper barcode tags, prepares the workflow directory structure, writes
+    a YAML configuration file incorporating parameters for assembly (SPAdes), error correction
+    (Tigmint), scaffolding (ARCS and LINKS), and report generation, and creates conda
+    environment recipes as needed. When an HPC configuration file is provided via the hpc parameter,
+    it is copied into the workflow and applied to the execution profile. If the setup_only flag is set,
+    the workflow is only set up without launching the assembly process.
+    
+    Args:
+        fastq_r1: Path to the FASTQ file for the first read pair.
+        fastq_r2: Path to the FASTQ file for the second read pair.
+        bx_tag: Barcode tag (e.g. 'BX' or 'BC') used to extract linked-read barcodes.
+        kmer_length: K-mer lengths to use for the assembly; specify "auto" or a list of integers.
+        max_memory: Maximum memory allocated for SPAdes.
+        output_dir: Base directory for all output files, including configuration and logs.
+        extra_params: Additional parameters to pass to SPAdes, if any.
+        arcs_extra: Extra options for ARCS scaffolding, if provided.
+        contig_length: Minimum contig length required for ARCS scaffolding.
+        links: Minimum number of links needed for the LINKS step.
+        min_quality: Minimum mapping quality for Tigmint correction.
+        min_aligned: Minimum number of aligned reads required for ARCS scaffolding.
+        mismatch: Maximum allowed mismatches in Tigmint.
+        molecule_distance: Distance threshold between molecules for Tigmint processing.
+        molecule_length: Expected molecule length for Tigmint correction.
+        seq_identity: Minimum sequence identity requirement for ARCS scaffolding.
+        span: Span parameter used during Tigmint correction.
+        organism_type: Organism type that influences report generation.
+        container: Flag indicating whether to use a containerized (Apptainer) execution.
+        threads: Number of threads (cores) allocated for running the workflow.
+        snakemake: Additional command-line arguments to append to the Snakemake command.
+        quiet: Flag to reduce verbosity of output messages.
+        hpc: Path to an HPC submission YAML configuration file, if applicable.
+        setup_only: If True, only set up the workflow without launching Snakemake.
+        skip_reports: Flag indicating whether to skip generating final reports.
     """
     output_dir = output_dir.rstrip("/")
     asm = "assembly"

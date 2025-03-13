@@ -58,13 +58,18 @@ docstring = {
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
 def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Demultiplex Generation I haplotagged FASTQ files
-
-    Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs (in that exact order) provided after the options. 
-    The `--schema` must be **tab** (or space) delimited, have **no header** (i.e. no column names), and be in the format of `sample`\\<TAB\\>`barcode`,
-    where `barcode` is the barcode segment associated with the sample ID (.e.g. `C01`, `C02`, etc.). Use `--qx-rx` to add the 
-    `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
-    subsequent analyses, but may be useful for your own diagnostics. 
+    Demultiplex Generation I haplotagged FASTQ files.
+    
+    Prepares the workflow environment and launches a Snakemake workflow to demultiplex
+    Generation I haplotagged FASTQ data. This function requires four input FASTQ files in
+    the order: read 1, read 2, index 1, and index 2. The demultiplexing schema must be a
+    whitespace-delimited file without headers that maps sample IDs to barcode segments
+    (e.g., "C01", "C02"). When enabled, QX/RX tags are added to sequence headers for
+    diagnostic purposes. An optional HPC configuration file, if provided, is copied into a
+    designated subdirectory to configure high-performance computing settings. Additional
+    options permit customization of threading, report generation, and container-based
+    execution. When the setup-only flag is set, the function performs the necessary setup
+    operations and then exits without launching the workflow.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

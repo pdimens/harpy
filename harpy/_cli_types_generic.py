@@ -6,6 +6,10 @@ import click
 
 def convert_to_int(ctx, param, value):
     # This function converts the string choice to an integer
+    """Convert a string input to an integer.
+    
+    If the provided value is None, returns None; otherwise, converts the string to an integer.
+    """
     if value is None:
         return None
     return int(value)
@@ -93,6 +97,13 @@ class HPCProfile(click.ParamType):
     """A class for a click type which accepts a directory with a snakemake HPC profile. Does validations to make sure it's the config file not the directory."""
     name = "hpc_profile"
     def convert(self, value, param, ctx):
+        """
+        Validates that the input is a readable YAML file.
+        
+        Ensures the specified path exists, is not a directory, and has read permissions.
+        Attempts to parse the file as YAML and fails if a formatting error is detected.
+        Returns the original file path if all validations pass.
+        """
         if not os.path.exists(value):
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
         if os.path.isdir(value):
@@ -101,7 +112,7 @@ class HPCProfile(click.ParamType):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
         with open(value, "r") as file:
             try:
-                yaml.safe_load(file)
+                data = yaml.safe_load(file)
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
         return value

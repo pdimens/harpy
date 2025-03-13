@@ -46,15 +46,16 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Impute genotypes using variants and alignments
+    Impute genotypes from variant and alignment data.
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
-    individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
-    
-    Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
-    The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
-    the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
-    in the `--option=value` format, without spaces between `--option` and `value` (e.g. `"--switchModelIteration=39"`).
+    This function configures and executes a genotype imputation workflow. It validates the input 
+    alignment (BAM) files and VCF, creates the required workflow directories, and generates a configuration 
+    YAML used by Snakemake. A required STITCH parameter file is processed along with optional extra 
+    STITCH parameters, custom Snakemake arguments, and thread settings. If an HPC configuration file is 
+    provided, it is copied into a dedicated workflow subdirectory and used as the workflow profile. The 
+    function also allows toggling between a containerized and a conda-based deployment, and the 
+    vcf_samples flag restricts processing to samples present in the VCF file. When setup-only mode is enabled, 
+    the function exits after preparing the workflow without launching Snakemake.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
