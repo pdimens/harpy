@@ -53,8 +53,8 @@ def view(directory, snakefile, config):
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
-    | `Up/Down arrow`         | scroll up/down             |
-    | `Page Up/Down`          | scroll up/down, but faster |
+    | `Up/Down` arrow         | scroll up/down             |
+    | `Page Up/Down`          | faster up/down scrolling   |
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
