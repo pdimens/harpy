@@ -131,7 +131,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     command += f" --snakefile {workflowdir}/preflight_fastq.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
