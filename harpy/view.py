@@ -48,13 +48,14 @@ def view(directory, snakefile, config):
 
     This convenience command lets you view the latest workflow log file
     of a Harpy output directory. Use `--snakefile` or `--config` to view the workflow
-    snakefile or config.yaml file instead, respectively. Output is printed to the screen via `less` and
-    accepts the typical keyboard shortcuts to navigate the output, e.g.:
+    snakefile or config.yaml file instead, respectively. Use the typical `less` keyboard
+    bindings to navigate the output, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
-    | `up arrow`/`down arrow` | scroll up/down             |
-    | `Page Up`/`Page Down`   | scroll up/down, but faster |
+    | `Up/Down arrow`         | scroll up/down             |
+    | `Page Up/Down`          | scroll up/down, but faster |
+    | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
     # check if there is a workflow or log folder

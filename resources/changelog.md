@@ -9,6 +9,7 @@
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
 - `harpy demultiplex gen1` adds `--qxrx` to include the `QX:Z` and `RX:Z` tags in the read headers (defaults to not doing that)
+- `harpy downsample` adds `--hpc`
 
 ## Breaking Changes
 ### HPC support
@@ -35,8 +36,7 @@
 - colorized the boxes for docstrings
 - duplicate-marking in the `align` workflows now internally sets a distance threshold for determining optical duplicates based on sequencing platform
 - coverage and molecular coverage are calculated faster and more accurately
-- `demultiplex gen1` now uses the purpose-build `dmox` for significantly faster demultiplexing
-- `--hpc` option added to `harpy downsample`
+- `demultiplex gen1` now uses the purpose-built `dmox` for significantly faster demultiplexing
 - different spinner for progress bars
 - the BUSCO analysis in `harpy assembly` and `harpy metassembly` is now hardcoded to use orthoDB v12
 
@@ -46,3 +46,7 @@
 - html injection into reports with circos plots to make sure the tooltip isn't hidden behind the plot
 - bugfixes in the `lsf` profile from `harpy hpc lsf`
 - report fixes for plot sizes, axes limits, etc.
+- `harpy view` uses better internal logic
+  - prevents the "broken pipe" message after closing a gzipped file
+  - no more [direct] reliance on `subprocess` calls
+  - calls `pygmentize` directly through python API
