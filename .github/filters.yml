@@ -139,6 +139,7 @@ phase: &phase
 simvars: &simvars
   - *common
   - *container
+  - 'harpy/simulate.py'
   - 'harpy/simulate_variants.py'
   - 'harpy/snakefiles/simulate_snpindel.smk'
   - 'harpy/snakefiles/simulate_variants.smk'
@@ -147,6 +148,7 @@ simvars: &simvars
 simreads: &simreads
   - *common
   - *container
+  - 'harpy/simulate.py'
   - 'harpy/simulate_linkedreads.py'
   - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
@@ -163,8 +165,7 @@ assembly: &assembly
   - 'harpy/snakefiles/metassembly.smk'
 other: &other
   - *common
-  - 'harpy/imputeparams.py'
-  - 'harpy/popgroup.py'
+  - 'harpy/template.py'
   - 'harpy/hpc.py'
   - 'harpy/downsample.py'
 modules:

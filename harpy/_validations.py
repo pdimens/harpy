@@ -64,7 +64,7 @@ def check_impute_params(parameters: str) -> dict:
 
             print_error("incorrect columns", f"Parameter file [bold]{parameters}[/bold] has incorrect column names" + "".join(errtext) + f"\nValid names are: [green bold]" + " ".join(colnames) + "[/green bold]")
             print_solution_with_culprits(
-                f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy stitchparams[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
+                f"Fix the headers in [bold]{parameters}[/bold] or use [blue bold]harpy template[/blue bold] to generate a valid parameter file and modify it with appropriate values.",
                 "Column causing this error:"
             )
             rprint("\n".join(culprit_text), file = sys.stderr)
@@ -94,7 +94,7 @@ def check_impute_params(parameters: str) -> dict:
         if len(badrows) > 0:
             print_error("invalid rows", f"Parameter file [blue]{parameters}[/blue] is formatted incorrectly. Not all rows have the expected {n_cols} columns.")
             print_solution_with_culprits(
-                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [blue]{parameters}[/blue] or use [blue green]harpy stitchparams[/blue green] to generate a valid parameter file and modify it with appropriate values.",
+                f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [blue]{parameters}[/blue] or use [blue green]harpy template[/blue green] to generate a valid parameter file and modify it with appropriate values.",
                 "Rows causing this error and their column count:"
             )
             for i in zip(badrows, badlens):
