@@ -101,7 +101,7 @@ class HPCProfile(click.ParamType):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
         with open(value, "r") as file:
             try:
-                data = yaml.safe_load(file)
+                yaml.safe_load(file)
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
         return value

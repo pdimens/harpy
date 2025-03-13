@@ -7,7 +7,7 @@ import yaml
 import shutil
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import convert_to_int, SnakemakeParams
+from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._printing import workflow_info
@@ -33,7 +33,8 @@ docstring = {
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+-from ._cli_types_generic import convert_to_int, SnakemakeParams
++from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
