@@ -18,7 +18,7 @@ def package_exists(pkg):
     if not exists:
         print_notice(Markdown(f"""
 Using this scheduler requires installing an additional Snakemake plugin, which wasn't detected in this environment.
-Install the `{pkg}` plugin with:
+It can be installed with:
     
 ```bash
 conda install bioconda::snakemake-executor-plugin-{pkg}
