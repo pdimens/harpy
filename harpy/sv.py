@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import shutil
 from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFile, SnakemakeParams
@@ -69,7 +70,7 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
@@ -94,7 +95,9 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
     command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
@@ -168,7 +171,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
@@ -197,7 +200,9 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
     command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

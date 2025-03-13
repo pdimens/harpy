@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
@@ -39,7 +40,7 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
@@ -61,7 +62,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     command += f" --snakefile {workflowdir}/metassembly.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

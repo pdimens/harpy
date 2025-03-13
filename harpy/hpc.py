@@ -16,7 +16,7 @@ def hpc():
     If running Harpy on an HPC system, you can leverage Snakemake
     to handle all the job submissions on your behalf. This command creates templates
     for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `config.yaml` in an `hpc/system` directory (where `system`
+    The subcommands create a `system.yaml` in an `hpc/` directory (where `system`
     is one of the options below). You will also need to install the associated Snakemake
     executor plugin for HPC job submission to work.
     """
@@ -45,14 +45,16 @@ Install the `{pkg}` plugin with:
     
 ```bash
 conda install bioconda::snakemake-executor-plugin-{pkg}
+# or #
+pixi add snakemake-executor-plugin-{pkg}
 ```
     """))
 
 @click.command()
 def generic():
     """Configuration for a generic scheduler"""
-    outfile = "hpc/generic/config.yaml"
-    os.makedirs("hpc/generic", exist_ok=True)
+    outfile = "hpc/generic.yaml"
+    os.makedirs("hpc", exist_ok=True)
     if os.path.exists(outfile):
         rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
     package_exists("cluster-generic")
@@ -65,15 +67,15 @@ def generic():
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
         yml.write("# command for submitting jobs\n")
-        yml.write("cluster-generic-submit-cmd VALUE\n")
+        yml.write("cluster-generic-submit-cmd: VALUE\n")
         yml.write("# [optional] command for retrieving job status\n")
-        yml.write("cluster-generic-status-cmd VALUE\n")
+        yml.write("cluster-generic-status-cmd: VALUE\n")
         yml.write("# [optional] command for cancelling jobs-- expected to take one or more jobids as arguments\n")
-        yml.write("cluster-generic-cancel-cmd VALUE\n")
+        yml.write("cluster-generic-cancel-cmd: VALUE\n")
         yml.write("# [optional] number of jobids to pass to cancel_cmd and if more are given, cancel_cmd will be called multiple times\n")
-        yml.write("cluster-generic-cancel-nargs 20\n")
+        yml.write("cluster-generic-cancel-nargs: 20\n")
         yml.write("# [optional] command for sidecar process\n")
-        yml.write("cluster-generic-sidecar-cmd VALUE\n")
+        yml.write("cluster-generic-sidecar-cmd: VALUE\n")
         yml.write("\n# This section is for advanced copying into a scratch directory #\n")
         yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
         yml.write("#default-storage-provider: fs\n")
@@ -87,8 +89,8 @@ def generic():
 @click.command()
 def lsf():
     """Configuration for LSF"""
-    outfile = "hpc/lsf/config.yaml"
-    os.makedirs("hpc/lsf", exist_ok=True)
+    os.makedirs("hpc", exist_ok=True)
+    outfile = "hpc/lsf.yaml"
     if os.path.exists(outfile):
         rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
     package_exists("lsf")
@@ -100,7 +102,7 @@ def lsf():
         yml.write("  walltime: 60 # minutes per job\n")
         yml.write("  mem_mb: attempt * 2000\n")
         yml.write("  # other args to pass to bsub\n")
-        yml.write("  lsf_extra: \n")
+        yml.write("  lsf_extra: VALUE\n")
         yml.write("jobs: 50\n")
         yml.write("latency-wait: 60\n")
         yml.write("retries: 1\n")
@@ -117,8 +119,8 @@ def lsf():
 @click.command()
 def htcondor():
     """Configuration for HTCondor"""
-    os.makedirs("hpc/htcondor", exist_ok=True)
-    outfile = "hpc/htcondor/config.yaml"
+    os.makedirs("hpc", exist_ok=True)
+    outfile = "hpc/htcondor.yaml"
     if os.path.exists(outfile):
         rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
     package_exists("htcondor")
@@ -146,8 +148,8 @@ def htcondor():
 @click.command()
 def slurm():
     """Configuration for SLURM"""
-    os.makedirs("hpc/slurm", exist_ok=True)
-    outfile = "hpc/slurm/config.yaml"
+    os.makedirs("hpc", exist_ok=True)
+    outfile = "hpc/slurm.yaml"
     if os.path.exists(outfile):
         rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
     package_exists("slurm")
@@ -175,8 +177,8 @@ def slurm():
 @click.command()
 def googlebatch():
     """Configuration for Google Batch"""
-    os.makedirs("hpc/googlebatch", exist_ok=True)
-    outfile = "hpc/googlebatch/config.yaml"
+    os.makedirs("hpc", exist_ok=True)
+    outfile = "hpc/googlebatch.yaml"
     if os.path.exists(outfile):
         rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
     package_exists("googlebatch")

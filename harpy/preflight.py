@@ -3,6 +3,7 @@
 import os
 import sys
 import yaml
+import shutil
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
@@ -43,7 +44,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
@@ -66,7 +67,9 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     command += f" --snakefile {workflowdir}/preflight_bam.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
@@ -104,7 +107,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'Directory with HPC submission `config.yaml` file')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
@@ -128,7 +131,9 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     command += f" --snakefile {workflowdir}/preflight_fastq.smk"
     command += f" --configfile {workflowdir}/config.yaml"
     if hpc:
-        command += f" --workflow-profile {hpc}"
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 

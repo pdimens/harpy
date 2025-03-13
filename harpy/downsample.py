@@ -4,9 +4,10 @@ import os
 import re
 import sys
 import yaml
+import shutil
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import convert_to_int, SnakemakeParams
+from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, snakemake_log
 from ._printing import workflow_info
@@ -26,20 +27,19 @@ docstring = {
     ]
 }
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/downsample")
-@click.option('-d', '--downsample', type = click.IntRange(min = 1), help = 'Downsampling amount')
+@click.option('-d', '--downsample', type = click.IntRange(min = 1), help = 'Number of barcodes to retain')
 @click.option('-i', '--invalid', default = 1, show_default = True, type=click.FloatRange(min=0,max=1), help = "Proportion of invalid barcodes to sample")
 @click.option('-p', '--prefix', type = click.Path(exists = False), default = "downsampled", show_default = True, help = 'Prefix for output file(s)')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
+@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)
-def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setup_only, snakemake, threads, quiet):
+def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc, setup_only, snakemake, threads, quiet):
     """
-    Downsample data by barcode
-
     Downsamples FASTQ or BAM file(s) by barcode in the `BX` tag to keep all reads
     from `-d` barcodes. The `BX:Z` tag must be the **last tag** in either the BAM
     or FASTQ file(s). If the `BX` tag isn't terminal, use `bx_to_end.py` (provided
@@ -71,6 +71,10 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, setu
     command = f'{SNAKEMAKE_CMD} --cores {threads}'
     command += f" --snakefile {workflowdir}/{workflow}.smk"
     command += f" --configfile {workflowdir}/config.yaml"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
     if snakemake:
         command += f" {snakemake}"
 
