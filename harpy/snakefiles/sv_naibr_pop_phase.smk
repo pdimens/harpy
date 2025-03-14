@@ -16,6 +16,7 @@ wildcard_constraints:
     population = r"[a-zA-Z0-9._-]+"
 
 outdir       = config["output_directory"]
+workflowdir  = f"{outdir}/workflow"
 envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile   = config["inputs"]["genome"]
 bn           = os.path.basename(genomefile)
@@ -33,7 +34,9 @@ mol_dist     = config["molecule_distance"]
 skip_reports  = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):
-    bn = bn[:-3]
+    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
+else:
+    workflow_geno = f"{workflowdir}/genome/{bn}"
 
 def process_args(args):
     argsDict = {
@@ -89,7 +92,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -97,13 +100,13 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     container:
         None
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     shell:
         "samtools faidx --fai-idx {output} {input} 2> {log}"
 
@@ -141,10 +144,10 @@ rule phase_alignments:
     input:
         vcfindex,
         get_align_index,
-        f"Genome/{bn}.fai",
+        f"{workflow_geno}.fai",
         vcf = vcffile,
         aln = get_alignments,
-        ref = f"Genome/{bn}"
+        ref = workflow_geno
     output:
         bam = temp(outdir + "/phasedbam/{sample}.bam"),
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
@@ -313,8 +316,8 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -327,9 +330,9 @@ rule sample_reports:
     input: 
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
-        faidx = f"Genome/{bn}.fai",
+        faidx = f"{workflow_geno}.fai",
         bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd"
+        qmd   = f"{workflowdir}/report/naibr.qmd"
     output:
         report = outdir + "/reports/{population}.naibr.html",
         qmd = temp(outdir + "/reports/{population}.naibr.qmd")
@@ -352,9 +355,9 @@ rule aggregate_report:
     input: 
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
-        faidx = f"Genome/{bn}.fai",
+        faidx = f"{workflow_geno}.fai",
         bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        qmd   = f"{outdir}/workflow/report/naibr_pop.qmd"
+        qmd   = f"{workflowdir}/report/naibr_pop.qmd"
     output:
         report = outdir + "/reports/naibr.summary.html",
         qmd = temp(outdir + "/reports/naibr.summary.qmd")
@@ -400,5 +403,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm = f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
+        with open(f"{workflowdir}/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -14,17 +14,19 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
-genomefile 	= config["inputs"]["genome"]
 platform    = config["platform"]
 frag_opt    = config["fragment_density_optimization"]
 barcode_list   = config["inputs"].get("barcode_list", "") 
 extra 		= config.get("extra", "") 
+genomefile 	= config["inputs"]["genome"]
 bn 			= os.path.basename(genomefile)
+workflow_geno = f"{workflowdir}/genome/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
-bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
@@ -44,7 +46,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -59,12 +61,12 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        fai = f"Genome/{bn}.fai",
-        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     params:
         genome_zip
     container:
@@ -80,11 +82,11 @@ rule index_genome:
 
 rule bwa_index:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.bwa.idx.log"
+        f"{workflow_geno}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -92,7 +94,7 @@ rule bwa_index:
 
 rule make_depth_intervals:
     input:
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     output:
         outdir + "/reports/data/coverage/coverage.bed"
     run:
@@ -153,9 +155,9 @@ rule ema_preprocess:
 rule align_ema:
     input:
         readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
-        genome 	   = f"Genome/{bn}",
-        geno_faidx = f"Genome/{bn_idx}",
-        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome 	   = workflow_geno,
+        geno_faidx = workflow_geno_idx,
+        geno_idx   = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         aln = temp(outdir + "/ema_align/{sample}.bc.bam"),
         idx = temp(outdir + "/ema_align/{sample}.bc.bam.bai")
@@ -187,9 +189,9 @@ rule align_ema:
 rule align_bwa:
     input:
         reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
-        genome 	   = f"Genome/{bn}",
-        geno_faidx = f"Genome/{bn_idx}",
-        geno_idx   = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome 	   = workflow_geno,
+        geno_faidx = workflow_geno_idx,
+        geno_idx   = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
         temp(outdir + "/bwa_align/{sample}.bwa.nobc.sam")
     log:
@@ -211,8 +213,8 @@ rule align_bwa:
 rule mark_duplicates:
     input:
         sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
-        genome = f"Genome/{bn}",
-        faidx  = f"Genome/{bn_idx}"
+        genome = workflow_geno,
+        faidx  = workflow_geno_idx
     output:
         temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam")
     log:
@@ -256,7 +258,7 @@ rule concat_alignments:
         idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",
         aln_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam",
         idx_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai",
-        genome   = f"Genome/{bn}"
+        genome   = workflow_geno
     output: 
         bam = outdir + "/{sample}.bam",
         bai = outdir + "/{sample}.bam.bai"
@@ -298,7 +300,7 @@ rule barcode_stats:
 rule molecule_coverage:
     input:
         stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        fai = f"Genome/{bn}.fai"
+        fai = f"{workflow_geno}.fai"
     output: 
         outdir + "/reports/data/coverage/{sample}.molcov.gz"
     params:
@@ -310,8 +312,8 @@ rule molecule_coverage:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -327,7 +329,7 @@ rule sample_reports:
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{outdir}/workflow/report/align_stats.qmd"
+        qmd = f"{workflowdir}/report/align_stats.qmd"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -384,7 +386,7 @@ rule barcode_report:
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
+        qmd = f"{workflowdir}/report/align_bxstats.qmd"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
@@ -445,5 +447,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/align.ema.summary", "w") as f:
+        with open(f"{workflowdir}/align.ema.summary", "w") as f:
             f.write("\n\n".join(summary))
