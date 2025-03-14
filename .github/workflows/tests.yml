@@ -839,7 +839,7 @@ jobs:
       - name: harpy hpc
         shell: micromamba-shell {0}
         run: |
-          harpy template hpc-generic
-          harpy template hpc-googlebatch
-          harpy template hpc-lsf
-          harpy template hpc-slurm
+          harpy hpc slurm
+          harpy hpc googlebatch
+          harpy hpc lsf
+          harpy hpc htcondor
