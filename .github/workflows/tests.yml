@@ -637,20 +637,20 @@ jobs:
 #          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr test/bam_phased && rm -r Genome
+        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr test/bam_phased
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups  test/bam_phased && rm -r Genome
+        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups test/bam_phased
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf  test/bam && rm -r Genome
+          harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf test/bam
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups  test/bam && rm -r Genome
+        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/bam
 
 
   simulate_variants:
@@ -839,7 +839,7 @@ jobs:
       - name: harpy hpc
         shell: micromamba-shell {0}
         run: |
-          harpy hpc slurm
-          harpy hpc googlebatch
-          harpy hpc lsf
-          harpy hpc htcondor
+          harpy template hpc-slurm
+          harpy template hpc-googlebatch
+          harpy template hpc-lsf
+          harpy template hpc-htcondor

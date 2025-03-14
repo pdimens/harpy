@@ -92,7 +92,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "molecule_length" : molecule_length,
         "partitions" : partitions,
         "molecules_per_partition" : molecules_per,
-        "combine_haplotypes": combine_haplotypes,
+        "merge_haplotypes": merge_haplotypes,
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
         'barcodes': {
