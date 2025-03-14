@@ -15,6 +15,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
@@ -30,9 +31,9 @@ plot_contigs = config["reports"]["plot_contigs"]
 skip_reports = config["reports"]["skip"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
-    validgenome = bn[:-3]
+    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
 else:
-    validgenome = bn
+    workflow_geno = f"{workflowdir}/genome/{bn}"
 if vcffile.lower().endswith("bcf"):
     vcfindex = vcffile + ".csi"
 else:
@@ -70,7 +71,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{validgenome}"
+        workflow_geno
     container:
         None
     shell: 
@@ -78,11 +79,11 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{validgenome}"
+        workflow_geno
     output: 
-        f"Genome/{validgenome}.fai"
+        f"{workflow_geno}.fai"
     log:
-        f"Genome/{validgenome}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     container:
         None
     shell:
@@ -122,10 +123,10 @@ rule phase_alignments:
     input:
         get_align_index,
         vcfindex,
-        f"Genome/{validgenome}.fai",
+        f"{workflow_geno}.fai",
         vcf = vcffile,
         aln = get_alignments,
-        ref = f"Genome/{validgenome}"
+        ref = workflow_geno
     output:
         bam = outdir + "/phasedbam/{sample}.bam",
         log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
@@ -159,7 +160,7 @@ rule naibr_config:
     input:
         outdir + "/phasedbam/{sample}.bam"
     output:
-        outdir + "/workflow/input/{sample}.naibr"
+        workflowdir + "/input/{sample}.naibr"
     params:
         lambda wc: wc.get("sample"),
         min(10, workflow.cores - 1)
@@ -186,7 +187,7 @@ rule call_variants:
     input:
         bam   = outdir + "/phasedbam/{sample}.bam",
         bai   = outdir + "/phasedbam/{sample}.bam.bai",
-        conf  = outdir + "/workflow/input/{sample}.naibr"
+        conf  = workflowdir + "/input/{sample}.naibr"
     output:
         bedpe = temp(outdir + "/{sample}/{sample}.bedpe"),
         refmt = temp(outdir + "/{sample}/{sample}.reformat.bedpe"),
@@ -255,8 +256,8 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -269,9 +270,9 @@ rule sample_reports:
     input: 
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
-        faidx = f"Genome/{validgenome}.fai",
+        faidx = f"{workflow_geno}.fai",
         bedpe = outdir + "/bedpe/{sample}.bedpe",
-        qmd   = f"{outdir}/workflow/report/naibr.qmd"
+        qmd   = f"{workflowdir}/report/naibr.qmd"
     output:
         report = outdir + "/reports/{sample}.naibr.html",
         qmd = temp(outdir + "/reports/{sample}.naibr.qmd")
@@ -313,5 +314,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm = f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/sv.naibr.summary", "w") as f:
+        with open(f"{workflowdir}/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -14,6 +14,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
@@ -29,6 +30,7 @@ if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 else:
     genome_zip  = False
+workflow_geno = f"{workflowdir}/genome/{bn}"
 groupings 	= config["inputs"].get("groupings", [])
 regioninput = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
@@ -48,7 +50,7 @@ rule preproc_groups:
     input:
         groupings
     output:
-        outdir + "/workflow/sample.groups"
+        f"{workflowdir}/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
@@ -57,7 +59,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -65,11 +67,11 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     container:
         None
     shell:
@@ -101,8 +103,8 @@ rule call_variants:
         bam = bamlist,
         bai = collect("{bam}.bai", bam = bamlist),
         groupfile = outdir + "/workflow/sample.groups" if groupings else [],
-        ref     = f"Genome/{bn}",
-        ref_idx = f"Genome/{bn}.fai",
+        ref     = workflow_geno,
+        ref_idx = f"{workflow_geno}.fai",
         samples = outdir + "/workflow/samples.files"
     output:
         bcf = temp(outdir + "/regions/{part}.bcf"),
@@ -162,7 +164,7 @@ rule sort_variants:
 
 rule indel_realign:
     input:
-        genome  = f"Genome/{bn}",
+        genome  = workflow_geno,
         bcf     = outdir + "/variants.raw.bcf",
         idx     = outdir + "/variants.raw.bcf.csi"
     output:
@@ -179,8 +181,8 @@ rule indel_realign:
 
 rule general_stats:
     input:
-        genome  = f"Genome/{bn}",
-        ref_idx = f"Genome/{bn}.fai",
+        genome  = workflow_geno,
+        ref_idx = f"{workflow_geno}.fai",
         bcf     = outdir + "/variants.{type}.bcf",
         idx     = outdir + "/variants.{type}.bcf.csi"
     output:
@@ -194,8 +196,8 @@ rule general_stats:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -209,7 +211,7 @@ rule variant_report:
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
         data = outdir + "/reports/data/variants.{type}.stats",
-        qmd  = f"{outdir}/workflow/report/bcftools_stats.qmd"
+        qmd  = f"{workflowdir}/report/bcftools_stats.qmd"
     output:
         report = outdir + "/reports/variants.{type}.html",
         qmd = temp(outdir + "/reports/variants.{type}.qmd")
@@ -255,5 +257,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/snp.freebayes.summary", "w") as f:
+        with open(f"{workflowdir}/snp.freebayes.summary", "w") as f:
             f.write("\n\n".join(summary))

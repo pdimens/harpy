@@ -14,10 +14,11 @@ onerror:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+outdir 			  = config["output_directory"]
+workflowdir       = f"{outdir}/workflow"
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-outdir 			  = config["output_directory"]
 envdir            = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
@@ -42,8 +43,8 @@ if config["inputs"].get("genome", None):
         bn = Path(Path(genomefile).stem).stem
     else:
         bn = Path(genomefile).stem
-    geno       = f"Genome/{bn}.fasta"
-    genofai    = f"Genome/{bn}.fasta.fai"
+    geno       = f"{workflowdir}/genome/{bn}"
+    genofai    = f"{geno}.fai"
     indelarg   = f"--indels 1 --ref {geno}"
     indels     = True
 else:
@@ -70,7 +71,7 @@ rule extract_het:
     input: 
         vcf = variantfile
     output:
-        outdir + "/workflow/input/vcf/{sample}.het.vcf"
+        workflowdir + "/input/vcf/{sample}.het.vcf"
     container:
         None
     shell:
@@ -82,7 +83,7 @@ rule extract_hom:
     input: 
         vcf = variantfile
     output:
-        outdir + "/workflow/input/vcf/{sample}.hom.vcf"
+        workflowdir + "/input/vcf/{sample}.hom.vcf"
     container:
         None
     shell:
@@ -125,7 +126,7 @@ if indels:
 
 rule extract_hairs:
     input:
-        vcf = outdir + "/workflow/input/vcf/{sample}.het.vcf",
+        vcf = workflowdir + "/input/vcf/{sample}.het.vcf",
         bam = get_alignments,
         bai = get_align_index,
         geno = geno,
@@ -145,7 +146,7 @@ rule extract_hairs:
 rule link_fragments:
     input: 
         bam       = get_alignments,
-        vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
+        vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
         fragments = outdir + "/extract_hairs/{sample}.unlinked.frags"
     output:
         outdir + "/link_fragments/{sample}.linked.frags"
@@ -160,7 +161,7 @@ rule link_fragments:
 
 rule phase:
     input:
-        vcf       = outdir + "/workflow/input/vcf/{sample}.het.vcf",
+        vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
         fragments = fragfile
     output: 
         blocks    = outdir + "/phase_blocks/{sample}.blocks",
@@ -188,15 +189,15 @@ rule compress_phaseblock:
 
 use rule compress_phaseblock as compress_vcf with:
     input:
-        outdir + "/workflow/input/vcf/{sample}.hom.vcf"
+        workflowdir + "/input/vcf/{sample}.hom.vcf"
     output:
-        outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
+        workflowdir + "/input/gzvcf/{sample}.hom.vcf.gz"
 
 rule merge_het_hom:
     priority: 100
     input:
         phase = outdir + "/phase_blocks/{sample}.phased.vcf.gz",
-        orig  = outdir + "/workflow/input/gzvcf/{sample}.hom.vcf.gz"
+        orig  = workflowdir + "/input/gzvcf/{sample}.hom.vcf.gz"
     output:
         bcf = outdir + "/phased_samples/{sample}.phased.annot.bcf",
         idx = outdir + "/phased_samples/{sample}.phased.annot.bcf.csi"
@@ -252,8 +253,8 @@ rule summarize_blocks:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -267,7 +268,7 @@ rule phase_report:
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
         data = f"{outdir}/reports/blocks.summary.gz",
-        qmd = f"{outdir}/workflow/report/hapcut.qmd"
+        qmd = f"{workflowdir}/report/hapcut.qmd"
     output:
         html = f"{outdir}/reports/phase.html",
         qmd = temp(f"{outdir}/reports/phase.qmd")
@@ -310,5 +311,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm = f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/phase.summary", "w") as f:
+        with open(f"{workflowdir}/phase.summary", "w") as f:
             f.write("\n\n".join(summary))

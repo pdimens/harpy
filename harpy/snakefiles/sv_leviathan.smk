@@ -15,6 +15,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 genomefile  = config["inputs"]["genome"]
 bamlist     = config["inputs"]["alignments"]
@@ -31,9 +32,10 @@ extra       = config.get("extra", "")
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn          = os.path.basename(genomefile)
-genome_zip  = True if bn.lower().endswith(".gz") else False
-if genome_zip:
-    bn = bn[:-3]
+if bn.lower().endswith(".gz"):
+    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
+else:
+    workflow_geno = f"{workflowdir}/genome/{bn}"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -62,7 +64,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -70,11 +72,11 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     container:
         None
     shell:
@@ -82,11 +84,11 @@ rule index_genome:
 
 rule bwa_index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.bwa.idx.log"
+        f"{workflow_geno}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -96,8 +98,8 @@ rule call_variants:
     input:
         bam = get_alignments,
         bc_idx = outdir + "/lrez_index/{sample}.bci",
-        genome = f"Genome/{bn}",
-        genidx = multiext(f"Genome/{bn}", ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome = workflow_geno,
+        genidx = multiext(workflow_geno, ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         vcf = temp(outdir + "/vcf/{sample}.vcf"),
         candidates = outdir + "/logs/leviathan/{sample}.candidates"
@@ -185,8 +187,8 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -199,9 +201,9 @@ rule sample_reports:
     input: 
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
-        faidx     = f"Genome/{bn}.fai",
+        faidx     = f"{workflow_geno}.fai",
         statsfile = outdir + "/reports/data/{sample}.sv.stats",
-        qmd       = f"{outdir}/workflow/report/leviathan.qmd"
+        qmd       = f"{workflowdir}/report/leviathan.qmd"
     output:
         report = outdir + "/reports/{sample}.leviathan.html",
         qmd = temp(outdir + "/reports/{sample}.leviathan.qmd")
@@ -244,5 +246,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/sv.leviathan.summary", "w") as f:
+        with open(f"{workflowdir}/sv.leviathan.summary", "w") as f:
             f.write("\n\n".join(summary))
