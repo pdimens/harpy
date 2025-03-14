@@ -7,11 +7,7 @@ import glob
 from rich import print as rprint
 import rich_click as click
 from ._printing import print_error, print_solution, print_notice
-<<<<<<< HEAD
 from .hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
-=======
-from .hpc import hpc_generic, hpc_googlebatch, hpc_htcondor, hpc_lsf, hpc_slurm
->>>>>>> origin/main
 
 docstring = {
     "harpy template": [
@@ -22,11 +18,7 @@ docstring = {
         },
         {
             "name": "HPC Configurations",
-<<<<<<< HEAD
             "commands": ["hpc-generic", "hpc-googlebatch", "hpc-lsf", "hpc-slurm"],
-=======
-            "commands": ["hpc-generic", "hpc-googlebatch", "hpc-htcondor", "hpc-lsf", "hpc-slurm"],
->>>>>>> origin/main
             "panel_styles": {"border_style": "green", "subtitle": "run without arguments"}
         },
     ]
