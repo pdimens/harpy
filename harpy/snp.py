@@ -25,6 +25,16 @@ def snp():
     is greater than **2**.
     """
 
+module_docstring = {
+    "harpy snp": [
+        {
+            "name": "Commands",
+            "commands": ["freebayes", "mpileup"],
+            "panel_styles": {"border_style": "blue"}
+        }
+    ]
+}
+
 docstring = {
     "harpy snp mpileup": [
         {
@@ -50,7 +60,7 @@ docstring = {
             "panel_styles": {"border_style": "dim"}
         },
     ]
-}
+} |  module_docstring
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
@@ -81,7 +91,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire genome.
 
-    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
+    Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """   
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -185,7 +195,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire genome.
 
-    Optionally specify `--populations` for population-aware variant calling (**harpy popgroup** can create that file).
+    Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

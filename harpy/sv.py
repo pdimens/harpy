@@ -21,13 +21,24 @@ def sv():
     """
     Call large structural variants on alignments
  
-    **Structural Variant Callers**
-    - `naibr`: calls inversions, duplicates, deletions
-    - `leviathan`: calls inversions, duplicates, deletions, misc breakends
+    | caller | inversions | duplications | deletions | breakends |
+    |:-------|:----------:|:------------:|:---------:|:---------:|
+    | leviathan |      ✔  |     ✔        |     ✔     |      ✔    |
+    | naibr     |      ✔  |     ✔        |     ✔     |     🗙    |
 
-    Provide an additional subcommand `leviathan` or `naibr` to get more information on using
+    Provide the subcommand `leviathan` or `naibr` to get more information on using
     those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
     """
+
+module_docstring = {
+    "harpy sv": [
+        {
+            "name": "Commands",
+            "commands": ["leviathan", "naibr"],
+            "panel_styles": {"border_style": "blue"}
+        }
+    ]
+}
 
 docstring = {
     "harpy sv leviathan": [
@@ -54,7 +65,7 @@ docstring = {
             "panel_styles": {"border_style": "dim"}
         },
     ]
-}
+} | module_docstring
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
 @click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
@@ -83,7 +94,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
     Optionally specify `--populations` for population-pooled variant calling
-    (**harpy popgroup** can create that file). If you suspect Leviathan is missing certain variants
+    (**harpy template** can create that file). If you suspect Leviathan is missing certain variants
     you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
     have to be the same across the different size classes.
     """
@@ -189,7 +200,7 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
      as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 
-    Optionally specify `--populations` for population-pooled variant calling (**harpy popgroup** can create that file).
+    Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')

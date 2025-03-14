@@ -51,7 +51,7 @@ def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_para
     Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
-    Requires a parameter file, use **harpy stitchparams** to generate one and adjust it for your study.
+    Requires a parameter file, use **harpy template** to generate one and adjust it for your study.
     The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
     the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
     in the `--option=value` format, without spaces between `--option` and `value` (e.g. `"--switchModelIteration=39"`).

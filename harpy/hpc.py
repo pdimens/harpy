@@ -8,29 +8,6 @@ from rich import print as rprint
 from rich.markdown import Markdown
 from ._printing import print_notice
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-def hpc():
-    """
-    Profile templates for cluster job submissions
-
-    If running Harpy on an HPC system, you can leverage Snakemake
-    to handle all the job submissions on your behalf. This command creates templates
-    for common HPC schedulers so you can run Harpy on a cluster with minimal friction.
-    The subcommands create a `system.yaml` in an `hpc/` directory (where `system`
-    is one of the options below). You will also need to install the associated Snakemake
-    executor plugin for HPC job submission to work.
-    """
-
-docstring = {
-    "harpy hpc": [
-        {
-            "name": "Submission Systems",
-            "commands": ["generic", "googlebatch", "htcondor", "lsf", "slurm"],
-            "panel_styles": {"border_style": "blue"}
-        },
-    ]
-}
-
 def package_exists(pkg):
     """helper function to search for a package in the active conda environment"""
     search_pkg = subprocess.run(f"conda list snakemake-executor-plugin-{pkg}".split(), capture_output = True, text = True)
@@ -40,8 +17,8 @@ def package_exists(pkg):
             exists = True
     if not exists:
         print_notice(Markdown(f"""
-Using this scheduler requires installing an additional Snakemake plugin, which wasn't detected in this environment.
-Install the `{pkg}` plugin with:
+Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment.
+It can be installed with:
     
 ```bash
 conda install bioconda::snakemake-executor-plugin-{pkg}
@@ -51,8 +28,13 @@ pixi add snakemake-executor-plugin-{pkg}
     """))
 
 @click.command()
-def generic():
-    """Configuration for a generic scheduler"""
+def hpc_generic():
+    """
+    Create a template config for a generic scheduler
+    
+    This command creates a configuration (`hpc/generic.yaml`) for a generic HPC scheduler.
+    You will also need to install `snakemake-executor-plugin-generic` for the HPC job submission to work.
+    """
     outfile = "hpc/generic.yaml"
     os.makedirs("hpc", exist_ok=True)
     if os.path.exists(outfile):
@@ -87,8 +69,13 @@ def generic():
         yml.write("#  - source-cache\n")
 
 @click.command()
-def lsf():
-    """Configuration for LSF"""
+def hpc_lsf():
+    """
+    Create a template config for LSF
+    
+    This command creates a configuration (`hpc/lsf.yaml`) for the LSF HPC scheduler.
+    You will also need to install `snakemake-executor-plugin-lsf` for the HPC job submission to work.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/lsf.yaml"
     if os.path.exists(outfile):
@@ -117,8 +104,13 @@ def lsf():
         yml.write("#  - source-cache\n")
 
 @click.command()
-def htcondor():
-    """Configuration for HTCondor"""
+def hpc_htcondor():
+    """
+    Create a template config for HTCondor
+    
+    This command creates a configuration (`hpc/htcondor.yaml`) for the HTCondor HPC scheduler.
+    You will also need to install `snakemake-executor-plugin-htcondor` for the HPC job submission to work.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/htcondor.yaml"
     if os.path.exists(outfile):
@@ -146,8 +138,13 @@ def htcondor():
         yml.write("#  - source-cache\n")
 
 @click.command()
-def slurm():
-    """Configuration for SLURM"""
+def hpc_slurm():
+    """
+    Create a template config for SLURM
+    
+    This command creates a configuration (`hpc/slurm.yaml`) for the SLURM HPC scheduler.
+    You will also need to install `snakemake-executor-plugin-slurm` for the HPC job submission to work.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/slurm.yaml"
     if os.path.exists(outfile):
@@ -175,8 +172,13 @@ def slurm():
         yml.write("#  - source-cache\n")
 
 @click.command()
-def googlebatch():
-    """Configuration for Google Batch"""
+def hpc_googlebatch():
+    """
+    Create a template config for Google Batch
+    
+    This command creates a configuration (`hpc/googlebatch.yaml`) for the Google Batch scheduler.
+    You will also need to install `snakemake-executor-plugin-googlebatch` for the HPC job submission to work.
+    """
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/googlebatch.yaml"
     if os.path.exists(outfile):
@@ -234,9 +236,3 @@ def googlebatch():
         yml.write("  googlebatch_mount_path: '/mnt/share'\n")
         yml.write("# One or more snippets to add to the Google Batch task setup\n")
         yml.write("  googlebatch_snippets: VALUE\n")
-
-hpc.add_command(slurm)
-hpc.add_command(htcondor)
-hpc.add_command(lsf)
-hpc.add_command(generic)
-hpc.add_command(googlebatch)

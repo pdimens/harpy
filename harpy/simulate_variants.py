@@ -146,7 +146,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     
     ### Diploid
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     
     The ratio parameters control different things for snp and indel variants and have special
     meanings when setting the value to either `9999` or `0` :
@@ -270,7 +270,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 
     ### Diploid
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
@@ -375,7 +375,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
       
     ### Diploid
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
  
     The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
     
@@ -484,7 +484,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
       
     ### Diploid
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
-    Use `--only-vcf` alongside `--heterozygosity` if you want to generate only the variant VCF file(s) without creating the diploid genome.
+    Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")

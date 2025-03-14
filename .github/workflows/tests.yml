@@ -824,12 +824,12 @@ jobs:
           resources/buildforCI.sh
 #     - name: Clear Space
 #       uses: jlumbroso/free-disk-space@main
-      - name: harpy imputeparams
+      - name: harpy template impute
         shell: micromamba-shell {0}
-        run: harpy imputeparams -o params.file
-      - name: harpy popgroup
+        run: harpy template impute -o params.file
+      - name: harpy template groupings
         shell: micromamba-shell {0}
-        run: harpy popgroup test/fastq
+        run: harpy template groupings test/fastq
       - name: harpy downsample bam
         shell: micromamba-shell {0}
         run: harpy downsample -d 1 --random-seed 699 --quiet 2 test/bam/sample1.bam
@@ -839,7 +839,8 @@ jobs:
       - name: harpy hpc
         shell: micromamba-shell {0}
         run: |
-          harpy hpc slurm
-          harpy hpc googlebatch
-          harpy hpc lsf
-          harpy hpc htcondor
+          harpy template hpc-generic
+          harpy template hpc-googlebatch
+          harpy template hpc-htcondor
+          harpy template hpc-lsf
+          harpy template hpc-slurm
