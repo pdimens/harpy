@@ -10,7 +10,8 @@
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
 - `harpy demultiplex gen1` adds `--qxrx` to include the `QX:Z` and `RX:Z` tags in the read headers (defaults to not doing that)
-- `harpy downsample` adds `--hpc`
+- `harpy downsample` adds `--hpc` for cluster submission
+- `harpy simulate linkedreads` adds `--merge-haplotypes` as a convenience features to merge R1 reads for hap0 and hap1 (same for R2)
 
 ## Breaking Changes
 ### Renamed Commands
@@ -45,6 +46,8 @@
 - `demultiplex gen1` now uses the purpose-built `dmox` for significantly faster demultiplexing
 - different spinner for progress bars
 - the BUSCO analysis in `harpy assembly` and `harpy metassembly` is now hardcoded to use orthoDB v12
+- the unified `Genome/` folder has been replaced with a per-output-folder `outdir/workflow/genome/` folder that serves the same function to avoid situations where multiple fasta files with the same name are being used simultaneously across concurrent workflows.
+  - the lack of unification results in extra redundancy (more disk space used =/) but with the benefit of more reliable behavior 
 
 ## Fixes
 - improved error handling in quarto-based reports when there are NAs or NaNs, or too few data points to make a histogram

@@ -13,6 +13,7 @@ gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
 barcode_len = config["barcodes"]["length"]
+combine_haplotypes = config["combine_haplotypes"]
 genodict = {"0": gen_hap1, "1": gen_hap2}
 
 onstart:
@@ -173,10 +174,22 @@ rule demultiplex_barcodes:
     shell:
         "inline_to_haplotag.py -b {input.barcodes} -p {params} {input.fw} {input.rv} 2> {log}"
 
+rule combine_haplotypes:
+    input:
+        hap1 = outdir + "/sim_hap0.R{FR}.fq.gz",
+        hap2 = outdir + "/sim_hap1.R{FR}.fq.gz",
+    output:
+        outdir + "/sim_hap.R{FR}.fq.gz"
+    container:
+        None
+    shell:
+        "cat {input} > {output}"
+
 rule workflow_summary:
     default_target: True
     input:
-        collect(outdir + "/sim_hap{hap}.R{fw}.fq.gz", hap = [0,1], fw = [1,2])
+        collect(outdir + "/sim_hap{hap}.R{fw}.fq.gz", hap = [0,1], fw = [1,2]),
+        collect("sim_hap.R{FR}.fq.gz", FR = [1,2]) if combine_haplotypes else []
     params:
         lrsproj_dir = f"{outdir}",
         lrsoutdist  = config["outer_distance"],
