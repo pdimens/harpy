@@ -33,6 +33,7 @@
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
 - updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
   - empty module call no longer brings up the docstring
+- direct HTCondor support is gone in `harpy template hpc-` because the snakemake plugin seems to have vanished
 
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution
