@@ -162,7 +162,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        workflow_geno"
+        workflow_geno
     container:
         None
     shell: 

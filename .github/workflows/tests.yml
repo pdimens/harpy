@@ -842,4 +842,4 @@ jobs:
           harpy template hpc-slurm
           harpy template hpc-googlebatch
           harpy template hpc-lsf
-          harpy template hpc-htcondor
+          harpy template hpc-generic

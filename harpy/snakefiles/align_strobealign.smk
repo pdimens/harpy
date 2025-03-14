@@ -14,7 +14,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
-workflowdir = f"{ourdir}/workflow"
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
