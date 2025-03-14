@@ -25,6 +25,16 @@ def snp():
     is greater than **2**.
     """
 
+module_docstring = {
+    "harpy snp": [
+        {
+            "name": "Commands",
+            "commands": ["freebayes", "mpileup"],
+            "panel_styles": {"border_style": "blue"}
+        }
+    ]
+}
+
 docstring = {
     "harpy snp mpileup": [
         {
@@ -50,7 +60,7 @@ docstring = {
             "panel_styles": {"border_style": "dim"}
         },
     ]
-}
+} |  module_docstring
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')

@@ -21,13 +21,24 @@ def sv():
     """
     Call large structural variants on alignments
  
-    **Structural Variant Callers**
-    - `naibr`: calls inversions, duplicates, deletions
-    - `leviathan`: calls inversions, duplicates, deletions, misc breakends
+    | caller | inversions | duplications | deletions | breakends |
+    |:-------|:----------:|:------------:|:---------:|:---------:|
+    | leviathan |      ✔  |     ✔        |     ✔     |      ✔    |
+    | naibr     |      ✔  |     ✔        |     ✔     |     🗙    |
 
-    Provide an additional subcommand `leviathan` or `naibr` to get more information on using
+    Provide the subcommand `leviathan` or `naibr` to get more information on using
     those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
     """
+
+module_docstring = {
+    "harpy sv": [
+        {
+            "name": "Commands",
+            "commands": ["leviathan", "naibr"],
+            "panel_styles": {"border_style": "blue"}
+        }
+    ]
+}
 
 docstring = {
     "harpy sv leviathan": [
@@ -54,7 +65,7 @@ docstring = {
             "panel_styles": {"border_style": "dim"}
         },
     ]
-}
+} | module_docstring
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
 @click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')

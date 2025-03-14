@@ -19,7 +19,7 @@ docstring = {
         {
             "name": "HPC Configurations",
             "commands": ["hpc-generic", "hpc-googlebatch", "hpc-htcondor", "hpc-lsf", "hpc-slurm"],
-            "panel_styles": {"border_style": "green"}
+            "panel_styles": {"border_style": "green", "subtitle": "run without arguments"}
         },
     ]
 }
@@ -32,8 +32,7 @@ def template():
     Call any one of the sub-commands with `--help` to see its usage.
     - `groupings` creates the optional grouping file for variant calling
     - `impute` create the parameter input for `harpy impute` 
-    - use `hpc-*` so harpy/snakemake submit HPC jobs on your behalf
-      - the `hpc-` commands are run without options or inputs
+    - `hpc-*` creates snakemake HPC configs to auto-submit cluster jobs
     """
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")

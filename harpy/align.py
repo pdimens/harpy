@@ -20,15 +20,25 @@ def align():
     """
     Align sample sequences to a reference genome
 
-    The available aligners all retain the linked-read barcode information in the
-    resulting output, however `ema` is the only aligner to use the barcode information
-    to facilitate the aligning process and can be prohibitively slow. The `strobe`
-    aligner is the fastest option and is comparable in accuracy (or better) to `bwa` for
-    sequences >100bp.
+    | aligner | linked-read aware | speed | best for | 
+    |:-------|:----------:|:------------:|:---------:|
+    | bwa     |      🗙  |     fair     |   <600bp   | 
+    | ema     |      ✔   |     slow     | <600bp     |
+    | strobealign |  🗙  |     fast     |    >100bp  |
 
     Provide an additional subcommand `bwa`, `ema`, or `strobe` to get more information on using
     those aligners.
     """
+
+module_docstring = {
+    "harpy align": [
+        {
+            "name": "Commands",
+            "commands": ["bwa", "ema", "strobe"],
+            "panel_styles": {"border_style" : "blue"}
+        }
+    ]
+}
 
 docstring = {
     "harpy align bwa": [
