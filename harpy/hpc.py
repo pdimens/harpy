@@ -104,47 +104,8 @@ def hpc_lsf():
         yml.write("#  - source-cache\n")
 
 @click.command()
-def hpc_htcondor():
-    """
-    Create a template config for HTCondor
-    
-    This command creates a configuration (`hpc/htcondor.yaml`) for the HTCondor HPC scheduler.
-    You will also need to install `snakemake-executor-plugin-htcondor` for the HPC job submission to work.
-    """
-    os.makedirs("hpc", exist_ok=True)
-    outfile = "hpc/htcondor.yaml"
-    if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
-    package_exists("htcondor")
-    with open(outfile, "w", encoding = "utf-8") as yml:
-        yml.write("__use_yte__: true\n")
-        yml.write("executor: htcondor\n")
-        yml.write("default-resources:\n")
-        yml.write("  getenv: True\n")
-        yml.write("  rank: \n")
-        yml.write("  max-retries: 1\n")
-        yml.write("  request_memory: attempt * 2000\n")
-        yml.write("jobs: 50\n")
-        yml.write("latency-wait: 60\n")
-        yml.write("retries: 1\n")
-        yml.write("\n# This section is for advanced copying into a scratch directory #\n")
-        yml.write("## requires snakemake-storage-plugin-fs, which can be installed via conda\n")
-        yml.write("#default-storage-provider: fs\n")
-        yml.write("#local-storage-prefix: /home2/$USER\n")
-        yml.write("#shared-fs-usage:\n")
-        yml.write("#  - persistence\n")
-        yml.write("#  - software-deployment\n")
-        yml.write("#  - sources\n")
-        yml.write("#  - source-cache\n")
-
-@click.command()
 def hpc_slurm():
-    """
-    Create a template config for SLURM
-    
-    This command creates a configuration (`hpc/slurm.yaml`) for the SLURM HPC scheduler.
-    You will also need to install `snakemake-executor-plugin-slurm` for the HPC job submission to work.
-    """
+    """Configuration for SLURM"""
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/slurm.yaml"
     if os.path.exists(outfile):

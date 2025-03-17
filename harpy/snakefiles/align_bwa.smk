@@ -14,16 +14,18 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile 	= config["inputs"]["genome"]
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
+genomefile 	= config["inputs"]["genome"]
 bn 			= os.path.basename(genomefile)
+workflow_geno = f"{workflowdir}/genome/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
-bn_idx      = f"{bn}.gzi" if genome_zip else f"{bn}.fai"
+workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 windowsize  = config["depth_windowsize"]
@@ -40,7 +42,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -55,12 +57,12 @@ rule process_genome:
 
 rule samtools_faidx:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        fai = f"Genome/{bn}.fai",
-        gzi = f"Genome/{bn}.gzi" if genome_zip else []
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     params:
         genome_zip
     container:
@@ -76,9 +78,9 @@ rule samtools_faidx:
 
 rule make_depth_intervals:
     input:
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     output:
-        outdir + "/reports/data/coverage/coverage.bed"
+        f"{outdir}/reports/data/coverage/coverage.bed"
     run:
         with open(input[0], "r") as fai, open(output[0], "w") as bed:
             for line in fai:
@@ -94,11 +96,11 @@ rule make_depth_intervals:
 
 rule bwa_index:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     log:
-        f"Genome/{bn}.bwa.idx.log"
+        f"{workflow_geno}.bwa.idx.log"
     conda:
         f"{envdir}/align.yaml"
     shell: 
@@ -107,8 +109,8 @@ rule bwa_index:
 rule align:
     input:
         fastq      = get_fq,
-        genome     = f"Genome/{bn}",
-        genome_idx = multiext(f"Genome/{bn}", ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome     = workflow_geno,
+        genome_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
         temp(outdir + "/samples/{sample}/{sample}.bwa.sam")
     log:
@@ -132,8 +134,8 @@ rule align:
 rule mark_duplicates:
     input:
         sam    = outdir + "/samples/{sample}/{sample}.bwa.sam",
-        genome = f"Genome/{bn}",
-        faidx  = f"Genome/{bn_idx}"
+        genome = workflow_geno,
+        faidx  = workflow_geno_idx
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp(outdir + "/markdup/{sample}.markdup.bam") 
     log:
@@ -194,7 +196,7 @@ rule barcode_stats:
 rule molecule_coverage:
     input:
         stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        fai = f"Genome/{bn}.fai"
+        fai = f"{workflow_geno}.fai"
     output: 
         outdir + "/reports/data/coverage/{sample}.molcov.gz"
     params:
@@ -218,8 +220,8 @@ rule alignment_coverage:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -235,7 +237,7 @@ rule sample_reports:
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{outdir}/workflow/report/align_stats.qmd"
+        qmd = f"{workflowdir}/report/align_stats.qmd"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -307,7 +309,7 @@ rule barcode_report:
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
+        qmd = f"{workflowdir}/report/align_bxstats.qmd"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
@@ -352,5 +354,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/align.bwa.summary", "w") as f:
+        with open(f"{workflowdir}/align.bwa.summary", "w") as f:
             f.write("\n\n".join(summary))

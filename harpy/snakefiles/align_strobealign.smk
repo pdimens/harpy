@@ -14,13 +14,15 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir      = config["output_directory"]
+workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile 	= config["inputs"]["genome"]
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
+genomefile 	= config["inputs"]["genome"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
+workflow_geno = f"{workflowdir}/genome/{bn}"
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
@@ -42,7 +44,7 @@ rule process_genome:
     input:
         genomefile
     output: 
-        f"Genome/{bn}"
+        workflow_geno
     container:
         None
     shell: 
@@ -50,11 +52,11 @@ rule process_genome:
 
 rule index_genome:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output: 
-        f"Genome/{bn}.fai",
+        f"{workflow_geno}.fai",
     log:
-        f"Genome/{bn}.faidx.log"
+        f"{workflow_geno}.faidx.log"
     container:
         None
     shell: 
@@ -62,7 +64,7 @@ rule index_genome:
 
 rule make_depth_intervals:
     input:
-        f"Genome/{bn}.fai"
+        f"{workflow_geno}.fai"
     output:
         outdir + "/reports/data/coverage/coverage.bed"
     run:
@@ -80,11 +82,11 @@ rule make_depth_intervals:
 
 rule strobe_index:
     input: 
-        f"Genome/{bn}"
+        workflow_geno
     output:
-        f"Genome/{bn}.r{readlen}.sti"
+        f"{workflow_geno}.r{readlen}.sti"
     log:
-        f"Genome/{bn}.r{readlen}.sti.log"
+        f"{workflow_geno}.r{readlen}.sti.log"
     params:
         readlen
     conda:
@@ -97,8 +99,8 @@ rule strobe_index:
 rule align:
     input:
         fastq = get_fq,
-        genome   = f"Genome/{bn}",
-        genome_index   = f"Genome/{bn}.r{readlen}.sti" if not autolen else []
+        genome   = workflow_geno,
+        genome_index   = f"{workflow_geno}.r{readlen}.sti" if not autolen else []
     output:  
         temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
     log:
@@ -123,8 +125,8 @@ rule align:
 rule mark_duplicates:
     input:
         sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
-        genome = f"Genome/{bn}",
-        faidx  = f"Genome/{bn}.fai"
+        genome = workflow_geno,
+        faidx  = f"{workflow_geno}.fai"
     output:
         temp(outdir + "/samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp(outdir + "/markdup/{sample}.markdup.bam")
     log:
@@ -185,7 +187,7 @@ rule barcode_stats:
 rule molecule_coverage:
     input:
         stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        fai = f"Genome/{bn}.fai"
+        fai = f"{workflow_geno}.fai"
     output: 
         outdir + "/reports/data/coverage/{sample}.molcov.gz"
     params:
@@ -209,8 +211,8 @@ rule alignment_coverage:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"{workflowdir}/report/_quarto.yml",
+        scss = f"{workflowdir}/report/_harpy.scss"
     output:
         yaml = temp(f"{outdir}/reports/_quarto.yml"),
         scss = temp(f"{outdir}/reports/_harpy.scss")
@@ -226,7 +228,7 @@ rule sample_reports:
         bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
         coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{outdir}/workflow/report/align_stats.qmd"
+        qmd = f"{workflowdir}/report/align_stats.qmd"
     output:
         report = outdir + "/reports/{sample}.html",
         qmd = temp(outdir + "/reports/{sample}.qmd")
@@ -298,7 +300,7 @@ rule barcode_report:
         f"{outdir}/reports/_quarto.yml",
         f"{outdir}/reports/_harpy.scss",
         collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/align_bxstats.qmd"
+        qmd = f"{workflowdir}/report/align_bxstats.qmd"
     output:
         report = f"{outdir}/reports/barcode.summary.html",
         qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
@@ -351,5 +353,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/align.strobealign.summary", "w") as f:
+        with open(f"{workflowdir}/align.strobealign.summary", "w") as f:
             f.write("\n\n".join(summary))

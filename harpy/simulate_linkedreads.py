@@ -21,7 +21,7 @@ docstring = {
         },
         {
             "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--merge-haplotypes", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
             "panel_styles": {"border_style": "dim"}
         }
     ]
@@ -37,6 +37,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/linkedreads", help = 'Output directory name')
 @click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "Number (in thousands) of partitions/beads to generate")
 @click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number (in millions) of read pairs to simulate")
+@click.option('--merge-haplotypes',  is_flag = True, default = False, help = 'Concatenate sequences across haplotypes')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -45,7 +46,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('genome_hap1', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
 @click.argument('genome_hap2', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
-def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, hpc, container, setup_only):
+def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, merge_haplotypes, hpc, container, setup_only):
     """
     Create linked reads from a genome
  
@@ -54,7 +55,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 
     If not providing a file for `--barcodes`, Harpy will generate a file containing the original
     (96^4) set of 24-basepair haplotagging barcodes (~2GB disk space). The `--barcodes` file is expected to have one
-    linked-read barcode per line, given as nucleotides.
+    linked-read barcode per line, given as nucleotides. Use `--merge-haplotypes` to merge haplotype 1 and haplotype 2 for R1 reads
+    (same for R2), resulting in one file of R1 reads and one file of R2 reads.
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
@@ -90,6 +92,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "molecule_length" : molecule_length,
         "partitions" : partitions,
         "molecules_per_partition" : molecules_per,
+        "merge_haplotypes": merge_haplotypes,
         "workflow_call" : command.rstrip(),
         "conda_environments" : conda_envs,
         'barcodes': {
