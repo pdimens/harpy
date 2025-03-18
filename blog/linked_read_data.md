@@ -80,7 +80,7 @@ It's admittedly clunky and we are open to suggestions.
 ## Linked Coverage
 Because of the "linked" component of linked-read data, we have an additional kind of sequence coverage
 to consider, which is **linked coverage**. Since linked-read barcodes preserve phase information, we can do an alternative kind of
-coverage calculation where you pretend that all the sequences with a shared barcode molecule are one big gapless sequence. If you use your imagination
+coverage calculation where you pretend that all the sequences with a shared barcode are one big gapless sequence. If you use your imagination
 that way, the name "synthetic long reads" begins to make more sense. Mathematically, the linked coverage (breadth and depth) should always be higher
 than the coverage from just the alignments themselves, as gaps between linked reads are counted as well.
 ![linked depth](/static/linked_depth.svg)
@@ -88,6 +88,6 @@ than the coverage from just the alignments themselves, as gaps between linked re
 In real data, this actually looks very cool. Below is a graph from the per-sample alignment report Harpy generates. It's a circos plot,
 which is a circular representation of round charts, and each wedge is a chromosome (start to finish), labelled by the "2R", "2L", etc. around
 the perimeter. The inner circle (grey histogram) is the **sequence alignment depth** (i.e. the standard depth calculation) and the outer circle (magenta histogram)
-is the **linked depth** of those same data in those same 50kbp intervals. It's noticeably higher and it has the most fascinating flowerpetal pattern, which
+is the **linked depth** of those same data in those same 50kbp intervals. It has the most fascinating flower petal pattern, which
 is due to the lower likelihood of reads linking at the edges of chromosomes.
 ![linked depth in real data](/static/linked_depth_example.png)
