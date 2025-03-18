@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795639844300">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -37,11 +37,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.795639844300" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.795639844300" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.795639844300" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -431,7 +431,7 @@ It&#x27;s admittedly clunky and we are open to suggestions.
 </doc-anchor-target>
 <p>Because of the &quot;linked&quot; component of linked-read data, we have an additional kind of sequence coverage
 to consider, which is <strong>linked coverage</strong>. Since linked-read barcodes preserve phase information, we can do an alternative kind of
-coverage calculation where you pretend that all the sequences with a shared barcode molecule are one big gapless sequence. If you use your imagination
+coverage calculation where you pretend that all the sequences with a shared barcode are one big gapless sequence. If you use your imagination
 that way, the name &quot;synthetic long reads&quot; begins to make more sense. Mathematically, the linked coverage (breadth and depth) should always be higher
 than the coverage from just the alignments themselves, as gaps between linked reads are counted as well.
 <figure class="content-center">
@@ -442,7 +442,7 @@ than the coverage from just the alignments themselves, as gaps between linked re
 <p>In real data, this actually looks very cool. Below is a graph from the per-sample alignment report Harpy generates. It&#x27;s a circos plot,
 which is a circular representation of round charts, and each wedge is a chromosome (start to finish), labelled by the &quot;2R&quot;, &quot;2L&quot;, etc. around
 the perimeter. The inner circle (grey histogram) is the <strong>sequence alignment depth</strong> (i.e. the standard depth calculation) and the outer circle (magenta histogram)
-is the <strong>linked depth</strong> of those same data in those same 50kbp intervals. It&#x27;s noticeably higher and it has the most fascinating flowerpetal pattern, which
+is the <strong>linked depth</strong> of those same data in those same 50kbp intervals. It has the most fascinating flower petal pattern, which
 is due to the lower likelihood of reads linking at the edges of chromosomes.
 <figure class="content-center">
     <img src="../../static/linked_depth_example.png" alt="linked depth in real data">
