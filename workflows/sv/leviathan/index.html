@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.795638564935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -449,6 +449,12 @@ format validity.</p>
 <td style="text-align: left;"><a href="../../../commonoptions/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--duplicates</code></td>
+<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: center;"><code v-pre>10</code></td>
+<td style="text-align: left;">Consider SV of the same type as duplicates if their breakpoints are within this distance</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--extra-params</code></td>
 <td style="text-align: center;"><code v-pre>-x</code></td>
 <td style="text-align: center;"></td>
@@ -475,7 +481,7 @@ format validity.</p>
 <td style="text-align: left;">Minimum number of barcode overlaps supporting candidate SV</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-sv</code></td>
+<td style="text-align: left;"><code v-pre>--min-size</code></td>
 <td style="text-align: center;"><code v-pre>-m</code></td>
 <td style="text-align: center;"><code v-pre>1000</code></td>
 <td style="text-align: left;">Minimum size of SV to detect</td>
@@ -486,9 +492,32 @@ format validity.</p>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--sharing-thresholds</code></td>
+<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: center;"><code v-pre>99,99,99</code></td>
+<td style="text-align: left;">Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas</td>
+</tr>
 </tbody>
 </table>
 </div>
+<doc-anchor-target id="duplicates">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#duplicates">#</doc-anchor-trigger>
+        <span>Duplicates</span>
+    </h3>
+</doc-anchor-target>
+<p>If it feels like Leviathan is unneccesarily splitting larger variants into smaller overlapping or adjacent ones,
+this parameter should help limit that from occuring.</p>
+<doc-anchor-target id="barcode-sharing-thresholds">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#barcode-sharing-thresholds">#</doc-anchor-trigger>
+        <span>Barcode sharing thresholds</span>
+    </h3>
+</doc-anchor-target>
+<p>The default Leviathan setting of <code v-pre>99</code> for these three parameters can be too strict and omit
+variants you are expecting to find (e.g. certain large inversions). If you suspect the program
+is missing variants, then you may trying relaxing these thresholds (e.g. <code v-pre>99,95,95</code>).</p>
 <doc-anchor-target id="single-sample-variant-calling">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#single-sample-variant-calling">#</doc-anchor-trigger>
@@ -521,7 +550,7 @@ group-level variants, if that&#x27;s what your primary interest is.</p>
             </svg>
         </div>
         <div class="pr-5 ml-3 w-full">
-            <h5>a little lifehack</h5>
+            <h5>lifehack</h5>
 <p>If you have a small number of samples (~10 or fewer) that you are interested in comparing the results of structural variant calling for,
 you can provide a sample grouping file via <code v-pre>--populations</code> where each sample is its own population and Harpy will output a report
 comparing &quot;populations&quot; as usual. Keep in mind that if there are too many samples, the formatting of the reports might not render

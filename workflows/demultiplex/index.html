@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.795638564935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -324,7 +324,7 @@ haplotag technology you are using (read <doc-anchor-trigger to="#haplotag-types"
 <p>In addition to the <a href="../../commonoptions/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 hover:bg-blue-100 dark:hover:bg-transparent dark:hover:border-blue-200 dark:hover:text-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>common runtime options</span>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
-    <span>demultiplex</span>
+    <span>demultiplex gen1</span>
 </span> module is configured using these command-line arguments:</p>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -336,13 +336,6 @@ haplotag technology you are using (read <doc-anchor-trigger to="#haplotag-types"
 </tr>
 </thead>
 <tbody>
-<tr>
-<td style="text-align: left;"><code v-pre>METHOD</code></td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
-    <span>required</span>
-</span> Haplotag technology of the sequences  [<code v-pre>gen1</code>]</td>
-</tr>
 <tr>
 <td style="text-align: left;"><code v-pre>R1_FQ</code></td>
 <td style="text-align: center;"></td>
@@ -372,6 +365,16 @@ haplotag technology you are using (read <doc-anchor-trigger to="#haplotag-types"
 </span> The reverse FASTQ index file provided by the sequencing facility</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--keep-unknown</code></td>
+<td style="text-align: center;"><code v-pre>-u</code></td>
+<td style="text-align: left;">Keep reads that could not be demultiplexed</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--qxrx</code></td>
+<td style="text-align: center;"><code v-pre>-q</code></td>
+<td style="text-align: left;">Include the <code v-pre>QX:Z</code> and <code v-pre>RX:Z</code> tags in the read header</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--schema</code></td>
 <td style="text-align: center;"><code v-pre>-s</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
@@ -381,10 +384,28 @@ haplotag technology you are using (read <doc-anchor-trigger to="#haplotag-types"
 </tbody>
 </table>
 </div>
+<doc-anchor-target id="keeping-unknown-samples">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#keeping-unknown-samples">#</doc-anchor-trigger>
+        <span>Keeping Unknown Samples</span>
+    </h3>
+</doc-anchor-target>
+<p>It&#x27;s not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use <code v-pre>--keep-unknown</code> to
+have Harpy still separate those reads from the original multiplex. Those reads will be labelled <code v-pre>_unknown_sample.R*.fq.gz</code></p>
+<doc-anchor-target id="keep-qx-and-rx-tags">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#keep-qx-and-rx-tags">#</doc-anchor-trigger>
+        <span>Keep QX and RX tags</span>
+    </h3>
+</doc-anchor-target>
+<p>Using <code v-pre>--qx-rx</code>, you can opt-in to retain the <code v-pre>QX:Z</code> (barcode PHRED scores) and <code v-pre>RX:Z</code> (nucleotide barcode)
+tags in the sequence headers. These tags aren&#x27;t used by any subsequent analyses, but may be useful for your own diagnostics.</p>
 <doc-anchor-target id="haplotag-types">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#haplotag-types">#</doc-anchor-trigger>
-        <span>Haplotag Types</span>
+        <span>Haplotag Types<span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+            <span>gzip recommended</span>
+        </span></span>
     </h2>
 </doc-anchor-target>
 <doc-panel id="generation-1-gen1" collapsed>
@@ -402,13 +423,13 @@ meaning a single sample should have the same <code v-pre>C</code> barcode for al
 <doc-anchor-target id="demultiplexing-schema">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#demultiplexing-schema">#</doc-anchor-trigger>
-        <span>demultiplexing schema</span>
+        <span>Demultiplexing Schema</span>
     </h3>
 </doc-anchor-target>
-<p>Since Generation I haplotags use a unique <code v-pre>Cxx</code> barcode per sample, that&#x27;s the barcode
-that will be used to identify sequences by sample. You will need to provide a simple text
-file to <code v-pre>--schema</code> (<code v-pre>-s</code>) with two columns, the first being the sample name, the second being
-the <code v-pre>Cxx</code> barcode (e.g., <code v-pre>C19</code>). This file is to be <code v-pre>tab</code> or <code v-pre>space</code> delimited and must have <strong>no column names</strong>.</p>
+<p>Generation I haplotags typically use a unique <code v-pre>Cxx</code> barcode per sample-- that&#x27;s the barcode segment
+that will be used to identify sequences by sample. However, any of the 4 segments (<code v-pre>A</code>,<code v-pre>B</code>,<code v-pre>C</code>,<code v-pre>D</code>) are valid, so long as the schema only features a single segment.
+You will need to provide a simple text file to <code v-pre>--schema</code> (<code v-pre>-s</code>) with two columns, the first being the sample name, the second being
+the identifying segment barcode (e.g., <code v-pre>C19</code>). This file is to be <code v-pre>tab</code> or <code v-pre>space</code> delimited and must have <strong>no column names</strong>.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example sample sheet</div>
 <pre class="language-none"><code v-pre class="language-none">Sample01    C01
@@ -416,7 +437,41 @@ Sample02    C02
 Sample03    C03
 Sample04    C04</code></pre>
 </doc-codeblock></div>
-<p>This will result in splitting the multiplexed reads into individual file pairs <code v-pre>Sample01.F.fq.gz</code>, <code v-pre>Sample01.R.fq.gz</code>, <code v-pre>Sample02.F.fq.gz</code>, etc.</p>
+<p>This will result in splitting the multiplexed reads into individual file pairs <code v-pre>Sample01.F.fq.gz</code>, <code v-pre>Sample01.R.fq.gz</code>, <code v-pre>Sample02.F.fq.gz</code>, etc.
+A sample can have multiple barcodes, but a barcode <strong>cannot</strong> have multiple samples:</p>
+<doc-tabs>
+<doc-tab v-cloak id="duplicate-samples-badge-variant-success-text-valid">
+<template #title>duplicate samples <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
+    <span>valid</span>
+</span></template>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-none"><code v-pre class="language-none">Sample01    D01
+Sample02    D02
+Sample03    D03
+Sample03    D21</code></pre>
+</doc-codeblock></div>
+</doc-tab>
+<doc-tab v-cloak id="duplicate-barcodes-badge-variant-danger-text-invalid">
+<template #title>duplicate barcodes <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-red-600 bg-red-100 h-6 px-2 text-xs rounded-md">
+    <span>invalid</span>
+</span></template>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-none"><code v-pre class="language-none">Sample01    C01
+Sample02    C02
+Sample03    C02</code></pre>
+</doc-codeblock></div>
+</doc-tab>
+<doc-tab v-cloak id="multiple-segments-badge-variant-danger-text-invalid">
+<template #title>multiple segments <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-red-600 bg-red-100 h-6 px-2 text-xs rounded-md">
+    <span>invalid</span>
+</span></template>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-none"><code v-pre class="language-none">Sample01    C01
+Sample02    D02
+Sample03    C03</code></pre>
+</doc-codeblock></div>
+</doc-tab>
+</doc-tabs>
 </doc-panel>
 <hr>
 <doc-anchor-target id="gen-i-demultiplex-workflow">
@@ -435,12 +490,11 @@ individual samples is performed in parallel and using the beloved workhorse <cod
     subgraph Inputs
         direction TB
         A[multiplexed FASTQ]:::clean---BX
-        BX[Barcode Files]:::clean---SCH
+        BX[index reads FASTQ]:::clean---SCH
         SCH[Sample Schema]:::clean
     end
-    Inputs--&gt;B([barcodes to headers]):::clean
-    B--&gt;C([demultiplex samples]):::clean
-    C--&gt;D([quality metrics]):::clean
+    Inputs--&gt;B([demultiplex samples]):::clean
+    B--&gt;D([quality metrics]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 </doc-tab>

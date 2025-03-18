@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.795638564935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
     <link href="../../resources/css/katex.css?v=3.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.6.0" defer></script>
@@ -63,7 +63,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -439,7 +439,7 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
 <td style="text-align: left;"><code v-pre>--extra-params</code></td>
 <td style="text-align: center;"><code v-pre>-x</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Extra arguments to add to the STITCH R function, provided in quotes and R syntax</td>
+<td style="text-align: left;">Extra arguments to add to STITCH, provided in quotes</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--parameters</code></td>
@@ -473,12 +473,10 @@ harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters s
     </h3>
 </doc-anchor-target>
 <p>You may add <a href="https://github.com/rwdavies/STITCH/blob/master/Options.md">additional parameters</a> to STITCH by way of the
-<code v-pre>--extra-params</code> (or <code v-pre>-x</code>) option. Since STITCH is a function in the R language, the parameters you add must be in R
-syntax (e.g. <code v-pre>regionStart=0</code>, <code v-pre>populations=c(&quot;GBA&quot;,&quot;CUE&quot;)</code>). The argument should be wrapped in quotes (like in other Harpy modules),
-however, if your additional parameters require the use of quotes (like the previous example), then wrap the <code v-pre>-x</code> argument
-in <strong>single quotes</strong>. Otherwise, the format should take the form of <code v-pre>&quot;arg1=value, arg2=value2&quot;</code>. Example:</p>
+<code v-pre>--extra-params</code> (or <code v-pre>-x</code>) option. Harpy uses the <code v-pre>STITCH.R</code> command-line tool, which requires arguments to be in the form <code v-pre>--argument=value</code>,
+without spaces. Example:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy impute -v file.vcf -p stitch.params -t 15 -x 'regionStart=20, regionEnd=500' Align/ema</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy impute -v file.vcf -p stitch.params -t 15 -x &quot;--regionStart=20, --regionEnd=500&quot; Align/ema</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="prioritize-the-vcf-file">
     <h3>
@@ -815,7 +813,7 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
         ├── data
         ├── contig1.modelname.html
         ├── contig2.modelname.html
-        └── modelname.html
+        └── modelname.summary.html
 </code></pre>
 </doc-codeblock></div>
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -836,8 +834,8 @@ The resulting folder also includes a <code v-pre>workflow</code> directory (not 
 <td style="text-align: left;">index of <code v-pre>modelname.bcf</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>modelname/reports/modelname.html</code></td>
-<td style="text-align: left;">report summarizing the results of imputation</td>
+<td style="text-align: left;"><code v-pre>modelname/reports/modelname.summary.html</code></td>
+<td style="text-align: left;">report summarizing the results of imputation across contigs</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>modelname/reports/*.modelname.html</code></td>

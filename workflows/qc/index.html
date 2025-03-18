@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.6.0.795638564935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -428,6 +428,12 @@ remove duplicates, deconvolve, and quality trim sequences using the <span class=
 <td style="text-align: left;">Additional fastp arguments, in quotes</td>
 </tr>
 <tr>
+<td style="text-align: left;"><code v-pre>--ignore-bx</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: center;">false</td>
+<td style="text-align: left;">Ignore parts of the workflow specific to linked-read sequences</td>
+</tr>
+<tr>
 <td style="text-align: left;"><code v-pre>--min-length</code></td>
 <td style="text-align: center;"><code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>30</code></td>
@@ -450,18 +456,49 @@ remove duplicates, deconvolve, and quality trim sequences using the <span class=
 </tbody>
 </table>
 </div>
-<p>By default, this workflow will only quality-trim the sequences. You can also opt-in to:</p>
-<ul>
-<li>find and remove optical (PCR) duplicates</li>
-<li>resolve situations where reads from different molecules have the same barcode (see <a href="../deconvolve/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+<p>By default, this workflow will only quality-trim the sequences.</p>
+<doc-anchor-target id="deduplicate-reads">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#deduplicate-reads">#</doc-anchor-trigger>
+        <span>deduplicate reads <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-yellow-900 bg-yellow-100 h-6 px-2 text-xs rounded-md">
+            <span>not recommended</span>
+        </span></span>
+    </h4>
+</doc-anchor-target>
+<p>You can opt-in to have <code v-pre>fastp</code> deduplicate optical (PCR) duplicates. It&#x27;s generally not recommended to perform deduplication during quality-checking,
+as the <a href="../align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>align</span>
+</a> workflows use the linked-read barcode to more accurately tag reads as duplicates.</p>
+<doc-anchor-target id="deconvolve-reads">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#deconvolve-reads">#</doc-anchor-trigger>
+        <span>deconvolve reads <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+            <span>conditionally recommended</span>
+        </span></span>
+    </h4>
+</doc-anchor-target>
+<p>You can opt-in to resolve situations where reads from different molecules have the same barcode (see <a href="../deconvolve/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>deconvolve</span>
-</a>)</li>
-<li>find and remove sequencing adapters <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
-    <span>recommended</span>
-</span>
+</a>).
+Performing deconvolution during the quality-checking stage of ones work would be most useful for <a href="../assembly/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>assembly</span>
+</a>
+and <a href="../metassembly/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>metassembly</span>
+</a> workflows, but might hinder variant-detection workflows.</p>
+<doc-anchor-target id="trimming-adapters">
+    <h4>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#trimming-adapters">#</doc-anchor-trigger>
+        <span>trimming adapters <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
+            <span>recommended</span>
+        </span></span>
+    </h4>
+</doc-anchor-target>
+<p>You can opt-in to find and remove adapter content in sequences.</p>
 <ul>
 <li>accepts <code v-pre>auto</code> for automatic adapter detection and removal</li>
-<li>accepts a FASTA file of adapter sequences
+<li>accepts a FASTA file of adapter sequences</li>
+</ul>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example FASTA file of adapters</div>
 <pre class="language-none"><code v-pre class="language-none">&gt;Illumina TruSeq Adapter Read 1
@@ -471,12 +508,8 @@ AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
 &gt;polyA
 AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code></pre>
 </doc-codeblock></div>
-</li>
-</ul>
-</li>
-</ul>
-<doc-panel id="trimming-to-different-lengths" collapsed>
-    <template #title>Trimming to different lengths</template>
+<doc-panel id="trimming-reads-to-different-lengths" collapsed>
+    <template #title>Trimming reads to different lengths</template>
 <p>In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
 setting <code v-pre>-m</code> (<code v-pre>--max-length</code>) to the length you want the <strong>forward</strong> reads trimmed down to (e.g. <code v-pre>-m 125</code>), then specify an extra
 <code v-pre>fastp</code> parameter with <code v-pre>-x &quot;--max_len2 VAL&quot;</code> to set the maximum length of the <strong>reverse</strong> reads to <code v-pre>VAL</code>, e.g. <code v-pre>-x &quot;--max_len2 130&quot;</code>.

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.791483117968">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.795638564935">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.6.0.791483117968" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.6.0.795638564935" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.791483117968" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.791483117968" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.6.0.795638564935" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.6.0.795638564935" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.6.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v1.16</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -462,7 +462,7 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 <td style="text-align: left;">Minimum <code v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-sv</code></td>
+<td style="text-align: left;"><code v-pre>--min-size</code></td>
 <td style="text-align: center;"><code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>1000</code></td>
 <td style="text-align: left;">Minimum size of SV to detect</td>
@@ -498,7 +498,9 @@ harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Ali
 </doc-anchor-target>
 <p>The <code v-pre>--molecule-distance</code> option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See
-<a href="../../../haplotagdata/#barcode-thresholds">haplotag data</a> for more information on what this value does.</p>
+<a href="../../../haplotagdata/#barcode-thresholds">haplotag data</a> for more information on what this value does. If you want
+NAIBR to not split molecules in this manner (e.g. you might be looking for inversions greater than this threshold),
+then set this number to be unreasonably high, such as the length of your largest chromosome.</p>
 <doc-anchor-target id="single-sample-variant-calling">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#single-sample-variant-calling">#</doc-anchor-trigger>
