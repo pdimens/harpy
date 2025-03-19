@@ -9,7 +9,7 @@ icon: git-merge-queue
 image: /static/linked_reads.svg
 ---
 
-# :icon-git-merge-queue: An introduction to linked-read data
+# :icon-git-compare: An introduction to linked-read data
 Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stFLR, and 10X linked-read
 data. But, what if you don't use linked reads (yet) and want to understand what it actually is? This post walks you through what linked-read data is and some 
 of the concepts that are unique to it that makes it different than your typical short-read data. Although Harpy specializes in Haplotagging linked-read data,
