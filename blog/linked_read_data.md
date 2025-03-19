@@ -9,7 +9,7 @@ icon: git-merge-queue
 image: /static/linked_reads.svg
 ---
 
-# :icon-git-merge-queue: A kind introduction to linked-read data
+# :icon-git-merge-queue: An introduction to linked-read data
 Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stFLR, and 10X linked-read
 data. But, what if you don't use linked reads (yet) and want to understand what it actually is? This post walks you through what linked-read data is and some 
 of the concepts that are unique to it that makes it different than your typical short-read data. Although Harpy specializes in Haplotagging linked-read data,
@@ -20,21 +20,44 @@ what we're discussing here is linked reads as a whole.
 - a can-do attitude
 ===
 
-## Linked reads?
-Let's start with the most obvious, what _are_ linked reads, which are sometimes called "synthetic long reads"? They are short read (e.g. Illumina) data. What makes them different is that they contain an added DNA segment ("barcode") that lets us associate sequences as having originated from **a single DNA molecule**. That means if we have 4 sequences that all contain the same added barcode,
-then we infer that they must have originated from the same original DNA molecule. Different barcode = different molecule of origin. If you think about this another way,
-if the sequences would map to the same genomic region during sequence alignment, we would know that those sequences with the same barcode originated from 
-**a single DNA fragment from a single homologous chromosome from a single cell**. That's right, _built in phase information_.
+## Linked reads
+Let's start with the most obvious, what _are_ linked reads, which are sometimes called "synthetic long reads"? They are short read
+(e.g. Illumina) data. What makes them different is that they contain an added DNA segment ("barcode") that lets us associate
+sequences as having originated from **a single DNA molecule**. That means if we have 4 sequences that all contain the same added barcode,
+then we infer that they must have originated from the same original DNA molecule. Different barcode = different molecule of origin.
+If the sequences would map to the same genomic region during sequence alignment, we would know that those sequences with the same
+barcode originated from **a single DNA fragment from a single homologous chromosome from a single cell**. That's right, **built-in phase information**.
 ![simplified overview of linked reads](/static/linked_reads.svg)
 
-### Linked-read flavors
+### What do they look like?
+Linked-read data is sequence data as you would expect it, encoded in a FASTQ file. The first processing step of
+linked-read data is demultiplexing to split the raw Illumina-generated batch FASTQ file into samples (if multisample)
+and identify/validate the linked-read barcode on every sequence. For 10X data, the barcode would _stay_ inline with
+the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stFLR, etc.) you would also
+remove the barcode from the sequence and preserve it using the `BX:Z` tag in the sequence headers. The demultiplexing process
+is generally similar between non-10X linked-read technologies: a nucleotide barcode gets identified and moved from the sequence
+to the read header under the `BX:Z` tag. The diagram below preserves the nucleotide barcode under the `OX:Z` tag and recodes
+it under `BX:Z` using the haplotagging "ACBD" segment-aware format, however it would also be valid to just keep the nucleotide
+barcode under `BX:Z`. Linked-read software is variable in its flexibility towards barcode formatting.
+![haplotagging linked read data before and after demultiplexing](/static/lr_conversion.png)
+
+#### Deconvolution
+There are approaches to deconvolve linked read data (or "deconvolute", if you're indifferent to the burden of an extra syllable).
+In this context, deconvolution is finding out which sequences are sharing barcodes by chance rather than because they originated
+from the same DNA molecule. The likelihood of it happening is usually low, but it's not impossible. When the algorithm determines
+that barcodes are being shared by unrelated molecules, the barcode typically gets suffixed with a hyphenated number (e.g.
+`BX:Z:ATACG` becomes `BX:Z:ATACG-1`). As of this writing, there are only a few pieces of software that can deconvolve linked-read data and
+do so with varying degrees of success and computational resource requirements. Similarly, linked-read software is variable in its
+flexibility towards accepting the deconvolved-barcode format.
+
+### Linked-read varieties
 There are a handful of linked-read sample preparation methods (haplotagging, stFLR, etc.), but that's largely an implementation detail. All of those methods are
 laboratory procedures to take genomic DNA and do the necessary modifications to fragment long DNA molecules, tag the resulting fragments with the same
 DNA barcode, then add the necessary Illumina adapters. It's not unlike the different RAD flavors (e.g. EZrad, ddRAD, 2B-rad)-- they all give you RAD data in the end,
-but vary in how you get there.
+but vary in how you get there in terms of cost and bench time. We obviously subscribe to haplotagging :grin:.
 
 ### Failsafe
-Unlike some other fancy well-touted sample preparation methods (_cough cough_ mate-pair _cough cough_), linked-read data is whole genome sequencing (WGS).
+Unlike some other fancy well-touted sample preparation methods (_cough cough_ mate-pair), linked-read data is whole genome sequencing (WGS).
 What that means is that the data, whether you use the linked-read information or not, will always be standard and viable WGS compatible with whatever you
 would use WGS for. It's WGS, but with a little extra info that goes a long way.
 
