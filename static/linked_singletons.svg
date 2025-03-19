@@ -2,9 +2,9 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   width="218.58099mm"
-   height="66.825996mm"
-   viewBox="0 0 218.581 66.825995"
+   width="178.052mm"
+   height="64.737999mm"
+   viewBox="0 0 178.05201 64.737998"
    version="1.1"
    id="svg1"
    inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
@@ -23,9 +23,9 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.91843528"
-     inkscape:cx="458.93272"
-     inkscape:cy="34.297463"
+     inkscape:zoom="1.2988636"
+     inkscape:cx="195.1706"
+     inkscape:cy="171.30359"
      inkscape:window-width="1600"
      inkscape:window-height="840"
      inkscape:window-x="0"
@@ -34,25 +34,6 @@
      inkscape:current-layer="layer1" />
   <defs
      id="defs1">
-    <marker
-       style="overflow:visible"
-       id="marker31"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.5)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path31" />
-    </marker>
     <marker
        style="overflow:visible"
        id="marker10"
@@ -78,50 +59,12 @@
        width="148.07793"
        height="38.108292"
        id="rect10" />
-    <marker
-       style="overflow:visible"
-       id="marker31-1"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.5)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path31-3" />
-    </marker>
-    <marker
-       style="overflow:visible"
-       id="marker31-0"
-       refX="0"
-       refY="0"
-       orient="auto-start-reverse"
-       inkscape:stockid="Triangle arrow"
-       markerWidth="1"
-       markerHeight="1"
-       viewBox="0 0 1 1"
-       inkscape:isstock="true"
-       inkscape:collect="always"
-       preserveAspectRatio="xMidYMid">
-      <path
-         transform="scale(0.5)"
-         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
-         d="M 5.77,0 -2.88,5 V -5 Z"
-         id="path31-32" />
-    </marker>
   </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(44.383891,-304.6015)">
+     transform="translate(1.7376402,-306.7182)">
     <text
        xml:space="preserve"
        transform="matrix(0.26458333,0,0,0.26458333,2.1166667,2.1166667)"
@@ -129,12 +72,12 @@
        style="font-size:37.8932px;font-family:'Montserrat Alternates';-inkscape-font-specification:'Montserrat Alternates, Normal';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect10);display:inline;fill:none;stroke:#000000;stroke-width:14.9594;stroke-linecap:square;stroke-linejoin:bevel;stroke-opacity:1;paint-order:fill markers stroke"><tspan
          x="229.73828"
          y="814.41333"
-         id="tspan4"><tspan
+         id="tspan2"><tspan
            dx="0 16.862463 25.653696 13.982643 22.887497 15.763512 19.969734 25.691566 11.709 9.9279938"
-           id="tspan3">Interval 1</tspan></tspan></text>
+           id="tspan1">Interval 1</tspan></tspan></text>
     <g
        id="g1"
-       transform="translate(-3.9330246,4.1332306)">
+       transform="translate(-4.8719134,7.4721196)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -149,17 +92,17 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-       x="-27.039831"
-       y="332.58517"
+       x="24.463503"
+       y="364.08606"
        id="text23-0"><tspan
          sodipodi:role="line"
          id="tspan23-6"
          style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:3.958"
-         x="-27.039831"
-         y="332.58517">singletons</tspan></text>
+         x="24.463503"
+         y="364.08606">singletons</tspan></text>
     <g
        id="g8"
-       transform="translate(68.663274,10.182922)">
+       transform="translate(70.779942,12.29959)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -173,7 +116,7 @@
     </g>
     <g
        id="g8-2"
-       transform="translate(40.818597,-4.6022791)">
+       transform="translate(42.935265,-2.4856123)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -187,7 +130,7 @@
     </g>
     <g
        id="g8-6"
-       transform="translate(73.874131,-8.8182289)">
+       transform="translate(75.990799,-6.7015621)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -201,7 +144,7 @@
     </g>
     <g
        id="g8-1"
-       transform="translate(34.174403,3.9818736)">
+       transform="translate(36.291071,6.0985404)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -215,7 +158,7 @@
     </g>
     <g
        id="g8-5"
-       transform="translate(22.979183,14.829792)">
+       transform="translate(25.095851,16.94646)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -229,7 +172,7 @@
     </g>
     <g
        id="g8-9"
-       transform="translate(-14.59165,-6.0722934)">
+       transform="translate(-12.474982,-3.9556266)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -243,7 +186,7 @@
     </g>
     <g
        id="g8-67"
-       transform="translate(-17.420306,18.416472)">
+       transform="translate(-20.192527,20.53314)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -257,7 +200,7 @@
     </g>
     <g
        id="g8-52"
-       transform="translate(55.704797,19.628017)">
+       transform="translate(57.821465,21.744685)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -271,7 +214,7 @@
     </g>
     <g
        id="g8-99"
-       transform="translate(100.95466,14.071767)">
+       transform="translate(103.07134,16.188435)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -285,7 +228,7 @@
     </g>
     <g
        id="g8-677"
-       transform="translate(120.87503,-5.2785434)">
+       transform="translate(122.99171,-3.1618766)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -299,7 +242,7 @@
     </g>
     <g
        id="g8-0"
-       transform="translate(93.782258,-0.01552876)">
+       transform="translate(95.898926,2.101138)">
       <path
          style="fill:none;stroke:#d8d8d8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
          d="M 27.583744,328.49639 H 48.146656"
@@ -314,76 +257,77 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#a77cc8;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-       x="51.895355"
-       y="314.65924"
+       x="54.012024"
+       y="316.77594"
        id="text8"><tspan
          sodipodi:role="line"
          id="tspan8"
          style="fill:#a77cc8;fill-opacity:1;stroke:none;stroke-width:3.958"
-         x="51.895355"
-         y="314.65924">barcode</tspan></text>
+         x="54.012024"
+         y="316.77594">barcode</tspan></text>
     <path
        style="fill:none;stroke:#a77cc8;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;marker-end:url(#marker10);paint-order:stroke markers fill"
-       d="m 47.893416,315.64279 c -0.127316,3.59028 -10.847223,6.26388 -10.847223,6.26388"
+       d="m 50.010084,317.75947 c -0.127316,3.59028 -10.847223,6.26388 -10.847223,6.26388"
        id="path9"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#d8d8d8;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-       x="16.893568"
-       y="311.56238"
+       x="19.010237"
+       y="313.67908"
        id="text24"><tspan
          sodipodi:role="line"
          id="tspan10"
          style="fill:#d8d8d8;fill-opacity:1;stroke:none;stroke-width:3.958"
-         x="16.893568"
-         y="311.56238">read</tspan></text>
+         x="19.010237"
+         y="313.67908">read</tspan></text>
     <path
        style="fill:none;stroke:#d8d8d8;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;marker-end:url(#marker10);paint-order:stroke markers fill"
-       d="m 12.89163,312.54592 c -0.127316,3.59028 0.603979,6.3359 0.603979,6.3359"
+       d="m 15.008298,314.6626 c -0.127316,3.59028 0.603979,6.3359 0.603979,6.3359"
        id="path27"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#676767;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;marker-start:url(#marker31);paint-order:stroke markers fill"
-       d="M 19.884158,332.52473 C 5.133135,332.81721 0.55099341,331.50981 -9.1058416,330.99678"
-       id="path30"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#676767;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;marker-start:url(#marker31-1);paint-order:stroke markers fill"
-       d="m 9.5294869,322.62684 c -10.9337798,0 -13.1626086,5.22099 -18.6353285,8.36994"
-       id="path30-1"
-       sodipodi:nodetypes="cc" />
-    <path
-       style="fill:none;fill-opacity:1;stroke:#676767;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;marker-start:url(#marker31-0);paint-order:stroke markers fill"
-       d="M 6.7485569,346.8329 C -0.62876173,346.33259 -3.8210425,335.89138 -9.1058416,330.99678"
-       id="path30-5"
        sodipodi:nodetypes="cc" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-       x="106.48547"
-       y="361.96936"
+       x="108.60215"
+       y="364.08606"
        id="text31"><tspan
          sodipodi:role="line"
          id="tspan31"
          style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:3.958"
-         x="106.48547"
-         y="361.96936">nonsingletons</tspan></text>
+         x="108.60215"
+         y="364.08606">nonsingletons</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.7785px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:2.2815;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
-       x="105.86769"
-       y="367.40756"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.1221px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+       x="108.73419"
+       y="369.03918"
        id="text32"><tspan
          sodipodi:role="line"
          id="tspan32"
-         style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:2.2815"
-         x="105.86769"
-         y="367.40756">aka &quot;linked&quot;</tspan></text>
+         style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516"
+         x="108.73419"
+         y="369.03918">barcodes appear more than once, aka &quot;linked&quot;</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.1221px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+       x="24.396538"
+       y="369.03918"
+       id="text32-1"><tspan
+         sodipodi:role="line"
+         id="tspan32-8"
+         style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516"
+         x="24.396538"
+         y="369.03918">barcodes only appear once</tspan></text>
     <path
        style="fill:none;fill-opacity:1;stroke:#676767;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:stroke markers fill"
-       d="m 47.130696,351.49858 v 3.38495 H 172.12901 v -3.38495"
+       d="m 49.247364,353.61526 v 3.38495 H 174.24569 v -3.38495"
        id="path32"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:none;fill-opacity:1;stroke:#676767;stroke-width:0.370001;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:stroke markers fill"
+       d="m 0.56402701,353.61526 v 3.38495 H 48.303978 v -3.38495"
+       id="path32-3"
        sodipodi:nodetypes="cccc" />
   </g>
 </svg>
