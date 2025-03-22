@@ -1,7 +1,7 @@
 ---
 label: Common Options
 icon: list-unordered
-order: 4
+order: 5
 ---
 
 # :icon-list-unordered: Common Harpy Options
@@ -55,6 +55,7 @@ configured using these arguments:
 | `--container`   |            | toggle  |         | Use preconfigured Singularity container instead of local conda environments       |
 | `--contigs`     |            | file path or list |   | Contigs to plot in the report(s)                                           |
 | `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
+| `--hpc`         |            |         |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                     |
 | `--output-dir`  |   `-o`     | string  | varies  | Name of output directory                                                          |
 | `--quiet`       |            | toggle  |         | Suppress the progress bars and other status text when running                     |
 | `--skip-reports` |            | toggle  |         | Skip the processing and generation of HTML reports in a workflow                  |

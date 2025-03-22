@@ -1,7 +1,7 @@
 ---
 label: Utilities
 icon: terminal
-order: 2
+order: 5
 ---
 
 # :icon-terminal: Utilities

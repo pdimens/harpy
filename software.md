@@ -1,7 +1,7 @@
 ---
 label: Software
 icon: zap
-order: 2
+order: 5
 ---
 
 # :icon-zap: Software used in Harpy

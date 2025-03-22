@@ -11,10 +11,21 @@ On this page you'll find Harpy functions that do other, ancillary things.
 {.compact}
 | module         | description                                                                      |
 | :------------- | :------------------------------------------------------------------------------- |
+| `hpc`          | Create template HPC configurations                                               |
 | `imputeparams` | Create a template imputation parameter file                                      |
 | `resume`       | Continue a Harpy workflow from an existing output folder                         |
 | `popgroup`     | Create generic sample-group file using existing sample file names (fq.gz or bam) |
 | `view`         | View a workflow log, config, or snakefile                                        |
+
+---
+
+### hpc
+Create template configurations for HPC cluster job submission systems (e.g. SLURM, HTConder) that can
+be provided to the `--hpc` option for workflows.
+
+```bash usage
+harpy hpc slurm
+```
 
 ---
 
