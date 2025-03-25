@@ -66,3 +66,5 @@
 - `popgroup.py` and `imputeparams.py` merged into `template.py`
 - the `click` bindings for `simulate` were moved out of `__main__.py` and into `simulate.py`
   - result is less cluttered and more intuitive `__main__.py`
+- containerization snakefile dramatically simplified
+- new [hidden] `harpy localenv` workflow to instantiate software environments for harpy workflows (dev testing idea spawned from Discussion #222)

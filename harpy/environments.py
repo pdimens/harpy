@@ -52,20 +52,35 @@ def containerize():
                 "\n\t".join(runcmds)
             )
     os.remove("Dockerfile.raw")
-    os.remove("containerize2.smk")
+    os.remove("environments.smk")
 
 @click.command(hidden = True)
-def localenv():
+@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
+def localenv(workflows):
     """
     Install Harpy workflow dependencies via conda
 
-    **INTERNAL USE ONLY**. Used to recreate all the conda environments required
-    by the workflows.
+    **INTERNAL USE ONLY**. Used to recreate the conda environments required
+    by the workflows. Provide any combination of: 
+    - all
+    - align
+    - assembly
+    - metassembly
+    - phase
+    - qc
+    - r
+    - simulations
+    - stitch
+    - variants
     """
     output_dir = "localenv/"
     sm_log = snakemake_log(output_dir, "localenv")
-    create_conda_recipes(output_dir)
+    # if "all" was mixed with other workflows, default to just all and avoid doubling up
+    if "all" in workflows:
+        create_conda_recipes(output_dir, workflows)
+    else:
+        create_conda_recipes(output_dir)
     fetch_rule(os.path.join(output_dir, 'workflow'), "environments.smk")
-    command = f'snakemake -s {output_dir}/workflow/containerize2.smk --sdm conda --cores 2 --conda-prefix .environments --conda-cleanup-pkgs cache --directory . --config spades=True'
+    command = f'snakemake -s {output_dir}/workflow/environments.smk --sdm conda --cores 2 --conda-prefix .environments --conda-cleanup-pkgs cache --directory . --config spades=True'
     launch_snakemake(command, "localenv", "", output_dir, sm_log, 1, "workflow/localenv.summary")
     shutil.rmtree(output_dir, ignore_errors = True)

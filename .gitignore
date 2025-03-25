@@ -4,6 +4,7 @@
 .environments/
 .cache/
 container/
+localenv/
 hpc/
 QC/
 Deconvolve/
