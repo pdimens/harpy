@@ -43,7 +43,7 @@ jobs:
       simreads: ${{ steps.filter.outputs.simreads }}
       assembly: ${{ steps.filter.outputs.assembly }}
       other: ${{ steps.filter.outputs.other }}
-      container: ${{ steps.filter.outputs.container }}
+      environments: ${{ steps.filter.outputs.environments }}
       modules: ${{ steps.filter.outputs.modules }}
     steps:
       - name: Checkout
@@ -82,9 +82,9 @@ jobs:
         uses: jlumbroso/free-disk-space@main
       - name: Rebuild Dockerfile
         id: rebuild
-        if: ${{ needs.changes.outputs.container == 'true' }}
+        if: ${{ needs.changes.outputs.environments == 'true' }}
         shell: micromamba-shell {0}
-        run: harpy containerize
+        run: harpy environmentsize
       - name: Set up Docker Buildx
         id: buildx
         if: ${{ steps.rebuild.outcome == 'success' }}
