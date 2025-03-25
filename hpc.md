@@ -63,7 +63,7 @@ This configuration stuff is a lot of congitive burden in addition to just trying
 to create skeleton configurations for various supported cluster managers and fill in the information you need. Depending on your
 system, it may be necessary to read the [documentation](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) 
 for a particular executor plugin and understand what configuration options their API exposes. The configurations can start to become
-very technical, so recommend starting with a simple configuration and getting more complex if issues arise. The Snakemake
+very technical, so we recommend starting with a simple configuration and getting more complex if issues arise. The Snakemake
 executor plugins are admittedly not consistent in their documentation quality and it's sometimes a rapidly
 changing landscape (for example, the `HTCondor` plugin was deperacated recently). If an executor plugin exists
 that you would like Harpy template support for, please [open an Issue](https://github.com/pdimens/harpy/issues/new?template=feature_request.yml) and we'll get it added!
