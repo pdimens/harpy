@@ -78,6 +78,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
                     while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
+                if "Nothing to be" in output:
+                    exitcode = EXIT_CODE_SUCCESS
+                    break
             else:
                 while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                     output = process.stderr.readline()
@@ -96,12 +99,14 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     break
                 if "Nothing to be" in output:
                     exitcode = EXIT_CODE_SUCCESS
+                    break
                 if "MissingInput" in output:
                     exitcode = EXIT_CODE_GENERIC_ERROR
+                    break
                 if "AmbiguousRuleException" in output or "Error" in output or "Exception" in output:
                     exitcode = EXIT_CODE_RUNTIME_ERROR
+                    break
                 output = process.stderr.readline()
-
             # if dependency text present, print pulsing progress bar
             if deps:
                 with harpy_pulsebar(quiet, deploy_text) as progress:
