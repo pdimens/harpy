@@ -2,11 +2,13 @@
 
 import os
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._misc import fetch_rule
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, snakemake_log
 
 @click.command(hidden = True)
 def containerize():
@@ -17,11 +19,11 @@ def containerize():
     by the workflows and build a dockerfile from that.
     """
     create_conda_recipes("container")
-    fetch_rule(os.getcwd(), "containerize.smk")
+    fetch_rule(os.getcwd(), "environments.smk")
 
     with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
-            'snakemake -s containerize.smk --containerize'.split(),
+            'snakemake -s environments.smk --containerize'.split(),
             stdout = dockerraw
         )
 
@@ -50,4 +52,20 @@ def containerize():
                 "\n\t".join(runcmds)
             )
     os.remove("Dockerfile.raw")
-    os.remove("containerize.smk")
+    os.remove("containerize2.smk")
+
+@click.command(hidden = True)
+def localenv():
+    """
+    Install Harpy workflow dependencies via conda
+
+    **INTERNAL USE ONLY**. Used to recreate all the conda environments required
+    by the workflows.
+    """
+    output_dir = "localenv/"
+    sm_log = snakemake_log(output_dir, "localenv")
+    create_conda_recipes(output_dir)
+    fetch_rule(os.path.join(output_dir, 'workflow'), "environments.smk")
+    command = f'snakemake -s {output_dir}/workflow/containerize2.smk --sdm conda --cores 2 --conda-prefix .environments --conda-cleanup-pkgs cache --directory . --config spades=True'
+    launch_snakemake(command, "localenv", "", output_dir, sm_log, 1, "workflow/localenv.summary")
+    shutil.rmtree(output_dir, ignore_errors = True)

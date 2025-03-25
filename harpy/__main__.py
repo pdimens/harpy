@@ -2,19 +2,19 @@
 
 import rich_click as click
 from . import align
+from . import assembly, metassembly
 from . import diagnose, resume, view
 from . import deconvolve
 from . import demultiplex
-from . import container
+from . import downsample
+from . import environments
 from . import impute
-from . import assembly, metassembly
 from . import qc
 from . import phase
 from . import preflight
 from . import simulate
 from . import snp
 from . import sv
-from . import downsample
 from . import template
 
 click.rich_click.USE_MARKDOWN = True
@@ -51,13 +51,15 @@ cli.add_command(sv.sv)
 cli.add_command(impute.impute)
 cli.add_command(phase.phase)
 cli.add_command(simulate.simulate)
-cli.add_command(container.containerize)
 cli.add_command(resume.resume)
 cli.add_command(deconvolve.deconvolve)
 cli.add_command(metassembly.metassembly)
 cli.add_command(assembly.assembly)
 cli.add_command(diagnose.diagnose)
 cli.add_command(template.template)
+cli.add_command(environments.containerize)
+cli.add_command(environments.localenv)
+
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
