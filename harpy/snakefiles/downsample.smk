@@ -5,11 +5,11 @@ import pysam
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
 onsuccess:
-    os.remove(logger.logfile)
+    os.remove(logfile)
 onerror:
-    os.remove(logger.logfile)
+    os.remove(logfile)
 
 outdir      = config["output_directory"]
 inputs      = config["inputs"]
@@ -59,40 +59,41 @@ rule sample_barcodes:
     shell:
         "extract_bxtags.py {params} {input} > {output} 2> {log}"
 
-rule index_barcodes:
-    input:
-        lambda wc: infiles[wc.inputfile]
-    output:
-        bci = temp("{inputfile}.bci"),
-        bai = temp("{inputfile}.bai") if not is_fastq else [],
-        gzi = temp("{inputfile}i") if is_fastq and is_gzip else []
-    threads:
-        workflow.cores
-    run:
-        if is_fastq:
+if is_fastq:
+    rule index_input:
+        input:
+            lambda wc: infiles[wc.inputfile]
+        output:
+            bci = temp("{inputfile}.bci"),
+            gzi = temp("{inputfile}i") if is_fastq and is_gzip else []
+        params:
             gz_arg = "--gzip" if is_gzip else ""
-            shell(f"LRez index fastq -t {threads} -f {input} -o {output.bci} {gz_arg}")
-        else:
-            shell(f"samtools index {input}")
-            shell(f"LRez index bam --offsets -t {threads} -b {input} -o {output.bci}")
+        threads:
+            workflow.cores
+        shell:
+            "LRez index fastq -t {threads} -f {input} -o {output.bci} {params.gz_arg}"
+else:
+    rule index_input:
+        input:
+            inputs[0]
+        output:
+            inputs[0] + ".bai"
+        threads:
+            1
+        shell:
+            "samtools index {input}"
 
 rule downsample:
     input:
         bam = inputs[0],
         bai = inputs[0] + ".bai",
-        bc_index = inputs[0] + ".bci",
         bc_list = f"{outdir}/{prefix}.barcodes"
     output:
-        sam = temp(f"{outdir}/{prefix}.sam"),
         bam = f"{outdir}/{prefix}.bam"
     threads:
         workflow.cores
     shell:
-        """
-        samtools view -H {input.bam} > {output.sam}
-        LRez query bam -t {threads} -b {input.bam} -i {input.bc_index} -l {input.bc_list} >> {output.sam}
-        samtools view -O BAM {output.sam} > {output.bam}
-        """
+        "samtools view -O BAM -h -D BX:{input.bc_list} {input.bam} > {output.bam}"
 
 rule downsample_read_1:
     input:
