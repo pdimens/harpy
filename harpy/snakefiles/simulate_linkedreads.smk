@@ -17,12 +17,11 @@ merge_haplotypes = config["merge_haplotypes"]
 genodict = {"0": gen_hap1, "1": gen_hap2}
 
 onstart:
-    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 onsuccess:
-    os.remove(logger.logfile)
     shutil.rmtree('_Inline', ignore_errors=True)
 onerror:
-    os.remove(logger.logfile)
     shutil.rmtree('_Inline', ignore_errors=True)
 wildcard_constraints:
     hap = r"[01]"
@@ -81,16 +80,16 @@ rule simulate_reads:
         outdir + "/logs/dwgsim.hap.{hap}.log"
     params:
         readpairs = int(config["read_pairs"] * 500000),
-        outerdist = config["outer_distance"],
-        distsd = config["distance_sd"],
-        mutationrate = config["mutation_rate"],
+        outerdist = f"-d {config['outer_distance']}",
+        static = "-e 0.0001,0.0016 -E 0.0001,0.0016 -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -o 1 -F 0 -m /dev/null",
+        distsd = f"-s {config['distance_sd']}",
+        mutationrate = f"-r {config['mutation_rate']}",
+        input_file = lambda wc: outdir + "/workflow/input/hap." + wc.get("hap") + ".fasta",
         prefix = lambda wc: outdir + "/dwgsim/sim_reads." + wc.get("hap") + ".12"
     conda:
         f"{envdir}/simulations.yaml"
     shell:
-        """
-        dwgsim -N {params.readpairs} -e 0.0001,0.0016 -E 0.0001,0.0016 -d {params.outerdist} -s {params.distsd} -1 135 -2 151 -H -y 0 -S 0 -c 0 -R 0 -o 1 -r {params.mutationrate} -F 0 -m /dev/null {input} {params.prefix} 2> {log}
-        """
+        "dwgsim -N {params} 2> {log}"
 
 rule interleave_reads:
     input:
