@@ -5,11 +5,8 @@ import pysam
 import logging
 
 onstart:
-    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logfile)
-onerror:
-    os.remove(logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 
 outdir      = config["output_directory"]
 inputs      = config["inputs"]
