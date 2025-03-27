@@ -10,7 +10,7 @@ skip_reports = config["reports"]["skip"]
 keep_unknown = config["keep_unknown"]
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
     os.makedirs(f"{outdir}/reports/data", exist_ok = True)
 onsuccess:
     os.remove(logger.logfile)

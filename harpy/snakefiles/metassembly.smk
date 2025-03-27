@@ -4,7 +4,7 @@ import os
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
 onsuccess:
     os.remove(logger.logfile)
 onerror:

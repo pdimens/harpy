@@ -17,7 +17,7 @@ merge_haplotypes = config["merge_haplotypes"]
 genodict = {"0": gen_hap1, "1": gen_hap2}
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
 onsuccess:
     os.remove(logger.logfile)
     shutil.rmtree('_Inline', ignore_errors=True)
