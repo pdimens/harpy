@@ -152,7 +152,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         progress.stop()
                         exitcode = EXIT_CODE_RUNTIME_ERROR
                         break
-                    if process.poll() == 0 or output.startswith("Complete log:") or output.startswith("Nothing to be"):
+                    if process.poll() == 0 or output.startswith("Complete log") or output.startswith("Nothing to be"):
                         progress.stop()
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
