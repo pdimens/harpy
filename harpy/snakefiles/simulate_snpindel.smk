@@ -5,11 +5,12 @@ import random
 import logging
 
 onstart:
-    logger.addHandler(logging.FileHandler(config["snakemake_log"]))
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 onsuccess:
-    os.remove(logger.logfile)
+    os.remove(log)
 onerror:
-    os.remove(logger.logfile)
+    os.remove(log)
 
 outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
