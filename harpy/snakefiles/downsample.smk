@@ -142,11 +142,11 @@ rule workflow_summary:
         extraction = "Barcodes were extracted and sampled using:\n"
         extraction += f"\textract_bxtags.py -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
         summary.append(extraction)
-        lrez = "The inputs were indexed and downsampled using LRez:\n"
+        lrez = "The inputs were indexed and downsampled using:\n"
         if is_fastq:
             lrez += "\tLRez query fastq -f fastq -i index.bci -l barcodes.txt"
         else:
-            lrez += "\tLRez query bam -b bam -i index.bci -l barcodes.txt"
+            lrez += "\tsamtools view -O BAM -h -D BX:barcodes.txt input.bam"
         summary.append(lrez)
         with open(outdir + "/workflow/downsample.summary", "w") as f:
             f.write("\n\n".join(summary))
