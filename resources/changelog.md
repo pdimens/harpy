@@ -34,8 +34,8 @@
 - updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
   - empty module call no longer brings up the docstring
 - direct HTCondor support is gone in `harpy template hpc-` because the snakemake plugin seems to have vanished
-- instances of `--genome` (`-g`) have been replaced with `--reference` (`-r`) to be more accurate
-- `harpy snp` short-option for `--regions` is now `-w` ("windows") to avoid conflict with `--reference/-r`
+- instances of `--genome` (`-g`) have been replaced with `REFERENCE` as an input argument (`snp`, `sv`, `align`) to be more accurate and easier to use
+  - except in `phase`, where it is now `--reference/-r`
 - `harpy sv` short option for `--min-size` is now `-m`
 
 ## Non-breaking changes

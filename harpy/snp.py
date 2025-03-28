@@ -64,11 +64,10 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-w', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -76,12 +75,13 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Call variants from using bcftools mpileup
     
-    Provide the input alignment (`.bam`) files and/or directories
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/scarab*.bam`), or both.
     
@@ -168,11 +168,10 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-w', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -180,12 +179,13 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def freebayes(inputs, output_dir, reference, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Call variants using freebayes
     
-    Provide the input alignment (`.bam`) files and/or directories
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/jellyfish*.bam`), or both.
     

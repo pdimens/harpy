@@ -69,7 +69,6 @@ docstring = {
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
 @click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
 @click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
@@ -85,12 +84,13 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
     Optionally specify `--populations` for population-pooled variant calling
@@ -170,7 +170,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for calling variants')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
 @click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
@@ -186,12 +185,13 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
 def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using NAIBR
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags

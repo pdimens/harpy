@@ -80,7 +80,6 @@ docstring = {
 }
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
@@ -96,12 +95,13 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, reference, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using BWA MEM
  
-    Provide the input fastq files and/or directories at the end of the command as individual
+    Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
@@ -174,7 +174,6 @@ def bwa(inputs, output_dir, reference, depth_window, ignore_bx, threads, keep_un
 @click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000, clamp = True), help="Number of barcode bins")
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
@@ -188,12 +187,13 @@ def bwa(inputs, output_dir, reference, depth_window, ignore_bx, threads, keep_un
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, fragment_density, reference, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
+def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using EMA
 
-    Provide the input fastq files and/or directories at the end of the
+    Provide the reference fasta followed by the fastq files and/or directories at the end of the
     command as individual files/folders, using shell wildcards
     (e.g. `data/axolotl*.fastq.gz`), or both.
 
@@ -282,8 +282,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, reference,
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
-@click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
+@click.option('-w', '--depth-windows', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
@@ -299,12 +298,13 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, reference,
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, reference, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using strobealign
  
-    Provide the input fastq files and/or directories at the end of the command as individual
+    Provide the reference fasta followed by the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
     
     strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 

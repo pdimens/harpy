@@ -308,7 +308,7 @@ jobs:
 #          path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
-        run: harpy align bwa --quiet 2 -g test/genome/genome.fasta.gz  -x "-A 2" test/fastq
+        run: harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq
   
   ema:
     needs: [changes]
@@ -346,7 +346,7 @@ jobs:
 #          path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --quiet 2 --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
+        run: harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq
 
   strobe:
     needs: [changes]
@@ -384,7 +384,7 @@ jobs:
 #          path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
-        run: harpy align strobe --quiet 2 -l 125 -g test/genome/genome.fasta.gz  test/fastq
+        run: harpy align strobe --quiet 2 -l 125 test/genome/genome.fasta.gz test/fastq
 
   mpileup:
     needs: [changes]
@@ -422,10 +422,10 @@ jobs:
 #          path: .snakemake/singularity
       - name: snp mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup --quiet 2 -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
+        run: harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
-        run: harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
+        run: harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
   
   freebayes:
     needs: [changes]
@@ -463,10 +463,10 @@ jobs:
 #          path: .snakemake/singularity
       - name: snp freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes --quiet 2 -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
+        run: harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
-        run: harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
+        run: harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
 
   impute:
     needs: [changes]
@@ -550,7 +550,7 @@ jobs:
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
-        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz  test/bam
+        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf -o phaseindel -r test/genome/genome.fasta.gz test/bam
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
@@ -594,12 +594,12 @@ jobs:
 #          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -g test/genome/genome.fasta.gz  -x "-M 2002" test/bam
+        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups  test/bam
+        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
 
   naibr:
     needs: [changes]
@@ -637,20 +637,20 @@ jobs:
 #          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr test/bam_phased
+        run: harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups test/bam_phased
+        run: harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf test/bam
+          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/bam
+        run: harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam
 
 
   simulate_variants:

@@ -35,7 +35,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', required = True, type = InputFile("vcf", gzip_ok = False), help = 'Path to BCF/VCF file')
+@click.option('-w', '--regions', type = InputFile("bed", gzip_ok = False), help = 'BED file of regions to impute')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -43,12 +43,13 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
+@click.argument('vcf', required = True, type = InputFile("vcf", gzip_ok = False), nargs=1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def impute(inputs, output_dir, parameters, threads, vcf, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def impute(vcf, inputs, output_dir, parameters, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
     
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the input VCF followed by the input alignment files (`.bam`) and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy template** to generate one and adjust it for your study.
