@@ -18,7 +18,7 @@ docstring = {
         "harpy phase": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--ignore-bx", "--molecule-distance", "--prune-threshold", "--vcf", "--vcf-samples"],
+            "options": ["--extra-params", "--reference", "--ignore-bx", "--molecule-distance", "--prune-threshold", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -37,7 +37,6 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Phase", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', required = True, type = InputFile("vcf", gzip_ok = False), help = 'Path to BCF/VCF file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -46,17 +45,18 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
+@click.argument('vcf', required = True, type = InputFile("vcf", gzip_ok = False), nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
+def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
 
-    Provide the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
     
     You may choose to omit barcode information with `--ignore-bx`, although it's usually
     better to include that information. Use `--vcf-samples` to phase only
-    the samples present in your input `--vcf` file rather than all the samples present in
+    the samples present in your input `VCF` file rather than all the samples present in
     the `INPUT` alignments.
     """
     output_dir = output_dir.rstrip("/")
