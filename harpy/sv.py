@@ -44,7 +44,7 @@ docstring = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--duplicates", "--extra-params", "--genome", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
+            "options": ["--duplicates", "--extra-params", "--reference", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -56,7 +56,7 @@ docstring = {
     "harpy sv naibr": [
         {
             "name": "Module Parameters",
-            "options": ["--extra-params", "--genome", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
+            "options": ["--extra-params", "--reference", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -69,11 +69,11 @@ docstring = {
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
 @click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
-@click.option('-s', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-r', '--sharing-thresholds', type = click.IntRange(0,100, clamp = True), default = (95,95,95), nargs = 3, show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces')
+@click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-s', '--sharing-thresholds', type = click.IntRange(0,100, clamp = True), default = (95,95,95), nargs = 3, show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
@@ -86,7 +86,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
     
@@ -114,9 +114,9 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    check_fasta(genome)
+    check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, genome)
+        fasta_contig_match(contigs, reference)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
@@ -147,7 +147,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
+            "reference" : Path(reference).resolve().as_posix(),
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }
@@ -161,7 +161,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 
     start_text = workflow_info(
         ("Samples:", n),
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Sample Pooling:", populations if populations else "no"),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
@@ -170,10 +170,10 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for calling variants')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for calling variants')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
-@click.option('-s', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/naibr", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
@@ -187,7 +187,7 @@ def leviathan(inputs, output_dir, genome, min_size, min_barcodes, iterations, du
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using NAIBR
     
@@ -219,9 +219,9 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
-    check_fasta(genome)
+    check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, genome)
+        fasta_contig_match(contigs, reference)
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)
@@ -249,7 +249,7 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            **({'genome': Path(genome).resolve().as_posix()} if genome else {}),
+            **({'reference': Path(reference).resolve().as_posix()} if reference else {}),
             **({'vcf': Path(vcf).resolve().as_posix()} if vcf else {}),
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
@@ -264,7 +264,7 @@ def naibr(inputs, output_dir, genome, vcf, min_size, min_barcodes, min_quality, 
 
     start_text = workflow_info(
         ("Samples:", n),
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Sample Pooling:", populations if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),
         ("Output Folder:", output_dir + "/"),

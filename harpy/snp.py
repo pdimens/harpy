@@ -39,7 +39,7 @@ docstring = {
     "harpy snp mpileup": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
+            "options": ["--extra-params", "--reference", "--ploidy", "--populations", "--regions"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -51,7 +51,7 @@ docstring = {
     "harpy snp freebayes": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--ploidy", "--populations", "--regions"],
+            "options": ["--extra-params", "--reference", "--ploidy", "--populations", "--regions"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -64,11 +64,11 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-w', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -77,7 +77,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Call variants from using bcftools mpileup
     
@@ -89,7 +89,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     with. If a BED or tab delimited file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only
     that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire genome.
+    call variants in parallel for intervals of that size across the entire reference genome.
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """   
@@ -109,13 +109,13 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
-    check_fasta(genome)
+    check_fasta(reference)
 
     # setup regions checks
-    regtype = validate_regions(regions, genome)
+    regtype = validate_regions(regions, reference)
     region = Path(f"{workflowdir}/positions.bed").resolve()
     if regtype == "windows":
-        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+        os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
     elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
     else:
@@ -144,7 +144,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
             "skip": skip_reports
         },
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
+            "reference" : Path(reference).resolve().as_posix(),
             "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
@@ -160,7 +160,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
     start_text = workflow_info(
         ("Samples:", n),
         ("Sample Groups:", populations) if populations else None,
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
@@ -168,11 +168,11 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for variant calling')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for variant calling')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-w', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -181,7 +181,7 @@ def mpileup(inputs, output_dir, regions, genome, threads, populations, ploidy, e
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def freebayes(inputs, output_dir, reference, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Call variants using freebayes
     
@@ -193,7 +193,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     with. If a BED or tab delimited file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only
     that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire genome.
+    call variants in parallel for intervals of that size across the entire reference genome.
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
@@ -213,13 +213,13 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
-    check_fasta(genome)
+    check_fasta(reference)
 
     # setup regions checks
-    regtype = validate_regions(regions, genome)
+    regtype = validate_regions(regions, reference)
     region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
     if regtype == "windows":
-        os.system(f"make_windows.py -m 1 -w {regions} {genome} > {region}")
+        os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
     elif regtype == "file":
         os.system(f"cp -f {regions} {region}")
     else:
@@ -248,7 +248,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
+            "reference" : Path(reference).resolve().as_posix(),
             "regions" : Path(region).resolve().as_posix() if regtype != "region" else region,
             **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
             "alignments" : [i.as_posix() for i in bamlist]
@@ -264,7 +264,7 @@ def freebayes(inputs, output_dir, genome, threads, populations, ploidy, regions,
     start_text = workflow_info(
         ("Samples:", n),
         ("Sample Groups:", populations) if populations else None,
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

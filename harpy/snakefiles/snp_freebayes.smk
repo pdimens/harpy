@@ -20,14 +20,14 @@ windowsize  = config.get("windowsize", None)
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["inputs"]["genome"]
+genomefile 	= config["inputs"]["reference"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     genome_zip  = True
     bn = bn[:-3]
 else:
     genome_zip  = False
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"{workflowdir}/reference/{bn}"
 groupings 	= config["inputs"].get("groupings", [])
 regioninput = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
@@ -236,13 +236,13 @@ rule workflow_summary:
         extra = extra
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         if windowsize:
             summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
         else:
             summary.append(f"Genomic positions for which variants were called: {regioninput}")
         varcall = "The freebayes parameters:\n"
-        varcall += f"\tfreebayes -f GENOME -L samples.list -r REGION {params} |\n"
+        varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
         varcall += f"\tbcftools sort -"
         summary.append(varcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"

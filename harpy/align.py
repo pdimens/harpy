@@ -44,7 +44,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality"],
+            "options": ["--extra-params", "--reference", "--keep-unmapped", "--molecule-distance", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -56,7 +56,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--genome", "--keep-unmapped", "--platform", "--min-quality"],
+            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--reference", "--keep-unmapped", "--platform", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -68,7 +68,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
+            "options": ["--extra-params", "--reference", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -80,7 +80,7 @@ docstring = {
 }
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
@@ -97,9 +97,9 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(inputs, output_dir, reference, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using BWA MEM
+    Align sequences to reference genome using BWA MEM
  
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
@@ -124,9 +124,9 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome)
+    check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, genome)
+        fasta_contig_match(contigs, reference)
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
@@ -150,7 +150,7 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "genome": Path(genome).resolve().as_posix(),
+            "reference": Path(reference).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
@@ -163,7 +163,7 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
@@ -174,7 +174,7 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 @click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000, clamp = True), help="Number of barcode bins")
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
@@ -189,9 +189,9 @@ def bwa(inputs, output_dir, genome, depth_window, ignore_bx, threads, keep_unmap
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
+def ema(inputs, output_dir, platform, barcode_list, fragment_density, reference, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using EMA
+    Align sequences to reference genome using EMA
 
     Provide the input fastq files and/or directories at the end of the
     command as individual files/folders, using shell wildcards
@@ -229,9 +229,9 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome)
+    check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, genome)
+        fasta_contig_match(contigs, reference)
     if barcode_list:
         validate_barcodefile(barcode_list, False, quiet)
     fetch_rule(workflowdir, "align_ema.smk")
@@ -259,7 +259,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "genome": Path(genome).resolve().as_posix(),
+            "reference": Path(reference).resolve().as_posix(),
             **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
             "fastq": [i.as_posix() for i in fqlist]
         }
@@ -274,7 +274,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Platform:", platform),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
@@ -282,7 +282,7 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Genome assembly for read mapping')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), required = True, help = 'Reference genome for read mapping')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
@@ -300,9 +300,9 @@ def ema(inputs, output_dir, platform, barcode_list, fragment_density, genome, de
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(inputs, output_dir, reference, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to genome using strobealign
+    Align sequences to reference genome using strobealign
  
     Provide the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
@@ -330,9 +330,9 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
 
     os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(genome)
+    check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, genome)
+        fasta_contig_match(contigs, reference)
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
@@ -357,7 +357,7 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "genome": Path(genome).resolve().as_posix(),
+            "reference": Path(reference).resolve().as_posix(),
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
@@ -370,7 +370,7 @@ def strobe(inputs, output_dir, genome, read_length, ignore_bx, keep_unmapped, de
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Genome:", genome),
+        ("Reference:", reference),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

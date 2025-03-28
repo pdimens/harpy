@@ -15,11 +15,11 @@ workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
-genomefile 	= config["inputs"]["genome"]
+genomefile 	= config["inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"{workflowdir}/reference/{bn}"
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]

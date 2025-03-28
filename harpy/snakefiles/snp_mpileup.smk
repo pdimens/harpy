@@ -20,9 +20,9 @@ windowsize  = config.get("windowsize", None)
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["inputs"]["genome"]
+genomefile 	= config["inputs"]["reference"]
 bn          = os.path.basename(genomefile)
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"{workflowdir}/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 groupings 	= config["inputs"].get("groupings", [])
@@ -272,13 +272,13 @@ rule workflow_summary:
         populations = f"--populations {groupings}" if groupings else "--populations -"
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         if windowsize:
             summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
         else:
             summary.append(f"Genomic positions for which variants were called: {regioninput}")
         mpileup = "The mpileup parameters:\n"
-        mpileup += f"\tbcftools mpileup --fasta-ref GENOME --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
+        mpileup += f"\tbcftools mpileup --fasta-ref REFERENCE --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
         summary.append(mpileup)
         bcfcall = "The bcftools call parameters:\n"
         bcfcall += f"\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"

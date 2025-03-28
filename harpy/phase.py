@@ -18,7 +18,7 @@ docstring = {
         "harpy phase": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--genome", "--ignore-bx", "--molecule-distance", "--prune-threshold", "--vcf", "--vcf-samples"],
+            "options": ["--extra-params", "--reference", "--ignore-bx", "--molecule-distance", "--prune-threshold", "--vcf", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -31,7 +31,7 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
 @click.option('-x', '--extra-params', type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
-@click.option('-g', '--genome', type=InputFile("fasta", gzip_ok = True), help = 'Path to genome assembly if wanting to also extract reads spanning indels')
+@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), help = 'Path to reference genome if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Phase", show_default=True,  help = 'Output directory name')
@@ -47,7 +47,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, genome, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
+def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
 
@@ -76,8 +76,8 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     validate_bam_RG(bamlist, threads, quiet)
-    if genome:
-        check_fasta(genome)
+    if reference:
+        check_fasta(reference)
     if contigs:
         vcf_contig_match(contigs, vcf)
     fetch_rule(workflowdir, "phase.smk")
@@ -102,7 +102,7 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         },
         "inputs" : {
             "variantfile" : vcf,
-            **({'genome': genome} if genome else {}),
+            **({'reference': reference} if reference else {}),
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
@@ -117,8 +117,8 @@ def phase(inputs, output_dir, vcf, threads, molecule_distance, prune_threshold, 
         ("Input VCF:", vcf),
         ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
-        ("Phase Indels:", "yes" if genome else "no"),
-        ("Genome:", genome) if genome else None,
+        ("Phase Indels:", "yes" if reference else "no"),
+        ("Reference:", reference) if reference else None,
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

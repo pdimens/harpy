@@ -34,13 +34,13 @@ if samples_from_vcf:
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
-if config["inputs"].get("genome", None):
-    genomefile = config["inputs"]["genome"]
+if config["inputs"].get("reference", None):
+    genomefile = config["inputs"]["reference"]
     if genomefile.lower().endswith(".gz"):
         bn = Path(Path(genomefile).stem).stem
     else:
         bn = Path(genomefile).stem
-    geno       = f"{workflowdir}/genome/{bn}"
+    geno       = f"{workflowdir}/reference/{bn}"
     genofai    = f"{geno}.fai"
     indelarg   = f"--indels 1 --ref {geno}"
     indels     = True
@@ -115,7 +115,7 @@ if indels:
         output: 
             genofai
         log:
-            f"Genome/{bn}.faidx.log"
+            f"{workflowdir}/reference/{bn}.faidx.log"
         container:
             None
         shell: 

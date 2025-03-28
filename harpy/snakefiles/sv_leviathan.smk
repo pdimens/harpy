@@ -14,7 +14,7 @@ wildcard_constraints:
 outdir      = config["output_directory"]
 workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile  = config["inputs"]["genome"]
+genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist,bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -30,9 +30,9 @@ skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
-    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
+    workflow_geno = f"{workflowdir}/reference/{bn[:-3]}"
 else:
-    workflow_geno = f"{workflowdir}/genome/{bn}"
+    workflow_geno = f"{workflowdir}/reference/{bn}"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -232,7 +232,7 @@ rule workflow_summary:
         extra = extra
     run:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         summary.append("The alignments were deconvolved using: leviathan_bx_shim.py")
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "LRez index bam -p -b INPUT"

@@ -14,7 +14,7 @@ wildcard_constraints:
 outdir      = config["output_directory"]
 workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile  = config["inputs"]["genome"]
+genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -25,7 +25,7 @@ min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"{workflowdir}/reference/{bn}"
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
@@ -240,7 +240,7 @@ rule workflow_summary:
     run:
         os.system(f"rm -rf {outdir}/naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"
         naibr += "\tprefix=PREFIX\n"

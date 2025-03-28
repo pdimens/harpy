@@ -14,7 +14,7 @@ wildcard_constraints:
 outdir      = config["output_directory"]
 workflowdir = f"{outdir}/workflow"
 envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile 	= config["inputs"]["genome"]
+genomefile 	= config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 groupfile 	= config["inputs"]["groupings"]
 extra 		= config.get("extra", "") 
@@ -29,9 +29,9 @@ skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
-    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
+    workflow_geno = f"{workflowdir}/reference/{bn[:-3]}"
 else:
-    workflow_geno = f"{workflowdir}/genome/{bn}"
+    workflow_geno = f"{workflowdir}/reference/{bn}"
     
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
@@ -314,7 +314,7 @@ rule workflow_summary:
         extra = extra
     run:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         concat = "The alignments were concatenated using:\n"
         concat += "\tconcatenate_bam.py --bx -o groupname.bam -b samples.list"
         summary.append(concat)
