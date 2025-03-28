@@ -14,6 +14,7 @@ bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
+regions       = config["regions"]
 biallelic     = config["inputs"]["biallelic_contigs"]
 outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), outdir, "workflow", "envs")
@@ -22,6 +23,12 @@ stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
 with open(biallelic, "r") as f:
     contigs = [line.rstrip() for line in f]
+
+if regions != "all":
+    #TODO DO SOMETHING MEANINGFUL WITH THE REGIONS
+    # the contigs listed in regions need to overide the logic of parallelizing
+    # over just the biallelic contigs
+
 
 # instantiate static STITCH arguments
 extraparams = {

@@ -11,15 +11,15 @@ from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake, SNAKEMAKE_CMD
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
-from ._parsers import parse_alignment_inputs, biallelic_contigs
-from ._printing import workflow_info
+from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_bed
+from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [
         {
             "name": "Parameters",
-            "options": ["--extra-params",  "--parameters", "--vcf", "--vcf-samples"],
+            "options": ["--extra-params",  "--parameters", "--regions", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -35,7 +35,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('-w', '--regions', type = InputFile("bed", gzip_ok = False), help = 'BED file of regions to impute')
+@click.option('-r', '--regions', type = click.Path(exists=True, dir_okay=False, readable=True), help = 'BED file of regions to impute')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -43,9 +43,9 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
-@click.argument('vcf', required = True, type = InputFile("vcf", gzip_ok = False), nargs=1)
+@click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False), nargs=1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def impute(vcf, inputs, output_dir, parameters, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
     
@@ -53,8 +53,9 @@ def impute(vcf, inputs, output_dir, parameters, threads, vcf_samples, extra_para
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
     Requires a parameter file, use **harpy template** to generate one and adjust it for your study.
-    The `--vcf-samples` option considers only the samples present in your input `--vcf` file rather than all
-    the samples identified in `INPUT`. If providing additional STITCH arguments, they must be in quotes and 
+    The `--vcf-samples` option considers only the samples present in your input `VCF` file rather than all
+    the samples identified in `INPUTS`. Use `--regions` to only impute specific genomic regions, given as a BED file
+    of whitespace-delimited `chromosome start end`. If providing additional STITCH arguments, they must be in quotes and 
     in the `--option=value` format, without spaces between `--option` and `value` (e.g. `"--switchModelIteration=39"`).
     """
     output_dir = output_dir.rstrip("/")
@@ -75,7 +76,21 @@ def impute(vcf, inputs, output_dir, parameters, threads, vcf_samples, extra_para
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    biallelic, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+    if regions:
+        target_regions = parse_bed(regions)
+        contigs = set()
+        for i in target_regions:
+            chrm_name = i.split("_")[0]
+            if chrm_name not in biallelic_names:
+                print_error(
+                    "missing contig",
+                    f"The [bold yellow]{chrm_name}[/bold yellow] contig given in [blue]{regions}[/blue] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
+                )
+                print_solution(f"Restrict the contigs in [blue]{regions}[/blue] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/blue].")
+                sys.exit(1)
+    else:
+        target_regions = "all"
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_report(workflowdir, "impute.qmd")
@@ -93,10 +108,11 @@ def impute(vcf, inputs, output_dir, parameters, threads, vcf_samples, extra_para
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
+        "regions" : target_regions,
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
             "variantfile" : Path(vcf).resolve().as_posix(),
-            "biallelic_contigs" : Path(biallelic).resolve().as_posix(),
+            "biallelic_contigs" : Path(biallelic_file).resolve().as_posix(),
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
