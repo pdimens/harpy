@@ -18,6 +18,36 @@ def getnames(directory: str, ext: str) -> list[str]:
         sys.exit(1)
     return samplenames
 
+def parse_bed(infile: str) -> list[str]:
+    """Parse a bed file and return a list of chrom_start_end"""
+    def print_err_and_exit(inp,l,n):
+        print_error("incorrect file format", f"The input file [bold]{inp}[/bold] has fewer than 3 fields on line {n+1}.")
+        print_solution_with_culprits(
+            "Proper BED format takes the form of [bold green]chromosome_name start_position end_position[/bold green], with the three entries per line separated by spaces or tabs. Both [bold green]start_position[/bold green] and [bold green]end_position[/bold green] must be integers and [bold green]start_position[/bold green] must be less than [bold green]end_position[/bold green].",
+            "First line encountered with incorrect format"
+        )
+        click.print(l)
+        sys.exit(1)
+    out_list = set()
+    with open(infile, "r") as bed:
+        for linenum,line in enumerate(bed):
+            splt = line.split()
+            if len(splt) < 3:
+                print_err_and_exit(infile, line, linenum)
+            chrom = splt[0]
+            try:
+                startpos = int(splt[1])
+            except ValueError:
+                print_err_and_exit(infile, line, linenum)
+            try:
+                endpos = (splt[2])
+            except ValueError:
+                print_err_and_exit(infile, line, linenum)
+            if startpos > endpos:
+                print_err_and_exit(infile,line, linenum)
+            out_list.add("_".join([chrom, startpos, endpos]))
+    return list(out_list)
+
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
@@ -118,7 +148,7 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
         sys.exit(1)
     return bam_infiles, len(uniqs)
 
-def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,int]:
+def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
     os.makedirs(f"{workdir}/", exist_ok = True)
@@ -150,4 +180,4 @@ def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,int]:
         sys.exit(1)
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
-    return f"{workdir}/{vbn}.biallelic", len(valid)
+    return f"{workdir}/{vbn}.biallelic", valid, len(valid)
