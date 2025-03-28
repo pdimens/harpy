@@ -44,7 +44,7 @@ docstring = {
     "harpy align bwa": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--keep-unmapped", "--molecule-distance", "--min-quality"],
+            "options": ["--extra-params", "--keep-unmapped", "--molecule-distance", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -56,7 +56,7 @@ docstring = {
     "harpy align ema": [
         {
             "name": "Parameters",
-            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--reference", "--keep-unmapped", "--platform", "--min-quality"],
+            "options": [ "--barcode-list", "--ema-bins", "--extra-params", "--fragment-density", "--keep-unmapped", "--platform", "--min-quality"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -68,7 +68,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
+            "options": ["--extra-params", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length"],
             "panel_styles": {"border_style": "blue"}
         },
         {

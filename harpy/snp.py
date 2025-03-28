@@ -39,7 +39,7 @@ docstring = {
     "harpy snp mpileup": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--ploidy", "--populations", "--regions"],
+            "options": ["--extra-params", "--ploidy", "--populations", "--regions"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -51,7 +51,7 @@ docstring = {
     "harpy snp freebayes": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--ploidy", "--populations", "--regions"],
+            "options": ["--extra-params", "--ploidy", "--populations", "--regions"],
             "panel_styles": {"border_style": "blue"}
         },
         {

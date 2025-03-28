@@ -44,7 +44,7 @@ docstring = {
     "harpy sv leviathan": [
         {
             "name": "Parameters",
-            "options": ["--duplicates", "--extra-params", "--reference", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
+            "options": ["--duplicates", "--extra-params", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -56,7 +56,7 @@ docstring = {
     "harpy sv naibr": [
         {
             "name": "Module Parameters",
-            "options": ["--extra-params", "--reference", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
+            "options": ["--extra-params", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
             "panel_styles": {"border_style": "blue"}
         },
         {
