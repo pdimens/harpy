@@ -10,7 +10,7 @@ image: /static/linked_reads.svg
 ---
 
 # :icon-git-compare: An introduction to linked-read data
-Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stFLR, and 10X linked-read
+Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stLFR, and 10X linked-read
 data. But, what if you don't use linked reads (yet) and want to understand what it actually is? This post walks you through what linked-read data is and some 
 of the concepts that are unique to it that makes it different than your typical short-read data. Although Harpy specializes in Haplotagging linked-read data,
 what we're discussing here is linked reads as a whole.
@@ -33,7 +33,7 @@ barcode originated from **a single DNA fragment from a single homologous chromos
 Linked-read data is sequence data as you would expect it, encoded in a FASTQ file. The first processing step of
 linked-read data is demultiplexing to split the raw Illumina-generated batch FASTQ file into samples (if multisample)
 and identify/validate the linked-read barcode on every sequence. For 10X data, the barcode would _stay_ inline with
-the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stFLR, etc.) you would also
+the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stLFR, etc.) you would also
 remove the barcode from the sequence and preserve it using the `BX:Z` tag in the sequence headers. The demultiplexing process
 is generally similar between non-10X linked-read technologies: a nucleotide barcode gets identified and moved from the sequence
 to the read header under the `BX:Z` tag. The diagram below preserves the nucleotide barcode under the `OX:Z` tag and recodes
@@ -51,7 +51,7 @@ do so with varying degrees of success and computational resource requirements. S
 flexibility towards accepting the deconvolved-barcode format.
 
 ### Linked-read varieties
-There are a handful of linked-read sample preparation methods (haplotagging, stFLR, etc.), but that's largely an implementation detail. All of those methods are
+There are a handful of linked-read sample preparation methods ([read below](#linked-read-fastq-types)), but that's largely an implementation detail. All of those methods are
 laboratory procedures to take genomic DNA and do the necessary modifications to fragment long DNA molecules, tag the resulting fragments with the same
 DNA barcode, then add the necessary Illumina adapters. It's not unlike the different RAD flavors (e.g. EZrad, ddRAD, 2B-rad)-- they all give you RAD data in the end,
 but vary in how you get there in terms of cost and bench time. We obviously subscribe to haplotagging :grin:.
@@ -114,3 +114,53 @@ the perimeter. The inner circle (grey histogram) is the **sequence alignment dep
 is the **linked depth** of those same data in those same 50kbp intervals. It has the most fascinating flower petal pattern, which
 is due to the lower likelihood of reads linking at the edges of chromosomes.
 ![linked depth in real data](/static/linked_depth_example.png)
+
+
+## Linked-Read FASTQ types
+This isn't really the place to go into the nitty-gritty of the different linked-read chemistries
+(i.e. I don't actually know the nuanced details), but it's worth describing the obvious differences
+of the raw (FASTQ) data. Knowing these details might help you make sense of compatibilties/incompatibilities
+for software, or how you can convert between styles.
+
+### Haplotagging
+Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
+are made up of four 6bp segments. Two of these segments ("A" and "C") are the first 12bp of the I1 read and
+the other two ("B" and "D") are the first 12bp of the I2 read, both of which are provided by Illumina for standard sequencing runs.
+Because of this segment design, there are $96^4$ (~84 million) possible barcode combinations (~900,000 per sample). 
+The barcodes are stored in the sequence header under the `BX:Z` SAM tag, recoded in their "`ACBD`" format.
+- 4 barcode segments
+  - `A` segment is the first 6bp of the I1 read
+  - `C` segment is the next 6bp of the I1 read
+  - `B` segment is the first 6bp of the I2 read
+  - `D` segment is the next 6bp of the I2 read
+- barcode stored as `BX:Z` tag in the read header in `ACBD` format
+  - e.g. `@A003432423434:1:324 BX:Z:A45C01B84D21`
+
+### TELLseq
+One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
+barcode is 18bp long and contained in the I1 read that Illumina provides with the standard R1 and R2 reads. The
+barcode gets appended in the read header using a colon (`:`).
+- barcode is the first 18bp of the I1 read 
+- barcode is appended to sequence header
+  - e.g. `@A00234534562:1:544:AATTATACCACAGCGGTA`
+- advertised to have a capacity over 2 **billion** barcodes, but realistically use <24 **million**
+
+### stLFR
+Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
+made up for three 10bp segments which are at the end of the R2 read. Demultiplexing these data results
+in the barcode being moved to the sequence ID using a pound (`#`) sign between the sequence ID and barcode, with
+the barcode recoded in the `1_2_3` format, where each segment is an integer.
+- depending on the link sequence between segments, will be either the last 54bp or 42bp of the R2 read
+  - 54 base barcode: 10+6+10+18+10
+  - 42 base barcode: 10+6+10+6+10
+- barcode appended to sequence header with `#` sign
+  - e.g. `@A003432423434:1:324#12_432_1`
+- advertised to have a capacity over 3.6 **billion**, with up to 50 **million** per sample (actual results may vary)
+
+### 10X
+The elder and thus least advanced of the bunch, and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
+as the first 16bp of the forward (R1) read. For these data to be compatible with the 10X Longranger suite,
+the barcode **must** stay in the read. Moving the first 16bp into the read header breaks Longranger compatibility.
+- barcode is the first 16bp of the R1 read
+- barcode stays in the sequence data for LongRanger compatibility
+- limited to ~4.7 million barcodes
