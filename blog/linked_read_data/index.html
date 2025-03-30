@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.796236608806">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.6.0.796685060162">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.6.0">
@@ -37,11 +37,13 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.6.0.796236608806" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.6.0.796685060162" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.796236608806" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.6.0.796685060162" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.796236608806" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.6.0.796685060162" data-turbo-eval="false" defer></script>
+    <link href="../../resources/css/katex.css?v=3.6.0" rel="stylesheet">
+    <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.6.0" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -310,7 +312,7 @@
     <div class="flex items-center shrink-0">Published&nbsp;<span>2025-03-18</span></div>
 </div>
 
-<p>Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stFLR, and 10X linked-read
+<p>Harpy is a software suite tailor-made for haplotagging linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stLFR, and 10X linked-read
 data. But, what if you don&#x27;t use linked reads (yet) and want to understand what it actually is? This post walks you through what linked-read data is and some
 of the concepts that are unique to it that makes it different than your typical short-read data. Although Harpy specializes in Haplotagging linked-read data,
 what we&#x27;re discussing here is linked reads as a whole.</p>
@@ -347,7 +349,7 @@ barcode originated from <strong>a single DNA fragment from a single homologous c
 <p>Linked-read data is sequence data as you would expect it, encoded in a FASTQ file. The first processing step of
 linked-read data is demultiplexing to split the raw Illumina-generated batch FASTQ file into samples (if multisample)
 and identify/validate the linked-read barcode on every sequence. For 10X data, the barcode would <em>stay</em> inline with
-the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stFLR, etc.) you would also
+the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stLFR, etc.) you would also
 remove the barcode from the sequence and preserve it using the <code v-pre>BX:Z</code> tag in the sequence headers. The demultiplexing process
 is generally similar between non-10X linked-read technologies: a nucleotide barcode gets identified and moved from the sequence
 to the read header under the <code v-pre>BX:Z</code> tag. The diagram below preserves the nucleotide barcode under the <code v-pre>OX:Z</code> tag and recodes
@@ -377,7 +379,7 @@ flexibility towards accepting the deconvolved-barcode format.</p>
         <span>Linked-read varieties</span>
     </h3>
 </doc-anchor-target>
-<p>There are a handful of linked-read sample preparation methods (haplotagging, stFLR, etc.), but that&#x27;s largely an implementation detail. All of those methods are
+<p>There are a handful of linked-read sample preparation methods (<doc-anchor-trigger to="#linked-read-fastq-types">read below</doc-anchor-trigger>), but that&#x27;s largely an implementation detail. All of those methods are
 laboratory procedures to take genomic DNA and do the necessary modifications to fragment long DNA molecules, tag the resulting fragments with the same
 DNA barcode, then add the necessary Illumina adapters. It&#x27;s not unlike the different RAD flavors (e.g. EZrad, ddRAD, 2B-rad)-- they all give you RAD data in the end,
 but vary in how you get there in terms of cost and bench time. We obviously subscribe to haplotagging <span class="docs-emoji">&#x1F601;</span>.</p>
@@ -484,6 +486,98 @@ is due to the lower likelihood of reads linking at the edges of chromosomes.
     <figcaption class="caption">linked depth in real data</figcaption>
 </figure>
 </p>
+<doc-anchor-target id="linked-read-fastq-types">
+    <h2>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#linked-read-fastq-types">#</doc-anchor-trigger>
+        <span>Linked-Read FASTQ types</span>
+    </h2>
+</doc-anchor-target>
+<p>This isn&#x27;t really the place to go into the nitty-gritty of the different linked-read chemistries
+(i.e. I don&#x27;t actually know the nuanced details), but it&#x27;s worth describing the obvious differences
+of the raw (FASTQ) data. Knowing these details might help you make sense of compatibilties/incompatibilities
+for software, or how you can convert between styles.</p>
+<doc-anchor-target id="haplotagging">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#haplotagging">#</doc-anchor-trigger>
+        <span>Haplotagging</span>
+    </h3>
+</doc-anchor-target>
+<p>Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
+are made up of four 6bp segments. Two of these segments (&quot;A&quot; and &quot;C&quot;) are the first 12bp of the I1 read and
+the other two (&quot;B&quot; and &quot;D&quot;) are the first 12bp of the I2 read, both of which are provided by Illumina for standard sequencing runs.
+Because of this segment design, there are <span class="math">96^4</span> (~84 million) possible barcode combinations (~900,000 per sample).
+The barcodes are stored in the sequence header under the <code v-pre>BX:Z</code> SAM tag, recoded in their &quot;<code v-pre>ACBD</code>&quot; format.</p>
+<ul>
+<li>4 barcode segments
+<ul>
+<li><code v-pre>A</code> segment is the first 6bp of the I1 read</li>
+<li><code v-pre>C</code> segment is the next 6bp of the I1 read</li>
+<li><code v-pre>B</code> segment is the first 6bp of the I2 read</li>
+<li><code v-pre>D</code> segment is the next 6bp of the I2 read</li>
+</ul>
+</li>
+<li>barcode stored as <code v-pre>BX:Z</code> tag in the read header in <code v-pre>ACBD</code> format
+<ul>
+<li>e.g. <code v-pre>@A003432423434:1:324 BX:Z:A45C01B84D21</code></li>
+</ul>
+</li>
+</ul>
+<doc-anchor-target id="tellseq">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#tellseq">#</doc-anchor-trigger>
+        <span>TELLseq</span>
+    </h3>
+</doc-anchor-target>
+<p>One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
+barcode is 18bp long and contained in the I1 read that Illumina provides with the standard R1 and R2 reads. The
+barcode gets appended in the read header using a colon (<code v-pre>:</code>).</p>
+<ul>
+<li>barcode is the first 18bp of the I1 read</li>
+<li>barcode is appended to sequence header
+<ul>
+<li>e.g. <code v-pre>@A00234534562:1:544:AATTATACCACAGCGGTA</code></li>
+</ul>
+</li>
+<li>advertised to have a capacity over 2 <strong>billion</strong> barcodes, but realistically use &lt;24 <strong>million</strong></li>
+</ul>
+<doc-anchor-target id="stlfr">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#stlfr">#</doc-anchor-trigger>
+        <span>stLFR</span>
+    </h3>
+</doc-anchor-target>
+<p>Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
+made up for three 10bp segments which are at the end of the R2 read. Demultiplexing these data results
+in the barcode being moved to the sequence ID using a pound (<code v-pre>#</code>) sign between the sequence ID and barcode, with
+the barcode recoded in the <code v-pre>1_2_3</code> format, where each segment is an integer.</p>
+<ul>
+<li>depending on the link sequence between segments, will be either the last 54bp or 42bp of the R2 read
+<ul>
+<li>54 base barcode: 10+6+10+18+10</li>
+<li>42 base barcode: 10+6+10+6+10</li>
+</ul>
+</li>
+<li>barcode appended to sequence header with <code v-pre>#</code> sign
+<ul>
+<li>e.g. <code v-pre>@A003432423434:1:324#12_432_1</code></li>
+</ul>
+</li>
+<li>advertised to have a capacity over 3.6 <strong>billion</strong>, with up to 50 <strong>million</strong> per sample (actual results may vary)</li>
+</ul>
+<doc-anchor-target id="10x">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#10x">#</doc-anchor-trigger>
+        <span>10X</span>
+    </h3>
+</doc-anchor-target>
+<p>The elder and thus least advanced of the bunch, and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
+as the first 16bp of the forward (R1) read. For these data to be compatible with the 10X Longranger suite,
+the barcode <strong>must</strong> stay in the read. Moving the first 16bp into the read header breaks Longranger compatibility.</p>
+<ul>
+<li>barcode is the first 16bp of the R1 read</li>
+<li>barcode stays in the sequence data for LongRanger compatibility</li>
+<li>limited to ~4.7 million barcodes</li>
+</ul>
 
                             
                             <!-- Required only on API pages -->
@@ -546,6 +640,6 @@ is due to the lower likelihood of reads linking at the edges of chromosomes.
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": " An introduction to linked-read data", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": " An introduction to linked-read data", level: 2, icon: "file", hasPrism: false, hasMermaid: false, hasMath: true, tocDepth: 23 }</script>
 </body>
 </html>
