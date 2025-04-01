@@ -9,8 +9,8 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs
 from ._printing import workflow_info
 from ._validations import check_fasta, check_phase_vcf
@@ -98,21 +98,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
     have to be the same across the different size classes.
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    vcaller = "leviathan" if populations is None else "leviathan_pop"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(reference)
     if contigs:
@@ -120,9 +106,25 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations,quiet)
-        fetch_report(workflowdir, "leviathan_pop.qmd")
-    fetch_report(workflowdir, "leviathan.qmd")
+
+    ## setup workflow ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    vcaller = "leviathan" if populations is None else "leviathan_pop"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    fetch_report(workflowdir, "leviathan.qmd")
+    fetch_report(workflowdir, "leviathan_pop.qmd") if populations else None
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "sv_leviathan")
     conda_envs = ["align", "r", "variants"]
@@ -152,9 +154,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -202,22 +203,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    vcaller = "naibr" if populations is None else "naibr_pop"
-    vcaller += "_phase" if vcf else ""
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/sv_{vcaller}.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    ## checks and valiations ##
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(reference)
     if contigs:
@@ -225,11 +211,29 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     if populations:
         validate_popfile(populations)
         validate_popsamples(bamlist, populations, quiet)
-        fetch_report(workflowdir, "naibr_pop.qmd")
-    fetch_report(workflowdir, "naibr.qmd")
     if vcf:
         check_phase_vcf(vcf)
+
+    ## setup workflow ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    vcaller = "naibr" if populations is None else "naibr_pop"
+    vcaller += "_phase" if vcf else ""
+    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
     fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    fetch_report(workflowdir, "naibr_pop.qmd") if populations else None
+    fetch_report(workflowdir, "naibr.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "sv_naibr")
     conda_envs = ["phase", "r", "variants"]
@@ -255,9 +259,8 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
