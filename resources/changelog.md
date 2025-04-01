@@ -78,3 +78,5 @@
   - result is less cluttered and more intuitive `__main__.py`
 - containerization snakefile dramatically simplified
 - new [hidden] `harpy localenv` workflow to instantiate software environments for harpy workflows (dev testing idea spawned from Discussion #222)
+- the python scripts governing each module have been internally reorganized to follow a pattern of validations then workflow setup
+  - the two sections are annotated too
