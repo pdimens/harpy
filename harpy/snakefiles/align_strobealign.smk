@@ -10,16 +10,14 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = f"{outdir}/workflow"
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
-workflow_geno = f"{workflowdir}/reference/{bn}"
+workflow_geno = f"workflow/reference/{bn}"
 windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
@@ -63,7 +61,7 @@ rule make_depth_intervals:
     input:
         f"{workflow_geno}.fai"
     output:
-        outdir + "/reports/data/coverage/coverage.bed"
+        "reports/data/coverage/coverage.bed"
     run:
         with open(input[0], "r") as fai, open(output[0], "w") as bed:
             for line in fai:
@@ -99,9 +97,9 @@ rule align:
         genome   = workflow_geno,
         genome_index   = f"{workflow_geno}.r{readlen}.sti" if not autolen else []
     output:  
-        temp(outdir + "/samples/{sample}/{sample}.strobe.sam")
+        temp("samples/{sample}/{sample}.strobe.sam")
     log:
-        outdir + "/logs/strobealign/{sample}.strobealign.log"
+        "logs/strobealign/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
         readlen = "" if autolen else f"--use-index -r {readlen}",
@@ -121,15 +119,15 @@ rule align:
 
 rule mark_duplicates:
     input:
-        sam    = outdir + "/samples/{sample}/{sample}.strobe.sam",
+        sam    = "samples/{sample}/{sample}.strobe.sam",
         genome = workflow_geno,
         faidx  = f"{workflow_geno}.fai"
     output:
-        temp(outdir + "/samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp(outdir + "/markdup/{sample}.markdup.bam")
+        temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam")
     log:
-        outdir + "/logs/markdup/{sample}.markdup.log"
+        "logs/markdup/{sample}.markdup.log"
     params: 
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
     resources:
         mem_mb = 2000
@@ -154,10 +152,10 @@ rule mark_duplicates:
 rule assign_molecules:
     priority: 100
     input:
-        bam = outdir + "/samples/{sample}/{sample}.markdup.bam",
+        bam = "samples/{sample}/{sample}.markdup.bam",
     output:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai"
     params:
         molecule_distance
     container:
@@ -170,10 +168,10 @@ rule assign_molecules:
 
 rule barcode_stats:
     input:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai"
     output: 
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
+        "reports/data/bxstats/{sample}.bxstats.gz"
     params:
         sample = lambda wc: d[wc.sample]
     container:
@@ -183,10 +181,10 @@ rule barcode_stats:
 
 rule molecule_coverage:
     input:
-        stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        stats = "reports/data/bxstats/{sample}.bxstats.gz",
         fai = f"{workflow_geno}.fai"
     output: 
-        outdir + "/reports/data/coverage/{sample}.molcov.gz"
+        "reports/data/coverage/{sample}.molcov.gz"
     params:
         windowsize
     container:
@@ -196,11 +194,11 @@ rule molecule_coverage:
 
 rule alignment_coverage:
     input: 
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai",
-        bed = outdir + "/reports/data/coverage/coverage.bed"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai",
+        bed = "reports/data/coverage/coverage.bed"
     output: 
-        outdir + "/reports/data/coverage/{sample}.cov.gz"
+        "reports/data/coverage/{sample}.cov.gz"
     container:
         None
     shell:
@@ -208,11 +206,11 @@ rule alignment_coverage:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -220,22 +218,22 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{workflowdir}/report/align_stats.qmd"
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = "reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        qmd = "workflow/report/align_stats.qmd"
     output:
-        report = outdir + "/reports/{sample}.html",
-        qmd = temp(outdir + "/reports/{sample}.qmd")
+        report = "reports/{sample}.html",
+        qmd = temp("reports/{sample}.qmd")
     params:
         mol_dist = f"-P mol_dist:{molecule_distance}",
         window_size = f"-P windowsize:{windowsize}",
         contigs = f"-P contigs:{plot_contigs}",
         samplename = lambda wc: "-P sample:" + wc.get("sample")
     log:
-        outdir + "/logs/reports/{sample}.alignstats.log"
+        "logs/reports/{sample}.alignstats.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -250,10 +248,10 @@ rule sample_reports:
 if ignore_bx:
     rule index_bam:
         input:
-            bam = outdir + "/markdup/{sample}.markdup.bam"
+            bam = "markdup/{sample}.markdup.bam"
         output:
-            bam = outdir + "/{sample}.bam",
-            bai = outdir + "/{sample}.bam.bai"
+            bam = "{sample}.bam",
+            bai = "{sample}.bam.bai"
         container:
             None
         shell:
@@ -264,11 +262,11 @@ if ignore_bx:
 
 rule general_stats:
     input:
-        bam      = outdir + "/{sample}.bam",
-        bai      = outdir + "/{sample}.bam.bai"
+        bam      = "{sample}.bam",
+        bai      = "{sample}.bam.bai"
     output: 
-        stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
+        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
     container:
         None
     shell:
@@ -279,11 +277,11 @@ rule general_stats:
 
 rule samtools_report:
     input: 
-        collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
+        collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
-        outdir + "/reports/strobealign.stats.html"
+        "reports/strobealign.stats.html"
     params:
-        outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
+        outdir = "reports/data/samtools_stats reports/data/samtools_flagstat",
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
@@ -294,17 +292,17 @@ rule samtools_report:
 
 rule barcode_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{workflowdir}/report/align_bxstats.qmd"
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
+        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        qmd = "workflow/report/align_bxstats.qmd"
     output:
-        report = f"{outdir}/reports/barcode.summary.html",
-        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+        report = "reports/barcode.summary.html",
+        qmd = temp("reports/barcode.summary.qmd")
     params:
-        f"{outdir}/reports/data/bxstats/"
+        "reports/data/bxstats/"
     log:
-        f"{outdir}/logs/reports/bxstats.report.log"
+        "logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -317,10 +315,10 @@ rule barcode_report:
 rule workflow_summary:
     default_target: True
     input: 
-        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
-        samtools =  outdir + "/reports/strobealign.stats.html" if not skip_reports else [] ,
-        reports = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = outdir + "/reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
+        bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
+        reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        bx_report = "reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
     params:
         readlen = readlen,
         quality = config["alignment_quality"],
@@ -350,5 +348,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(f"{workflowdir}/align.strobealign.summary", "w") as f:
+        with open("workflow/align.strobealign.summary", "w") as f:
             f.write("\n\n".join(summary))

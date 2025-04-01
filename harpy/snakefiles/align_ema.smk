@@ -10,8 +10,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = f"{outdir}/workflow"
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
@@ -21,10 +19,10 @@ barcode_list   = config["inputs"].get("barcode_list", "")
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
-workflow_geno = f"{workflowdir}/reference/{bn}"
+workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["reports"]["skip"]
@@ -32,7 +30,7 @@ plot_contigs = config["reports"]["plot_contigs"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
-os.makedirs(f"{outdir}/logs/ema_count/", exist_ok = True)
+os.makedirs("logs/ema_count/", exist_ok = True)
 
 def get_fq(wildcards):
     """returns a list of fastq files for read 1 based on *wildcards.sample* e.g."""
@@ -93,7 +91,7 @@ rule make_depth_intervals:
     input:
         f"{workflow_geno}.fai"
     output:
-        outdir + "/reports/data/coverage/coverage.bed"
+        "reports/data/coverage/coverage.bed"
     run:
         with open(input[0], "r") as fai, open(output[0], "w") as bed:
             for line in fai:
@@ -111,10 +109,10 @@ rule ema_count:
     input:
         get_fq
     output: 
-        counts = temp(outdir + "/ema_count/{sample}.ema-ncnt"),
-        logs   = temp(outdir + "/logs/count/{sample}.count")
+        counts = temp("ema_count/{sample}.ema-ncnt"),
+        logs   = temp("logs/count/{sample}.count")
     params:
-        prefix = lambda wc: outdir + "/ema_count/" + wc.get("sample"),
+        prefix = lambda wc: "ema_count/" + wc.get("sample"),
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}"
     conda:
         f"{envdir}/align.yaml"
@@ -128,14 +126,14 @@ rule ema_count:
 rule ema_preprocess:
     input: 
         reads = get_fq,
-        emacounts  = outdir + "/ema_count/{sample}.ema-ncnt"
+        emacounts  = "ema_count/{sample}.ema-ncnt"
     output: 
-        bins       = temp(collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded = temp(outdir + "/ema_preproc/{sample}/ema-nobc")
+        bins       = temp(collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
+        unbarcoded = temp("ema_preproc/{sample}/ema-nobc")
     log:
-        outdir + "/logs/ema_preproc/{sample}.preproc.log"
+        "logs/ema_preproc/{sample}.preproc.log"
     params:
-        outdir = lambda wc: outdir + "/ema_preproc/" + wc.get("sample"),
+        outdir = lambda wc: "ema_preproc/" + wc.get("sample"),
         bxtype = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         bins   = nbins
     threads:
@@ -151,22 +149,22 @@ rule ema_preprocess:
 
 rule align_ema:
     input:
-        readbin    = collect(outdir + "/ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
+        readbin    = collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange),
         genome 	   = workflow_geno,
         geno_faidx = workflow_geno_idx,
         geno_idx   = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        aln = temp(outdir + "/ema_align/{sample}.bc.bam"),
-        idx = temp(outdir + "/ema_align/{sample}.bc.bam.bai")
+        aln = temp("ema_align/{sample}.bc.bam"),
+        idx = temp("ema_align/{sample}.bc.bam.bai")
     log:
-        ema  = outdir + "/logs/align/{sample}.ema.align.log",
-        sort = outdir + "/logs/align/{sample}.ema.sort.log",
+        ema  = "logs/align/{sample}.ema.align.log",
+        sort = "logs/align/{sample}.ema.sort.log",
     resources:
         mem_mb = 500
     params:
         RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         bxtype = f"-p {platform}",
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample],
+        tmpdir = lambda wc: "." + d[wc.sample],
         frag_opt = "-d" if frag_opt else "",
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
@@ -185,14 +183,14 @@ rule align_ema:
 
 rule align_bwa:
     input:
-        reads      = outdir + "/ema_preproc/{sample}/ema-nobc",
+        reads      = "ema_preproc/{sample}/ema-nobc",
         genome 	   = workflow_geno,
         geno_faidx = workflow_geno_idx,
         geno_idx   = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output: 
-        temp(outdir + "/bwa_align/{sample}.bwa.nobc.sam")
+        temp("bwa_align/{sample}.bwa.nobc.sam")
     log:
-        outdir + "/logs/align/{sample}.bwa.align.log"
+        "logs/align/{sample}.bwa.align.log"
     params:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
@@ -209,15 +207,15 @@ rule align_bwa:
 
 rule mark_duplicates:
     input:
-        sam    = outdir + "/bwa_align/{sample}.bwa.nobc.sam",
+        sam    = "bwa_align/{sample}.bwa.nobc.sam",
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
-        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam")
+        temp("bwa_align/{sample}.markdup.nobc.bam")
     log:
-        outdir + "/logs/markdup/{sample}.markdup.log"
+        "logs/markdup/{sample}.markdup.log"
     params: 
-        tmpdir = lambda wc: outdir + "/." + d[wc.sample]
+        tmpdir = lambda wc: "." + d[wc.sample]
     resources:
         mem_mb = 500
     container:
@@ -240,9 +238,9 @@ rule mark_duplicates:
 
 rule index_duplicates:
     input:
-        outdir + "/bwa_align/{sample}.markdup.nobc.bam"
+        "bwa_align/{sample}.markdup.nobc.bam"
     output:
-        temp(outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai")
+        temp("bwa_align/{sample}.markdup.nobc.bam.bai")
     container:
         None
     shell:
@@ -251,14 +249,14 @@ rule index_duplicates:
 rule concat_alignments:
     priority: 100
     input:
-        aln_bc   = outdir + "/ema_align/{sample}.bc.bam",
-        idx_bc   = outdir + "/ema_align/{sample}.bc.bam.bai",
-        aln_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam",
-        idx_nobc = outdir + "/bwa_align/{sample}.markdup.nobc.bam.bai",
+        aln_bc   = "ema_align/{sample}.bc.bam",
+        idx_bc   = "ema_align/{sample}.bc.bam.bai",
+        aln_nobc = "bwa_align/{sample}.markdup.nobc.bam",
+        idx_nobc = "bwa_align/{sample}.markdup.nobc.bam.bai",
         genome   = workflow_geno
     output: 
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai"
     threads:
         2
     resources:
@@ -273,11 +271,11 @@ rule concat_alignments:
 
 rule alignment_coverage:
     input: 
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai",
-        bed = outdir + "/reports/data/coverage/coverage.bed"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai",
+        bed = "reports/data/coverage/coverage.bed"
     output: 
-        outdir + "/reports/data/coverage/{sample}.cov.gz"
+        "reports/data/coverage/{sample}.cov.gz"
     container:
         None
     shell:
@@ -285,10 +283,10 @@ rule alignment_coverage:
 
 rule barcode_stats:
     input:
-        bam = outdir + "/{sample}.bam",
-        bai = outdir + "/{sample}.bam.bai"
+        bam = "{sample}.bam",
+        bai = "{sample}.bam.bai"
     output: 
-        outdir + "/reports/data/bxstats/{sample}.bxstats.gz"
+        "reports/data/bxstats/{sample}.bxstats.gz"
     container:
         None
     shell:
@@ -296,10 +294,10 @@ rule barcode_stats:
 
 rule molecule_coverage:
     input:
-        stats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
+        stats = "reports/data/bxstats/{sample}.bxstats.gz",
         fai = f"{workflow_geno}.fai"
     output: 
-        outdir + "/reports/data/coverage/{sample}.molcov.gz"
+        "reports/data/coverage/{sample}.molcov.gz"
     params:
         windowsize
     container:
@@ -309,11 +307,11 @@ rule molecule_coverage:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp(f"reports/_quarto.yml"),
+        scss = temp(f"reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -321,22 +319,22 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        bxstats = outdir + "/reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = outdir + "/reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = outdir + "/reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"{workflowdir}/report/align_stats.qmd"
+        f"reports/_quarto.yml",
+        f"reports/_harpy.scss",
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = "reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        qmd = "workflow/report/align_stats.qmd"
     output:
-        report = outdir + "/reports/{sample}.html",
-        qmd = temp(outdir + "/reports/{sample}.qmd")
+        report = "reports/{sample}.html",
+        qmd = temp("reports/{sample}.qmd")
     params:
         mol_dist = f"-P mol_dist:0",
         window_size = f"-P windowsize:{windowsize}",
         contigs = f"-P contigs:{plot_contigs}",
         samplename = lambda wc: "-P sample:" + wc.get("sample")
     log:
-        outdir + "/logs/reports/{sample}.alignstats.log"
+        "logs/reports/{sample}.alignstats.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -350,11 +348,11 @@ rule sample_reports:
 
 rule general_stats:
     input: 		
-        bam      = outdir + "/{sample}.bam",
-        bai      = outdir + "/{sample}.bam.bai"
+        bam      = "{sample}.bam",
+        bai      = "{sample}.bam.bai"
     output:
-        stats    = temp(outdir + "/reports/data/samtools_stats/{sample}.stats"),
-        flagstat = temp(outdir + "/reports/data/samtools_flagstat/{sample}.flagstat")
+        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
     container:
         None
     shell:
@@ -365,11 +363,11 @@ rule general_stats:
 
 rule samtools_report:
     input: 
-        collect(outdir + "/reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
+        collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
-        outdir + "/reports/ema.stats.html"
+        "reports/ema.stats.html"
     params:
-        outdir = f"{outdir}/reports/data/samtools_stats {outdir}/reports/data/samtools_flagstat",
+        outdir = f"reports/data/samtools_stats reports/data/samtools_flagstat",
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
@@ -380,17 +378,17 @@ rule samtools_report:
 
 rule barcode_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        collect(outdir + "/reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"{workflowdir}/report/align_bxstats.qmd"
+        f"reports/_quarto.yml",
+        f"reports/_harpy.scss",
+        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        qmd = "workflow/report/align_bxstats.qmd"
     output:
-        report = f"{outdir}/reports/barcode.summary.html",
-        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+        report = f"reports/barcode.summary.html",
+        qmd = temp(f"reports/barcode.summary.qmd")
     params:
-        f"{outdir}/reports/data/bxstats/"
+        f"reports/data/bxstats/"
     log:
-        f"{outdir}/logs/reports/bxstats.report.log"
+        f"logs/reports/bxstats.report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -403,10 +401,10 @@ rule barcode_report:
 rule workflow_summary:
     default_target: True
     input:
-        bams = collect(outdir + "/{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
-        cov_report = collect(outdir + "/reports/{sample}.html", sample = samplenames) if not skip_reports else [],
-        agg_report = f"{outdir}/reports/ema.stats.html" if not skip_reports else [],
-        bx_report = outdir + "/reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
+        bams = collect("{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
+        cov_report = collect("reports/{sample}.html", sample = samplenames) if not skip_reports else [],
+        agg_report = f"reports/ema.stats.html" if not skip_reports else [],
+        bx_report = "reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
         beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4",
@@ -444,5 +442,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(f"{workflowdir}/align.ema.summary", "w") as f:
+        with open("workflow/align.ema.summary", "w") as f:
             f.write("\n\n".join(summary))
