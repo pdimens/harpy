@@ -143,7 +143,8 @@ def safe_read(file_path: str):
 
 def write_snakemake_config(sdm, outdir):
     """
-    Writes a config.yaml file to outdir/workflow to use with --profile. Creates outdir/workflow if it doesnt exist
+    Writes a config.yaml file to outdir/workflow to use with --profile. Creates outdir/workflow if it doesnt exist.
+    sdm is the software deployment method
     """
     profile = {
         "rerun-incomplete": True,
@@ -163,6 +164,10 @@ def write_snakemake_config(sdm, outdir):
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
 
 def write_workflow_config(configs, workdir):
+    """
+    Writes a workflow.yaml file to workdir to use with --configfile. Creates outdir/workflow if it doesnt exist. Configs
+    are expected to be a dict
+    """
     if not os.path.exists(workdir):
         os.makedirs(workdir, exist_ok=True)
     with open(os.path.join(workdir, 'workflow.yaml'), "w", encoding="utf-8") as config:

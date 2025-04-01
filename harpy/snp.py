@@ -9,8 +9,8 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import MpileupParams, FreebayesParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs
 from ._printing import workflow_info
 from ._validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
@@ -92,26 +92,11 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     call variants in parallel for intervals of that size across the entire reference genome.
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
-    """   
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/snp_mpileup.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    """
+    ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
-
-    # setup regions checks
     regtype = validate_regions(regions, reference)
     region = Path(f"{workflowdir}/positions.bed").resolve()
     if regtype == "windows":
@@ -120,16 +105,30 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         os.system(f"cp -f {regions} {region}")
     else:
         region = regions
+    if populations:
+        validate_popfile(populations)
+        # check that samplenames and populations line up
+        validate_popsamples(bamlist, populations, quiet)
+
+    ## workflow setup ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_mpileup.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
     fetch_report(workflowdir, "bcftools_stats.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "snp_mpileup")
     conda_envs = ["r"]
-    if populations:
-        validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_popsamples(bamlist, populations, quiet)
+
     configs = {
         "workflow" : "snp mpileup",
         "snakemake_log" : sm_log,
@@ -150,9 +149,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -197,25 +194,10 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/snp_freebayes.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
-
-    # setup regions checks
     regtype = validate_regions(regions, reference)
     region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
     if regtype == "windows":
@@ -224,18 +206,30 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         os.system(f"cp -f {regions} {region}")
     else:
         region = regions
-
-    fetch_rule(workflowdir, "snp_freebayes.smk")
-    fetch_report(workflowdir, "bcftools_stats.qmd")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "snp_freebayes")
-    conda_envs = ["r", "variants"]
     if populations:
         # check for delimeter and formatting
         validate_popfile(populations)
         # check that samplenames and populations line up
         validate_popsamples(bamlist, populations,quiet)
 
+    ## workflow setup ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_freebayes.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+    
+    fetch_rule(workflowdir, "snp_freebayes.smk")
+    fetch_report(workflowdir, "bcftools_stats.qmd")
+    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+    sm_log = snakemake_log(output_dir, "snp_freebayes")
+    conda_envs = ["r", "variants"]
     configs = {
         "workflow" : "snp freebayes",
         "snakemake_log" : sm_log,
@@ -254,9 +248,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
