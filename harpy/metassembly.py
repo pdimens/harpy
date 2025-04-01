@@ -6,8 +6,8 @@ import yaml
 import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
 from ._printing import workflow_info
@@ -55,12 +55,15 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
+    ## checks and validations ##
+    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/metassembly.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/metassembly.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -68,9 +71,8 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     if snakemake:
         command += f" {snakemake}"
 
-    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
-    os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, f"metassembly.smk")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "metassembly")
     conda_envs = ["align", "assembly", "metassembly", "qc", "spades"]
@@ -96,9 +98,8 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             "fastq_r2" : fastq_r2
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-    
+
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

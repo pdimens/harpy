@@ -8,8 +8,8 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, KParam, HPCProfile, SnakemakeParams
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
@@ -70,13 +70,15 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
+    ## checks and validations ##
+    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
+
+    ## setup workflow #
     output_dir = output_dir.rstrip("/")
-    asm = "assembly"
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/{asm}.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/assembly.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -84,14 +86,13 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     if snakemake:
         command += f" {snakemake}"
 
-    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
-    os.makedirs(workflowdir, exist_ok=True)
-    fetch_rule(workflowdir, f"{asm}.smk")
+    fetch_rule(workflowdir, f"assembly.smk")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, asm)
+    sm_log = snakemake_log(output_dir, "assembly")
     conda_envs = ["assembly","qc"]
     configs = {
-        "workflow" : asm,
+        "workflow" : "assembly",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "barcode_tag" : bx_tag.upper(),
@@ -127,9 +128,8 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "fastq_r2" : fastq_r2
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-    
+
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -140,4 +140,4 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, asm, start_text, output_dir, sm_log, quiet, f"workflow/{asm}.summary")
+    launch_snakemake(command, "assembly", start_text, output_dir, sm_log, quiet, f"workflow/assembly.summary")
