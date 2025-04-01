@@ -175,7 +175,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_snpindel.smk"
+    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_snpindel.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
@@ -288,7 +288,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_variants.smk"
+    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
@@ -402,7 +402,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_variants.smk"
+    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
@@ -506,7 +506,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_variants.smk"
+    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
