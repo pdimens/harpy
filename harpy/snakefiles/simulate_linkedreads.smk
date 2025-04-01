@@ -8,7 +8,7 @@ from pathlib import Path
 from itertools import product
 
 outdir   = config["output_directory"]
-envdir   = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir   = os.path.join(os.getcwd(), "workflow", "envs")
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]

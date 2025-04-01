@@ -13,8 +13,8 @@ wildcard_constraints:
     population = r"[a-zA-Z0-9._-]+"
 
 outdir       = config["output_directory"]
-workflowdir  = f"{outdir}/workflow"
-envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+workflowdir  = "workflow"
+envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile   = config["inputs"]["reference"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]

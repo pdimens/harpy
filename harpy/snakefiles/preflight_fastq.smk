@@ -12,7 +12,7 @@ wildcard_constraints:
 
 fqlist = config["inputs"]
 outdir = config["output_directory"]
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 

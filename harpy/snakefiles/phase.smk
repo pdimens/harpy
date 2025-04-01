@@ -12,11 +12,11 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir 			  = config["output_directory"]
-workflowdir       = f"{outdir}/workflow"
+workflowdir       = "workflow"
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-envdir            = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir            = os.path.join(os.getcwd(), "workflow", "envs")
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 skip_reports      = config["reports"]["skip"]

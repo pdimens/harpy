@@ -4,7 +4,7 @@ import os
 import logging
 
 outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir = os.path.join(os.getcwd(), "workflow", "envs")
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
 keep_unknown = config["keep_unknown"]
@@ -44,7 +44,7 @@ rule barcode_segments:
     output:
         collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
     params:
-        f"{outdir}/workflow"
+        "workflow"
     container:
         None
     shell:

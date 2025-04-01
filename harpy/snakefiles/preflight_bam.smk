@@ -12,7 +12,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 outdir = config["output_directory"]
-envdir  = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir  = os.path.join(os.getcwd(), "workflow", "envs")
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}

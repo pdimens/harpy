@@ -13,7 +13,7 @@ onerror:
     os.remove(log)
 
 outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir = os.path.join(os.getcwd(), "workflow", "envs")
 genome = config["inputs"]["genome"]
 snp_vcf = config["snp"].get("vcf", None)
 indel_vcf = config["indel"].get("vcf", None)

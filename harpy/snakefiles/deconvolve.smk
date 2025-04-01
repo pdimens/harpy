@@ -12,7 +12,7 @@ wildcard_constraints:
 
 fqlist      = config["inputs"]
 outdir      = config["output_directory"]
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 kmer_length = config["kmer_length"]
 window_size = config["window_size"]
 density 	= config["density"] 
