@@ -19,6 +19,11 @@
 - `harpy imputeparams` is now `harpy template impute`
 - `harpy hpc` is now `harpy template hpc-*`
   - where `*` is the type of scheduler, e.g. `harpy template hpc-slurm`
+- `harpy view` has its usage changed
+  - `harpy view` has been replaced with `harpy view log`
+  - `--config` has been replaced with `harpy view config`
+  - `--snakefile` has been replaced with `harpy view config`
+  - `harpy view snakeparams` exists to view the new snakemake profile yaml
 ### HPC support
 - `harpy template hpc-*` now outputs `hpc/system.yaml` rather than `hpc/system/config.yaml`
 - the `--hpc` option for workflows now takes the configuration yaml file directly, directory input is disabled
