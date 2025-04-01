@@ -7,7 +7,7 @@ import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, snakemake_log, snakemake_profile
+from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
@@ -79,7 +79,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     else:
         trim_adapters = False
 
-    profile = snakemake_profile("conda" if not container else "conda apptainer", output_dir)
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/qc.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
@@ -89,7 +89,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     if snakemake:
         command += f" {snakemake}"
 
-    #os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "bx_count.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -116,12 +115,11 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
-    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
+
     start_text = workflow_info(
         ("Samples:", sample_count),
         ("Trim Adapters:", "yes" if trim_adapters else "no"),
