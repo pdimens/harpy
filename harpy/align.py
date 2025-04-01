@@ -7,10 +7,10 @@ import shutil
 from pathlib import Path
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
+from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice, workflow_info
 from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
@@ -109,12 +109,18 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
     harpy perform alignment-distance based barcode deconvolution.
     """
+    ## checks and validations ##
+    fqlist, sample_count = parse_fastq_inputs(inputs)
+    check_fasta(reference)
+    if contigs:
+        fasta_contig_match(contigs, reference)
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/align_bwa.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_bwa.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -122,16 +128,13 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(reference)
-    if contigs:
-        fasta_contig_match(contigs, reference)
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_bwa")
+
     conda_envs = ["align", "r", "qc"]
     configs = {
         "workflow" : "align bwa",
@@ -154,9 +157,8 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -202,21 +204,9 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
     sequences at the beginning of the forward reads are known barcodes.
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/align_ema.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
+    ## checks and validations ##
     platform = platform.lower()
-    # the tellseq stuff isn't impremented yet, but this is a placeholder for that... wishful thinking
+    # the tellseq stuff isn't impremented yet, but this is a placeholder for that (wishful thinking)
     if platform in ["tellseq", "10x"] and not barcode_list:
         print_error("missing barcode list", f"{platform} technology requires a list of known barcodes.")
         if platform == "10x":
@@ -226,21 +216,34 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         sys.exit(1)
     if platform == "haplotag" and barcode_list and not quiet:
         print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/green] will be ignored.")
-
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
     if barcode_list:
         validate_barcodefile(barcode_list, False, quiet)
+
+    ## setup workflow ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_ema.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_ema")
-    conda_envs = ["align", "r", "qc"]
 
+    conda_envs = ["align", "r", "qc"]
     configs = {
         "workflow" : "align ema",
         "snakemake_log" : sm_log,
@@ -265,9 +268,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         }
     }
 
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -315,12 +316,18 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
     `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
+    ## checks and validations ##
+    fqlist, sample_count = parse_fastq_inputs(inputs)
+    check_fasta(reference)
+    if contigs:
+        fasta_contig_match(contigs, reference)
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/align_strobealign.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_strobealign.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -328,16 +335,13 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
-    fqlist, sample_count = parse_fastq_inputs(inputs)
-    check_fasta(reference)
-    if contigs:
-        fasta_contig_match(contigs, reference)
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "align_strobe")
+
     conda_envs = ["align", "r", "qc"]
     configs = {
         "workflow" : "align strobe",
@@ -361,9 +365,8 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
             "fastq": [i.as_posix() for i in fqlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

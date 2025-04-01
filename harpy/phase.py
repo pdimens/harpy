@@ -6,8 +6,8 @@ import yaml
 import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_report, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import HapCutParams
 from ._parsers import parse_alignment_inputs
@@ -59,20 +59,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     the samples present in your input `VCF` file rather than all the samples present in
     the `INPUT` alignments.
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/phase.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    os.makedirs(f"{workflowdir}/input", exist_ok= True)
+    ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     validate_bam_RG(bamlist, threads, quiet)
@@ -80,8 +67,24 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         check_fasta(reference)
     if contigs:
         vcf_contig_match(contigs, vcf)
+
+    ## setup workflow ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
+    os.makedirs(f"{workflowdir}/input", exist_ok= True)
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/phase.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "phase")
     conda_envs = ["phase", "r"]
@@ -106,9 +109,8 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

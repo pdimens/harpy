@@ -8,8 +8,8 @@ from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_script, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -71,7 +71,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     sdm = "conda" if not container else "conda apptainer"
     command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     command += f" --snakefile {workflowdir}/demultiplex_gen1.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -81,6 +81,8 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
 
     validate_demuxschema(schema, return_len = False)
     os.makedirs(workflowdir, exist_ok=True)
+    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding="utf-8") as sm_config:
+        yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -105,7 +107,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
             "I2": Path(i2_fq).resolve().as_posix()
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding= "utf-8") as config:
+    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding= "utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
         create_conda_recipes(output_dir, conda_envs)

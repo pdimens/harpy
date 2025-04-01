@@ -9,8 +9,8 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_bed
 from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -60,23 +60,14 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/impute.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    os.makedirs(workflowdir, exist_ok= True)
 
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
+    ## checks and validations ##
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, f"{workflowdir}")
+    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflowdir)
     if regions:
         target_regions = parse_bed(regions)
         contigs = set()
@@ -92,9 +83,21 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
     else:
         target_regions = "all"
 
+    ## setup workflow ##
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/impute.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
     fetch_rule(workflowdir, "impute.smk")
     fetch_report(workflowdir, "impute.qmd")
     fetch_report(workflowdir, "stitch_collate.qmd")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "impute")
     conda_envs = ["r", "stitch"]
@@ -116,9 +119,8 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-    
+
+    write_workflow_config(config, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

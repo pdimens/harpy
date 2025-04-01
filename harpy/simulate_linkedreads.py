@@ -7,8 +7,8 @@ from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, fetch_script, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import check_fasta, validate_barcodefile
 
@@ -58,12 +58,18 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     linked-read barcode per line, given as nucleotides. Use `--merge-haplotypes` to merge haplotype 1 and haplotype 2 for R1 reads
     (same for R2), resulting in one file of R1 reads and one file of R2 reads.
     """
+    ## checks and validations ##
+    check_fasta(genome_hap1)
+    check_fasta(genome_hap2)
+    if barcodes:
+        bc_len = validate_barcodefile(barcodes, True, quiet)
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/simulate_linkedreads.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_linkedreads.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -71,15 +77,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     if snakemake:
         command += f" {snakemake}"
 
-    check_fasta(genome_hap1)
-    check_fasta(genome_hap2)
-    if barcodes:
-        bc_len = validate_barcodefile(barcodes, True, quiet)
-    os.makedirs(f"{workflowdir}/", exist_ok= True)
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "HaploSim.pl")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "simulate_linkedreads")
+
     conda_envs = ["simulations"]
     configs = {
         "workflow" : "simulate linkedreads",
@@ -104,9 +107,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
             "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, workflowdir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

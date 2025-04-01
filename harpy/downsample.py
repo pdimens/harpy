@@ -8,8 +8,8 @@ import shutil
 from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 
 docstring = {
@@ -54,7 +54,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     - `1` adds all invalid barcodes to the barcode pool
     - 0<`i`<1 (e.g. `0.25`) keeps that proprotion of invalid barcodes in the barcode pool
     """
-    # validate input files as either 1 bam or 2 fastq
+    ## checks and validations ##
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.')
     if len(input) == 1:
@@ -67,12 +67,13 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         for i in input:
             if not re.search(re_ext, i):
                 raise click.BadParameter('inputs must be 1 BAM (.bam) file or 2 FASTQ (.fastq|.fq) files. The FASTQ files can be gzipped.')            
-    workflow = "downsample"
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    command = f'{SNAKEMAKE_CMD} --cores {threads}'
-    command += f" --snakefile {workflowdir}/{workflow}.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -80,12 +81,13 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(workflowdir, exist_ok=True)
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
+
     fetch_rule(workflowdir, f"{workflow}.smk")
     sm_log = snakemake_log(output_dir, workflow)
+
     configs = {
-        "workflow": workflow,
+        "workflow": "downsample",
         "snakemake_log" : sm_log,
         "output_directory" : output_dir,
         "prefix" :  prefix,
@@ -94,10 +96,9 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         **({"random_seed" : random_seed} if random_seed else {}),
         "workflow_call" : command.rstrip(),
         "inputs": [Path(i).resolve().as_posix() for i in input]
-        }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
+    }
 
+    write_workflow_config(conrigs, workflowdir)
     if setup_only:
         sys.exit(0)
 
@@ -107,4 +108,4 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         ("Invalid Proportion:", invalid),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/{workflow}.summary")
+    launch_snakemake(command, "downsample", start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")
