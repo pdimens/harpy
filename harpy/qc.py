@@ -66,8 +66,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
       - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces. `21 40 3 0` would be the QuickDeconvolution defaults
       - use `harpy deconvolve` to perform this task separately
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
+    ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     if trim_adapters:
         if trim_adapters != "auto":
@@ -79,6 +78,9 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     else:
         trim_adapters = False
 
+    ## setup workflow ##
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/qc.smk"
     command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
