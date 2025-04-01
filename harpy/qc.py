@@ -6,8 +6,8 @@ import yaml
 import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_report, fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_report, fetch_rule, snakemake_log, snakemake_profile
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._parsers import parse_fastq_inputs
@@ -68,17 +68,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     """
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/qc.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
     fqlist, sample_count = parse_fastq_inputs(inputs)
     if trim_adapters:
         if trim_adapters != "auto":
@@ -87,8 +76,20 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             if not os.access(trim_adapters, os.R_OK):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
             check_fasta(trim_adapters)
+    else:
+        trim_adapters = False
 
-    os.makedirs(workflowdir, exist_ok=True)
+    profile = snakemake_profile("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/qc.smk"
+    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+
+    #os.makedirs(workflowdir, exist_ok=True)
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "bx_count.qmd")
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
@@ -115,7 +116,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
+    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     create_conda_recipes(output_dir, conda_envs)

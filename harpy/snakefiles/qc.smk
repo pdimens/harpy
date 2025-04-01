@@ -12,7 +12,7 @@ wildcard_constraints:
 
 fqlist       = config["inputs"]
 outdir       = config["output_directory"]
-envdir       = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
@@ -50,12 +50,12 @@ if not deconvolve:
             fw   = get_fq1,
             rv   = get_fq2
         output:
-            fw   = outdir + "/{sample}.R1.fq.gz",
-            rv   = outdir + "/{sample}.R2.fq.gz",
-            html = outdir + "/reports/{sample}.html",
-            json = outdir + "/reports/data/fastp/{sample}.fastp.json"
+            fw   = "{sample}.R1.fq.gz",
+            rv   = "{sample}.R2.fq.gz",
+            html = "reports/{sample}.html",
+            json = "reports/data/fastp/{sample}.fastp.json"
         log:
-            serr = outdir + "/logs/fastp/{sample}.log"
+            serr = "logs/fastp/{sample}.log"
         params:
             static = "--trim_poly_g --cut_right",
             minlen = f"--length_required {min_len}",
@@ -77,11 +77,11 @@ else:
             fw   = get_fq1,
             rv   = get_fq2
         output:
-            fq   = temp(outdir + "/fastp/{sample}.fastq"),
-            html = outdir + "/reports/{sample}.html",
-            json = outdir + "/reports/data/fastp/{sample}.fastp.json"
+            fq   = temp("fastp/{sample}.fastq"),
+            html = "reports/{sample}.html",
+            json = "reports/data/fastp/{sample}.fastp.json"
         log:
-            serr = outdir + "/logs/fastp/{sample}.log"
+            serr = "logs/fastp/{sample}.log"
         params:
             static = "--trim_poly_g --cut_right",
             minlen = f"--length_required {min_len}",
@@ -99,11 +99,11 @@ else:
 
     rule deconvolve:
         input:
-            outdir + "/fastp/{sample}.fastq"
+            "fastp/{sample}.fastq"
         output:
-            temp(outdir + "/{sample}.fastq")
+            temp("{sample}.fastq")
         log:
-            outdir + "/logs/deconvolve/{sample}.deconvolve.log"
+            "logs/deconvolve/{sample}.deconvolve.log"
         params:
             kmer    = f"-k {decon_k}",
             windows = f"-w {decon_w}",
@@ -118,9 +118,9 @@ else:
 
     rule extract_forward:
         input:
-            outdir + "/{sample}.fastq"
+            "{sample}.fastq"
         output:
-            outdir + "/{sample}.R1.fq.gz"
+            "{sample}.R1.fq.gz"
         params:
             "-1"
         container:
@@ -130,15 +130,15 @@ else:
 
     use rule extract_forward as extract_reverse with:
         output:
-            outdir + "/{sample}.R2.fq.gz"
+            "{sample}.R2.fq.gz"
         params:
             "-2"
 
 rule barcode_stats:
     input:
-        outdir + "/{sample}.R1.fq.gz"
+        "{sample}.R1.fq.gz"
     output: 
-        temp(outdir + "/logs/bxcount/{sample}.count.log")
+        temp("logs/bxcount/{sample}.count.log")
     container:
         None
     shell:
@@ -146,11 +146,11 @@ rule barcode_stats:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = f"workflow/report/_quarto.yml",
+        scss = f"workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp(f"reports/_quarto.yml"),
+        scss = temp(f"reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -158,17 +158,17 @@ rule report_config:
 
 rule barcode_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        data = collect(outdir + "/logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"{outdir}/workflow/report/bx_count.qmd"
+        f"reports/_quarto.yml",
+        f"reports/_harpy.scss",
+        data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
+        qmd = f"workflow/report/bx_count.qmd"
     output:
-        report = f"{outdir}/reports/barcode.summary.html",
-        qmd = temp(f"{outdir}/reports/barcode.summary.qmd")
+        report = f"reports/barcode.summary.html",
+        qmd = temp(f"reports/barcode.summary.qmd")
     params:
-        f"{outdir}/logs/bxcount/"
+        f"logs/bxcount/"
     log:
-        outdir + "/logs/barcode.report.log"
+        "logs/barcode.report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -180,11 +180,11 @@ rule barcode_report:
    
 rule qc_report:
     input: 
-        collect(outdir + "/reports/data/fastp/{sample}.fastp.json", sample = samplenames)
+        collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
-        outdir + "/reports/qc.report.html"
+        "reports/qc.report.html"
     params:
-        logdir = f"{outdir}/reports/data/fastp/",
+        logdir = f"reports/data/fastp/",
         module = "-m fastp",
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",
@@ -197,9 +197,9 @@ rule qc_report:
 rule workflow_summary:
     default_target: True
     input:
-        fq = collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = outdir + "/reports/barcode.summary.html" if not skip_reports and not ignore_bx else [],
-        agg_report = outdir + "/reports/qc.report.html" if not skip_reports else []    
+        fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        bx_report = "reports/barcode.summary.html" if not skip_reports and not ignore_bx else [],
+        agg_report = "reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",
         maxlen = f"--max_len1 {max_len}",
@@ -222,5 +222,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/qc.summary", "w") as f:
+        with open("workflow/qc.summary", "w") as f:
             f.write("\n\n".join(summary))

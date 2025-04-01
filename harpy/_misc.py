@@ -5,6 +5,7 @@ import sys
 import glob
 import gzip
 import shutil
+import yaml
 import urllib.request
 from datetime import datetime
 from pathlib import Path
@@ -120,9 +121,9 @@ def snakemake_log(outdir: str, workflow: str) -> str:
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")
     if not attempts:
-        return f"{outdir}/logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
+        return f"logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
-    return f"{outdir}/logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
+    return f"logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
 
 def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
@@ -139,3 +140,24 @@ def safe_read(file_path: str):
         return gzip.open(file_path, 'rt')
     except gzip.BadGzipFile:
         return open(file_path, 'r')
+
+def snakemake_profile(sdm, outdir):
+    """
+    Writes a config.yaml file to outdir/workflow to use with --profile
+    """
+    profile = {
+        "rerun-incomplete": True,
+        "show-failed-logs": True,
+        "rerun-triggers": ["mtime", "params"],
+        "nolock": True,
+        "software-deployment-method": sdm,
+        "conda-prefix": Path("./.environments").resolve().as_posix(),
+        "conda-cleanup-pkgs": "cache",
+        "apptainer-prefix": Path("./.environments").resolve().as_posix(),
+        "directory": outdir
+    }
+    workdir = os.path.join(outdir, "workflow")
+    if not os.path.exists(workdir):
+        os.makedirs(workdir, exist_ok=True)
+    with open(os.path.join(workdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
+        yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
