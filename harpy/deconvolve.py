@@ -83,7 +83,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "inputs": [i.as_posix() for i in fqlist]
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

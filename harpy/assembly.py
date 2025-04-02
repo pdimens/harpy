@@ -128,7 +128,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

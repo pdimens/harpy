@@ -154,7 +154,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -258,7 +258,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

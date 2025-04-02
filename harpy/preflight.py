@@ -91,7 +91,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         "inputs" : [i.as_posix() for i in bamlist]
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -155,7 +155,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         "inputs" : [i.as_posix() for i in fqlist]
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

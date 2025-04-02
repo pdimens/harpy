@@ -157,7 +157,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -266,7 +266,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -363,7 +363,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

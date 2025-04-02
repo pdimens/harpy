@@ -148,7 +148,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -246,7 +246,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

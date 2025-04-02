@@ -169,7 +169,7 @@ def write_workflow_config(configs, outdir):
     are expected to be a dict
     """
     workdir = f"{outdir}/workflow"
-    if not os.path.exists():
+    if not os.path.exists(workdir):
         os.makedirs(workdir, exist_ok=True)
     with open(os.path.join(workdir, f'config.harpy.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))

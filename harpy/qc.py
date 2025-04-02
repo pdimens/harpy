@@ -116,7 +116,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]
     }
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)

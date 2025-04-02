@@ -109,7 +109,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         }
     }
 
-    write_workflow_config(configs, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
