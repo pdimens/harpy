@@ -219,7 +219,7 @@ rule workflow_summary:
             interlv += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
             summary.append(interlv)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
         with open("workflow/qc.summary", "w") as f:
             f.write("\n\n".join(summary))

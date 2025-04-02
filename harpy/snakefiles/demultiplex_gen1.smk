@@ -256,7 +256,7 @@ rule workflow_summary:
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
         with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
             f.write("\n\n".join(summary))

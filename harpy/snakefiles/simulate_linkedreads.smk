@@ -219,7 +219,7 @@ rule workflow_summary:
         bxconvert += "\tinline_to_haplotag.py -b <barcodes.txt> -p <prefix> forward.fq.gz reverse.fq.gz"
         summary.append(bxconvert)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
         with open("workflow/simulate.reads.summary", "w") as f:
             f.write("\n\n".join(summary))

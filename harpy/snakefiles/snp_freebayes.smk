@@ -250,7 +250,7 @@ rule workflow_summary:
         normalize += "\tbcftools norm -m -both -d both"
         summary.append(normalize)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
         with open("workflow/snp.freebayes.summary", "w") as f:
             f.write("\n\n".join(summary))
