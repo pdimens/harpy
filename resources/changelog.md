@@ -36,17 +36,17 @@
   - `2` prints nothing, like the original `--quiet` behavior
 ### Snakemake things
 - most of the command-line snakemake stuff have been moved to `workflow/config.yaml` to make the snakemake invocation significantly less verbose
-- this also now means that the previous `config.yaml`, which had the workflow configuration is now `workflow.yaml`
+- this also now means that the previous `config.yaml`, which contained the workflow configuration (via user inputs), is now `config.harpy.yaml`
   - not a design choice we _wanted_, but we had to accomodate snakemake's particulars for this to work
 - this means that every output folder now has its own `.snakemake` directory (but the `.environments` folder is still in the directory you ran `harpy`)
-- also means the workflow snakefiles dont need all the `outdir + ...` calls, so it looks quite a bit cleaner under the hood
+- also means the workflow snakefiles dont need all the `outdir + ...` or `workflowdir` calls, so it looks quite a bit cleaner under the hood
 ### misc
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
 - updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
   - empty module call no longer brings up the docstring
 - direct HTCondor support is gone in `harpy template hpc-` because the snakemake plugin seems to have vanished
 - instances of `--genome` (`-g`) have been replaced with `REFERENCE` as an input argument (`snp`, `sv`, `align`) to be more accurate and easier to use
-  - except in `phase`, where it is now `--reference/-r`
+  - except in `phase`, where it is now `--reference/-r` (because a reference is optional)
 - `harpy sv` short option for `--min-size` is now `-m`
 
 ## Non-breaking changes
