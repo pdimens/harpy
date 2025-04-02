@@ -86,7 +86,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     configs = {
         "workflow" : "preflight bam",
         "snakemake_log" : sm_log,
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : [i.as_posix() for i in bamlist]
     }
@@ -150,7 +150,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     configs = {
         "workflow" : "preflight fastq",
         "snakemake_log" : sm_log,
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : [i.as_posix() for i in fqlist]
     }

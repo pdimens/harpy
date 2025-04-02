@@ -106,7 +106,7 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
         "snakemake_log" : sm_log,
         "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,

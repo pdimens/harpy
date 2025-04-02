@@ -96,7 +96,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         "molecule_distance" : molecule_distance,
         "samples_from_vcf" : vcf_samples,
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,

@@ -93,7 +93,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         "downsample" :  downsample,
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "inputs": [Path(i).resolve().as_posix() for i in input]
     }
 

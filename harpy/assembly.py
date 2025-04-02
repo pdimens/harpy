@@ -116,7 +116,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         "links" : {
             "minimum_links" : links
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,

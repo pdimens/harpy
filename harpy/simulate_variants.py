@@ -214,7 +214,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
@@ -319,7 +319,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
@@ -435,7 +435,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"max_copy" : max_copy} if not vcf else {}),
             **({"gain_ratio" : gain_ratio} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),
@@ -533,7 +533,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
             **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
             **({'count': count} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : Path(genome).resolve().as_posix(),

@@ -141,7 +141,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             "duplicates": duplicates
         },
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -244,7 +244,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,

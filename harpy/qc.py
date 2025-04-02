@@ -111,7 +111,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "density" : deconvolve[2],
             "dropout" : deconvolve[3]
         }} if deconvolve else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : [i.as_posix() for i in fqlist]

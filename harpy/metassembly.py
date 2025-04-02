@@ -86,7 +86,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,

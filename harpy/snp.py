@@ -136,7 +136,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
@@ -236,7 +236,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {

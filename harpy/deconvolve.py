@@ -78,7 +78,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "window_size" : window_size,
         "density" :  density,
         "dropout" :  dropout,
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs": [i.as_posix() for i in fqlist]
     }

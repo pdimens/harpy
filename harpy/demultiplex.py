@@ -93,7 +93,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
         "snakemake_log" : sm_log,
         "include_qx_rx_tags" : qx_rx,
         "keep_unknown" : keep_unknown,
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
