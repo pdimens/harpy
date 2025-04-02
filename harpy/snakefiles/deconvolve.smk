@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist      = config["inputs"]
-outdir      = config["output_directory"]
 envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 kmer_length = config["kmer_length"]
 window_size = config["window_size"]
@@ -35,7 +34,7 @@ rule interleave:
         fw = get_fq1,
         rv = get_fq2
     output: 
-        temp(outdir + "/workflow/input/{sample}.fastq"),
+        temp("workflow/input/{sample}.fastq")
     container:
         None
     shell:
@@ -43,11 +42,11 @@ rule interleave:
 
 rule deconvolve:
     input:
-        outdir + "/workflow/input/{sample}.fastq"
+        "/workflow/input/{sample}.fastq"
     output:
-        temp(outdir + "/{sample}.fastq")
+        temp("{sample}.fastq")
     log:
-        outdir + "/logs/{sample}.deconvolve.log"
+        "logs/{sample}.deconvolve.log"
     params:
         kmer    = f"-k {kmer_length}",
         windows = f"-w {window_size}",
@@ -62,9 +61,9 @@ rule deconvolve:
 
 rule extract_forward:
     input:
-        outdir + "/{sample}.fastq"
+        "{sample}.fastq"
     output:
-        outdir + "/{sample}.R1.fq.gz"
+        "{sample}.R1.fq.gz"
     params:
         "-1"
     container:
@@ -74,14 +73,14 @@ rule extract_forward:
 
 use rule extract_forward as extract_reverse with:
     output:
-        outdir + "/{sample}.R2.fq.gz"
+        "{sample}.R2.fq.gz"
     params:
         "-2"
 
 rule workflow_summary:
     default_target: True
     input:
-        collect(outdir + "/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
     run:
         summary = ["The harpy deconvolve workflow ran using these parameters:"]
         interleave = "fastq files were interleaved with seqtk:\n"
@@ -97,5 +96,5 @@ rule workflow_summary:
         sm = "Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/deconvolve.summary", "w") as f:  
+        with open("workflow/deconvolve.summary", "w") as f:  
             f.write("\n\n".join(summary))

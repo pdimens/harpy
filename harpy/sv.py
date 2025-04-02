@@ -113,7 +113,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     vcaller = "leviathan" if populations is None else "leviathan_pop"
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -131,7 +131,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     configs = {
         "workflow" : "sv leviathan",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "min_barcodes" : min_barcodes,
         "min_size" : min_size,
         "iterations" : iterations,
@@ -222,7 +221,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -240,7 +239,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     configs = {
         "workflow" : "sv naibr",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "min_barcodes" : min_barcodes,
         "min_quality" : min_quality,
         "min_size" : min_size,

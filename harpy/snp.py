@@ -115,7 +115,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_mpileup.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -132,7 +132,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     configs = {
         "workflow" : "snp mpileup",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "ploidy" : ploidy,
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),
@@ -217,7 +216,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_freebayes.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -233,7 +232,6 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     configs = {
         "workflow" : "snp freebayes",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "ploidy" : ploidy,
         "region_type" : regtype,
         **({'windowsize': int(regions)} if regtype == "windows" else {}),

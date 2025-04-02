@@ -11,8 +11,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir 			  = config["output_directory"]
-workflowdir       = "workflow"
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
@@ -24,10 +22,10 @@ plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 if config["ignore_bx"]:
-    fragfile = outdir + "/extract_hairs/{sample}.unlinked.frags"
+    fragfile = "extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
-    fragfile =  outdir + "/link_fragments/{sample}.linked.frags"
+    fragfile =  "link_fragments/{sample}.linked.frags"
     linkarg  = "--10x 1"
 if samples_from_vcf:
     bcfquery = subprocess.Popen(["bcftools", "query", "-l", variantfile], stdout=subprocess.PIPE)
@@ -40,7 +38,7 @@ if config["inputs"].get("reference", None):
         bn = Path(Path(genomefile).stem).stem
     else:
         bn = Path(genomefile).stem
-    geno       = f"{workflowdir}/reference/{bn}"
+    geno       = f"workflow/reference/{bn}"
     genofai    = f"{geno}.fai"
     indelarg   = f"--indels 1 --ref {geno}"
     indels     = True
@@ -115,7 +113,7 @@ if indels:
         output: 
             genofai
         log:
-            f"{workflowdir}/reference/{bn}.faidx.log"
+            f"workflow/reference/{bn}.faidx.log"
         container:
             None
         shell: 
@@ -129,9 +127,9 @@ rule extract_hairs:
         geno = geno,
         fai  = genofai
     output:
-        outdir + "/extract_hairs/{sample}.unlinked.frags"
+        "extract_hairs/{sample}.unlinked.frags"
     log:
-        outdir + "/logs/extract_hairs/{sample}.unlinked.log"
+        "logs/extract_hairs/{sample}.unlinked.log"
     params:
         indels = indelarg,
         bx = linkarg
@@ -144,11 +142,11 @@ rule link_fragments:
     input: 
         bam       = get_alignments,
         vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
-        fragments = outdir + "/extract_hairs/{sample}.unlinked.frags"
+        fragments = "extract_hairs/{sample}.unlinked.frags"
     output:
-        outdir + "/link_fragments/{sample}.linked.frags"
+        "link_fragments/{sample}.linked.frags"
     log:
-        outdir + "/logs/link_fragments/{sample}.linked.log"
+        "logs/link_fragments/{sample}.linked.log"
     params:
         d = molecule_distance
     conda:
@@ -161,10 +159,10 @@ rule phase:
         vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
         fragments = fragfile
     output: 
-        blocks    = outdir + "/phase_blocks/{sample}.blocks",
-        vcf       = temp(outdir + "/phase_blocks/{sample}.blocks.phased.VCF")
+        blocks    = "phase_blocks/{sample}.blocks",
+        vcf       = temp("phase_blocks/{sample}.blocks.phased.VCF")
     log:
-        outdir + "/logs/hapcut2/{sample}.blocks.phased.log"
+        "logs/hapcut2/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
@@ -176,9 +174,9 @@ rule phase:
 
 rule compress_phaseblock:
     input:
-        outdir + "/phase_blocks/{sample}.blocks.phased.VCF"
+        "phase_blocks/{sample}.blocks.phased.VCF"
     output:
-        outdir + "/phase_blocks/{sample}.phased.vcf.gz"
+        "phase_blocks/{sample}.phased.vcf.gz"
     container:
         None
     shell:
@@ -193,11 +191,11 @@ use rule compress_phaseblock as compress_vcf with:
 rule merge_het_hom:
     priority: 100
     input:
-        phase = outdir + "/phase_blocks/{sample}.phased.vcf.gz",
+        phase = "phase_blocks/{sample}.phased.vcf.gz",
         orig  = workflowdir + "/input/gzvcf/{sample}.hom.vcf.gz"
     output:
-        bcf = outdir + "/phased_samples/{sample}.phased.annot.bcf",
-        idx = outdir + "/phased_samples/{sample}.phased.annot.bcf.csi"
+        bcf = "phased_samples/{sample}.phased.annot.bcf",
+        idx = "phased_samples/{sample}.phased.annot.bcf.csi"
     params:
         "-Ob --write-index -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT"
     threads:
@@ -209,11 +207,11 @@ rule merge_het_hom:
 
 rule merge_samples:
     input: 
-        bcf = collect(outdir + "/phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = collect(outdir + "/phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
+        idx = collect("phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        bcf = outdir + "/variants.phased.bcf",
-        idx = outdir + "/variants.phased.bcf.csi"
+        bcf = "variants.phased.bcf",
+        idx = "variants.phased.bcf.csi"
     params:
         "true" if len(samplenames) > 1 else "false"
     threads:
@@ -232,11 +230,11 @@ rule merge_samples:
 
 rule summarize_blocks:
     input:
-        collect(outdir + "/phase_blocks/{sample}.blocks", sample = samplenames)
+        collect("phase_blocks/{sample}.blocks", sample = samplenames)
     output:
-        outdir + "/reports/blocks.summary.gz"
+        "reports/blocks.summary.gz"
     params:
-        outdir + "/reports/blocks.summary"
+        "reports/blocks.summary"
     container:
         None
     shell:
@@ -250,11 +248,11 @@ rule summarize_blocks:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -262,15 +260,15 @@ rule report_config:
 
 rule phase_report:
     input:
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        data = f"{outdir}/reports/blocks.summary.gz",
-        qmd = f"{workflowdir}/report/hapcut.qmd"
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
+        data = "reports/blocks.summary.gz",
+        qmd = "workflow/report/hapcut.qmd"
     output:
-        html = f"{outdir}/reports/phase.html",
-        qmd = temp(f"{outdir}/reports/phase.qmd")
+        html = "reports/phase.html",
+        qmd = temp("reports/phase.qmd")
     log:
-        f"{outdir}/logs/report.log"
+        "logs/report.log"
     params:
         f"-P contigs:{plot_contigs}"
     conda:
@@ -285,8 +283,8 @@ rule phase_report:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = outdir + "/variants.phased.bcf",
-        reports = outdir + "/reports/phase.html" if not skip_reports else []
+        vcf = "variants.phased.bcf",
+        reports = "reports/phase.html" if not skip_reports else []
     params:
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
         extra = extra
@@ -308,5 +306,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm = f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(f"{workflowdir}/phase.summary", "w") as f:
+        with open("workflow/phase.summary", "w") as f:
             f.write("\n\n".join(summary))

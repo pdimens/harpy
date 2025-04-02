@@ -120,7 +120,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_bwa.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -139,7 +139,6 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     configs = {
         "workflow" : "align bwa",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
@@ -228,7 +227,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_ema.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -247,7 +246,6 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     configs = {
         "workflow" : "align ema",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "fragment_density_optimization": fragment_density,
@@ -327,7 +325,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_strobealign.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -346,7 +344,6 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     configs = {
         "workflow" : "align strobe",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "ignore_bx": ignore_bx,

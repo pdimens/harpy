@@ -73,7 +73,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -89,7 +89,6 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     configs = {
         "workflow": "downsample",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" :  prefix,
         "downsample" :  downsample,
         "invalid_proportion" : invalid,       

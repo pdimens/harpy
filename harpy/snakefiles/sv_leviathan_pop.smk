@@ -11,8 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = "workflow"
 envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile 	= config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
@@ -29,9 +27,9 @@ skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
-    workflow_geno = f"{workflowdir}/reference/{bn[:-3]}"
+    workflow_geno = f"workflow/reference/{bn[:-3]}"
 else:
-    workflow_geno = f"{workflowdir}/reference/{bn}"
+    workflow_geno = f"workflow/reference/{bn}"
     
 # create dictionary of population => filenames
 ## this makes it easier to set the snakemake rules/wildcards
@@ -57,16 +55,16 @@ rule preproc_groups:
     input:
         groupfile
     output:
-        workflowdir + "/sample.groups"
+        "workflow/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule concat_list:
     input:
-        workflowdir + "/sample.groups"
+        "workflow/sample.groups"
     output:
-        workflowdir + "/merge_samples/{population}.list"
+        "workflow/merge_samples/{population}.list"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
@@ -74,12 +72,12 @@ rule concat_list:
 
 rule concat_groups:
     input: 
-        bamlist  = workflowdir + "/merge_samples/{population}.list",
+        bamlist  = "workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        temp(workflowdir + "/input/{population}.unsort.bam")
+        temp("workflow/input/{population}.unsort.bam")
     log:
-        outdir + "/logs/concat_groups/{population}.concat.log"
+        "logs/concat_groups/{population}.concat.log"
     threads:
         1
     container:
@@ -89,12 +87,12 @@ rule concat_groups:
 
 rule sort_groups:
     input:
-        workflowdir + "/input/{population}.unsort.bam"
+        "workflow/input/{population}.unsort.bam"
     output:
-        bam = temp(workflowdir + "/input/{population}.bam"),
-        bai = temp(workflowdir + "/input/{population}.bam.bai")
+        bam = temp("workflow/input/{population}.bam"),
+        bai = temp("workflow/input/{population}.bam.bai")
     log:
-        outdir + "/logs/samtools_sort/{population}.sort.log"
+        "logs/samtools_sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -106,10 +104,10 @@ rule sort_groups:
 
 rule index_barcode:
     input: 
-        bam = workflowdir + "/input/{population}.bam",
-        bai = workflowdir + "/input/{population}.bam.bai"
+        bam = "workflow/input/{population}.bam",
+        bai = "workflow/input/{population}.bam.bai"
     output:
-        temp(outdir + "/lrez_index/{population}.bci")
+        temp("lrez_index/{population}.bci")
     threads:
         max(10, workflow.cores)
     container:
@@ -153,16 +151,16 @@ rule bwa_index_genome:
 
 rule call_variants:
     input:
-        bam    = workflowdir + "/input/{population}.bam",
-        bai    = workflowdir + "/input/{population}.bam.bai",
-        bc_idx = outdir + "/lrez_index/{population}.bci",
+        bam    = "workflow/input/{population}.bam",
+        bai    = "workflow/input/{population}.bam.bai",
+        bc_idx = "lrez_index/{population}.bci",
         genome = workflow_geno,
         genidx = multiext(workflow_geno, ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        vcf = temp(outdir + "/vcf/{population}.vcf"),
-        candidates = outdir + "/logs/leviathan/{population}.candidates"
+        vcf = temp("vcf/{population}.vcf"),
+        candidates = "logs/leviathan/{population}.candidates"
     log:  
-        runlog = outdir + "/logs/leviathan/{population}.leviathan.log",
+        runlog = "logs/leviathan/{population}.leviathan.log",
     params:
         min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
@@ -182,9 +180,9 @@ rule call_variants:
 rule sort_variants:
     priority: 100
     input:
-        outdir + "/vcf/{population}.vcf"
+        "vcf/{population}.vcf"
     output:
-        outdir + "/vcf/{population}.bcf"
+        "vcf/{population}.bcf"
     params:
         "{wildcards.population}"
     container:
@@ -194,9 +192,9 @@ rule sort_variants:
 
 rule variant_stats:
     input: 
-        outdir + "/vcf/{population}.bcf"
+        "vcf/{population}.bcf"
     output:
-        temp(outdir + "/reports/data/{population}.sv.stats")
+        temp("reports/data/{population}.sv.stats")
     container:
         None
     shell:
@@ -207,12 +205,12 @@ rule variant_stats:
 
 rule aggregate_variants:
     input:
-        collect(outdir + "/reports/data/{population}.sv.stats", population = populations)
+        collect("reports/data/{population}.sv.stats", population = populations)
     output:
-        outdir + "/inversions.bedpe",
-        outdir + "/deletions.bedpe",
-        outdir + "/duplications.bedpe",
-        outdir + "/breakends.bedpe"
+        "inversions.bedpe",
+        "deletions.bedpe",
+        "duplications.bedpe",
+        "breakends.bedpe"
     run:
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
             header = ["population","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
@@ -240,11 +238,11 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -252,16 +250,16 @@ rule report_config:
 
 rule group_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
-        statsfile = outdir + "/reports/data/{population}.sv.stats",
-        qmd       = f"{workflowdir}/report/leviathan.qmd"
+        statsfile = "reports/data/{population}.sv.stats",
+        qmd       = "workflow/report/leviathan.qmd"
     output:
-        report = outdir + "/reports/{population}.leviathan.html",
-        qmd = temp(outdir + "/reports/{population}.leviathan.qmd")
+        report = "reports/{population}.leviathan.html",
+        qmd = temp("reports/{population}.leviathan.qmd")
     log:
-        outdir + "/logs/reports/{population}.report.log"
+        "logs/reports/{population}.report.log"
     params:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
@@ -277,18 +275,18 @@ rule group_reports:
 
 rule aggregate_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx      = f"{workflow_geno}.fai",
-        statsfiles = collect(outdir + "/reports/data/{pop}.sv.stats", pop = populations),
-        qmd        = f"{workflowdir}/report/leviathan_pop.qmd"
+        statsfiles = collect("reports/data/{pop}.sv.stats", pop = populations),
+        qmd        = "workflow/report/leviathan_pop.qmd"
     output:
-        report = outdir + "/reports/leviathan.summary.html",
-        qmd = temp(outdir + "/reports/leviathan.summary.qmd")
+        report = "reports/leviathan.summary.html",
+        qmd = temp("reports/leviathan.summary.qmd")
     log:
-        outdir + "/logs/reports/summary.report.log"
+        "logs/reports/summary.report.log"
     params:
-        statsdir = f"{outdir}/reports/data/",
+        statsdir = "reports/data/",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
@@ -303,10 +301,10 @@ rule aggregate_report:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = collect(outdir + "/vcf/{pop}.bcf", pop = populations),
-        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
-        agg_report = outdir + "/reports/leviathan.summary.html" if not skip_reports else []
+        vcf = collect("vcf/{pop}.bcf", pop = populations),
+        bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
+        reports = collect("reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
+        agg_report = "reports/leviathan.summary.html" if not skip_reports else []
     params:
         min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
@@ -327,5 +325,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(f"{workflowdir}/sv.leviathan.summary", "w") as f:
+        with open("workflow/sv.leviathan.summary", "w") as f:
             f.write("\n\n".join(summary))

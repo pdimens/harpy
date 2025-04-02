@@ -86,7 +86,7 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
     ## setup workflow ##
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/impute.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -104,7 +104,6 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
     configs = {
         "workflow" : "impute",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
         "workflow_call" : command.rstrip(),

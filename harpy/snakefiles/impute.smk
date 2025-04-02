@@ -16,7 +16,6 @@ variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
 regions       = config["regions"]
 biallelic     = config["inputs"]["biallelic_contigs"]
-outdir        = config["output_directory"]
 envdir        = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
@@ -46,10 +45,10 @@ rule sort_bcf:
     input:
         variantfile
     output:
-        bcf = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf"),
-        idx = temp(f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi")
+        bcf = temp("workflow/input/vcf/input.sorted.bcf"),
+        idx = temp("workflow/input/vcf/input.sorted.bcf.csi")
     log:
-        f"{outdir}/logs/input.sort.log"
+        "logs/input.sort.log"
     container:
         None
     shell:
@@ -70,17 +69,17 @@ rule alignment_list:
         bam = bamlist,
         bailist = collect("{bam}.bai", bam = bamlist)
     output:
-        outdir + "/workflow/input/samples.list"
+        "workflow/input/samples.list"
     run:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
 rule stitch_conversion:
     input:
-        bcf = f"{outdir}/workflow/input/vcf/input.sorted.bcf",
-        idx = f"{outdir}/workflow/input/vcf/input.sorted.bcf.csi"
+        bcf = "workflow/input/vcf/input.sorted.bcf",
+        idx = "workflow/input/vcf/input.sorted.bcf.csi"
     output:
-        outdir + "/workflow/input/stitch/{contig}.stitch"
+        "workflow/input/stitch/{contig}.stitch"
     threads: 
         3
     container:
@@ -95,27 +94,27 @@ rule impute:
     input:
         bamlist,
         collect("{bam}.bai", bam = bamlist),
-        bamlist = outdir + "/workflow/input/samples.list",
-        infile  = outdir + "/workflow/input/stitch/{contig}.stitch"
+        bamlist = "workflow/input/samples.list",
+        infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        temp(directory(outdir + "/{paramset}/contigs/{contig}/plots")),
-        temp(directory(outdir + "/{paramset}/contigs/{contig}/RData")),
-        temp(directory(outdir + "/{paramset}/contigs/{contig}/input")),
-        temp(outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"),
-        tmp = temp(directory(outdir + "/{paramset}/contigs/{contig}/tmp"))
+        temp(directory("{paramset}/contigs/{contig}/plots")),
+        temp(directory("{paramset}/contigs/{contig}/RData")),
+        temp(directory("{paramset}/contigs/{contig}/input")),
+        temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
+        tmp = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
-        logfile = outdir + "/{paramset}/logs/{contig}.stitch.log"
+        logfile = "{paramset}/logs/{contig}.stitch.log"
     params:
         chrom   = lambda wc: "--chr=" + wc.contig,
         model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"--nGen={stitch_params[wc.paramset]['ngen']}",
-        outdir  = lambda wc: "--outputdir=" + os.path.join(outdir, wc.paramset, "contigs", wc.contig),
+        outdir  = lambda wc: "--outputdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig),
         outfile = lambda wc: "--output_filename=" + f"{wc.contig}.vcf.gz",
         usebx   = lambda wc: "--use_bx_tag=" + str(stitch_params[wc.paramset]['usebx']).upper(),
         bxlimit = lambda wc: f"--bxTagUpperLimit={stitch_params[wc.paramset]['bxlimit']}",
-        tmpdir  = lambda wc: "--tempdir=" + os.path.join(outdir, wc.paramset, "contigs", wc.contig, "tmp"),
+        tmpdir  = lambda wc: "--tempdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig, "tmp"),
         extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
         workflow.cores - 1
@@ -129,11 +128,11 @@ rule impute:
 
 rule index_vcf:
     input:
-        vcf   = outdir + "/{paramset}/contigs/{contig}/{contig}.vcf.gz"
+        vcf   = "{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
-        vcf   = outdir + "/{paramset}/contigs/{contig}.vcf.gz",
-        idx   = outdir + "/{paramset}/contigs/{contig}.vcf.gz.tbi",
-        stats = outdir + "/{paramset}/reports/data/contigs/{contig}.stats"
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
+        idx   = "{paramset}/contigs/{contig}.vcf.gz.tbi",
+        stats = "{paramset}/reports/data/contigs/{contig}.stats"
     container:
         None
     shell:
@@ -145,11 +144,11 @@ rule index_vcf:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/{{paramset}}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/{{paramset}}/reports/_harpy.scss")
+        yaml = temp("{paramset}/reports/_quarto.yml"),
+        scss = temp("{paramset}/reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -157,16 +156,16 @@ rule report_config:
 
 rule contig_report:
     input:
-        f"{outdir}/{{paramset}}/reports/_quarto.yml",
-        f"{outdir}/{{paramset}}/reports/_harpy.scss",
-        statsfile = outdir + "/{paramset}/reports/data/contigs/{contig}.stats",
-        plotdir = outdir + "/{paramset}/contigs/{contig}/plots",
-        qmd = f"{outdir}/workflow/report/stitch_collate.qmd"
+        "{paramset}/reports/_harpy.scss",
+        "{paramset}/reports/_quarto.yml",
+        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        plotdir = "{paramset}/contigs/{contig}/plots",
+        qmd = "workflow/report/stitch_collate.qmd"
     output:
-        report = outdir + "/{paramset}/reports/{contig}.{paramset}.html",
-        qmd = temp(outdir + "/{paramset}/reports/{contig}.{paramset}.qmd")
+        report = "{paramset}/reports/{contig}.{paramset}.html",
+        qmd = temp("{paramset}/reports/{contig}.{paramset}.qmd")
     log:
-        logfile = outdir + "/{paramset}/logs/reports/{contig}.stitch.log"
+        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
         params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
@@ -188,9 +187,9 @@ rule contig_report:
 
 rule concat_list:
     input:
-        bcf = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
+        bcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
-        temp(outdir + "/{paramset}/bcf.files")
+        temp("{paramset}/bcf.files")
     run:
         with open(output[0], "w") as fout:
             _ = fout.write("\n".join(input.bcf))
@@ -198,10 +197,10 @@ rule concat_list:
 rule merge_vcf:
     priority: 100
     input:
-        files = outdir + "/{paramset}/bcf.files",
-        idx   = collect(outdir + "/{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
+        files = "{paramset}/bcf.files",
+        idx   = collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
     output:
-        outdir + "/{paramset}/{paramset}.bcf"
+        "{paramset}/{paramset}.bcf"
     threads:
         workflow.cores
     container:
@@ -211,9 +210,9 @@ rule merge_vcf:
 
 rule index_merged:
     input:
-        outdir + "/{paramset}/{paramset}.bcf"
+        "{paramset}/{paramset}.bcf"
     output:
-        outdir + "/{paramset}/{paramset}.bcf.csi"
+        "{paramset}/{paramset}.bcf.csi"
     container:
         None
     shell:
@@ -221,10 +220,10 @@ rule index_merged:
 
 rule general_stats:
     input:
-        bcf = outdir + "/{paramset}/{paramset}.bcf",
-        idx = outdir + "/{paramset}/{paramset}.bcf.csi"
+        bcf = "{paramset}/{paramset}.bcf",
+        idx = "{paramset}/{paramset}.bcf.csi"
     output:
-        outdir + "/{paramset}/reports/data/impute.stats"
+        "{paramset}/reports/data/impute.stats"
     container:
         None
     shell:
@@ -232,13 +231,13 @@ rule general_stats:
 
 rule compare_stats:
     input:
-        orig    = outdir + "/workflow/input/vcf/input.sorted.bcf",
-        origidx = outdir + "/workflow/input/vcf/input.sorted.bcf.csi",
-        impute  = outdir + "/{paramset}/{paramset}.bcf",
-        idx     = outdir + "/{paramset}/{paramset}.bcf.csi"
+        orig    = "workflow/input/vcf/input.sorted.bcf",
+        origidx = "workflow/input/vcf/input.sorted.bcf.csi",
+        impute  = "{paramset}/{paramset}.bcf",
+        idx     = "{paramset}/{paramset}.bcf.csi"
     output:
-        compare = outdir + "/{paramset}/reports/data/impute.compare.stats",
-        info_sc = temp(outdir + "/{paramset}/reports/data/impute.infoscore")
+        compare = "{paramset}/reports/data/impute.compare.stats",
+        info_sc = temp("{paramset}/reports/data/impute.infoscore")
     container:
         None
     shell:
@@ -249,16 +248,16 @@ rule compare_stats:
 
 rule impute_reports:
     input:
-        f"{outdir}/{{paramset}}/reports/_quarto.yml",
-        f"{outdir}/{{paramset}}/reports/_harpy.scss",
-        comparison = outdir + "/{paramset}/reports/data/impute.compare.stats",
-        infoscore = outdir + "/{paramset}/reports/data/impute.infoscore",
-        qmd = f"{outdir}/workflow/report/impute.qmd"
+        "{paramset}/reports/_quarto.yml",
+        "{paramset}/reports/_harpy.scss",
+        comparison = "{paramset}/reports/data/impute.compare.stats",
+        infoscore = "{paramset}/reports/data/impute.infoscore",
+        qmd = "workflow/report/impute.qmd"
     output:
-        report = outdir + "/{paramset}/reports/{paramset}.summary.html",
-        qmd = temp(outdir + "/{paramset}/reports/{paramset}.summary.qmd")
+        report = "{paramset}/reports/{paramset}.summary.html",
+        qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
     log:
-        outdir + "/{paramset}/logs/reports/imputestats.log"
+        "{paramset}/logs/reports/imputestats.log"
     params:
         param   = lambda wc: f"-P id:{wc.paramset}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
@@ -281,9 +280,9 @@ rule impute_reports:
 rule workflow_summary:
     default_target: True
     input: 
-        vcf = collect(outdir + "/{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
-        agg_report = collect(outdir + "/{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
-        contig_report = collect(outdir + "/{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
+        vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
+        agg_report = collect("{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
     run:
         paramfiletext = "\t".join(open(paramfile, "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
@@ -318,5 +317,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/impute.summary", "w") as f:
+        with open("workflow/impute.summary", "w") as f:
             f.write("\n\n".join(summary))

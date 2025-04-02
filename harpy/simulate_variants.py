@@ -176,7 +176,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_snpindel.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -195,7 +195,6 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     configs = {
         "workflow" : "simulate snpindel",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -289,7 +288,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -308,7 +307,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     configs = {
         "workflow" : "simulate inversion",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -403,7 +401,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -422,7 +420,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     configs = {
         "workflow" : "simulate cnv",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -507,7 +504,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -526,7 +523,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     configs = {
         "workflow" : "simulate translocation",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {

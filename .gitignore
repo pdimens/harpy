@@ -3,6 +3,7 @@
 .condarc
 .environments/
 .cache/
+*.egg
 container/
 localenv/
 hpc/

@@ -8,7 +8,6 @@ onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
     logger.addHandler(logfile_handler)
 
-outdir      = config["output_directory"]
 inputs      = config["inputs"]
 invalids    = config["invalid_proportion"]
 random_seed = config.get("random_seed", None)
@@ -31,7 +30,7 @@ rule bam_convert:
     input:
         inputs
     output:
-        temp(f"{outdir}/input.bam")
+        temp("input.bam")
     threads:
         workflow.cores
     shell:
@@ -41,11 +40,11 @@ rule bam_convert:
 
 rule sample_barcodes:
     input:
-        f"{outdir}/input.bam" if is_fastq else inputs[0]
+        "input.bam" if is_fastq else inputs[0]
     output:
-        f"{outdir}/{prefix}.barcodes"
+        f"{prefix}.barcodes"
     log:
-        f"{outdir}/logs/sampled_barcodes.log"
+        "logs/sampled_barcodes.log"
     threads:
         workflow.cores
     params:
@@ -84,9 +83,9 @@ rule downsample:
     input:
         bam = inputs[0],
         bai = inputs[0] + ".bai",
-        bc_list = f"{outdir}/{prefix}.barcodes"
+        bc_list = f"{prefix}.barcodes"
     output:
-        bam = f"{outdir}/{prefix}.bam"
+        bam = f"{prefix}.bam"
     threads:
         workflow.cores
     shell:
@@ -97,9 +96,9 @@ rule downsample_read_1:
         fastq = inputs[0],
         bc_index = inputs[0] + ".bci",
         fq_index = inputs[0] + "i",
-        bc_list = f"{outdir}/{prefix}.barcodes"
+        bc_list = f"{prefix}.barcodes"
     output:
-        f"{outdir}/{prefix}.R1.fq.gz"
+        f"{prefix}.R1.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
@@ -112,9 +111,9 @@ rule downsample_read_2:
         file = inputs[-1],
         bc_index = inputs[-1] + ".bci",
         fq_index = inputs[-1] + "i",
-        bc_list = f"{outdir}/{prefix}.barcodes"
+        bc_list = f"{prefix}.barcodes"
     output:
-        f"{outdir}/{prefix}.R2.fq.gz"
+        f"{prefix}.R2.fq.gz"
     params:
         "--gzip" if is_gzip else ""
     threads:
@@ -125,8 +124,8 @@ rule downsample_read_2:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/{prefix}.bam" if not is_fastq else [],
-        collect(f"{outdir}/{prefix}.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
+        f"{prefix}.bam" if not is_fastq else [],
+        collect(f"{prefix}.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
     params:
         random_seed = f"-r {random_seed}" if random_seed else ""
     run:
@@ -145,5 +144,5 @@ rule workflow_summary:
         else:
             lrez += "\tsamtools view -O BAM -h -D BX:barcodes.txt input.bam"
         summary.append(lrez)
-        with open(outdir + "/workflow/downsample.summary", "w") as f:
+        with open("workflow/downsample.summary", "w") as f:
             f.write("\n\n".join(summary))

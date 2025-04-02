@@ -163,12 +163,13 @@ def write_snakemake_config(sdm, outdir):
     with open(os.path.join(workdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
 
-def write_workflow_config(configs, workdir):
+def write_workflow_config(configs, outdir):
     """
     Writes a workflow.yaml file to workdir to use with --configfile. Creates outdir/workflow if it doesnt exist. Configs
     are expected to be a dict
     """
-    if not os.path.exists(workdir):
+    workdir = f"{outdir}/workflow"
+    if not os.path.exists():
         os.makedirs(workdir, exist_ok=True)
-    with open(os.path.join(workdir, 'workflow.yaml'), "w", encoding="utf-8") as config:
+    with open(os.path.join(workdir, f'config.harpy.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))

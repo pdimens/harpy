@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist       = config["inputs"]
-outdir       = config["output_directory"]
 envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
@@ -149,8 +148,8 @@ rule report_config:
         yaml = f"workflow/report/_quarto.yml",
         scss = f"workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"reports/_quarto.yml"),
-        scss = temp(f"reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -158,13 +157,13 @@ rule report_config:
 
 rule barcode_report:
     input: 
-        f"reports/_quarto.yml",
-        f"reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
         qmd = f"workflow/report/bx_count.qmd"
     output:
-        report = f"reports/barcode.summary.html",
-        qmd = temp(f"reports/barcode.summary.qmd")
+        report = "reports/barcode.summary.html",
+        qmd = temp("reports/barcode.summary.qmd")
     params:
         f"logs/bxcount/"
     log:
@@ -184,7 +183,7 @@ rule qc_report:
     output:
         "reports/qc.report.html"
     params:
-        logdir = f"reports/data/fastp/",
+        logdir = "reports/data/fastp/",
         module = "-m fastp",
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",

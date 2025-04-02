@@ -74,7 +74,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/phase.smk"
-    command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
@@ -91,7 +91,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     configs = {
         "workflow" : "phase",
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "ignore_bx" : ignore_bx,
         "prune" : prune_threshold/100,
         "molecule_distance" : molecule_distance,

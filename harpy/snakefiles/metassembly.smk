@@ -10,13 +10,12 @@ onstart:
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 BX_TAG = config["barcode_tag"].upper()
-outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), "workflow", "envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
-spadesdir = f"{outdir}/{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {
@@ -32,8 +31,8 @@ rule sort_by_barcode:
         fq_f = FQ1,
         fq_r = FQ2
     output:
-        fq_f = temp(f"{outdir}/fastq_preproc/tmp.R1.fq"),
-        fq_r = temp(f"{outdir}/fastq_preproc/tmp.R2.fq")
+        fq_f = temp("fastq_preproc/tmp.R1.fq"),
+        fq_r = temp("fastq_preproc/tmp.R2.fq")
     params:
         barcode_tag = BX_TAG
     threads:
@@ -49,9 +48,9 @@ rule sort_by_barcode:
 
 rule format_barcode:
     input:
-        f"{outdir}/fastq_preproc/tmp.R{{FR}}.fq"
+        "fastq_preproc/tmp.R{FR}.fq"
     output:
-        temp(f"{outdir}/fastq_preproc/input.R{{FR}}.fq.gz")
+        temp("fastq_preproc/input.R{FR}.fq.gz")
     params:
         barcode_tag = BX_TAG
     container:
@@ -61,19 +60,19 @@ rule format_barcode:
 
 rule error_correction:
     input:
-        FQ_R1 = outdir + "/fastq_preproc/input.R1.fq.gz",
-        FQ_R2 = outdir + "/fastq_preproc/input.R2.fq.gz"
+        FQ_R1 = "fastq_preproc/input.R1.fq.gz",
+        FQ_R2 = "fastq_preproc/input.R2.fq.gz"
     output:
-        outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
-        outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
-        outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
+        "error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        "error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
+        "error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     params:
-        outdir = outdir + "/error_correction",
+        outdir = "error_correction",
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
     log:
-        outdir + "/logs/error_correct.log"
+        "logs/error_correct.log"
     threads:
         workflow.cores
     resources:
@@ -87,18 +86,18 @@ rule error_correction:
 
 rule spades_assembly:
     input:
-        fastq_R1C = outdir + "/error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
-        fastq_R2C = outdir + "/error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
-        fastq_UNC = outdir + "/error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
+        fastq_R1C = "error_correction/corrected/input.R1.fq00.0_0.cor.fastq.gz",
+        fastq_R2C = "error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
+        fastq_UNC = "error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     output:
-        f"{outdir}/spades_assembly/contigs.fasta" 
+        "spades_assembly/contigs.fasta" 
     params:
-        outdir = outdir + "/spades_assembly",
+        outdir = "spades_assembly",
         k = k_param,
         mem = max_mem // 1000,
         extra = extra
     log:
-        outdir + "/logs/spades_assembly.log"
+        "logs/spades_assembly.log"
     threads:
         workflow.cores
     resources:
@@ -115,15 +114,15 @@ rule cloudspades_metassembly:
         fastq_R1 = FQ1,
         fastq_R2 = FQ2
     output:
-        f"{outdir}/cloudspades_assembly/contigs.fasta",
-        f"{outdir}/cloudspades_assembly/scaffolds.fasta"
+        "cloudspades_assembly/contigs.fasta",
+        "cloudspades_assembly/scaffolds.fasta"
     params:
         outdir = f"-o {spadesdir}",
         k = f"-k {k_param}",
         mem = f"-m {max_mem // 1000}",
         extra = extra
     log:
-        outdir + "/logs/assembly.log"
+        "logs/assembly.log"
     conda:
         f"{envdir}/assembly.yaml"
     threads:
@@ -139,7 +138,7 @@ rule index_contigs:
     output:
         multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
     log:
-        f"{outdir}/logs/bwa.index.log"
+        "logs/bwa.index.log"
     conda:
         f"{envdir}/align.yaml"
     shell:
@@ -148,13 +147,13 @@ rule index_contigs:
 rule align_to_contigs:
     input:
         multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
-        fastq   = collect(outdir + "/fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
+        fastq   = collect("fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        temp(f"{outdir}/reads-to-spades.bam")
+        temp("reads-to-spades.bam")
     log:
-        bwa = f"{outdir}/logs/align.bwa.log",
-        samsort = f"{outdir}/logs/sort.alignments.log"
+        bwa = "logs/align.bwa.log",
+        samsort = "logs/sort.alignments.log"
     threads:
         workflow.cores
     conda:
@@ -164,11 +163,11 @@ rule align_to_contigs:
 
 rule index_alignments:
     input:
-        f"{outdir}/reads-to-spades.bam"
+        "reads-to-spades.bam"
     output:
-       temp(f"{outdir}/reads-to-spades.bam.bai")
+       temp("reads-to-spades.bam.bai")
     log:
-        f"{outdir}/logs/index.alignments.log"
+        "logs/index.alignments.log"
     container:
         None
     shell:
@@ -176,9 +175,9 @@ rule index_alignments:
 
 rule interleave_fastq:
     input:
-        collect(outdir + "/fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
+        collect("fastq_preproc/input.R{FR}.fq.gz", FR = [1,2])
     output:
-        temp(f"{outdir}/fastq_preproc/interleaved.fq")
+        temp("fastq_preproc/interleaved.fq")
     container:
         None
     shell:
@@ -186,12 +185,12 @@ rule interleave_fastq:
 
 rule athena_config:
     input:
-        f"{outdir}/reads-to-spades.bam.bai",
-        fastq = f"{outdir}/fastq_preproc/interleaved.fq",
-        bam = f"{outdir}/reads-to-spades.bam",
+        "reads-to-spades.bam.bai",
+        fastq = "fastq_preproc/interleaved.fq",
+        bam = "reads-to-spades.bam",
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        f"{outdir}/athena/athena.config"
+        "athena/athena.config"
     params:
         threads = workflow.cores
     run:
@@ -212,20 +211,20 @@ rule athena_config:
 
 rule athena_metassembly:
     input:
-        multiext(f"{outdir}/reads-to-spades.", "bam", "bam.bai"),
-        f"{outdir}/fastq_preproc/interleaved.fq",
+        multiext("reads-to-spades.", "bam", "bam.bai"),
+        "fastq_preproc/interleaved.fq",
         f"{spadesdir}/contigs.fasta",
-        config = f"{outdir}/athena/athena.config"
+        config = "athena/athena.config"
     output:
-        temp(directory(collect(outdir + "/athena/{X}", X = ["results", "logs", "working"]))),
-        f"{outdir}/athena/flye-input-contigs.fa",
-        f"{outdir}/athena/athena.asm.fa",
+        temp(directory(collect("athena/{X}", X = ["results", "logs", "working"]))),
+        "athena/flye-input-contigs.fa",
+        "athena/athena.asm.fa",
     log:
-        f"{outdir}/logs/athena.log"
+        "logs/athena.log"
     params:
-        local_asm = f"{outdir}/athena/results/olc/flye-input-contigs.fa",
-        final_asm = f"{outdir}/athena/results/olc/athena.asm.fa",
-        result_dir = f"{outdir}/athena"
+        local_asm = "athena/results/olc/flye-input-contigs.fa",
+        final_asm = "athena/results/olc/athena.asm.fa",
+        result_dir = "athena"
     conda:
         f"{envdir}/metassembly.yaml"
     shell:
@@ -237,13 +236,13 @@ rule athena_metassembly:
 rule QUAST_assessment:
     input:
         contigs = f"{spadesdir}/contigs.fasta",
-        scaffolds = f"{outdir}/athena/athena.asm.fa",
+        scaffolds = "athena/athena.asm.fa",
         fastq_f = FQ1,
         fastq_r = FQ2
     output:
-        f"{outdir}/quast/report.tsv"
+        "quast/report.tsv"
     log:
-        f"{outdir}/quast/quast.log"
+        "quast/quast.log"
     params:
         output_dir = f"-o {outdir}/quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
@@ -257,11 +256,11 @@ rule QUAST_assessment:
 
 rule BUSCO_analysis:
     input:
-        f"{outdir}/athena/athena.asm.fa"
+        "athena/athena.asm.fa"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
+        "busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
-        f"{outdir}/logs/busco.log"
+        "logs/busco.log"
     params:
         output_folder = f"--out_path {outdir}",
         out_prefix = "-o busco",
@@ -279,10 +278,10 @@ rule BUSCO_analysis:
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
-        f"{outdir}/quast/report.tsv"
+        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
+        "quast/report.tsv"
     output:
-        f"{outdir}/reports/assembly.metrics.html"
+        "reports/assembly.metrics.html"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Metassembly Metrics\""
@@ -294,8 +293,8 @@ rule build_report:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/athena/athena.asm.fa",
-        f"{outdir}/reports/assembly.metrics.html" if not skip_reports else []
+        "athena/athena.asm.fa",
+        "reports/assembly.metrics.html" if not skip_reports else []
     params:
         bx = BX_TAG,
         extra = extra
@@ -328,5 +327,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(outdir + "/workflow/metassembly.summary", "w") as f:  
+        with open("workflow/metassembly.summary", "w") as f:  
             f.write("\n\n".join(summary))

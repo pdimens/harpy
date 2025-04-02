@@ -9,7 +9,6 @@ onstart:
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
-outdir = config["output_directory"]
 envdir = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
@@ -144,7 +143,7 @@ rule BUSCO_analysis:
     log:
         "logs/busco.log"
     params:
-        output_folder = outdir,
+        #output_folder = f"--out_path {outdir}",
         out_prefix = "-o busco",
         lineage = f"-l {lineagedb}_odb{odb_version}",
         download_path = "--download_path busco",
@@ -154,7 +153,7 @@ rule BUSCO_analysis:
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}"
+        "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
 rule build_report:
     input:

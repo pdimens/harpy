@@ -12,8 +12,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-outdir       = config["output_directory"]
-workflowdir  = "workflow"
 envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile   = config["inputs"]["reference"]
 bn           = os.path.basename(genomefile)
@@ -31,9 +29,9 @@ mol_dist     = config["molecule_distance"]
 skip_reports  = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 if bn.lower().endswith(".gz"):
-    workflow_geno = f"{workflowdir}/reference/{bn[:-3]}"
+    workflow_geno = f"workflow/reference/{bn[:-3]}"
 else:
-    workflow_geno = f"{workflowdir}/reference/{bn}"
+    workflow_geno = f"workflow/reference/{bn}"
 
 def process_args(args):
     argsDict = {
@@ -146,8 +144,8 @@ rule phase_alignments:
         aln = get_alignments,
         ref = workflow_geno
     output:
-        bam = temp(outdir + "/phasedbam/{sample}.bam"),
-        log = outdir + "/logs/whatshap-haplotag/{sample}.phase.log"
+        bam = temp("phasedbam/{sample}.bam"),
+        log = "logs/whatshap-haplotag/{sample}.phase.log"
     params:
         mol_dist
     threads:
@@ -159,9 +157,9 @@ rule phase_alignments:
 
 rule log_phasing:
     input:
-        collect(outdir + "/logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
+        collect("logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
-        outdir + "/logs/whatshap-haplotag.log"
+        "logs/whatshap-haplotag.log"
     container:
         None
     shell:
@@ -178,29 +176,29 @@ rule preproc_groups:
     input:
         groupfile
     output:
-        outdir + "/workflow/sample.groups"
+        "workflow/sample.groups"
     run:
         with open(input[0], "r") as infile, open(output[0], "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule concat_list:
     input:
-        outdir + "/workflow/sample.groups"
+        "workflow/sample.groups"
     output:
-        outdir + "/workflow/pool_samples/{population}.list"
+        "workflow/pool_samples/{population}.list"
     run:
         with open(output[0], "w") as fout:
             for bamfile in popdict[wildcards.population]:
-                _ = fout.write(f"{outdir}/phasedbam/{Path(bamfile).stem}.bam\n")
+                _ = fout.write(f"phasedbam/{Path(bamfile).stem}.bam\n")
 
 rule concat_groups:
     input: 
-        bamlist  = outdir + "/workflow/pool_samples/{population}.list",
-        bamfiles = lambda wc: collect(outdir + "/phasedbam/{sample}", sample = popdict[wc.population])
+        bamlist  = "workflow/pool_samples/{population}.list",
+        bamfiles = lambda wc: collect("phasedbam/{sample}", sample = popdict[wc.population])
     output:
-        temp(outdir + "/workflow/input/concat/{population}.unsort.bam")
+        temp("workflow/input/concat/{population}.unsort.bam")
     log:
-        outdir + "/logs/concat_groups/{population}.concat.log"
+        "logs/concat_groups/{population}.concat.log"
     container:
         None
     shell:
@@ -208,12 +206,12 @@ rule concat_groups:
 
 rule sort_groups:
     input:
-        outdir + "/workflow/input/concat/{population}.unsort.bam"
+        "workflow/input/concat/{population}.unsort.bam"
     output:
-        bam = temp(outdir + "/workflow/input/{population}.bam"),
-        bai = temp(outdir + "/workflow/input/{population}.bam.bai")
+        bam = temp("workflow/input/{population}.bam"),
+        bai = temp("workflow/input/{population}.bam.bai")
     log:
-        outdir + "/logs/samtools_sort/{population}.sort.log"
+        "logs/samtools_sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -225,16 +223,16 @@ rule sort_groups:
 
 rule naibr_config:
     input:
-        outdir + "/workflow/input/{population}.bam"
+        "workflow/input/{population}.bam"
     output:
-        outdir + "/workflow/config/{population}.naibr"
+        "workflow/config/{population}.naibr"
     params:
         lambda wc: wc.get("population"),
         min(10, workflow.cores - 1)
     run:
         with open(output[0], "w") as conf:
             _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
+            _ = conf.write(f"outdir={params[0]}\n")
             _ = conf.write(f"prefix={params[0]}\n")
             _ = conf.write(f"threads={params[1]}\n")
             for i in argdict:
@@ -242,16 +240,16 @@ rule naibr_config:
 
 rule call_variants:
     input:
-        bam   = outdir + "/workflow/input/{population}.bam",
-        bai   = outdir + "/workflow/input/{population}.bam.bai",
-        conf  = outdir + "/workflow/config/{population}.naibr"
+        bam   = "workflow/input/{population}.bam",
+        bai   = "workflow/input/{population}.bam.bai",
+        conf  = "workflow/config/{population}.naibr"
     output:
-        bedpe = temp(outdir + "/{population}/{population}.bedpe"),
-        refmt = temp(outdir + "/{population}/{population}.reformat.bedpe"),
-        vcf   = temp(outdir + "/{population}/{population}.vcf"),
-        log   = temp(outdir + "/{population}/{population}.log")
+        bedpe = temp("{population}/{population}.bedpe"),
+        refmt = temp("{population}/{population}.reformat.bedpe"),
+        vcf   = temp("{population}/{population}.vcf"),
+        log   = temp("{population}/{population}.log")
     log:
-        outdir + "/logs/naibr/{population}.naibr.log"
+        "logs/naibr/{population}.naibr.log"
     threads:
         min(10, workflow.cores - 1)
     conda:
@@ -262,14 +260,14 @@ rule call_variants:
 rule infer_variants:
     priority: 100
     input:
-        bedpe = outdir + "/{population}/{population}.bedpe",
-        refmt = outdir + "/{population}/{population}.reformat.bedpe",
-        vcf   = outdir + "/{population}/{population}.vcf"
+        bedpe = "{population}/{population}.bedpe",
+        refmt = "{population}/{population}.reformat.bedpe",
+        vcf   = "{population}/{population}.vcf"
     output:
-        bedpe = outdir + "/bedpe/{population}.bedpe",
-        refmt = outdir + "/IGV/{population}.reformat.bedpe",
-        fail  = outdir + "/bedpe/qc_fail/{population}.fail.bedpe",
-        vcf   = outdir + "/vcf/{population}.vcf" 
+        bedpe = "bedpe/{population}.bedpe",
+        refmt = "IGV/{population}.reformat.bedpe",
+        fail  = "bedpe/qc_fail/{population}.fail.bedpe",
+        vcf   = "vcf/{population}.vcf" 
     container:
         None
     shell:
@@ -281,11 +279,11 @@ rule infer_variants:
 
 rule aggregate_variants:
     input:
-        collect(outdir + "/bedpe/{population}.bedpe", population = populations)
+        collect("bedpe/{population}.bedpe", population = populations)
     output:
-        outdir + "/inversions.bedpe",
-        outdir + "/deletions.bedpe",
-        outdir + "/duplications.bedpe"
+        "inversions.bedpe",
+        "deletions.bedpe",
+        "duplications.bedpe"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -313,11 +311,11 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -325,16 +323,16 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
-        bedpe = outdir + "/bedpe/{population}.bedpe",
-        qmd   = f"{workflowdir}/report/naibr.qmd"
+        bedpe = "bedpe/{population}.bedpe",
+        qmd   = "workflow/report/naibr.qmd"
     output:
-        report = outdir + "/reports/{population}.naibr.html",
-        qmd = temp(outdir + "/reports/{population}.naibr.qmd")
+        report = "reports/{population}.naibr.html",
+        qmd = temp("reports/{population}.naibr.qmd")
     log:
-        outdir + "/logs/reports/{population}.report.log"
+        "logs/reports/{population}.report.log"
     params:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
@@ -350,18 +348,18 @@ rule sample_reports:
 
 rule aggregate_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
-        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        qmd   = f"{workflowdir}/report/naibr_pop.qmd"
+        bedpe = collect("bedpe/{pop}.bedpe", pop = populations),
+        qmd   = "workflow/report/naibr_pop.qmd"
     output:
-        report = outdir + "/reports/naibr.summary.html",
-        qmd = temp(outdir + "/reports/naibr.summary.qmd")
+        report = "reports/naibr.summary.html",
+        qmd = temp("reports/naibr.summary.qmd")
     log:
-        outdir + "/logs/reports/summary.report.log"
+        "logs/reports/summary.report.log"
     params:
-        bedpedir = f"{outdir}/bedpe",
+        bedpedir = "bedpe",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         f"{envdir}/r.yaml"
@@ -376,13 +374,13 @@ rule aggregate_report:
 rule workflow_summary:
     default_target: True
     input:
-        bedpe = collect(outdir + "/bedpe/{pop}.bedpe", pop = populations),
-        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        phaselog = outdir + "/logs/whatshap-haplotag.log",
-        reports = collect(outdir + "/reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
-        agg_report = outdir + "/reports/naibr.summary.html" if not skip_reports else []
+        bedpe = collect("bedpe/{pop}.bedpe", pop = populations),
+        bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
+        phaselog = "logs/whatshap-haplotag.log",
+        reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
+        agg_report = "reports/naibr.summary.html" if not skip_reports else []
     run:
-        os.system(f"rm -rf {outdir}/naibrlog")
+        os.system("rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
         phase = "The alignment files were phased using:\n"
@@ -400,5 +398,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm = f"\t{config['workflow_call']}"
         summary.append(sm)
-        with open(f"{workflowdir}/sv.naibr.summary", "w") as f:
+        with open("workflow/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))
