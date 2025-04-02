@@ -37,16 +37,15 @@ def check_terminal_colors():
     curses.endwin()
     return ncol
 
-def parse_file(files):
+def parse_file(infile):
     '''
     take a list of input file name, get the most recent by modificiation time, and print it via pygmentized less
     returns a string of the file that was viewed
     '''
-    file = sorted(files, key = os.path.getmtime)[-1]
-    if not os.access(file, os.R_OK):
+    if not os.access(infile, os.R_OK):
         print_error(
             "incorrect permissions",
-            f"[blue]{file}[/blue] does not have read access. Please check the file permissions."
+            f"[blue]{infile}[/blue] does not have read access. Please check the file permissions."
         )
         sys.exit(1)
     n_colors = check_terminal_colors()
@@ -68,8 +67,8 @@ def parse_file(files):
             for line in f:
                 yield highlight(line, YamlLexer(),formatter())
     os.environ["PAGER"] = "less -R"
-    click.echo_via_pager(_read_file(file), color = n_colors > 0)
-    return file
+    click.echo_via_pager(_read_file(infile), color = n_colors > 0)
+    return infile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def view():
@@ -88,7 +87,6 @@ def view():
     | `q`                     | exit                       |
     """
 
-
 @click.command(context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def config(directory):
@@ -97,7 +95,7 @@ def config(directory):
     
     The workflow config file has all of the parameters and user inputs that went into the workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/workflow.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
+    `workflow/config.harpy.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -106,25 +104,25 @@ def config(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    files = [f"{directory}/workflow/workflow.yaml"]
+    target_file = f"{directory}/workflow/config.harpy.yaml"
     err_dir = f"{directory}/workflow/"
-    err_file = "There is no [blue]workflow.yaml[/blue] file"
+    err_file = "There is no [blue]config.harpy.yaml[/blue] file"
     if not os.path.exists(f"{directory}/workflow"):
         print_error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
-    elif not os.path.exists(f"{directory}/workflow/workflow.yaml"):
+    elif not os.path.exists(target_file):
         print_error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
-    file = parse_file(files)
+    parse_file(target_file)
     rprint(
         Panel(
-            file,
+            target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
@@ -151,6 +149,7 @@ def log(directory):
     | `q`                     | exit                       |
     """
     files = [i for i in glob.iglob(f"{directory}/logs/snakemake/*.log*")]
+    target_file = sorted(files, key = os.path.getmtime)[-1]
     err_dir = f"{directory}/logs/snakemake/"
     err_file = "There are no log files"
     if not os.path.exists(f"{directory}/logs/snakemake"):
@@ -161,14 +160,14 @@ def log(directory):
         sys.exit(1)
     elif not files:
         print_error(
-            "file not found", 
+            "files not found", 
             f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
-    file = parse_file(files)
+    parse_file(target_file)
     rprint(
         Panel(
-            file,
+            target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
@@ -195,6 +194,7 @@ def snakefile(directory):
     | `q`                     | exit                       |
     """
     files = [i for i in glob.iglob(f"{directory}/workflow/*.smk")]
+    target_file = files[0]
     err_dir = f"{directory}/workflow/"
     err_file = "There are no snakefiles"
     if not os.path.exists(f"{directory}/workflow"):
@@ -209,10 +209,10 @@ def snakefile(directory):
             f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
-    file = parse_file(files)
+    parse_file(target_file)
     rprint(
         Panel(
-            file,
+            target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
@@ -229,7 +229,7 @@ def snakeparams(directory):
     
     The snakemake parameter file file has the runtime parameters snakemake was invoked with.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/conrig.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
+    `workflow/config.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -238,7 +238,7 @@ def snakeparams(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    files = [f"{directory}/workflow/config.yaml"]
+    target_file = f"{directory}/workflow/config.yaml"
     err_dir = f"{directory}/workflow/"
     err_file = "There is no [blue]config.yaml[/blue] file"
     if not os.path.exists(f"{directory}/workflow"):
@@ -247,16 +247,16 @@ def snakeparams(directory):
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
-    elif not os.path.exists(f"{directory}/workflow/config.yaml"):
+    elif not os.path.exists(target_file):
         print_error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
         )
         sys.exit(1)
-    file = parse_file(files)
+    parse_file(target_file)
     rprint(
         Panel(
-            file,
+            target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
