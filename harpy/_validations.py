@@ -10,6 +10,7 @@ from rich import box
 from rich import print as rprint
 from rich.table import Table
 import rich_click as click
+from ._parsers import contigs_from_vcf
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
 from ._misc import harpy_progressbar, safe_read
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -311,6 +312,66 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
     except ValueError:
         region = regioninput
         # is a string
+    # is a file specifying regions
+    if os.path.isfile(regioninput):
+        with open(regioninput, "r", encoding="utf-8") as fin:
+            # get contig lengths
+            contigs = {}
+            with safe_read(genome) as fopen:
+                for line in fopen:
+                    if line.startswith(">"):
+                        cn = line.rstrip("\n").lstrip(">").split()[0]
+                        contigs[cn] = 0
+                    else:
+                        contigs[cn] += len(line.rstrip("\n"))
+            for idx, line in enumerate(fin, 1):
+                row = line.split()
+                if len(row) != 3:
+                    print_error("invalid format", f"The input file is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    print_solution_with_culprits(
+                        f"Rows in [blue]{regioninput}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                        "Rows triggering this error:"
+                        )
+                    click.echo(line, file = sys.stderr)
+                    sys.exit(1)
+                else:
+                    try:
+                        start = int(row[1])
+                        end = int(row[2])
+                    except:
+                        print_error("invalid format", f"The input file is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_solution_with_culprits(
+                            f"Rows in [blue]{regioninput}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                            "Rows triggering this error:"
+                            )
+                        click.echo(line, file = sys.stderr)
+                        sys.exit(1)
+                if row[0] not in contigs:
+                    print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/bold yellow]) is not present in ([blue]{os.path.basename(vcf)}[/blue]). This is the first row triggering this error, but it may not be the only one.")
+                    print_solution(
+                        f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/blue] are also present in [blue]{os.path.basename(vcf)}[/blue]",
+                        "Row triggering this error:"
+                    )
+                    click.echo(line, file = sys.stderr)
+                    sys.exit(1)
+                if start > end:
+                    print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    print_solution(
+                        f"Check that all rows in [blue]{os.path.basename(regioninput)}[/blue] have a [bold yellow]start[/bold yellow] position that is less than the [bold yellow]end[/bold yellow] position."
+                        "Row triggering this error:"
+                    )
+                    click.echo(line, file = sys.stderr)
+                    sys.exit(1)
+                if start > contigs[row[0]] or end > contigs[row[0]]:
+                    print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    print_solution(
+                        f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/blue] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/bold yellow], which has a total length of [bold]{contigs[row[0]]}[/bold].",
+                        "Row triggering this error:"
+                    )
+                    click.echo(line, file = sys.stderr)
+                    sys.exit(1)
+
+        return "file"
     reg = re.split(r"[\:-]", regioninput)
     if len(reg) == 3:
         # is a single region, check the types to be [str, int, int]
@@ -328,7 +389,6 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
             print_solution("If providing a single region to call variants, it should be in the format [yellow bold]contig:start-end[/yellow bold], where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/yellow bold]) or dashes ([yellow bold]-[/yellow bold]).")
             sys.exit(1)
         # check if the region is in the genome
-
         contigs = {}
         with safe_read(genome) as fopen:
             for line in fopen:
@@ -349,33 +409,11 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
             print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [blue]{genome}[/blue]:\n" + err)
             sys.exit(1)
         return "region"
-    # is a file specifying regions
-    if not os.path.isfile(regioninput):
-        print_error("file not found", "Input for [green bold]--regions[/green bold] was interpreted as a file and this file was not found.")
-        print_solution(f"Check that the path to [bold]{regioninput}[/bold] is correct.")
-        sys.exit(1)
-    with open(regioninput, "r", encoding="utf-8") as fin:
-        badrows = []
-        for idx, line in enumerate(fin, 1):
-            row = line.split()
-            if len(row) != 3:
-                badrows.append(idx)
-            else:
-                try:
-                    int(row[1])
-                    int(row[2])
-                except:
-                    badrows.append(idx)
+    # it's none of these and error
+    print_error("file not found", "Input for [green bold]--regions[/green bold] was interpreted as a file and this file was not found.")
+    print_solution(f"Check that the path to [bold]{regioninput}[/bold] is correct.")
+    sys.exit(1)
 
-        if badrows:
-            print_error("invalid format", "The input file is formatted incorrectly.")
-            print_solution_with_culprits(
-                "Rows in the provided file need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
-                "Rows triggering this error:"
-                )
-            click.echo(",".join([i for i in badrows]), file = sys.stderr)
-            sys.exit(1)
-    return "file"
 
 def check_fasta(genofile: str) -> str:
     """perform validations on fasta file for extensions and file contents"""
@@ -516,3 +554,4 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
         sys.exit(1)
     if return_len:
         return lengths.pop()
+

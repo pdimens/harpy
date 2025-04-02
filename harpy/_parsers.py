@@ -18,35 +18,123 @@ def getnames(directory: str, ext: str) -> list[str]:
         sys.exit(1)
     return samplenames
 
-def parse_bed(infile: str) -> list[str]:
-    """Parse a bed file and return a list of chrom_start_end"""
-    def print_err_and_exit(inp,l,n, specific_text):
-        print_error("incorrect file format", f"The input file [bold]{inp}[/bold] {specific_text} on line {n+1}.")
-        print_solution_with_culprits(
-            "Proper BED format takes the form of [bold green]chromosome_name start_position end_position[/bold green], with the three entries per line separated by spaces or tabs. Both [bold green]start_position[/bold green] and [bold green]end_position[/bold green] must be integers and [bold green]start_position[/bold green] must be less than [bold green]end_position[/bold green].",
-            "First line encountered with incorrect format"
-        )
-        click.echo(l)
-        sys.exit(1)
-    out_list = set()
-    with open(infile, "r") as bed:
-        for linenum,line in enumerate(bed):
-            splt = line.split()
-            if len(splt) < 3:
-                print_err_and_exit(infile, line, linenum, "has fewer than 3 fields")
-            chrom = splt[0]
-            try:
-                startpos = int(splt[1])
-            except ValueError:
-                print_err_and_exit(infile, line, linenum, "needs to have an integer as the second field (start position)")
-            try:
-                endpos = int(splt[2])
-            except ValueError:
-                print_err_and_exit(infile, line, linenum, "needs to have an integer as the third field (end position)")
-            if startpos > endpos:
-                print_err_and_exit(infile,line, linenum, "has a [bold green]start_position[/bold green] greater than the [bold green]end_position[/bold green]")
-            out_list.add("_".join(splt[:3]))
-    return list(out_list)
+def parse_impute_regions(regioninput: str, vcf: str) -> dict:
+    """validates the --regions input of harpy snp to infer whether it's a region or file. use the contigs and lengths of the vcf file to check that the region(s) are valid"""
+    contigs = contigs_from_vcf(vcf)
+    # is a file specifying regions
+    reg_out = {}
+    if os.path.isfile(regioninput):
+        with open(regioninput, "r", encoding="utf-8") as fin:
+            for idx, line in enumerate(fin, 1):
+                row = line.split()
+                if len(row) != 3:
+                    print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    print_solution_with_culprits(
+                        f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                        "Row triggering this error:"
+                    )
+                    click.echo(line, file = sys.stderr)
+                    sys.exit(1)
+                else:
+                    try:
+                        start = int(row[1])
+                        end = int(row[2])
+                    except ValueError:
+                        print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_solution(
+                            f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                            "Row triggering this error:"
+                        )
+                        click.echo(line, file = sys.stderr)
+                        sys.exit(1)
+                    if row[0] not in contigs:
+                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/bold yellow]) is not present in ([blue]{os.path.basename(vcf)}[/blue]). This is the first row triggering this error, but it may not be the only one.")
+                        print_solution(
+                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/blue] are also present in [blue]{os.path.basename(vcf)}[/blue]",
+                            "Row triggering this error:"
+                        )
+                        click.echo(line, file = sys.stderr)
+                        sys.exit(1)
+                    if start > end:
+                        print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_solution(
+                            f"Check that all rows in [blue]{os.path.basename(regioninput)}[/blue] have a [bold yellow]start[/bold yellow] position that is less than the [bold yellow]end[/bold yellow] position."
+                            "Row triggering this error:"
+                        )
+                        click.echo(line, file = sys.stderr)
+                        sys.exit(1)
+                    if start > contigs[row[0]] or end > contigs[row[0]]:
+                        print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_solution(
+                            f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/blue] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/bold yellow], which has a total length of [bold]{contigs[row[0]]}[/bold].",
+                            "Row triggering this error:"
+                        )
+                        click.echo(line, file = sys.stderr)
+                        sys.exit(1)
+                    reg_out[row[0]] = [start, end]
+        return reg_out
+
+    # is a single region
+    reg = re.split(r"[\:-]", regioninput)
+    if len(reg) == 3:
+        # is a single region, check the types to be [str, int, int]
+        err = ""
+        try:
+            reg[1] = int(reg[1])
+        except:
+            err += f"The region start position [green bold]({reg[1]})[/green bold] is not a valid integer. "
+        try:
+            reg[2] = int(reg[2])
+        except:
+            err += f"The region end position [green bold]({reg[2]})[/green bold] is not a valid integer."
+        if err != "":
+            print_error("invalid region", "Input for [green bold]--regions[/green bold] was interpreted as a single region. " + err)
+            print_solution("If providing a single region for imputation, it should be in the format [yellow bold]contig:start-end[/yellow bold], where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/yellow bold]) or dashes ([yellow bold]-[/yellow bold]).")
+            sys.exit(1)
+
+        # check if the region is in the genome
+        err = ""
+        if reg[0] not in contigs:
+            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
+            sys.exit(1)
+        if reg[1] > contigs[reg[0]]:
+            err += f"- start position: [bold yellow]{reg[1]}[/bold yellow]\n"
+        if reg[2] > contigs[reg[0]]:
+            err += f"- end position: [bold yellow]{reg[2]}[/bold yellow]"
+        if err != "":
+            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [blue]{genome}[/blue]:\n" + err)
+            sys.exit(1)
+        return {reg[0]: [reg[1],reg[2]]}
+
+#def parse_bed(infile: str) -> list[str]:
+#    """Parse a bed file and return a list of chrom_start_end"""
+#    def print_err_and_exit(inp,l,n, specific_text):
+#        print_error("incorrect file format", f"The input file [bold]{inp}[/bold] {specific_text} on line {n+1}.")
+#        print_solution_with_culprits(
+#            "Proper BED format takes the form of [bold green]chromosome_name start_position end_position[/bold green], with the three entries per line separated by spaces or tabs. Both [bold green]start_position[/bold green] and [bold green]end_position[/bold green] must be integers and [bold green]start_position[/bold green] must be less than [bold green]end_position[/bold green].",
+#            "First line encountered with incorrect format"
+#        )
+#        click.echo(l)
+#        sys.exit(1)
+#    out_list = set()
+#    with open(infile, "r") as bed:
+#        for linenum,line in enumerate(bed):
+#            splt = line.split()
+#            if len(splt) < 3:
+#                print_err_and_exit(infile, line, linenum, "has fewer than 3 fields")
+#            chrom = splt[0]
+#            try:
+#                startpos = int(splt[1])
+#            except ValueError:
+#                print_err_and_exit(infile, line, linenum, "needs to have an integer as the second field (start position)")
+#            try:
+#                endpos = int(splt[2])
+#            except ValueError:
+#                print_err_and_exit(infile, line, linenum, "needs to have an integer as the third field (end position)")
+#            if startpos > endpos:
+#                print_err_and_exit(infile,line, linenum, "has a [bold green]start_position[/bold green] greater than the [bold green]end_position[/bold green]")
+#            out_list.add("_".join(splt[:3]))
+#    return list(out_list)
 
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """
@@ -181,3 +269,16 @@ def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
     return f"{workdir}/{vbn}.biallelic", valid, len(valid)
+
+def contigs_from_vcf(vcf: str) -> dict:
+    """reads the header of a vcf/bcf file and returns a dict of the contigs (keys) and their lengths (values)"""
+    header = subprocess.check_output(f"bcftools head {vcf}".split(), text = True)
+    contigs = [i for i in header.splitlines() if i.startswith("##contig=<ID")]
+    d = {}
+    for i in contigs:
+        contig,length = i.split(",length=")
+        contig = contig.replace("##contig=<ID=", "")
+        # remove the trailing '>' and convert to integer
+        length = int(length[:-1])
+        d[contig] = length
+    return d

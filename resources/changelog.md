@@ -40,7 +40,7 @@
   - not a design choice we _wanted_, but we had to accomodate snakemake's particulars for this to work
 - this means that every output folder now has its own `.snakemake` directory (but the `.environments` folder is still in the directory you ran `harpy`)
 - also means the workflow snakefiles dont need all the `outdir + ...` or `workflowdir` calls, so it looks quite a bit cleaner under the hood
-### misc
+### Usage changes / Misc
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
 - updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
   - empty module call no longer brings up the docstring
@@ -48,6 +48,8 @@
 - instances of `--genome` (`-g`) have been replaced with `REFERENCE` as an input argument (`snp`, `sv`, `align`) to be more accurate and easier to use
   - except in `phase`, where it is now `--reference/-r` (because a reference is optional)
 - `harpy sv` short option for `--min-size` is now `-m`
+- `--paramaters` in `harpy impute` has been removed in favor of `parameters`, `vcf`, and `inputs` all being position arguments:
+  - e.g. `harpy impute --threads 14 stitch.params file.bcf data/alignments`
 
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution

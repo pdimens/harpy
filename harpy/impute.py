@@ -11,7 +11,7 @@ from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
-from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_bed
+from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
 from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
 
@@ -19,7 +19,7 @@ docstring = {
         "harpy impute": [
         {
             "name": "Parameters",
-            "options": ["--extra-params",  "--parameters", "--regions", "--vcf-samples"],
+            "options": ["--extra-params", "--regions", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -33,7 +33,6 @@ docstring = {
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', type = StitchParams(), help = 'Additional STITCH parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'STITCH parameter file (tab-delimited)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-r', '--regions', type = click.Path(exists=True, dir_okay=False, readable=True), help = 'BED file of regions to impute')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -43,9 +42,10 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
+@click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
 @click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False), nargs=1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
-def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def impute(parameters, vcf, inputs, output_dir, regions, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
     
@@ -69,19 +69,25 @@ def impute(vcf, inputs, output_dir, parameters, regions, threads, vcf_samples, e
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflowdir)
     if regions:
-        target_regions = parse_bed(regions)
-        contigs = set()
+        target_regions = parse_impute_regions(regions, vcf)
         for i in target_regions:
-            chrm_name = i.split("_")[0]
-            if chrm_name not in biallelic_names:
+            # why did I write this? What is it protecting us from?
+            #chrm_name = i.split("_")[0]
+            if i not in biallelic_names:
                 print_error(
                     "missing contig",
-                    f"The [bold yellow]{chrm_name}[/bold yellow] contig given in [blue]{regions}[/blue] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
+                    f"The [bold yellow]{i}[/bold yellow] contig given in [blue]{regions}[/blue] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
                 )
-                print_solution(f"Restrict the contigs in [blue]{regions}[/blue] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/blue].")
+                print_solution(f"Restrict the contigs provided to [bold green]--regions[/bold green] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/blue].")
                 sys.exit(1)
     else:
-        target_regions = "all"
+        # get the contigs and their lengths from the VCF file
+        target_regions = contigs_from_vcf(vcf)
+        # filter for only biallelic contigs and prepend with 1 as start position
+        target_regions = {_contig: [1,target_regions[_contig]] for _contig in biallelic_contigs}
+    with open(f"{workflowdir}/regions.bed", "w") as workflow_bed:
+        for k,v in target_regions:
+            workflow_bed.write(f"{k}\t{v[0]}\t{v[1]}\n")
 
     ## setup workflow ##
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
