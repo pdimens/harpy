@@ -38,7 +38,7 @@ def hpc_generic():
     outfile = "hpc/generic.yaml"
     os.makedirs("hpc", exist_ok=True)
     if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("cluster-generic")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
@@ -79,7 +79,7 @@ def hpc_lsf():
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/lsf.yaml"
     if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("lsf")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
@@ -109,7 +109,7 @@ def hpc_slurm():
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/slurm.yaml"
     if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("slurm")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
@@ -143,7 +143,7 @@ def hpc_googlebatch():
     os.makedirs("hpc", exist_ok=True)
     outfile = "hpc/googlebatch.yaml"
     if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/blue] already exists, overwriting\n", file = sys.stderr)
+        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("googlebatch")
     with open(outfile, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")

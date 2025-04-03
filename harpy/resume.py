@@ -33,10 +33,10 @@ def resume(directory, conda, threads, quiet):
     """
     directory = directory.rstrip("/")
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
-        print_error("missing snakemake config", f"Target directory [blue]{directory}[/blue] does not contain the file [bold]workflow/config.yaml[/bold]")
+        print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)
     if not os.path.exists(f"{directory}/workflow/config.harpy.yaml"):
-        print_error("missing workflow config", f"Target directory [blue]{directory}[/blue] does not contain the file [bold]workflow/config.harpy.yaml[/bold]")
+        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.harpy.yaml[/]")
         sys.exit(1)
     
     with open(f"{directory}/workflow/config.harpy.yaml", 'r', encoding="utf-8") as f:

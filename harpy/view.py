@@ -45,7 +45,7 @@ def parse_file(infile):
     if not os.access(infile, os.R_OK):
         print_error(
             "incorrect permissions",
-            f"[blue]{infile}[/blue] does not have read access. Please check the file permissions."
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
         )
         sys.exit(1)
     n_colors = check_terminal_colors()
@@ -106,17 +106,17 @@ def config(directory):
     """
     target_file = f"{directory}/workflow/config.harpy.yaml"
     err_dir = f"{directory}/workflow/"
-    err_file = "There is no [blue]config.harpy.yaml[/blue] file"
+    err_file = "There is no [blue]config.harpy.yaml[/] file"
     if not os.path.exists(f"{directory}/workflow"):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif not os.path.exists(target_file):
         print_error(
             "file not found", 
-            f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)
@@ -155,13 +155,13 @@ def log(directory):
     if not os.path.exists(f"{directory}/logs/snakemake"):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif not files:
         print_error(
             "files not found", 
-            f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)
@@ -200,13 +200,13 @@ def snakefile(directory):
     if not os.path.exists(f"{directory}/workflow"):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif not files:
         print_error(
             "file not found", 
-            f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)
@@ -240,17 +240,17 @@ def snakeparams(directory):
     """
     target_file = f"{directory}/workflow/config.yaml"
     err_dir = f"{directory}/workflow/"
-    err_file = "There is no [blue]config.yaml[/blue] file"
+    err_file = "There is no [blue]config.yaml[/] file"
     if not os.path.exists(f"{directory}/workflow"):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/blue], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
     elif not os.path.exists(target_file):
         print_error(
             "file not found", 
-            f"{err_file} in [blue]{err_dir}[/blue]. Please check that this is the correct folder."
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)

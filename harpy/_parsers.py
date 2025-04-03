@@ -14,7 +14,7 @@ def getnames(directory: str, ext: str) -> list[str]:
     """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
-        print_error("no files found", f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
+        print_error("no files found", f"No sample files ending with [bold]{ext}[/] found in [bold]{directory}[/].")
         sys.exit(1)
     return samplenames
 
@@ -30,8 +30,8 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
                 if len(row) != 3:
                     print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                     print_solution_with_culprits(
-                        f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format " +
-                            "[code]contig start end[/code] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                        f"Rows in [blue]{os.path.basename(regioninput)}[/] need to be [bold]space[/] or [bold]tab[/] delimited with the format " +
+                            "[bright_white on bright_black]contig start end[/] where [yellow bold]start[/] and [yellow bold]end[/] are integers.",
                         "Row triggering the error:"
                     )
                     click.echo(line, file = sys.stderr)
@@ -43,16 +43,16 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
                     except ValueError:
                         print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution_with_culprits(
-                            f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format " +
-                                "[code]contig start end[/code] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                            f"Rows in [blue]{os.path.basename(regioninput)}[/] need to be [bold]space[/] or [bold]tab[/] delimited with the format " +
+                                "[bright_white on bright_black] contig start end[/] where [yellow bold]start[/] and [yellow bold]end[/] are integers.",
                             "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
                     if row[0] not in contigs:
-                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/bold yellow]) is not present in ([blue]{os.path.basename(vcf)}[/blue]). This is the first row triggering the error, but it may not be the only one with errors.")
+                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(vcf)}[/]). This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
-                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/blue] are also present in [blue]{os.path.basename(vcf)}[/blue]",
+                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(vcf)}[/]",
                             "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
@@ -60,7 +60,7 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
                     if start > end:
                         print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
-                            f"Check that all rows in [blue]{os.path.basename(regioninput)}[/blue] have a [bold yellow]start[/bold yellow] position that is less than the [bold yellow]end[/bold yellow] position."
+                            f"Check that all rows in [blue]{os.path.basename(regioninput)}[/] have a [bold yellow]start[/] position that is less than the [bold yellow]end[/] position."
                             "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
@@ -68,7 +68,7 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
                     if start > contigs[row[0]] or end > contigs[row[0]]:
                         print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
-                            f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/blue] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/bold yellow], which has a total length of [bold]{contigs[row[0]]}[/bold].",
+                            f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/], which has a total length of [bold]{contigs[row[0]]}[/].",
                             "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
@@ -84,27 +84,27 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
         try:
             reg[1] = int(reg[1])
         except:
-            err += f"The region start position [green bold]({reg[1]})[/green bold] is not a valid integer. "
+            err += f"The region start position [green bold]({reg[1]})[/] is not a valid integer. "
         try:
             reg[2] = int(reg[2])
         except:
-            err += f"The region end position [green bold]({reg[2]})[/green bold] is not a valid integer."
+            err += f"The region end position [green bold]({reg[2]})[/] is not a valid integer."
         if err != "":
-            print_error("invalid region", "Input for [green bold]--regions[/green bold] was interpreted as a single region. " + err)
-            print_solution("If providing a single region for imputation, it should be in the format [yellow bold]contig:start-end[/yellow bold], where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/yellow bold]) or dashes ([yellow bold]-[/yellow bold]).")
+            print_error("invalid region", "Input for [green bold]--regions[/] was interpreted as a single region. " + err)
+            print_solution("If providing a single region for imputation, it should be in the format [yellow bold]contig:start-end[/], where [yellow bold]start[/] and [yellow bold]end[/] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/]) or dashes ([yellow bold]-[/]).")
             sys.exit(1)
 
         # check if the region is in the genome
         err = ""
         if reg[0] not in contigs:
-            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/bold yellow]) of the input region [yellow bold]{regioninput}[/yellow bold] was not found in [blue]{genome}[/blue].")
+            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/]) of the input region [yellow bold]{regioninput}[/] was not found in [blue]{genome}[/].")
             sys.exit(1)
         if reg[1] > contigs[reg[0]]:
-            err += f"- start position: [bold yellow]{reg[1]}[/bold yellow]\n"
+            err += f"- start position: [bold yellow]{reg[1]}[/]\n"
         if reg[2] > contigs[reg[0]]:
-            err += f"- end position: [bold yellow]{reg[2]}[/bold yellow]"
+            err += f"- end position: [bold yellow]{reg[2]}[/]"
         if err != "":
-            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [blue]{genome}[/blue]:\n" + err)
+            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/] were not found in [blue]{genome}[/]:\n" + err)
             sys.exit(1)
         return {reg[0]: [reg[1],reg[2]]}
 
@@ -124,7 +124,7 @@ def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
             if re.search(re_ext, i):
                 infiles.append(Path(i).resolve())
     if len(infiles) < 1:
-        print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/]")
         sys.exit(1)
     # check if any names will be clashing
     bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
@@ -178,7 +178,7 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
             elif re_bai.match(i):
                 bai_infiles.append(Path(i).resolve())
     if len(bam_infiles) < 1:
-        print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
+        print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/] or [blue].sam[/] extensions.")
         sys.exit(1)
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
 

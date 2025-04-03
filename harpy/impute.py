@@ -76,9 +76,9 @@ def impute(parameters, vcf, inputs, output_dir, regions, threads, vcf_samples, e
             if i not in biallelic_names:
                 print_error(
                     "missing contig",
-                    f"The [bold yellow]{i}[/bold yellow] contig given in [blue]{regions}[/blue] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
+                    f"The [bold yellow]{i}[/] contig given in [blue]{regions}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
                 )
-                print_solution(f"Restrict the contigs provided to [bold green]--regions[/bold green] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/blue].")
+                print_solution(f"Restrict the contigs provided to [bold green]--regions[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/].")
                 sys.exit(1)
     else:
         # get the contigs and their lengths from the VCF file

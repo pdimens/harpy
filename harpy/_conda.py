@@ -120,7 +120,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""
     if not os.path.exists(f"{dirpath}/workflow/envs"):
-        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/blue bold])\n  - use [green bold]--conda[/green bold] to recreate it")
+        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
         sys.exit(1)
     envlist = os.listdir(f"{dirpath}/workflow/envs")
     errcount = 0
@@ -134,9 +134,9 @@ def check_environments(dirpath: str, envs: list) -> None:
             errcount += 1
             errtable.add_row(f"[yellow bold]{i}.yaml", "[yellow bold]missing")
     if errcount > 0:
-        print_error("missing environment files", f"The directory [blue]{dirpath}/workflows/envs[/blue] is missing [yellow bold]{errcount}[/yellow bold] of the expected conda environment definition files.")
+        print_error("missing environment files", f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.")
         print_solution_with_culprits(
-            "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/green bold] option.",
+            "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",
             "Expected environment files:"
             )
         rprint(errtable, file = sys.stderr)

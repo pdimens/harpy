@@ -64,16 +64,16 @@ def groupings(inputdir, output):
        fqlist = [os.path.basename(i) for i in full_fqlist]
        bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
        if len(fqlist) == 0:
-           print_error("no files found", f"No [bold]FASTQ[/bold] or [bold]BAM[/bold] files were detected in [blue]{inputdir}[/blue]")
+           print_error("no files found", f"No [bold]FASTQ[/] or [bold]BAM[/] files were detected in [blue]{inputdir}[/]")
            print_solution(
-               "Check that [bold]FASTQ[/bold] file endings conform to [green].[/green][[green]F[/green][dim]|[/dim][green]R1[/green]][green].[/green][[green]fastq[/green][dim]|[/dim][green]fq[/green]][green].gz[/green]" +
-               "\nCheck that [bold]BAM[/bold] files end in [green].bam[/green]"+
+               "Check that [bold]FASTQ[/] file endings conform to [green].[/][[green]F[/][dim]|[/dim][green]R1[/]][green].[/][[green]fastq[/][dim]|[/dim][green]fq[/]][green].gz[/]" +
+               "\nCheck that [bold]BAM[/] files end in [green].bam[/]"+
                "\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
            )
            sys.exit(1)
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-    rprint(f"\n[bold]{len(samplenames)}[/bold] samples detected in [blue]{inputdir}[blue]\n", file = sys.stderr)
+    rprint(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[blue]\n", file = sys.stderr)
     if os.path.exists(output):
         overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
         if overwrite not in ["yes", "y"]:
@@ -82,7 +82,7 @@ def groupings(inputdir, output):
     with open(output, "w", encoding="utf-8") as file:
         for i in samplenames:
             _ = file.write(i + '\tpop1\n')
-    print_notice(f"Created sample population grouping file [blue]{output}[/blue]. Please review it, as all samples have been grouped into a single population")
+    print_notice(f"Created sample population grouping file [blue]{output}[/]. Please review it, as all samples have been grouped into a single population")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 @click.option('-o', '--output', type=str, required = True, help = 'Output file name')
@@ -106,7 +106,7 @@ def impute(output):
         _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
         _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
     print_notice(
-        f"Created template imputation parameter file: [blue]{output}[/blue]\n" +
+        f"Created template imputation parameter file: [blue]{output}[/]\n" +
         "Modify the model parameters as needed, but [yellow bold]do not add/remove columns."
     )
 

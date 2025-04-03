@@ -59,7 +59,7 @@ def fetch_script(workdir: str, target: str) -> None:
         if os.path.isfile(files(harpy.scripts).joinpath(target)):
             f.write(files(harpy.scripts).joinpath(target).read_text())
         else:
-            print_error("script missing", f"Bundled script [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -72,7 +72,7 @@ def fetch_rule(workdir: str, target: str) -> None:
         if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
             f.write(files(harpy.snakefiles).joinpath(target).read_text())
         else:
-            print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/blue bold] was not found in the Harpy installation.")
+            print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
 
@@ -85,7 +85,7 @@ def fetch_report(workdir: str, target: str) -> None:
         if os.path.isfile(files(harpy.reports).joinpath(target)):
             f.write(files(harpy.reports).joinpath(target).read_text())
         else:
-            print_error("report script missing", f"The required report script [blue bold]{target}[/blue bold] was not found within the Harpy installation.")
+            print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
     # pull yaml config file from github, use local if fails
@@ -99,7 +99,7 @@ def fetch_report(workdir: str, target: str) -> None:
             if os.path.isfile(files(harpy.reports).joinpath("_quarto.yml")):
                 yml.write(files(harpy.reports).joinpath("_quarto.yml").read_text())
             else:
-                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/blue bold] that comes with a Harpy installation.")
+                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.")
                 print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
     # same for the scss file
@@ -113,7 +113,7 @@ def fetch_report(workdir: str, target: str) -> None:
             if os.path.isfile(files(harpy.reports).joinpath("_harpy.scss")):
                 yml.write(files(harpy.reports).joinpath("_harpy.scss").read_text())
             else:
-                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/blue bold] that comes with a Harpy installation.")
+                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.")
                 print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
 

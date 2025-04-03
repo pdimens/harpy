@@ -27,23 +27,23 @@ def iserror(text):
 def highlight_params(text):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
     if text.startswith("    jobid:"):
-        return text.replace("jobid:", "[bold default]jobid:[/bold default]").rstrip()
+        return text.replace("jobid:", "[bold default]jobid:[/]").rstrip()
     if text.startswith("    input:"):
-        return text.replace("input:", "[bold default]input:[/bold default]").rstrip()
+        return text.replace("input:", "[bold default]input:[/]").rstrip()
     if text.startswith("    output:"):
-        return text.replace("output:", "[bold default]output:[/bold default]").rstrip()
+        return text.replace("output:", "[bold default]output:[/]").rstrip()
     if text.startswith("    log:"):
-        return text.replace("log:", "[bold default]log:[/bold default]").rstrip()
+        return text.replace("log:", "[bold default]log:[/]").rstrip()
     if text.startswith("    conda-env:"):
-        return text.replace("conda-env:", "[bold default]conda-env:[/bold default]").rstrip()
+        return text.replace("conda-env:", "[bold default]conda-env:[/]").rstrip()
     if text.startswith("    container:"):
-        return text.replace("container:", "[bold default]container:[/bold default]").rstrip()
+        return text.replace("container:", "[bold default]container:[/]").rstrip()
     if text.startswith("    shell:"): 
-        return text.replace("shell:", "[bold default]shell:[/bold default]").rstrip()
+        return text.replace("shell:", "[bold default]shell:[/]").rstrip()
     if text.startswith("    wildcards:"): 
-        return text.replace("wildcards:", "[bold default]wildcards:[/bold default]").rstrip()
+        return text.replace("wildcards:", "[bold default]wildcards:[/]").rstrip()
     if text.startswith("    affected files:"): 
-        return text.replace("affected files:", "[bold default]affected files:[/bold default]").rstrip()
+        return text.replace("affected files:", "[bold default]affected files:[/]").rstrip()
     return text.rstrip()
 
 def purge_empty_logs(target_dir):

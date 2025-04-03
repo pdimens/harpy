@@ -209,12 +209,12 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     if platform in ["tellseq", "10x"] and not barcode_list:
         print_error("missing barcode list", f"{platform} technology requires a list of known barcodes.")
         if platform == "10x":
-            print_solution("Running EMA requires 10X barcodes provided to [green]--barcode-list[/green]. A standard 10X barcode list can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
+            print_solution("Running EMA requires 10X barcodes provided to [green]--barcode-list[/]. A standard 10X barcode list can be downloaded from [dim]https://github.com/10XGenomics/cellranger/tree/master/lib/python/cellranger/barcodes[/dim]")
         else:
-            print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/green]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
+            print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
         sys.exit(1)
     if platform == "haplotag" and barcode_list and not quiet:
-        print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/green] will be ignored.")
+        print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/] will be ignored.")
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(reference)
     if contigs:
