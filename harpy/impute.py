@@ -84,9 +84,12 @@ def impute(parameters, vcf, inputs, output_dir, regions, threads, vcf_samples, e
         # get the contigs and their lengths from the VCF file
         target_regions = contigs_from_vcf(vcf)
         # filter for only biallelic contigs and prepend with 1 as start position
-        target_regions = {_contig: [1,target_regions[_contig]] for _contig in biallelic_contigs}
-    with open(f"{workflowdir}/regions.bed", "w") as workflow_bed:
-        for k,v in target_regions:
+        target_regions = {_contig: [1, target_regions[_contig]] for _contig in biallelic_names}
+    
+    regionfile = f"{workflowdir}/regions.bed"
+    # if regions were provided, the file will be named "regions.bed", otherwise it will be "genome.bed"
+    with open(regionfile, "w") as workflow_bed:
+        for k,v in target_regions.items():
             workflow_bed.write(f"{k}\t{v[0]}\t{v[1]}\n")
 
     ## setup workflow ##
@@ -110,32 +113,34 @@ def impute(parameters, vcf, inputs, output_dir, regions, threads, vcf_samples, e
     configs = {
         "workflow" : "impute",
         "snakemake_log" : sm_log,
-        "samples_from_vcf" : vcf_samples,
         **({'stitch_extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
+        "samples_from_vcf" : vcf_samples,
+        "regions" : True if regions else False,
         "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
-        "regions" : target_regions,
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
             "variantfile" : Path(vcf).resolve().as_posix(),
             "biallelic_contigs" : Path(biallelic_file).resolve().as_posix(),
+            "regions": Path(regionfile).resolve().as_posix(),
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
 
-    write_workflow_config(config, workflowdir)
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
 
     start_text = workflow_info(
         ("Input VCF:", vcf),
-        ("VCF Samples:", len(samplenames)),
+        ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
         ("Parameter File:", parameters),
         ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)"),
+        ("Targeted Regions:", len(target_regions) if regions else "No"),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
