@@ -28,10 +28,11 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
             for idx, line in enumerate(fin, 1):
                 row = line.split()
                 if len(row) != 3:
-                    print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                     print_solution_with_culprits(
-                        f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
-                        "Row triggering this error:"
+                        f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format " +
+                            "[code]contig start end[/code] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                        "Row triggering the error:"
                     )
                     click.echo(line, file = sys.stderr)
                     sys.exit(1)
@@ -40,34 +41,35 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
                         start = int(row[1])
                         end = int(row[2])
                     except ValueError:
-                        print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering this error, but it may not be the only one.")
-                        print_solution(
-                            f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format [yellow bold]contig start end[/yellow bold] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
-                            "Row triggering this error:"
+                        print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
+                        print_solution_with_culprits(
+                            f"Rows in [blue]{os.path.basename(regioninput)}[/blue] need to be [bold]space[/bold] or [bold]tab[/bold] delimited with the format " +
+                                "[code]contig start end[/code] where [yellow bold]start[/yellow bold] and [yellow bold]end[/yellow bold] are integers.",
+                            "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
                     if row[0] not in contigs:
-                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/bold yellow]) is not present in ([blue]{os.path.basename(vcf)}[/blue]). This is the first row triggering this error, but it may not be the only one.")
+                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/bold yellow]) is not present in ([blue]{os.path.basename(vcf)}[/blue]). This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
                             f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/blue] are also present in [blue]{os.path.basename(vcf)}[/blue]",
-                            "Row triggering this error:"
+                            "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
                     if start > end:
-                        print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
                             f"Check that all rows in [blue]{os.path.basename(regioninput)}[/blue] have a [bold yellow]start[/bold yellow] position that is less than the [bold yellow]end[/bold yellow] position."
-                            "Row triggering this error:"
+                            "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
                     if start > contigs[row[0]] or end > contigs[row[0]]:
-                        print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering this error, but it may not be the only one.")
+                        print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
                         print_solution(
                             f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/blue] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/bold yellow], which has a total length of [bold]{contigs[row[0]]}[/bold].",
-                            "Row triggering this error:"
+                            "Row triggering the error:"
                         )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
@@ -105,36 +107,6 @@ def parse_impute_regions(regioninput: str, vcf: str) -> dict:
             print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/yellow bold] were not found in [blue]{genome}[/blue]:\n" + err)
             sys.exit(1)
         return {reg[0]: [reg[1],reg[2]]}
-
-#def parse_bed(infile: str) -> list[str]:
-#    """Parse a bed file and return a list of chrom_start_end"""
-#    def print_err_and_exit(inp,l,n, specific_text):
-#        print_error("incorrect file format", f"The input file [bold]{inp}[/bold] {specific_text} on line {n+1}.")
-#        print_solution_with_culprits(
-#            "Proper BED format takes the form of [bold green]chromosome_name start_position end_position[/bold green], with the three entries per line separated by spaces or tabs. Both [bold green]start_position[/bold green] and [bold green]end_position[/bold green] must be integers and [bold green]start_position[/bold green] must be less than [bold green]end_position[/bold green].",
-#            "First line encountered with incorrect format"
-#        )
-#        click.echo(l)
-#        sys.exit(1)
-#    out_list = set()
-#    with open(infile, "r") as bed:
-#        for linenum,line in enumerate(bed):
-#            splt = line.split()
-#            if len(splt) < 3:
-#                print_err_and_exit(infile, line, linenum, "has fewer than 3 fields")
-#            chrom = splt[0]
-#            try:
-#                startpos = int(splt[1])
-#            except ValueError:
-#                print_err_and_exit(infile, line, linenum, "needs to have an integer as the second field (start position)")
-#            try:
-#                endpos = int(splt[2])
-#            except ValueError:
-#                print_err_and_exit(infile, line, linenum, "needs to have an integer as the third field (end position)")
-#            if startpos > endpos:
-#                print_err_and_exit(infile,line, linenum, "has a [bold green]start_position[/bold green] greater than the [bold green]end_position[/bold green]")
-#            out_list.add("_".join(splt[:3]))
-#    return list(out_list)
 
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """
