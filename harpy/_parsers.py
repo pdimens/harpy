@@ -27,12 +27,12 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
     try:
         contig, positions = regioninput.split(":")
     except ValueError:
-        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end[/] (without spaces), where [yellow bold]contig[/] cannot contain colons ([bold yellow]:[/]).")
+        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end-buffer[/] (without spaces), where [yellow bold]contig[/] cannot contain colons ([bold yellow]:[/]).")
         sys.exit(1)
     try:
-        startpos,endpos = positions.split("-")
+        startpos,endpos, buffer = positions.split("-")
     except ValueError:
-        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end[/], where [yellow bold]start[/] and [bold yellow]end[/] are integers separated by a dash ([bold yellow]-[/]), without spaces.")
+        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end-buffer[/], where [yellow bold]start[/], [bold yellow]end[/], and [bold yellow]buffer[/] are integers separated by a dash ([bold yellow]-[/]), without spaces.")
         sys.exit(1)
     # check the types to be [str, int, int]
     err = []
@@ -57,7 +57,7 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
     if endpos > contigs[contig]:
         print_error("invalid region", f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
         sys.exit(1)
-    return contig, startpos, endpos
+    return contig, startpos, endpos, buffer
 
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """

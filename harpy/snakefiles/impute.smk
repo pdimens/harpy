@@ -15,18 +15,20 @@ bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
-regions       = config.get("regions", None)
-biallelic     = config["inputs"]["biallelic_contigs"]
+region       = config.get("region", None)
 envdir        = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
-if regions:
-    _region = re.split(r"[\:-]", regions)
-    contigs = [_region[0]]
-    startpos = int(_region[1])
-    endpos = int(_region[2])
+if region:
+    contigs,positions = region.split(":")
+    startpos,endpos,buffer = [int(i) for i in positions.split("-")]
+    # remove the buffer to make it an htslib-style region
+    region = f"{contigs}:{startpos}-{endpos}"
+    # make the contig a list to fit with the existing workflow design
+    contigs = [contigs]
 else:
+    biallelic = config["inputs"]["biallelic_contigs"]
     with open(biallelic, "r") as f:
         contigs = [line.rstrip() for line in f]
 
@@ -105,8 +107,9 @@ rule impute:
         logfile = "{paramset}/logs/{contig}.stitch.log"
     params:
         chrom   = lambda wc: "--chr=" + wc.contig,
-        start   = lambda wc: f"--regionStart={startpos}" if regions else [],
-        end     = lambda wc: f"--regionEnd={endpos}" if regions else [],
+        start   = lambda wc: f"--regionStart={startpos}" if region else [],
+        end     = lambda wc: f"--regionEnd={endpos}" if region else [],
+        buffer  = lambda wc: f"--buffer={buffer}" if region else [],
         model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
@@ -131,14 +134,15 @@ rule index_vcf:
     input:
         "{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
-        "{paramset}/contigs/{contig}.bcf.csi",
-        vcf   = "{paramset}/contigs/{contig}.bcf",
+        "{paramset}/contigs/{contig}.vcf.gz.tbi",
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
         stats = "{paramset}/reports/data/contigs/{contig}.stats"
     container:
         None
     shell:
         """
-        bcftools view -Ob --write-index -o {output.vcf} {input}
+        cp {input} {output.vcf}
+        tabix {output.vcf}
         bcftools stats -s "-" {input} > {output.stats}
         """
 
@@ -187,36 +191,50 @@ rule contig_report:
 
 rule concat_list:
     input:
-        collect("{{paramset}}/contigs/{contig}.bcf", contig = contigs)
+        collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
         temp("{paramset}/bcf.files")
     run:
         with open(output[0], "w") as fout:
-            _ = fout.write("\n".join(input.bcf))
+            _ = fout.write("\n".join(input[0]))
 
-rule merge_vcf:
-    priority: 100
-    input:
-        collect("{{paramset}}/contigs/{contig}.bcf.csi", contig = contigs),
-        files = "{paramset}/bcf.files"
-    output:
-        "{paramset}/{paramset}.bcf"
-    threads:
-        workflow.cores
-    container:
-        None
-    shell:
-        "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> /dev/null"
+if len(contigs) == 1:
+    rule bcf_conversion:
+        input:
+            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
+            vcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
+        output:
+            "{paramset}/{paramset}.bcf.csi",
+            bcf = "{paramset}/{paramset}.bcf"
+        container:
+            None
+        shell:
+            "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> /dev/null"
 
-rule index_merged:
-    input:
-        "{paramset}/{paramset}.bcf"
-    output:
-        "{paramset}/{paramset}.bcf.csi"
-    container:
-        None
-    shell:
-        "bcftools index {input}"
+else:
+    rule merge_vcf:
+        priority: 100
+        input:
+            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
+            files = "{paramset}/bcf.files"
+        output:
+            "{paramset}/{paramset}.bcf"
+        threads:
+            workflow.cores
+        container:
+            None
+        shell:
+            "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> /dev/null"
+
+    rule index_merged:
+        input:
+            "{paramset}/{paramset}.bcf"
+        output:
+            "{paramset}/{paramset}.bcf.csi"
+        container:
+            None
+        shell:
+            "bcftools index {input}"
 
 rule general_stats:
     input:
@@ -237,16 +255,16 @@ rule extract_region:
         temp("workflow/input/vcf/region.bcf.csi"),
         bcf = temp("workflow/input/vcf/region.bcf")
     params:
-        regions if regions else ""
+        f"-r {region}" if region else ""
     container:
         None
     shell:
-        "bcftools view -Ob -r {params} -o {output.bcf} {input.orig} "
+        "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
         
 rule compare_stats:
     input:
-        orig    = "workflow/input/vcf/input.sorted.bcf" if not regions else "workflow/input/vcf/region.bcf",
-        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not regions else "workflow/input/vcf/region.bcf.csi",
+        orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
+        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
         impute  = "{paramset}/{paramset}.bcf",
         idx     = "{paramset}/{paramset}.bcf.csi"
     output:
@@ -316,8 +334,9 @@ rule workflow_summary:
         stitch += "\t\tnCores = ncores,\n"
         stitch += "\t\tnGen = ngen,\n"
         stitch += "\t\tchr = chr,\n"
-        stitch += f"\t\tregionStart = {startpos},\n" if regions else ""
-        stitch += f"\t\tregionEnd = {endpos},\n" if regions else ""
+        stitch += f"\t\tregionStart = {startpos},\n" if region else ""
+        stitch += f"\t\tregionEnd = {endpos},\n" if region else ""
+        stitch += f"\t\tbuffer = {buffer},\n" if region else ""
         stitch += "\t\tK = k,\n"
         stitch += "\t\tS = s,\n"
         stitch += "\t\tuse_bx_tag = usebx,\n"

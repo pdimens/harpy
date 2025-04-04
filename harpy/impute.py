@@ -55,7 +55,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     Use `harpy template` to generate one and adjust it for your study.
     The `--vcf-samples` option considers only the samples present in your input `VCF` file rather than all
     the samples identified in `INPUTS`. Use `--region` to only impute a specific genomic region, given as
-    `contig:start-end`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
+    `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
     output_dir = output_dir.rstrip("/")
@@ -69,7 +69,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflowdir)
     if region:
-        contig, start,end = parse_impute_regions(region, vcf)
+        contig, start,end, buffer = parse_impute_regions(region, vcf)
         if contig not in biallelic_names:
             print_error(
                 "missing contig",
@@ -109,6 +109,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
             "variantfile" : Path(vcf).resolve().as_posix(),
+            **({"biallelic_contigs" : Path(biallelic).resolve().as_posix()} if not region else {}), 
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }
@@ -123,7 +124,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
         ("Parameter File:", parameters),
-        ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)") if not regions else ("Target Region:", region),
+        ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
