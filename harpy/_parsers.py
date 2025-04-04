@@ -18,95 +18,46 @@ def getnames(directory: str, ext: str) -> list[str]:
         sys.exit(1)
     return samplenames
 
-def parse_impute_regions(regioninput: str, vcf: str) -> dict:
-    """validates the --regions input of harpy snp to infer whether it's a region or file. use the contigs and lengths of the vcf file to check that the region(s) are valid"""
+def parse_impute_regions(regioninput: str, vcf: str) -> list:
+    """Validates the --regions input of harpy impute to infer it's a properly formatted region
+    Use the contigs and lengths of the vcf file to check that the region is valid. Returns
+    a tuple of (contig, start, end)
+    """
     contigs = contigs_from_vcf(vcf)
-    # is a file specifying regions
-    reg_out = {}
-    if os.path.isfile(regioninput):
-        with open(regioninput, "r", encoding="utf-8") as fin:
-            for idx, line in enumerate(fin, 1):
-                row = line.split()
-                if len(row) != 3:
-                    print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
-                    print_solution_with_culprits(
-                        f"Rows in [blue]{os.path.basename(regioninput)}[/] need to be [bold]space[/] or [bold]tab[/] delimited with the format " +
-                            "[bright_white on bright_black]contig start end[/] where [yellow bold]start[/] and [yellow bold]end[/] are integers.",
-                        "Row triggering the error:"
-                    )
-                    click.echo(line, file = sys.stderr)
-                    sys.exit(1)
-                else:
-                    try:
-                        start = int(row[1])
-                        end = int(row[2])
-                    except ValueError:
-                        print_error("invalid BED format", f"The input file is formatted incorrectly at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
-                        print_solution_with_culprits(
-                            f"Rows in [blue]{os.path.basename(regioninput)}[/] need to be [bold]space[/] or [bold]tab[/] delimited with the format " +
-                                "[bright_white on bright_black] contig start end[/] where [yellow bold]start[/] and [yellow bold]end[/] are integers.",
-                            "Row triggering the error:"
-                        )
-                        click.echo(line, file = sys.stderr)
-                        sys.exit(1)
-                    if row[0] not in contigs:
-                        print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(vcf)}[/]). This is the first row triggering the error, but it may not be the only one with errors.")
-                        print_solution(
-                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(vcf)}[/]",
-                            "Row triggering the error:"
-                        )
-                        click.echo(line, file = sys.stderr)
-                        sys.exit(1)
-                    if start > end:
-                        print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
-                        print_solution(
-                            f"Check that all rows in [blue]{os.path.basename(regioninput)}[/] have a [bold yellow]start[/] position that is less than the [bold yellow]end[/] position."
-                            "Row triggering the error:"
-                        )
-                        click.echo(line, file = sys.stderr)
-                        sys.exit(1)
-                    if start > contigs[row[0]] or end > contigs[row[0]]:
-                        print_error("invalid interval", f"The interval start or end position is out of bounds at row {idx}. This is the first row triggering the error, but it may not be the only one with errors.")
-                        print_solution(
-                            f"Check that the intervals present in [blue]{os.path.basename(regioninput)}[/] are within the bounds of the lengths of their respective contigs. This specific error is triggered for [bold yellow]{row[0]}[/], which has a total length of [bold]{contigs[row[0]]}[/].",
-                            "Row triggering the error:"
-                        )
-                        click.echo(line, file = sys.stderr)
-                        sys.exit(1)
-                    reg_out[row[0]] = [start, end]
-        return reg_out
+    try:
+        contig, positions = regioninput.split(":")
+    except ValueError:
+        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end[/] (without spaces), where [yellow bold]contig[/] cannot contain colons ([bold yellow]:[/]).")
+        sys.exit(1)
+    try:
+        startpos,endpos = positions.split("-")
+    except ValueError:
+        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end[/], where [yellow bold]start[/] and [bold yellow]end[/] are integers separated by a dash ([bold yellow]-[/]), without spaces.")
+        sys.exit(1)
+    # check the types to be [str, int, int]
+    err = []
+    try:
+        startpos = int(startpos)
+    except ValueError:
+        print_error("invalid start position", f"The region start position [yellow bold]({startpos})[/] is not a valid integer.")
+        sys.exit(1)
+    try:
+        endpos = int(endpos)
+    except ValueError:
+        print_error("invalid start position", f"The region end position [yellow bold]({endpos})[/] is not a valid integer.")
+        sys.exit(1)
 
-    # is a single region
-    reg = re.split(r"[\:-]", regioninput)
-    if len(reg) == 3:
-        # is a single region, check the types to be [str, int, int]
-        err = ""
-        try:
-            reg[1] = int(reg[1])
-        except:
-            err += f"The region start position [green bold]({reg[1]})[/] is not a valid integer. "
-        try:
-            reg[2] = int(reg[2])
-        except:
-            err += f"The region end position [green bold]({reg[2]})[/] is not a valid integer."
-        if err != "":
-            print_error("invalid region", "Input for [green bold]--regions[/] was interpreted as a single region. " + err)
-            print_solution("If providing a single region for imputation, it should be in the format [yellow bold]contig:start-end[/], where [yellow bold]start[/] and [yellow bold]end[/] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/]) or dashes ([yellow bold]-[/]).")
-            sys.exit(1)
-
-        # check if the region is in the genome
-        err = ""
-        if reg[0] not in contigs:
-            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/]) of the input region [yellow bold]{regioninput}[/] was not found in [blue]{genome}[/].")
-            sys.exit(1)
-        if reg[1] > contigs[reg[0]]:
-            err += f"- start position: [bold yellow]{reg[1]}[/]\n"
-        if reg[2] > contigs[reg[0]]:
-            err += f"- end position: [bold yellow]{reg[2]}[/]"
-        if err != "":
-            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/] were not found in [blue]{genome}[/]:\n" + err)
-            sys.exit(1)
-        return {reg[0]: [reg[1],reg[2]]}
+    # check if the region is in the genome
+    if contig not in contigs:
+        print_error("contig not found", f"The contig [bold yellow]{contig}[/] was not found in [blue]{vcf}[/].")
+        sys.exit(1)
+    if startpos > endpos:
+        print_error("invalid region", f"The region start position [yellow bold]({startpos})[/] must be less than the end position [yellow bold]({endpos})[/].")
+        sys.exit(1)
+    if endpos > contigs[contig]:
+        print_error("invalid region", f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
+        sys.exit(1)
+    return contig, startpos, endpos
 
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """

@@ -1,6 +1,5 @@
 containerized: "docker://pdimens/harpy:latest"
 import os
-import re
 import logging
 
 onstart:
@@ -15,20 +14,20 @@ bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
-regions       = config.get("regions", None)
+regions       = config["regions"]
 biallelic     = config["inputs"]["biallelic_contigs"]
 envdir        = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
-if regions:
-    _region = re.split(r"[\:-]", regions)
-    contigs = [_region[0]]
-    startpos = int(_region[1])
-    endpos = int(_region[2])
-else:
-    with open(biallelic, "r") as f:
-        contigs = [line.rstrip() for line in f]
+with open(biallelic, "r") as f:
+    contigs = [line.rstrip() for line in f]
+
+if regions != "all":
+    #TODO DO SOMETHING MEANINGFUL WITH THE REGIONS
+    # the contigs listed in regions need to overide the logic of parallelizing
+    # over just the biallelic contigs
+
 
 # instantiate static STITCH arguments
 extraparams = {
@@ -46,8 +45,8 @@ rule sort_bcf:
     input:
         variantfile
     output:
-        temp("workflow/input/vcf/input.sorted.bcf.csi"),
-        bcf = temp("workflow/input/vcf/input.sorted.bcf")
+        bcf = temp("workflow/input/vcf/input.sorted.bcf"),
+        idx = temp("workflow/input/vcf/input.sorted.bcf.csi")
     log:
         "logs/input.sort.log"
     container:
@@ -67,13 +66,13 @@ rule index_alignments:
 
 rule alignment_list:
     input:
-        collect("{bam}.bai", bam = bamlist),
         bam = bamlist,
+        bailist = collect("{bam}.bai", bam = bamlist)
     output:
         "workflow/input/samples.list"
     run:
         with open(output[0], "w") as fout:
-            _ = [fout.write(f"{bamfile}\n") for bamfile in input.bam]
+            _ = [fout.write(f"{bamfile}\n") for bamfile in input["bam"]]
 
 rule stitch_conversion:
     input:
@@ -81,6 +80,8 @@ rule stitch_conversion:
         idx = "workflow/input/vcf/input.sorted.bcf.csi"
     output:
         "workflow/input/stitch/{contig}.stitch"
+    threads: 
+        3
     container:
         None
     shell:
@@ -105,8 +106,6 @@ rule impute:
         logfile = "{paramset}/logs/{contig}.stitch.log"
     params:
         chrom   = lambda wc: "--chr=" + wc.contig,
-        start   = lambda wc: f"--regionStart={startpos}" if regions else [],
-        end     = lambda wc: f"--regionEnd={endpos}" if regions else [],
         model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
@@ -129,17 +128,18 @@ rule impute:
 
 rule index_vcf:
     input:
-        "{paramset}/contigs/{contig}/{contig}.vcf.gz"
+        vcf   = "{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
-        "{paramset}/contigs/{contig}.bcf.csi",
-        vcf   = "{paramset}/contigs/{contig}.bcf",
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
+        idx   = "{paramset}/contigs/{contig}.vcf.gz.tbi",
         stats = "{paramset}/reports/data/contigs/{contig}.stats"
     container:
         None
     shell:
         """
-        bcftools view -Ob --write-index -o {output.vcf} {input}
-        bcftools stats -s "-" {input} > {output.stats}
+        cp {input} {output.vcf}
+        tabix {output.vcf}
+        bcftools stats -s "-" {input.vcf} > {output.stats}
         """
 
 rule report_config:
@@ -187,7 +187,7 @@ rule contig_report:
 
 rule concat_list:
     input:
-        collect("{{paramset}}/contigs/{contig}.bcf", contig = contigs)
+        bcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
         temp("{paramset}/bcf.files")
     run:
@@ -197,8 +197,8 @@ rule concat_list:
 rule merge_vcf:
     priority: 100
     input:
-        collect("{{paramset}}/contigs/{contig}.bcf.csi", contig = contigs),
-        files = "{paramset}/bcf.files"
+        files = "{paramset}/bcf.files",
+        idx   = collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs)
     output:
         "{paramset}/{paramset}.bcf"
     threads:
@@ -206,7 +206,7 @@ rule merge_vcf:
     container:
         None
     shell:
-        "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> /dev/null"
+        "bcftools concat --threads {threads} -O b -o {output} -f {input.files} 2> /dev/null"
 
 rule index_merged:
     input:
@@ -220,8 +220,8 @@ rule index_merged:
 
 rule general_stats:
     input:
-        "{paramset}/{paramset}.bcf.csi",
-        bcf = "{paramset}/{paramset}.bcf"
+        bcf = "{paramset}/{paramset}.bcf",
+        idx = "{paramset}/{paramset}.bcf.csi"
     output:
         "{paramset}/reports/data/impute.stats"
     container:
@@ -229,24 +229,10 @@ rule general_stats:
     shell:
         "bcftools stats -s \"-\" {input.bcf} > {output}"
 
-rule extract_region:
-    input:
-        "workflow/input/vcf/input.sorted.bcf.csi",
-        orig    = "workflow/input/vcf/input.sorted.bcf"
-    output:
-        temp("workflow/input/vcf/region.bcf.csi"),
-        bcf = temp("workflow/input/vcf/region.bcf")
-    params:
-        regions if regions else ""
-    container:
-        None
-    shell:
-        "bcftools view -Ob -r {params} -o {output.bcf} {input.orig} "
-        
 rule compare_stats:
     input:
-        orig    = "workflow/input/vcf/input.sorted.bcf" if not regions else "workflow/input/vcf/region.bcf",
-        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not regions else "workflow/input/vcf/region.bcf.csi",
+        orig    = "workflow/input/vcf/input.sorted.bcf",
+        origidx = "workflow/input/vcf/input.sorted.bcf.csi",
         impute  = "{paramset}/{paramset}.bcf",
         idx     = "{paramset}/{paramset}.bcf.csi"
     output:
@@ -268,7 +254,7 @@ rule impute_reports:
         infoscore = "{paramset}/reports/data/impute.infoscore",
         qmd = "workflow/report/impute.qmd"
     output:
-        "{paramset}/reports/{paramset}.summary.html",
+        report = "{paramset}/reports/{paramset}.summary.html",
         qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
     log:
         "{paramset}/logs/reports/imputestats.log"
@@ -316,8 +302,6 @@ rule workflow_summary:
         stitch += "\t\tnCores = ncores,\n"
         stitch += "\t\tnGen = ngen,\n"
         stitch += "\t\tchr = chr,\n"
-        stitch += f"\t\tregionStart = {startpos},\n" if regions else ""
-        stitch += f"\t\tregionEnd = {endpos},\n" if regions else ""
         stitch += "\t\tK = k,\n"
         stitch += "\t\tS = s,\n"
         stitch += "\t\tuse_bx_tag = usebx,\n"
