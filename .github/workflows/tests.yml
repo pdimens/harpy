@@ -504,11 +504,16 @@ jobs:
 #          path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --quiet 2 --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
+        run: harpy impute --quiet 2 test/stitch.params test/vcf/test.bcf test/bam
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
-        run: harpy impute --quiet 2 --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
+        run: harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam
+      - name: impute one region
+        shell: micromamba-shell {0}
+        if: always()
+        run: harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam
+
 
   phase:
     needs: [changes]
