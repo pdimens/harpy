@@ -19,7 +19,6 @@ SNAKEMAKE_CMD = True
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
-
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
@@ -157,22 +156,24 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
-                    rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
-                    if rulematch:
-                        rule = rulematch.group().replace(":","").split()[-1]
+                    #rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
+                    if output.startswith("rule ") or output.startswith("localrule "):
+                        # catch the 2nd word and remove the colon
+                        rule = output.split()[-1].replace(":", "")
+                        # add progress bar if it doesn't exist
                         if rule not in task_ids:
                             task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1], visible = quiet != 1)
-                        continue
-                    # store the job id in the inventory so we can later look up which rule it's associated with
-                    jobidmatch = re.search(r"jobid:\s\d+", string = output)
-                    if jobidmatch:
-                        job_id = int(re.search(r"\d+",output).group())
-                        # rule should be the most previous rule recorded
-                        job_inventory[rule][2].add(job_id)
-                        continue
+                        # parse the rest of the rule block to get the job ID and add it to the inventory
+                        while True:
+                            output = process.stderr.readline()
+                            if "jobid: " in output:
+                                job_id = int(output.strip().split()[-1])
+                                job_inventory[rule][2].add(job_id)
+                                break
+                        # store the job id in the inventory so we can later look up which rule it's associated with
                     # check which rule the job is associated with and update the corresponding progress bar
-                    finishmatch = re.search(r"Finished\sjob\s\d+", output)
-                    if finishmatch:
+                    #finishmatch = re.search(r"Finished\sjobid:\s\d+", output)
+                    if output.startswith("Finished jobid: "):
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
@@ -217,6 +218,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             sys.exit(1)
     except KeyboardInterrupt:
         # Handle a keyboard interrupt
+        testfile.close()
         console = Console(stderr=True)
         console.print("")
         console.rule("[bold]Terminating Harpy", style = "yellow")
