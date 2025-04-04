@@ -12,6 +12,9 @@
 - `harpy demultiplex gen1` adds `--qxrx` to include the `QX:Z` and `RX:Z` tags in the read headers (defaults to not doing that)
 - `harpy downsample` adds `--hpc` for cluster submission
 - `harpy simulate linkedreads` adds `--merge-haplotypes` as a convenience features to merge R1 reads for hap0 and hap1 (same for R2)
+- `harpy impute` adds `--region/-r` to specify imputation for a single region only
+  - takes the format of `contig:start-end-buffer`, where `buffer` is how much STITCH looks before and after you start/end positions (respectively)
+  - e.g. `-r 3L:3000-28110227-1000`
 
 ## Breaking Changes
 ### Renamed Commands
