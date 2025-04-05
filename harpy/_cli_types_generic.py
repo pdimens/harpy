@@ -106,7 +106,6 @@ class HPCProfile(click.ParamType):
                 self.fail(f"Formatting error in {value}: {exc}")
         return value
 
-#TODO remove these checks from the parser
 class SNPRegion(click.ParamType):
     """A class for a click type which accepts an integer, htslib-style region (chrm:start-end) or file of regions"""
     name = "snp_region"
@@ -157,8 +156,6 @@ class SNPRegion(click.ParamType):
             self.fail(f"The region start position ({startpos}) must be less than the end position ({endpos}).", param, ctx)
         return value
 
-#TODO finish this
-#TODO remove these checks from the parser
 class ImputeRegion(click.ParamType):
     """A class for a click type which accepts a region in chrm:start-end-buffer format"""
     name = "snp_region"
@@ -166,11 +163,11 @@ class ImputeRegion(click.ParamType):
         try:
             contig,positions = value.split(":")
         except ValueError:
-            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `contig` cannot contain colon (:) characters.", param, ctx)
+            self.fail(f"{value} must be in the format contig:start-end-buffer (without spaces), where `contig` cannot contain colon (:) characters.", param, ctx)
         try:
             startpos,endpos,buffer = positions.split("-")
         except ValueError:
-            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `start` and `end` are integers separated by a dash (-).", param, ctx)
+            self.fail(f"{value} must be in the format contig:start-end-buffer (without spaces), where `start`, `end`, and `buffer` are integers separated by a dash (-).", param, ctx)
         try:
             startpos = int(startpos)
         except ValueError:
@@ -179,6 +176,10 @@ class ImputeRegion(click.ParamType):
             endpos = int(endpos)
         except ValueError:
             self.fail(f"The region end position ({endpos}) is not a valid integer.", param, ctx)
+        try:
+            buffer = int(buffer)
+        except ValueError:
+            self.fail(f"The region buffer ({buffer}) is not a valid integer.", param, ctx)
         if startpos > endpos:
             self.fail(f"The region start position ({startpos}) must be less than the end position ({endpos}).", param, ctx)
         return value

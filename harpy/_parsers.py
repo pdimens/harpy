@@ -24,35 +24,12 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
     a tuple of (contig, start, end)
     """
     contigs = contigs_from_vcf(vcf)
-    try:
-        contig, positions = regioninput.split(":")
-    except ValueError:
-        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end-buffer[/] (without spaces), where [yellow bold]contig[/] cannot contain colons ([bold yellow]:[/]).")
-        sys.exit(1)
-    try:
-        startpos,endpos, buffer = positions.split("-")
-    except ValueError:
-        print_error("invalid region", "The input region must be in the format [yellow bold]contig:start-end-buffer[/], where [yellow bold]start[/], [bold yellow]end[/], and [bold yellow]buffer[/] are integers separated by a dash ([bold yellow]-[/]), without spaces.")
-        sys.exit(1)
-    # check the types to be [str, int, int]
-    err = []
-    try:
-        startpos = int(startpos)
-    except ValueError:
-        print_error("invalid start position", f"The region start position [yellow bold]({startpos})[/] is not a valid integer.")
-        sys.exit(1)
-    try:
-        endpos = int(endpos)
-    except ValueError:
-        print_error("invalid start position", f"The region end position [yellow bold]({endpos})[/] is not a valid integer.")
-        sys.exit(1)
-
+    # already validated by CLI type checking
+    contig, positions = regioninput.split(":")
+    startpos,endpos,buffer = positions.split("-")
     # check if the region is in the genome
     if contig not in contigs:
         print_error("contig not found", f"The contig [bold yellow]{contig}[/] was not found in [blue]{vcf}[/].")
-        sys.exit(1)
-    if startpos > endpos:
-        print_error("invalid region", f"The region start position [yellow bold]({startpos})[/] must be less than the end position [yellow bold]({endpos})[/].")
         sys.exit(1)
     if endpos > contigs[contig]:
         print_error("invalid region", f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})")

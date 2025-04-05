@@ -301,29 +301,29 @@ def validate_demuxschema(infile:str, return_len: bool = False) -> None | int:
 
 def validate_regions(regioninput: int | str, genome: str) -> str:
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
+    def contig_lens(gen):
+        # read in contigs for length/presence checks
+        contigs = {}
+        with safe_read(gen) as fopen:
+            # get contig lengths
+            for line in fopen:
+                if line.startswith(">"):
+                    cn = line.rstrip("\n").lstrip(">").split()[0]
+                    contigs[cn] = 0
+                else:
+                    contigs[cn] += len(line.rstrip("\n"))
+        return contigs
+
     try:
         # is an int
         region = int(regioninput)
-        if region < 10:
-            print_error("window size too small", "Input for [green bold]--regions[/] was interpreted as an integer to create equal windows to call variants. Integer input for [green bold]--regions[/] must be greater than or equal to [green bold]10[/].")
-            sys.exit(1)
-        else:
-            return "windows"
+        return "windows"
     except ValueError:
-        region = regioninput
-        # is a string
+        pass
+
     # is a file specifying regions
     if os.path.isfile(regioninput):
         with open(regioninput, "r", encoding="utf-8") as fin:
-            # get contig lengths
-            contigs = {}
-            with safe_read(genome) as fopen:
-                for line in fopen:
-                    if line.startswith(">"):
-                        cn = line.rstrip("\n").lstrip(">").split()[0]
-                        contigs[cn] = 0
-                    else:
-                        contigs[cn] += len(line.rstrip("\n"))
             for idx, line in enumerate(fin, 1):
                 row = line.split()
                 if len(row) != 3:
@@ -346,6 +346,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                             )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
+                contigs = contig_lens(genome)
                 if row[0] not in contigs:
                     print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(vcf)}[/]). This is the first row triggering this error, but it may not be the only one.")
                     print_solution(
@@ -372,48 +373,20 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                     sys.exit(1)
 
         return "file"
-    reg = re.split(r"[\:-]", regioninput)
-    if len(reg) == 3:
-        # is a single region, check the types to be [str, int, int]
-        err = ""
-        try:
-            reg[1] = int(reg[1])
-        except:
-            err += f"The region start position [green bold]({reg[1]})[/] is not a valid integer. "
-        try:
-            reg[2] = int(reg[2])
-        except:
-            err += f"The region end position [green bold]({reg[2]})[/] is not a valid integer."
-        if err != "":
-            print_error("invalid region", "Input for [green bold]--regions[/] was interpreted as a single region. " + err)
-            print_solution("If providing a single region to call variants, it should be in the format [yellow bold]contig:start-end[/], where [yellow bold]start[/] and [yellow bold]end[/] are integers. If the input is a file and was incorrectly interpreted as a region, try changing the name to avoid using colons ([yellow bold]:[/]) or dashes ([yellow bold]-[/]).")
-            sys.exit(1)
-        # check if the region is in the genome
-        contigs = {}
-        with safe_read(genome) as fopen:
-            for line in fopen:
-                if line.startswith(">"):
-                    cn = line.rstrip("\n").lstrip(">").split()[0]
-                    contigs[cn] = 0
-                else:
-                    contigs[cn] += len(line.rstrip("\n"))
-        err = ""
-        if reg[0] not in contigs:
-            print_error("contig not found", f"The contig ([bold yellow]{reg[0]})[/]) of the input region [yellow bold]{regioninput}[/] was not found in [blue]{genome}[/].")
-            sys.exit(1)
-        if reg[1] > contigs[reg[0]]:
-            err += f"- start position: [bold yellow]{reg[1]}[/]\n"
-        if reg[2] > contigs[reg[0]]:
-            err += f"- end position: [bold yellow]{reg[2]}[/]"
-        if err != "":
-            print_error("region out of bounds", f"Components of the input region [yellow bold]{regioninput}[/] were not found in [blue]{genome}[/]:\n" + err)
-            sys.exit(1)
-        return "region"
-    # it's none of these and error
-    print_error("file not found", "Input for [green bold]--regions[/] was interpreted as a file and this file was not found.")
-    print_solution(f"Check that the path to [bold]{regioninput}[/] is correct.")
-    sys.exit(1)
 
+    contig,positions = regioninput.split(":")
+    startpos,endpos = [int(i) for i in positions.split("-")]
+    contigs = contig_lens(genome)
+    if contig not in contigs:
+        print_error("contig not found", f"The contig ([bold yellow]{contig}[/]) of the input region [yellow bold]{regioninput}[/] was not found in [blue]{genome}[/].")
+        sys.exit(1)
+    if startpos > contigs[contig]:
+        print_error("region out of bounds", f"The start position ([yellow bold]{startpos}[/]) exceeds the total length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
+        sys.exit(1)
+    if endpos > contigs[contig]:
+        print_error("region out of bounds", f"The end position ([yellow bold]{endpos}[/]) exceeds the total length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
+        sys.exit(1)
+    return "region"
 
 def check_fasta(genofile: str) -> str:
     """perform validations on fasta file for extensions and file contents"""
