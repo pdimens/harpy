@@ -26,7 +26,7 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
     contigs = contigs_from_vcf(vcf)
     # already validated by CLI type checking
     contig, positions = regioninput.split(":")
-    startpos,endpos,buffer = positions.split("-")
+    startpos,endpos,buffer = [int(i) for i in positions.split("-")]
     # check if the region is in the genome
     if contig not in contigs:
         print_error("contig not found", f"The contig [bold yellow]{contig}[/] was not found in [blue]{vcf}[/].")
