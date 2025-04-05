@@ -6,7 +6,7 @@ import yaml
 import shutil
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams, SNPRegion
 from ._cli_types_params import MpileupParams, FreebayesParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
@@ -67,7 +67,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-r', '--regions', type=SNPRegion(), default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -167,7 +167,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-r', '--regions', type=str, default=50000, show_default=True, help = "Regions where to call variants")
+@click.option('-r', '--regions', type=SNPRegion(), default=50000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')

@@ -90,7 +90,7 @@ class SnakemakeParams(click.ParamType):
         return value
 
 class HPCProfile(click.ParamType):
-    """A class for a click type which accepts a directory with a snakemake HPC profile. Does validations to make sure it's the config file not the directory."""
+    """A class for a click type which accepts a file with a snakemake HPC profile. Does validations to make sure it's the config file and not the directory."""
     name = "hpc_profile"
     def convert(self, value, param, ctx):
         if not os.path.exists(value):
@@ -105,4 +105,80 @@ class HPCProfile(click.ParamType):
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
         return value
-    
+
+#TODO remove these checks from the parser
+class SNPRegion(click.ParamType):
+    """A class for a click type which accepts an integer, htslib-style region (chrm:start-end) or file of regions"""
+    name = "snp_region"
+    def convert(self, value, param, ctx):
+        try:
+            # is an int
+            val = int(value)
+            if val < 10:
+                self.fail("Window size must greater than or equal to 10.", param, ctx)
+            else:
+                return value
+        except ValueError:
+            pass
+        if os.path.isfile(value):
+            if not os.access(value, os.R_OK):
+                self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
+            with open(value, "r", encoding="utf-8") as fin:
+                for idx, line in enumerate(fin, 1):
+                    row = line.split()
+                    if len(row) != 3:
+                        self.fail(f"{value} is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
+                    else:
+                        try:
+                            start = int(row[1])
+                            end = int(row[2])
+                        except ValueError:
+                            self.fail(f"{value} is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
+                    if start > end:
+                        self.fail(f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
+            return value
+        try:
+            contig,positions = value.split(":")
+        except ValueError:
+            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `contig` cannot contain colon (:) characters.", param, ctx)
+        try:
+            startpos,endpos = positions.split("-")
+        except ValueError:
+            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `start` and `end` are integers separated by a dash (-).", param, ctx)
+        try:
+            startpos = int(startpos)
+        except ValueError:
+            self.fail(f"The region start position ({startpos}) is not a valid integer.", param, ctx)
+        try:
+            endpos = int(endpos)
+        except ValueError:
+            self.fail(f"The region end position ({endpos}) is not a valid integer.", param, ctx)
+        if startpos > endpos:
+            self.fail(f"The region start position ({startpos}) must be less than the end position ({endpos}).", param, ctx)
+        return value
+
+#TODO finish this
+#TODO remove these checks from the parser
+class ImputeRegion(click.ParamType):
+    """A class for a click type which accepts a region in chrm:start-end-buffer format"""
+    name = "snp_region"
+    def convert(self, value, param, ctx):
+        try:
+            contig,positions = value.split(":")
+        except ValueError:
+            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `contig` cannot contain colon (:) characters.", param, ctx)
+        try:
+            startpos,endpos,buffer = positions.split("-")
+        except ValueError:
+            self.fail(f"{value} must be in the format contig:start-end (without spaces), where `start` and `end` are integers separated by a dash (-).", param, ctx)
+        try:
+            startpos = int(startpos)
+        except ValueError:
+            self.fail(f"The region start position ({startpos}) is not a valid integer.", param, ctx)
+        try:
+            endpos = int(endpos)
+        except ValueError:
+            self.fail(f"The region end position ({endpos}) is not a valid integer.", param, ctx)
+        if startpos > endpos:
+            self.fail(f"The region start position ({startpos}) must be less than the end position ({endpos}).", param, ctx)
+        return value
