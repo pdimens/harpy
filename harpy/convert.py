@@ -8,6 +8,7 @@ from random import sample
 import sys
 import rich_click as click
 import pysam
+from ._misc import safe_read
 from ._printing import print_error
 from ._validations import validate_barcodefile
 #TODO figure out how to strip and then add the 1:N:blahblah
@@ -111,7 +112,7 @@ def convert(from_,to_,fq1,fq2,output,barcodes):
     
     | from/to | barcode format | example |
     |:------|:-------|:--------|
-    |10x    |the first 16bp of R1 | |
+    |10x    |the first N base pairs of R1, given `--barcodes` | |
     |haplotagging | a `BX:Z:ACBD` SAM tag in the sequence header | `@SEQID BX:Z:A01C93B56D11` |
     | standard | a `BX:Z` SAM tag in the sequence header, any style | `@SEQID BX:Z:ATAGCAC_AGGA` |
     | stlfr | `#1_2_3` format appended to the sequence ID | `@SEQID#1_2_3` |
@@ -164,18 +165,9 @@ def convert(from_,to_,fq1,fq2,output,barcodes):
             invalid = "0_0_0"
 
     if from_ == "10x":
-        validate_barcodefile(barcodes, check_dups=False)
-        try:
-            with gzip.open(barcodes, "rt") as b:
-                barcodelist = set(b.readlines())
-        except gzip.BadGzipFile:
-            with open(barcodes, "r") as b:
-                barcodelist = set(b.readlines())
-        except:
-            print_error("unknown format", f"Unable to read {barcodes} as either a text or gzipped file. Please verify that this is a plain-text or gzipped file.")
-            sys.exit(1)
-        # get the length of the first barcode and assume it's the same for all
-        bc_len = len(barcodelist[0])
+        bc_len = validate_barcodefile(barcodes, return_len=True, check_dups=False)
+        with safe_read(barcodes) as b:
+            barcodelist = set(b.readlines())
     else:
         bc_len = 0
 
