@@ -101,11 +101,6 @@ LAST_CONTIG = False
 # MI is the name of the current molecule, starting a 1 (0+1)
 MI = 0
 
-# TODO DEPRECATE
-#if bam_input.lower().endswith(".bam"):
-#    if not os.path.exists(bam_input + ".bai"):
-#        pysam.index(bam_input)
-
 # iniitalize input/output files
 with (
     pysam.AlignmentFile(bam_input) as alnfile,
