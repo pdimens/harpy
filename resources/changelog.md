@@ -6,6 +6,8 @@
 ### Modules
 - `harpy diagnose` to view snakemake's `--debug-diag` output for troubleshooting
 - `harpy template` to create template files (see breaking changes below)
+- `harpy convert` to convert FASTQ files between linked-read formats
+  - supports 10x, haplotagging, stlfr, tellseq
 ### Options
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file

@@ -10,7 +10,7 @@ import rich_click as click
 import pysam
 from ._printing import print_error
 from ._validations import validate_barcodefile
-
+#TODO figure out how to strip and then add the 1:N:blahblah
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):
         self.comment = "\t".join(pysamfq.comment.strip().split())
@@ -49,7 +49,7 @@ class FQRecord():
                 self.barcode = _id.pop(-1)
                 self.id = ":".join(_id)
                 self.valid = "N" not in self.barcode
-        elif bc == "haplotagging":
+        elif bc in ["haplotagging", "standard"]:
             # identify the BX:Z SAM tag and remove it from the comment
             bc = [i for i in self.comment.split() if i.startswith("BX:Z")]
             if len(bc) < 1:
@@ -83,7 +83,7 @@ class FQRecord():
             self.id += f":{BC}"
         elif _type == "stlfr":
             self.id += f"#{BC}"
-        elif _type == "haplotagging":
+        elif _type in ["haplotagging", "standard"]:
             self.comment += f"\tBX:Z:{BC}"
         return self
 
@@ -95,29 +95,33 @@ def compress_fq(fq: str):
 @click.command(epilog = "Documentation: https://pdimens.github.io/harpy/workflows/assembly")
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
-@click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
-@click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
-@click.argument('fq1', type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
-@click.argument('fq2', type = click.Path(exists=True, readable=True, dir_okay=False), required=True, nargs= 1)
+@click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
+@click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
+@click.argument('fq1', metavar="R1_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+@click.argument('fq2', metavar="R2_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required=True, nargs= 1)
 def convert(from_,to_,fq1,fq2,output,barcodes):
     """
     Converts FASTQ files between linked-read data formats
     
-    Takes the positional arguments `FROM` to indicate current data format and `TO` is the
-    target data format. Both of these arguments allow the options: `10x`, `haplotagging`, `stlfr`,
-    and `tellseq`. Input `10x` data requires a `--barcodes` file containing one nucleotide
-    barcode per line to determine which barcodes are valid/invalid. In all cases, a file will
-    be created with the barcode conversion map.
+    Takes the positional arguments `FROM` to indicate input data format and `TO` is the
+    target data format. Both of these arguments allow the formats provided in the table below. `10x`
+    input data requires a `--barcodes` file containing one nucleotide barcode per line to
+    determine which barcodes are valid/invalid. In all cases, a file will be created with
+    the barcode conversion map.
     
-    | input | barcode format | example |
+    | from/to | barcode format | example |
     |:------|:-------|:--------|
     |10x    |the first 16bp of R1 | |
-    |haplotagging | a `BX:Z` SAM tag in the sequence header | `@SEQID BX:Z:A01C93B56D11` |
+    |haplotagging | a `BX:Z:ACBD` SAM tag in the sequence header | `@SEQID BX:Z:A01C93B56D11` |
+    | standard | a `BX:Z` SAM tag in the sequence header, any style | `@SEQID BX:Z:ATAGCAC_AGGA` |
     | stlfr | `#1_2_3` format appended to the sequence ID | `@SEQID#1_2_3` |
     | tellseq | `:ATCG` format appended to the sequence ID | `@SEQID:GGCAAATATCGAGAAGTC` |
     """
+    if from_ == to_:
+        print_error("invalid to/from", "The file formats between [green]TO[/] and [green]FROM[/] must be different from each other.")
+        sys.exit(1)
     if from_ == "10x" and not barcodes:
-        print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x")
+        print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x.")
         sys.exit(1)
     # just make sure it's all lowercase
     from_ = from_.lower()
@@ -149,6 +153,15 @@ def convert(from_,to_,fq1,fq2,output,barcodes):
         invalid = "A00C00B00D00"
         def format_bc(bc):
             return "".join(bc)
+    elif to_ == "standard":
+        if from_ == "10x":
+            invalid = "N" * 16
+        elif from_ == "tellseq":
+            invalid = "N" * 18
+        elif from_ == "haplotagging":
+            invalid = "A00C00B00D00"
+        elif from_ == "stlfr":
+            invalid = "0_0_0"
 
     if from_ == "10x":
         validate_barcodefile(barcodes, check_dups=False)
@@ -187,7 +200,7 @@ def convert(from_,to_,fq1,fq2,output,barcodes):
             # check the inventory for existing barcode match
             if _r1.barcode not in bc_inventory:
                 # if it's just tellseq<->10x, keep the existing nucleotide barcode
-                if from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]:
+                if (from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]) or to_ == "standard":
                     bc_inventory[_r1.barcode] = _r1.barcode
                 else:
                     if _r1.valid:
