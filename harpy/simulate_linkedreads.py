@@ -62,7 +62,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
     if barcodes:
-        bc_len = validate_barcodefile(barcodes, True, quiet)
+        bc_len = validate_barcodefile(barcodes, True, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
     output_dir = output_dir.rstrip("/")

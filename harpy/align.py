@@ -220,7 +220,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     if contigs:
         fasta_contig_match(contigs, reference)
     if barcode_list:
-        validate_barcodefile(barcode_list, False, quiet)
+        validate_barcodefile(barcode_list, False, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
     output_dir = output_dir.rstrip("/")

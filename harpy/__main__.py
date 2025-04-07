@@ -3,6 +3,7 @@
 import rich_click as click
 from . import align
 from . import assembly, metassembly
+from . import convert
 from . import diagnose, resume, view
 from . import deconvolve
 from . import demultiplex
@@ -40,25 +41,26 @@ def cli():
     """
 
 # main program
-cli.add_command(downsample.downsample)
-cli.add_command(view.view)
-cli.add_command(preflight.preflight)
-cli.add_command(demultiplex.demultiplex)
-cli.add_command(qc.qc)
 cli.add_command(align.align)
-cli.add_command(snp.snp)
-cli.add_command(sv.sv)
-cli.add_command(impute.impute)
-cli.add_command(phase.phase)
-cli.add_command(simulate.simulate)
-cli.add_command(resume.resume)
-cli.add_command(deconvolve.deconvolve)
-cli.add_command(metassembly.metassembly)
 cli.add_command(assembly.assembly)
+cli.add_command(convert.convert)
+cli.add_command(deconvolve.deconvolve)
+cli.add_command(demultiplex.demultiplex)
 cli.add_command(diagnose.diagnose)
-cli.add_command(template.template)
+cli.add_command(downsample.downsample)
 cli.add_command(environments.containerize)
 cli.add_command(environments.localenv)
+cli.add_command(impute.impute)
+cli.add_command(metassembly.metassembly)
+cli.add_command(phase.phase)
+cli.add_command(preflight.preflight)
+cli.add_command(qc.qc)
+cli.add_command(resume.resume)
+cli.add_command(simulate.simulate)
+cli.add_command(snp.snp)
+cli.add_command(sv.sv)
+cli.add_command(view.view)
+cli.add_command(template.template)
 
 click.rich_click.COMMAND_GROUPS = {
     "harpy":
@@ -70,7 +72,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Other Commands",
-                "commands": sorted(["deconvolve", "downsample", "template"]),
+                "commands": sorted(["convert","deconvolve", "downsample", "template"]),
                 "panel_styles": {"border_style": "green"}
             },
             {

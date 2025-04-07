@@ -483,9 +483,9 @@ def validate_fastq_bx(fastq_list: list[str], threads: int, quiet: int) -> None:
         for future in as_completed(futures):
             progress.advance(task_progress)
 
-def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60) -> None | int:
+def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60, gzip_ok: bool = True, haplotag_only: bool = False, check_dups: bool = True) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
-    if is_gzip(infile):
+    if is_gzip(infile) and not gzip_ok:
         print_error("incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/] and try again.")
         sys.exit(1)
     lengths = set()
@@ -500,31 +500,32 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
             sys.exit(1)
         return len(barcode)
 
-    with open(infile, "r") as bc_file, harpy_progressbar(quiet) as progress:
+    with safe_read(infile) as bc_file, harpy_progressbar(quiet) as progress:
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         linenum = int(out.partition(b' ')[0])
-        if linenum > 96**4:
+        if linenum > 96**4 and haplotag_only:
             print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/], but there are [yellow]{linenum}[/] barcodes in [blue]{infile}[/]. Please use fewer barcodes.")
             sys.exit(1)
         task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
         # check for duplicates
-        sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
-        dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
-        if dup_out.stdout:
-            print_error("duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
-            print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
-            click.echo(dup_out.stdout, file = sys.stderr)
-            sys.exit(1)
-        for line,bc in enumerate(bc_file):
-            length = validate(line + 1, bc)
+        if check_dups:
+            sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
+            dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
+            if dup_out.stdout:
+                print_error("duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.")
+                print_solution_with_culprits("Check that you remove duplicate barcodes from your input file.", "Duplicates identified:")
+                click.echo(dup_out.stdout, file = sys.stderr)
+                sys.exit(1)
+        for line,bc in enumerate(bc_file, 1):
+            length = validate(line, bc)
             if length > limit:
                 print_error("barcodes too long", f"Barcodes in [blue]{infile}[/] are [yellow]{length}bp[/] and cannot exceed a length of [bold]{limit}bp[/]. Please use shorter barcodes.")
                 sys.exit(1)
             lengths.add(length)
+            if len(lengths) > 1:
+                print_error("inconsistent length", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/]")
+                sys.exit(1)
             progress.advance(task_progress)
-    if len(lengths) > 1:
-        print_error("incorrect format", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/]")
-        sys.exit(1)
     if return_len:
         return lengths.pop()
 
