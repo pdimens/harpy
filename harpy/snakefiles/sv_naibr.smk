@@ -236,7 +236,7 @@ rule workflow_summary:
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
-        os.system(f"rm -rf {outdir}/naibrlog")
+        os.system(f"rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
         naibr = "naibr variant calling ran using these configurations:\n"
