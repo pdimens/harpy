@@ -7,7 +7,8 @@
 - `harpy diagnose` to view snakemake's `--debug-diag` output for troubleshooting
 - `harpy template` to create template files (see breaking changes below)
 - `harpy convert` to convert FASTQ files between linked-read formats
-  - supports 10x, haplotagging, stlfr, tellseq
+  - supports 10x, haplotagging, stlfr, tellseq, and "standard"
+  - `standard` introduces the option to have the barcode in the BX:Z tag (like haplotagging), but encoded in the original barcode format (e.g. stlfr in standard format would be `@SEQID BX:Z:1_2_3`)
 ### Options
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
