@@ -3,7 +3,6 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
@@ -126,7 +125,7 @@ docstring = {
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -202,13 +201,13 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             "only_vcf" : only_vcf,
         },
         "snp" : {
-            **({"vcf" : Path(snp_vcf).resolve().as_posix()} if snp_vcf else {}),
+            **({"vcf" : snp_vcf} if snp_vcf else {}),
             **({'count': snp_count} if snp_count and not snp_vcf else {}),
             **({"gene_constraints":  snp_gene_constraints} if snp_gene_constraints and not snp_vcf else {}),
             **({"titv_ratio" : titv_ratio} if titv_ratio and not snp_vcf else {})
         },
         "indel" : {
-            **({"vcf" : Path(indel_vcf).resolve().as_posix()} if indel_vcf else {}),
+            **({"vcf" : indel_vcf} if indel_vcf else {}),
             **({"count" : indel_count} if indel_count and not indel_vcf else {}),
             **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {}),
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
@@ -217,10 +216,10 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -234,7 +233,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         ("SNP File:", os.path.basename(snp_vcf)) if snp_vcf else None,
         ("Random SNPs:", snp_count) if snp_count > 0 else None,
         ("Indel File:", os.path.basename(indel_vcf)) if indel_vcf else None,
-        ("Random Indels:", f"{indel_count}") if indel_count else None,
+        ("Random Indels:", indel_count) if indel_count else None,
         ("Centromere GFF:", os.path.basename(centromeres)) if centromeres else None,
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
@@ -245,14 +244,14 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum inversion size (bp)")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
@@ -314,7 +313,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             "only_vcf" : only_vcf,
         },
         "inversion" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {}),
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {})
@@ -322,10 +321,10 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -348,7 +347,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known copy number variants to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum variant size (bp)")
@@ -359,7 +358,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -427,7 +426,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             "only_vcf" : only_vcf,
         },
         "cnv" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {}),
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {}),
@@ -438,10 +437,10 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -463,13 +462,13 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -530,16 +529,16 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
             "only_vcf" : only_vcf
         },
         "translocation" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {})
         },
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 

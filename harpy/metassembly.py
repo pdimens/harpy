@@ -10,6 +10,7 @@ from ._launch import launch_snakemake
 from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
+from ._misc import filepath
 from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
@@ -45,8 +46,8 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
     Create a metassembly from linked-reads

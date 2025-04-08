@@ -5,7 +5,6 @@ import re
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake
@@ -37,7 +36,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False), nargs=-1)
+@click.argument('input', required=True, type=click.Path(exists=True, readable=True, dir_okay=False, resolve_path=True), nargs=-1)
 def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc, setup_only, snakemake, threads, quiet):
     """
     Downsample data by barcode
@@ -94,7 +93,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
         "snakemake_command" : command.rstrip(),
-        "inputs": [Path(i).resolve().as_posix() for i in input]
+        "inputs": input
     }
 
     write_workflow_config(configs, workflowdir)

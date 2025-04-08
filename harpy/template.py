@@ -73,7 +73,7 @@ def groupings(inputdir, output):
            sys.exit(1)
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-    rprint(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[blue]\n", file = sys.stderr)
+    rprint(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[/]\n", file = sys.stderr)
     if os.path.exists(output):
         overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
         if overwrite not in ["yes", "y"]:

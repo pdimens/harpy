@@ -4,7 +4,6 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
@@ -75,7 +74,7 @@ docstring = {
 @click.option('-s', '--sharing-thresholds', type = click.IntRange(0,100, clamp = True), default = (95,95,95), nargs = 3, show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
+@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
@@ -85,7 +84,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
@@ -148,9 +147,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference" : Path(reference).resolve().as_posix(),
-            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
-            "alignments" : [i.as_posix() for i in bamlist]
+            "reference" : reference,
+            **({'groupings': populations} if populations else {}),
+            "alignments" : bamlist
         }
     }
 
@@ -161,8 +160,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
     start_text = workflow_info(
         ("Samples:", n),
-        ("Reference:", reference),
-        ("Sample Pooling:", populations if populations else "no"),
+        ("Reference:", os.path.basename(reference)),
+        ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
@@ -250,10 +249,10 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            **({'reference': Path(reference).resolve().as_posix()} if reference else {}),
-            **({'vcf': Path(vcf).resolve().as_posix()} if vcf else {}),
-            **({'groupings': Path(populations).resolve().as_posix()} if populations else {}),
-            "alignments" : [i.as_posix() for i in bamlist]
+            **({'reference': reference} if reference else {}),
+            **({'vcf': vcf} if vcf else {}),
+            **({'groupings': populations} if populations else {}),
+            "alignments" : bamlist
         }
     }
 
@@ -264,8 +263,8 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     start_text = workflow_info(
         ("Samples:", n),
-        ("Reference:", reference),
-        ("Sample Pooling:", populations if populations else "no"),
+        ("Reference:", os.path.basename(reference)),
+        ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")

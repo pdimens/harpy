@@ -47,7 +47,7 @@ docstring = {
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged BAM files
@@ -88,7 +88,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
-        "inputs" : [i.as_posix() for i in bamlist]
+        "inputs" : bamlist
     }
 
     write_workflow_config(configs, output_dir)
@@ -111,7 +111,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable = True, resolve_path=True), nargs=-1)
 def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged FASTQ files.
@@ -152,7 +152,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
-        "inputs" : [i.as_posix() for i in fqlist]
+        "inputs" : fqlist
     }
 
     write_workflow_config(configs, output_dir)

@@ -25,7 +25,7 @@ docstring = {
             "name": "Workflow Options",
             "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
             "panel_styles": {"border_style": "dim"}
-        },     
+        }
     ]
 }
 
@@ -46,7 +46,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('vcf', required = True, type = InputFile("vcf", gzip_ok = False), nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
@@ -105,7 +105,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         "inputs" : {
             "variantfile" : vcf,
             **({'reference': reference} if reference else {}),
-            "alignments" : [i.as_posix() for i in bamlist]
+            "alignments" : bamlist
         }
     }
 
@@ -115,11 +115,11 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Input VCF:", vcf),
+        ("Input VCF:", os.path.basename(vcf)),
         ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
         ("Phase Indels:", "yes" if reference else "no"),
-        ("Reference:", reference) if reference else None,
+        ("Reference:", os.path.basename(reference)) if reference else None,
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

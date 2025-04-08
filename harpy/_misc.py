@@ -45,6 +45,10 @@ def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
         disable = quiet == 2
     )
 
+def filepath(infile):
+    """returns a posix-formatted absolute path of infile"""
+    return Path(infile).resolve().as_posix()
+
 def symlink(original: str, destination: str) -> None:
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
@@ -152,9 +156,9 @@ def write_snakemake_config(sdm, outdir):
         "rerun-triggers": ["mtime", "params"],
         "nolock": True,
         "software-deployment-method": sdm,
-        "conda-prefix": Path("./.environments").resolve().as_posix(),
+        "conda-prefix": filepath("./.environments"),
         "conda-cleanup-pkgs": "cache",
-        "apptainer-prefix": Path("./.environments").resolve().as_posix(),
+        "apptainer-prefix": filepath("./.environments"),
         "directory": outdir
     }
     workdir = os.path.join(outdir, "workflow")
@@ -171,5 +175,5 @@ def write_workflow_config(configs, outdir):
     workdir = f"{outdir}/workflow"
     if not os.path.exists(workdir):
         os.makedirs(workdir, exist_ok=True)
-    with open(os.path.join(workdir, f'config.harpy.yaml'), "w", encoding="utf-8") as config:
+    with open(os.path.join(workdir, 'config.harpy.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))

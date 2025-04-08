@@ -3,7 +3,6 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
@@ -28,7 +27,7 @@ docstring = {
 }
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
-@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True), help = "File of linked-read barcodes to add to reads")
+@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1, max = 4700), default = 10, show_default=True,  help = "Average number of molecules per partition")
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
@@ -98,12 +97,12 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         'barcodes': {
-            "file": Path(barcodes).resolve().as_posix() if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
+            "file": barcodes if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
             "length": bc_len if barcodes else 24
         },
         "inputs" : {
-            "genome_hap1" : Path(genome_hap1).resolve().as_posix(),
-            "genome_hap2" : Path(genome_hap2).resolve().as_posix(),
+            "genome_hap1" : genome_hap1,
+            "genome_hap2" : genome_hap2,
         }
     }
 

@@ -5,7 +5,6 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from pathlib import Path
 from ._cli_types_generic import convert_to_int, KParam, HPCProfile, SnakemakeParams
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
@@ -61,8 +60,8 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
     """
     Create an assembly from linked-reads
@@ -124,8 +123,8 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "organism_type": organism_type
         },
         "inputs": {
-            "fastq_r1" : Path(fastq_r1).resolve().as_posix(),
-            "fastq_r2" : Path(fastq_r2).resolve().as_posix()
+            "fastq_r1" : fastq_r1,
+            "fastq_r2" : fastq_r2
         }
     }
 

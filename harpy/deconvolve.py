@@ -39,7 +39,7 @@ docstring = {
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Resolve barcode sharing in unrelated molecules
@@ -80,7 +80,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         "dropout" :  dropout,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
-        "inputs": [i.as_posix() for i in fqlist]
+        "inputs": fqlist
     }
 
     write_workflow_config(configs, output_dir)

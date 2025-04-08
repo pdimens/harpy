@@ -10,6 +10,7 @@ from ._launch import launch_snakemake
 from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._cli_types_params import FastpParams
+from ._misc import filepath
 from ._parsers import parse_fastq_inputs
 from ._printing import workflow_info
 from ._validations import check_fasta
@@ -45,7 +46,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Remove adapters and quality-control sequences
@@ -75,6 +76,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             if not os.access(trim_adapters, os.R_OK):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
             check_fasta(trim_adapters)
+            trim_adapters = filepath(trim_adapters)
     else:
         trim_adapters = False
 
@@ -114,7 +116,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
-        "inputs" : [i.as_posix() for i in fqlist]
+        "inputs" : fqlist
     }
     write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)

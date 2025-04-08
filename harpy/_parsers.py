@@ -8,6 +8,7 @@ from typing import Tuple
 from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
+from ._misc import filepath
 from ._printing import print_error, print_solution_with_culprits
 
 def getnames(directory: str, ext: str) -> list[str]:
@@ -47,10 +48,10 @@ def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re.search(re_ext, j):
-                    infiles.append(Path(os.path.join(i, j)).resolve())
+                    infiles.append(filepath(os.path.join(i, j)))
         else:
             if re.search(re_ext, i):
-                infiles.append(Path(i).resolve())
+                infiles.append(filepath(i))
     if len(infiles) < 1:
         print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/]")
         sys.exit(1)
@@ -97,14 +98,14 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re_bam.match(j):
-                    bam_infiles.append(Path(os.path.join(i, j)).resolve())
+                    bam_infiles.append(filepath(os.path.join(i, j)))
                 elif re_bai.match(j):
-                    bai_infiles.append(Path(os.path.join(i, j)).resolve())
+                    bai_infiles.append(filepath(os.path.join(i, j)))
         else:
             if re_bam.match(i):
-                bam_infiles.append(Path(i).resolve())
+                bam_infiles.append(filepath(i))
             elif re_bai.match(i):
-                bai_infiles.append(Path(i).resolve())
+                bai_infiles.append(filepath(i))
     if len(bam_infiles) < 1:
         print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/] or [blue].sam[/] extensions.")
         sys.exit(1)
@@ -168,7 +169,7 @@ def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
         sys.exit(1)
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
-    return f"{workdir}/{vbn}.biallelic", valid, len(valid)
+    return filepath(f"{workdir}/{vbn}.biallelic"), valid, len(valid)
 
 def contigs_from_vcf(vcf: str) -> dict:
     """reads the header of a vcf/bcf file and returns a dict of the contigs (keys) and their lengths (values)"""

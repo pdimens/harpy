@@ -4,13 +4,13 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
+from ._misc import filepath
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice, workflow_info
 from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
@@ -96,7 +96,7 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using BWA MEM
@@ -152,8 +152,8 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference": Path(reference).resolve().as_posix(),
-            "fastq": [i.as_posix() for i in fqlist]
+            "reference": reference,
+            "fastq": fqlist
         }
     }
 
@@ -164,7 +164,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Reference:", reference),
+        ("Reference:", os.path.basename(reference)),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
@@ -180,7 +180,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--platform', type = click.Choice(['haplotagging', '10x'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read bead technology\n[haplotagging, 10x]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False), help = "File of known barcodes for 10x linked reads")
+@click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False, resolve_path=True), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -189,7 +189,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density, depth_window, keep_unmapped, threads, ema_bins, skip_reports, extra_params, min_quality, snakemake, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using EMA
@@ -260,9 +260,9 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference": Path(reference).resolve().as_posix(),
-            **({'barcode_list': Path(barcode_list).resolve().as_posix()} if barcode_list else {}),
-            "fastq": [i.as_posix() for i in fqlist]
+            "reference": reference,
+            **({'barcode_list': barcode_list} if barcode_list else {}),
+            "fastq": fqlist
         }
     }
 
@@ -273,7 +273,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Reference:", reference),
+        ("Reference:", os.path.basename(reference)),
         ("Platform:", platform),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
@@ -297,8 +297,8 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, resolve_path=True, nargs = 1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using strobealign
@@ -358,8 +358,8 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference": Path(reference).resolve().as_posix(),
-            "fastq": [i.as_posix() for i in fqlist]
+            "reference": reference,
+            "fastq": fqlist
         }
     }
 
@@ -370,7 +370,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
 
     start_text = workflow_info(
         ("Samples:",sample_count),
-        ("Reference:", reference),
+        ("Reference:", os.path.basename(reference)),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

@@ -3,6 +3,7 @@
 import os
 import yaml
 import click
+from pathlib import Path
 
 def convert_to_int(ctx, param, value):
     # This function converts the string choice to an integer
@@ -41,7 +42,7 @@ class ContigList(click.ParamType):
             return list(set(i.strip() for i in value.split(',')))
 
 class InputFile(click.ParamType):
-    """A class for a click type that verifies that a file exists and that it has an expected extension"""
+    """A class for a click type that verifies that a file exists and that it has an expected extension. Returns the absolute path"""
     name = "input_file"
     def __init__(self, filetype, gzip_ok):
         super().__init__()
@@ -71,7 +72,7 @@ class InputFile(click.ParamType):
                 self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
         if not valid and self.gzip_ok:
             self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
-        return value
+        return Path(value).resolve().as_posix()
 
 class SnakemakeParams(click.ParamType):
     """A class for a click type which accepts snakemake parameters. Does validations to make sure there isn't doubling up."""
@@ -135,7 +136,7 @@ class SNPRegion(click.ParamType):
                             self.fail(f"{value} is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
                     if start > end:
                         self.fail(f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
-            return value
+            return Path(value).resolve().as_posix()
         try:
             contig,positions = value.split(":")
         except ValueError:

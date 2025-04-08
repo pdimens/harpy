@@ -4,7 +4,6 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
@@ -43,7 +42,7 @@ docstring = {
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-u', '--keep-unknown',  is_flag = True, default = False, help = 'Keep reads that could not be demultiplexed')
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
-@click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`barcode`')
+@click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -52,10 +51,10 @@ docstring = {
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-@click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-@click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
-@click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True))
+@click.argument('R1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
@@ -99,11 +98,11 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
             "skip": skip_reports
         },
         "inputs" : {
-            "demultiplex_schema" : Path(schema).resolve().as_posix(),
-            "R1": Path(r1_fq).resolve().as_posix(),
-            "R2": Path(r2_fq).resolve().as_posix(),
-            "I1": Path(i1_fq).resolve().as_posix(),
-            "I2": Path(i2_fq).resolve().as_posix()
+            "demultiplex_schema" : schema,
+            "R1": r1_fq,
+            "R2": r2_fq,
+            "I1": i1_fq,
+            "I2": i2_fq
         }
     }
     
@@ -114,7 +113,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     
     start_text = workflow_info(
         ("Barcode Design:", "Generation I"),
-        ("Demultiplex Schema:", schema),
+        ("Demultiplex Schema:", os.path.basename(schema)),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")

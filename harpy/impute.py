@@ -4,13 +4,12 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
 from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -42,9 +41,9 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
-@click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True), nargs=1)
-@click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False), nargs=1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
+@click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False, resolve_path=True), nargs=1)
+@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
@@ -107,10 +106,10 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         "reports" : {"skip": skip_reports},
         "stitch_parameters" : params,
         "inputs" : {
-            "paramfile" : Path(parameters).resolve().as_posix(),
-            "variantfile" : Path(vcf).resolve().as_posix(),
-            **({"biallelic_contigs" : Path(biallelic_file).resolve().as_posix()} if not region else {}), 
-            "alignments" : [i.as_posix() for i in bamlist]
+            "paramfile" : parameters,
+            "variantfile" : vcf,
+            **({"biallelic_contigs" : biallelic_file} if not region else {}), 
+            "alignments" : bamlist
         }
     }
 
@@ -120,10 +119,10 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Input VCF:", vcf),
+        ("Input VCF:", os.path.basename(vcf)),
         ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
-        ("Parameter File:", parameters),
+        ("Parameter File:", os.path.basename(parameters)),
         ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
         ("Output Folder:", output_dir + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
