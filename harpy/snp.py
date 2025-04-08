@@ -93,6 +93,8 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
@@ -111,8 +113,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         validate_popsamples(bamlist, populations, quiet)
 
     ## workflow setup ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_mpileup.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -193,6 +193,8 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
+    output_dir = output_dir.rstrip("/")
+    workflowdir = os.path.join(output_dir, 'workflow')
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
@@ -212,8 +214,6 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         validate_popsamples(bamlist, populations,quiet)
 
     ## workflow setup ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/snp_freebayes.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"

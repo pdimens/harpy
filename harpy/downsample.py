@@ -71,7 +71,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    write_snakemake_config("conda", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:

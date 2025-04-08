@@ -42,7 +42,7 @@ rule interleave:
 
 rule deconvolve:
     input:
-        "/workflow/input/{sample}.fastq"
+        "workflow/input/{sample}.fastq"
     output:
         temp("{sample}.fastq")
     log:

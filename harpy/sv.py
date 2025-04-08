@@ -202,7 +202,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    ## checks and valiations ##
+    ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(reference)
     if contigs:
@@ -218,7 +218,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflowdir = os.path.join(output_dir, 'workflow')
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf else ""
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"

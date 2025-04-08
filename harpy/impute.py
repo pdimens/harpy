@@ -109,7 +109,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         "inputs" : {
             "paramfile" : Path(parameters).resolve().as_posix(),
             "variantfile" : Path(vcf).resolve().as_posix(),
-            **({"biallelic_contigs" : Path(biallelic).resolve().as_posix()} if not region else {}), 
+            **({"biallelic_contigs" : Path(biallelic_file).resolve().as_posix()} if not region else {}), 
             "alignments" : [i.as_posix() for i in bamlist]
         }
     }

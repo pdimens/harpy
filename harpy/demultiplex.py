@@ -9,7 +9,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config
+from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -66,11 +66,14 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
+    ## checks and validations ##
+    validate_demuxschema(schema, return_len = False)
+
+    ## setup workflow ##
     output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/demultiplex_gen1.smk"
+    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/demultiplex_gen1.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
@@ -79,12 +82,9 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     if snakemake:
         command += f" {snakemake}"
 
-    validate_demuxschema(schema, return_len = False)
-    os.makedirs(workflowdir, exist_ok=True)
-    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding="utf-8") as sm_config:
-        yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")
+
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
     sm_log = snakemake_log(output_dir, "demultiplex_gen1")
     conda_envs = ["demultiplex", "qc"]
@@ -106,10 +106,9 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
             "I2": Path(i2_fq).resolve().as_posix()
         }
     }
-    with open(os.path.join(workflowdir, 'workflow.yaml'), "w", encoding= "utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
-        create_conda_recipes(output_dir, conda_envs)
+    
+    write_workflow_config(configs, output_dir)
+    create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
     

@@ -7,7 +7,6 @@ import logging
 from pathlib import Path
 from itertools import product
 
-outdir   = config["output_directory"]
 envdir   = os.path.join(os.getcwd(), "workflow", "envs")
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
@@ -113,10 +112,10 @@ rule create_molecules:
         "logs/linked_molecules.log"
     params:
         haplosim = "workflow/scripts/HaploSim.pl",
-        reads_in = f"-a {outdir}/dwgsim/sim_reads.0.12.fastq,{outdir}/dwgsim/sim_reads.1.12.fastq",
-        fai_in   = f"-g {outdir}/workflow/input/hap.0.fasta.fai,{outdir}/workflow/input/hap.1.fasta.fai",
+        reads_in = f"-a dwgsim/sim_reads.0.12.fastq,dwgsim/sim_reads.1.12.fastq",
+        fai_in   = f"-g workflow/input/hap.0.fasta.fai,workflow/input/hap.1.fasta.fai",
         bccodes  = f"-b {barcode_file}",
-        proj_dir = f"-p {outdir}/linked_molecules/lrsim",
+        proj_dir = f"-p linked_molecules/lrsim",
         outdist  = f"-i {config['outer_distance']}",
         dist_sd  = f"-s {config['distance_sd']}",
         n_pairs  = f"-x {config['read_pairs']}",

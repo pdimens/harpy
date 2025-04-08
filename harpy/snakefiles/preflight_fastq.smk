@@ -31,7 +31,7 @@ rule check_forward:
     input:
         get_fq1
     output:
-        temp(outdir + "/{sample}.F.log")
+        temp("{sample}.F.log")
     container:
         None
     shell: 
@@ -41,7 +41,7 @@ rule check_reverse:
     input:
         get_fq2
     output:
-        temp(outdir + "/{sample}.R.log")
+        temp("{sample}.R.log")
     container:
         None
     shell: 
@@ -49,9 +49,9 @@ rule check_reverse:
 
 rule concat_results:
     input:
-        collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
+        collect("{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        outdir + "/filecheck.fastq.tsv"
+        "filecheck.fastq.tsv"
     container:
         None
     shell:
@@ -95,7 +95,7 @@ rule create_report:
 rule workflow_summary:
     default_target: True
     input:
-        outdir + "/filecheck.fastq.html"
+        "filecheck.fastq.html"
     run:
         summary = ["The harpy preflight fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
@@ -104,5 +104,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:
+        with open("workflow/preflight.fastq.summary", "w") as f:
             f.write("\n\n".join(summary))

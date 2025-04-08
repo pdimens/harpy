@@ -85,7 +85,7 @@ jobs:
         id: rebuild
         if: ${{ needs.changes.outputs.environments == 'true' }}
         shell: micromamba-shell {0}
-        run: harpy environmentsize
+        run: harpy containerize
       - name: Set up Docker Buildx
         id: buildx
         if: ${{ steps.rebuild.outcome == 'success' }}
@@ -552,17 +552,17 @@ jobs:
 #          path: .snakemake/singularity
       - name: phase
         shell: micromamba-shell {0}
-        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf  -x "--max_iter 10001" test/bam
+        run: harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
-        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf -o phaseindel -r test/genome/genome.fasta.gz test/bam
+        run: harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam.py -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -o phasevcf --vcf test/vcf/test.bcf  test/bam
+          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam
 
   leviathan:
     needs: [changes]
@@ -600,12 +600,12 @@ jobs:
 #          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
+        run: harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
+        run: harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
 
   naibr:
     needs: [changes]
@@ -927,15 +927,17 @@ jobs:
           rm -rf convert_standard
       - name: convert 10x to standard
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/standard -b convert/10x.bc 10x standard convert/10x*gz
+        run: |
+          cut -f1 convert/10x.bc > 10x.barcodes
+          harpy convert --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
       - name: convert 10x to haplotagging
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/haptag -b convert/10x.bc 10x haplotagging convert/10x*gz
+        run: harpy convert --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
       - name: convert 10x to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/tellseq -b convert/10x.bc 10x tellseq convert/10x*gz
+        run: harpy convert --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
       - name: convert 10x to stlfr
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_10x/stlfr -b convert/10x.bc 10x stlfr convert/10x*gz
+          harpy convert --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
           rm -rf convert_10x

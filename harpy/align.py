@@ -281,7 +281,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
 @click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
-@click.option('-w', '--depth-windows', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
+@click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')

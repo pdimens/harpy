@@ -15,7 +15,6 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
-SNAKEMAKE_CMD = True
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
