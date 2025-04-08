@@ -5,6 +5,7 @@ import sys
 import yaml
 import shutil
 import rich_click as click
+from pathlib import Path
 from ._cli_types_generic import convert_to_int, KParam, HPCProfile, SnakemakeParams
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
@@ -123,8 +124,8 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "organism_type": organism_type
         },
         "inputs": {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
+            "fastq_r1" : Path(fastq_r1).resolve().as_posix(),
+            "fastq_r2" : Path(fastq_r2).resolve().as_posix()
         }
     }
 
