@@ -66,7 +66,7 @@ click.rich_click.COMMAND_GROUPS = {
     "harpy":
         [
             {
-                "name": "Workflows",
+                "name": "Data Processing",
                 "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"]),
                 "panel_styles": {"border_style": "blue"}
             },

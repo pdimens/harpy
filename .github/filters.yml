@@ -168,6 +168,9 @@ other: &other
   - 'harpy/template.py'
   - 'harpy/hpc.py'
   - 'harpy/downsample.py'
+convert: &convert
+  - *common
+  - 'harpy/convert.py'
 modules:
   - *common
   - *demux
@@ -187,3 +190,4 @@ modules:
   - *simreads
   - *assembly
   - *other
+  - *convert
