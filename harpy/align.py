@@ -178,7 +178,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--platform', type = click.Choice(['haplotag', '10x'], case_sensitive=False), default = "haplotag", show_default=True, help = "Linked read bead technology\n[haplotag, 10x]")
+@click.option('-p', '--platform', type = click.Choice(['haplotagging', '10x'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read bead technology\n[haplotagging, 10x]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -213,8 +213,8 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         else:
             print_solution("Running EMA requires TELLseq barcodes provided to [green]--barcode-list[/]. They can be acquired from the TELL-read software [dim]https://www.illumina.com/products/by-type/informatics-products/basespace-sequence-hub/apps/universal-sequencing-tell-seq-data-analysis-pipeline.html[/dim]")
         sys.exit(1)
-    if platform == "haplotag" and barcode_list and not quiet:
-        print_notice("Haplotag data does not require a barcode list and the file provided to [green]--barcode-list[/] will be ignored.")
+    if platform == "haplotagging" and barcode_list and not quiet:
+        print_notice("Haplotagging data does not require a barcode list and the file provided to [green]--barcode-list[/] will be ignored.")
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(reference)
     if contigs:
