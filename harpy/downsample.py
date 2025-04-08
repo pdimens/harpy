@@ -97,7 +97,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         "inputs": [Path(i).resolve().as_posix() for i in input]
     }
 
-    write_workflow_config(conrigs, workflowdir)
+    write_workflow_config(configs, workflowdir)
     if setup_only:
         sys.exit(0)
 
