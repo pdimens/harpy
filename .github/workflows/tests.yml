@@ -600,12 +600,12 @@ jobs:
 #          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
+        run: harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
         continue-on-error: true
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
+        run: harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
 
   naibr:
     needs: [changes]
