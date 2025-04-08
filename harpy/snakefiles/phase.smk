@@ -66,7 +66,7 @@ rule extract_het:
     input: 
         vcf = variantfile
     output:
-        workflowdir + "/input/vcf/{sample}.het.vcf"
+        "worklfow/input/vcf/{sample}.het.vcf"
     container:
         None
     shell:
@@ -78,7 +78,7 @@ rule extract_hom:
     input: 
         vcf = variantfile
     output:
-        workflowdir + "/input/vcf/{sample}.hom.vcf"
+        "worklfow/input/vcf/{sample}.hom.vcf"
     container:
         None
     shell:
@@ -121,7 +121,7 @@ if indels:
 
 rule extract_hairs:
     input:
-        vcf = workflowdir + "/input/vcf/{sample}.het.vcf",
+        vcf = "worklfow/input/vcf/{sample}.het.vcf",
         bam = get_alignments,
         bai = get_align_index,
         geno = geno,
@@ -141,7 +141,7 @@ rule extract_hairs:
 rule link_fragments:
     input: 
         bam       = get_alignments,
-        vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
+        vcf       = "worklfow/input/vcf/{sample}.het.vcf",
         fragments = "extract_hairs/{sample}.unlinked.frags"
     output:
         "link_fragments/{sample}.linked.frags"
@@ -156,7 +156,7 @@ rule link_fragments:
 
 rule phase:
     input:
-        vcf       = workflowdir + "/input/vcf/{sample}.het.vcf",
+        vcf       = "worklfow/input/vcf/{sample}.het.vcf",
         fragments = fragfile
     output: 
         blocks    = "phase_blocks/{sample}.blocks",
@@ -184,15 +184,15 @@ rule compress_phaseblock:
 
 use rule compress_phaseblock as compress_vcf with:
     input:
-        workflowdir + "/input/vcf/{sample}.hom.vcf"
+        "worklfow/input/vcf/{sample}.hom.vcf"
     output:
-        workflowdir + "/input/gzvcf/{sample}.hom.vcf.gz"
+        "worklfow/input/gzvcf/{sample}.hom.vcf.gz"
 
 rule merge_het_hom:
     priority: 100
     input:
         phase = "phase_blocks/{sample}.phased.vcf.gz",
-        orig  = workflowdir + "/input/gzvcf/{sample}.hom.vcf.gz"
+        orig  = "worklfow/input/gzvcf/{sample}.hom.vcf.gz"
     output:
         bcf = "phased_samples/{sample}.phased.annot.bcf",
         idx = "phased_samples/{sample}.phased.annot.bcf.csi"
