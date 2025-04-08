@@ -104,7 +104,7 @@ rule demultiplex:
     log:
         "logs/demultiplex.{{part}}.log"
     params:
-        outdir = outdir,
+        outdir = os.getcwd(),
         qxrx = config["include_qx_rx_tags"],
         keep_unknown = keep_unknown,
         part = lambda wc: wc.get("part")

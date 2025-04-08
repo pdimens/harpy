@@ -13,7 +13,8 @@ wildcard_constraints:
 nbins 		= config["EMA_bins"]
 binrange    = ["%03d" % i for i in range(nbins)]
 fqlist       = config["inputs"]["fastq"]
-platform    = config["platform"]
+lr_platform    = config["platform"]
+lr_platform = "haplotag" if lr_platform == "haplotagging" else lr_platform
 frag_opt    = config["fragment_density_optimization"]
 barcode_list   = config["inputs"].get("barcode_list", "") 
 extra 		= config.get("extra", "") 
@@ -113,7 +114,7 @@ rule ema_count:
         logs   = temp("logs/count/{sample}.count")
     params:
         prefix = lambda wc: "ema_count/" + wc.get("sample"),
-        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}"
+        beadtech = "-p" if lr_platform == "haplotag" else f"-w {barcode_list}"
     conda:
         f"{envdir}/align.yaml"
     shell:
@@ -134,7 +135,7 @@ rule ema_preprocess:
         "logs/ema_preproc/{sample}.preproc.log"
     params:
         outdir = lambda wc: "ema_preproc/" + wc.get("sample"),
-        bxtype = "-p" if platform == "haplotag" else f"-w {barcode_list}",
+        bxtype = "-p" if lr_platform == "haplotag" else f"-w {barcode_list}",
         bins   = nbins
     threads:
         2
@@ -163,7 +164,7 @@ rule align_ema:
         mem_mb = 500
     params:
         RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        bxtype = f"-p {platform}",
+        bxtype = f"-p {lr_platform}",
         tmpdir = lambda wc: "." + d[wc.sample],
         frag_opt = "-d" if frag_opt else "",
         quality = config["alignment_quality"],
@@ -406,7 +407,7 @@ rule workflow_summary:
         agg_report = f"reports/ema.stats.html" if not skip_reports else [],
         bx_report = "reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
     params:
-        beadtech = "-p" if platform == "haplotag" else f"-w {barcode_list}",
+        beadtech = "-p" if lr_platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4",
         frag_opt = "-d" if frag_opt else ""
     run:
@@ -419,7 +420,7 @@ rule workflow_summary:
         bins += f"\tseqtk mergepe forward.fq.gz reverse.fq.gz | ema preproc {params.beadtech} -n {nbins}"
         summary.append(bins)
         ema_align = "Barcoded bins were aligned with ema align using:\n"
-        ema_align += f'\tema align {extra} {params.frag_opt} -p {platform} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" |\n'
+        ema_align += f'\tema align {extra} {params.frag_opt} -p {lr_platform} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" |\n'
         ema_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]} - |\n"
         ema_align += "\tsamtools sort --reference genome"
         summary.append(ema_align)
