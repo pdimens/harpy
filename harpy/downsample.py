@@ -83,8 +83,8 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
 
     os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
 
-    fetch_rule(workflowdir, f"{workflow}.smk")
-    sm_log = snakemake_log(output_dir, workflow)
+    fetch_rule(workflowdir, "downsample.smk")
+    sm_log = snakemake_log(output_dir, "downsample")
 
     configs = {
         "workflow": "downsample",

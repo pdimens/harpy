@@ -928,7 +928,7 @@ jobs:
       - name: convert 10x to standard
         shell: micromamba-shell {0}
         run: |
-          cut -f1 convert/10x.bc > 10x.barcodes
+          cut -f2 convert/10x.bc > 10x.barcodes
           harpy convert --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
       - name: convert 10x to haplotagging
         shell: micromamba-shell {0}
