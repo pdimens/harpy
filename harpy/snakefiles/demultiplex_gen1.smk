@@ -100,7 +100,7 @@ rule demultiplex:
         schema = samplefile
     output:
         temp(collect("{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
-        bx_info = temp("logs/part.{{part}}.barcodes")
+        bx_info = temp("logs/part.{part}.barcodes")
     log:
         "logs/demultiplex.{{part}}.log"
     params:
@@ -132,8 +132,7 @@ rule merge_barcode_logs:
         concat = temp("logs/barcodes.concat"),
         log = "logs/barcodes.log"
     run:
-        shell("cat {input.bc} | sort -k1,1 > {output.concat}")
-        #shell("cat {input.bc} | sort -k1,1 > /home/pdimens/test.concat")
+        shell(f"cat {input.bc} | sort -k1,1 > {output.concat}")
         with open(output.concat, "r") as file, open(output.log, "w") as file_out:
             file_out.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
             prev_bc, prev_1, prev_2, prev_3 = file.readline().split()
