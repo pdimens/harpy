@@ -107,9 +107,9 @@ rule impute:
         logfile = "{paramset}/logs/{contig}.stitch.log"
     params:
         chrom   = lambda wc: "--chr=" + wc.contig,
-        start   = lambda wc: f"--regionStart={startpos}" if region else [],
-        end     = lambda wc: f"--regionEnd={endpos}" if region else [],
-        buffer  = lambda wc: f"--buffer={buffer}" if region else [],
+        start   = lambda wc: f"--regionStart={startpos}" if region else "",
+        end     = lambda wc: f"--regionEnd={endpos}" if region else "",
+        buffer  = lambda wc: f"--buffer={buffer}" if region else "",
         model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
