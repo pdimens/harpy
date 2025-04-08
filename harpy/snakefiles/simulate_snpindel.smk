@@ -7,10 +7,6 @@ import logging
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
     logger.addHandler(logfile_handler)
-onsuccess:
-    os.remove(log)
-onerror:
-    os.remove(log)
 
 envdir = os.path.join(os.getcwd(), "workflow", "envs")
 genome = config["inputs"]["genome"]
