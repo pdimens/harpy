@@ -228,7 +228,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         "workflow" : "snp mpileup",
         "snakemake_log" : sm_log,
         "ploidy" : ploidy,
-        "region_type" : regtype,
         **({'extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
