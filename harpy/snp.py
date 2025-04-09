@@ -242,7 +242,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         },
         "inputs" : {
             "reference" : reference,
-            "regions" : regio if regtype != "region" else region,
+            "regions" : region if regtype != "region" else region,
             **({'groupings': populations} if populations else {}),
             "alignments" : bamlist
         }
