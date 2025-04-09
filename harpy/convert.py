@@ -70,7 +70,7 @@ class FQRecord():
                 # is invalid
                 self.barcode = INVALID_HAPLOTAGGING
             else:
-                self.barcode = bc.pop().lstrip("BX:Z:")
+                self.barcode = bc.pop().removeprefix("BX:Z:")
             self.comment = "\t".join(i for i in self.comment.split() if not i.startswith("BX:Z"))
             self.valid = "00" not in self.barcode
         else:

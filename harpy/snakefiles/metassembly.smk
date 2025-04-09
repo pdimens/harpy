@@ -244,7 +244,7 @@ rule QUAST_assessment:
     log:
         "quast/quast.log"
     params:
-        output_dir = f"-o {outdir}/quast",
+        output_dir = f"-o quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
         quast_params = "--labels spades_contigs,athena_scaffolds --glimmer --rna-finding" 
     threads:
@@ -262,9 +262,10 @@ rule BUSCO_analysis:
     log:
         "logs/busco.log"
     params:
-        output_folder = f"--out_path {outdir}",
+        method = "-m genome",
+        output_folder = f"--out_path .",
         out_prefix = "-o busco",
-        db_location = f"--download_path {outdir}/busco",
+        db_location = f"--download_path busco",
         lineage = f"-l {lineagedb}",
         metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
     threads:
@@ -273,7 +274,7 @@ rule BUSCO_analysis:
         f"{envdir}/assembly.yaml"
     shell:
         """
-        ( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}
+        ( busco -f -i {input} -c {threads} {params} > {log} 2>&1 ) || touch {output}
         """
 
 rule build_report:

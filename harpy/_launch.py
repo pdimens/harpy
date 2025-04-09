@@ -216,8 +216,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             purge_empty_logs(outdir)
             sys.exit(1)
     except KeyboardInterrupt:
-        # Handle a keyboard interrupt
-        testfile.close()
         console = Console(stderr=True)
         console.print("")
         console.rule("[bold]Terminating Harpy", style = "yellow")

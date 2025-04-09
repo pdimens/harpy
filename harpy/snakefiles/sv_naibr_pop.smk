@@ -137,6 +137,7 @@ rule call_variants:
         bai   = "workflow/input/{population}.bam.bai",
         conf  = "workflow/config/{population}.naibr"
     output:
+        temp(directory("naibrlog")),
         bedpe = temp("{population}/{population}.bedpe"),
         refmt = temp("{population}/{population}.reformat.bedpe"),
         vcf   = temp("{population}/{population}.vcf"),
@@ -293,7 +294,6 @@ rule workflow_summary:
         reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
         agg_report = "reports/naibr.summary.html" if not skip_reports else []
     run:
-        os.system("rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
         concat = "The alignments were concatenated using:\n"

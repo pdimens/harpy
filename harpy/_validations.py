@@ -10,7 +10,6 @@ from rich import box
 from rich import print as rprint
 from rich.table import Table
 import rich_click as click
-from ._parsers import contigs_from_vcf
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
 from ._misc import harpy_progressbar, safe_read
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -316,7 +315,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
 
     try:
         # is an int
-        region = int(regioninput)
+        int(regioninput)
         return "windows"
     except ValueError:
         pass
@@ -338,8 +337,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                     try:
                         start = int(row[1])
                         end = int(row[2])
-                    except:
-                        print_error("invalid format", f"The input file is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.")
+                    except ValueError:
                         print_solution_with_culprits(
                             f"Rows in [blue]{regioninput}[/] need to be [bold]space[/] or [bold]tab[/] delimited with the format [yellow bold]contig start end[/] where [yellow bold]start[/] and [yellow bold]end[/] are integers.",
                             "Rows triggering this error:"
@@ -348,9 +346,9 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                         sys.exit(1)
                 contigs = contig_lens(genome)
                 if row[0] not in contigs:
-                    print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(vcf)}[/]). This is the first row triggering this error, but it may not be the only one.")
+                    print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(genome)}[/]). This is the first row triggering this error, but it may not be the only one.")
                     print_solution(
-                        f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(vcf)}[/]",
+                        f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(genome)}[/]",
                         "Row triggering this error:"
                     )
                     click.echo(line, file = sys.stderr)
@@ -358,7 +356,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                 if start > end:
                     print_error("invalid interval", f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.")
                     print_solution(
-                        f"Check that all rows in [blue]{os.path.basename(regioninput)}[/] have a [bold yellow]start[/] position that is less than the [bold yellow]end[/] position."
+                        f"Check that all rows in [blue]{os.path.basename(regioninput)}[/] have a [bold yellow]start[/] position that is less than the [bold yellow]end[/] position.",
                         "Row triggering this error:"
                     )
                     click.echo(line, file = sys.stderr)

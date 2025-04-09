@@ -10,7 +10,6 @@ from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_conf
 from ._cli_types_generic import convert_to_int, ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
-from ._misc import filepath
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice, workflow_info
 from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
@@ -297,7 +296,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, resolve_path=True, nargs = 1)
+@click.argument('reference', type=InputFile("fasta", gzip_ok = True), nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
