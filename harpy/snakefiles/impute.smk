@@ -195,7 +195,7 @@ rule concat_list:
     output:
         temp("{paramset}/bcf.files")
     run:
-        with open(output[0], "w") as fout:
+        with open(output, "w") as fout:
             _ = fout.write("\n".join(input[0]))
 
 if len(contigs) == 1:
