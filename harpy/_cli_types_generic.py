@@ -117,7 +117,7 @@ class SNPRegion(click.ParamType):
             if val < 10:
                 self.fail("Window size must greater than or equal to 10.", param, ctx)
             else:
-                return value
+                return int(value)
         except ValueError:
             pass
         if os.path.isfile(value):

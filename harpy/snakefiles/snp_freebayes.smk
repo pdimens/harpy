@@ -13,8 +13,7 @@ wildcard_constraints:
 envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
-regiontype  = config["region_type"]
-windowsize  = config.get("windowsize", None)
+regions_input = config["inputs"]["regions"]
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -27,19 +26,19 @@ else:
     genome_zip  = False
 workflow_geno = f"workflow/reference/{bn}"
 groupings 	= config["inputs"].get("groupings", [])
-regioninput = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
 sampldict = dict(zip(bamlist, samplenames))
-if regiontype == "region":
-    intervals = [regioninput]
-    regions = {f"{regioninput}" : f"{regioninput}"}
-else:
-    with open(regioninput, "r") as reg_in:
+
+if os.path.isfile(regions_input):
+    with open(regions_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
+else:
+    intervals = [regions_input]
+    regions = {f"{regions_input}" : f"{regions_input}"}
 
 rule preproc_groups:
     input:
@@ -235,10 +234,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
-        if windowsize:
-            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
-        else:
-            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        summary.append(f"Genomic positions for which variants were called: {regioninput}")
         varcall = "The freebayes parameters:\n"
         varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
         varcall += f"\tbcftools sort -"

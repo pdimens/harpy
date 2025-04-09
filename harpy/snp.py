@@ -65,7 +65,7 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=SNPRegion(), default=50000, show_default=True, help = "Regions where to call variants")
@@ -94,17 +94,16 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
-    regtype = validate_regions(regions, reference)
-    region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
-    if regtype == "windows":
+    validate_regions(regions, reference)
+    region = Path(f"{workflowdir}/regions.bed").resolve().as_posix()
+    if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
-    elif regtype == "file":
+    elif os.path.isfile(regions):
         os.system(f"cp -f {regions} {region}")
     else:
         region = regions
@@ -134,15 +133,13 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         "workflow" : "snp freebayes",
         "snakemake_log" : sm_log,
         "ploidy" : ploidy,
-        "region_type" : regtype,
-        **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {
             "reference" : reference,
-            "regions" : region if regtype != "region" else region,
+            "regions" : region,
             **({'groupings': populations} if populations else {}),
             "alignments" : bamlist
         }
@@ -163,7 +160,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=SNPRegion(), default=50000, show_default=True, help = "Regions where to call variants")
@@ -192,17 +189,16 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    output_dir = output_dir.rstrip("/")
     workflowdir = os.path.join(output_dir, 'workflow')
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
-    regtype = validate_regions(regions, reference)
-    region = Path(f"{workflowdir}/positions.bed").resolve().as_posix()
-    if regtype == "windows":
+    validate_regions(regions, reference)
+    region = Path(f"{workflowdir}/regions.bed").resolve().as_posix()
+    if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
-    elif regtype == "file":
+    elif os.path.isfile(regions):
         os.system(f"cp -f {regions} {region}")
     else:
         region = regions
@@ -233,7 +229,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         "snakemake_log" : sm_log,
         "ploidy" : ploidy,
         "region_type" : regtype,
-        **({'windowsize': int(regions)} if regtype == "windows" else {}),
         **({'extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -242,7 +237,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         },
         "inputs" : {
             "reference" : reference,
-            "regions" : region if regtype != "region" else region,
+            "regions" : region,
             **({'groupings': populations} if populations else {}),
             "alignments" : bamlist
         }

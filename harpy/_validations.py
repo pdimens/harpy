@@ -298,7 +298,7 @@ def validate_demuxschema(infile:str, return_len: bool = False) -> None | int:
     if return_len:
         return len(samples)
 
-def validate_regions(regioninput: int | str, genome: str) -> str:
+def validate_regions(regioninput: int | str, genome: str) -> None:
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
     def contig_lens(gen):
         # read in contigs for length/presence checks
@@ -316,7 +316,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
     try:
         # is an int
         int(regioninput)
-        return "windows"
+        return
     except ValueError:
         pass
 
@@ -369,8 +369,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
                     )
                     click.echo(line, file = sys.stderr)
                     sys.exit(1)
-
-        return "file"
+        return
 
     contig,positions = regioninput.split(":")
     startpos,endpos = [int(i) for i in positions.split("-")]
@@ -384,7 +383,7 @@ def validate_regions(regioninput: int | str, genome: str) -> str:
     if endpos > contigs[contig]:
         print_error("region out of bounds", f"The end position ([yellow bold]{endpos}[/]) exceeds the total length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
         sys.exit(1)
-    return "region"
+    return
 
 def check_fasta(genofile: str) -> str:
     """perform validations on fasta file for extensions and file contents"""

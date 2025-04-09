@@ -206,10 +206,12 @@ if len(contigs) == 1:
         output:
             "{paramset}/{paramset}.bcf.csi",
             bcf = "{paramset}/{paramset}.bcf"
+        log:
+            "logs/concat/{paramset}.concat.log"
         container:
             None
         shell:
-            "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> /dev/null"
+            "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}"
 
 else:
     rule merge_vcf:
@@ -219,12 +221,14 @@ else:
             files = "{paramset}/bcf.files"
         output:
             "{paramset}/{paramset}.bcf"
+        log:
+            "logs/concat/{paramset}.concat.log"
         threads:
             workflow.cores
         container:
             None
         shell:
-            "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> /dev/null"
+            "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> {log}"
 
     rule index_merged:
         input:

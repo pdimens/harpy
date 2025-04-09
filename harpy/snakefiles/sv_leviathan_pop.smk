@@ -183,8 +183,6 @@ rule sort_variants:
         "vcf/{population}.vcf"
     output:
         "vcf/{population}.bcf"
-    params:
-        "{wildcards.population}"
     container:
         None
     shell:        

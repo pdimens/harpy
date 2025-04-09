@@ -13,8 +13,6 @@ wildcard_constraints:
 envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
-regiontype  = config["region_type"]
-windowsize  = config.get("windowsize", None)
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -24,19 +22,19 @@ workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 groupings 	= config["inputs"].get("groupings", [])
-regioninput = config["inputs"]["regions"]
+region_input = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
 
-if regiontype == "region":
-    intervals = [regioninput]
-    regions = {f"{regioninput}" : f"{regioninput}"}
-else:
-    with open(regioninput, "r") as reg_in:
+if os.path.isfile(region_input):
+    with open(region_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
+else:
+    intervals = [region_input]
+    regions = {f"{region_input}" : f"{region_input}"}
 
 rule process_genome:
     input:
@@ -271,10 +269,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
-        if windowsize:
-            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
-        else:
-            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        summary.append(f"Genomic positions for which variants were called: {region_input}")
         mpileup = "The mpileup parameters:\n"
         mpileup += f"\tbcftools mpileup --fasta-ref REFERENCE --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
         summary.append(mpileup)

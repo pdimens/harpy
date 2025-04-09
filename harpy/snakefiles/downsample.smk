@@ -62,6 +62,8 @@ if is_fastq:
         output:
             bci = temp("{inputfile}.bci"),
             gzi = temp("{inputfile}i") if is_fastq and is_gzip else []
+        log:
+            "logs/{inputfile}.index.log"
         params:
             gz_arg = "--gzip" if is_gzip else ""
         threads:
@@ -74,8 +76,8 @@ else:
             inputs[0]
         output:
             inputs[0] + ".bai"
-        threads:
-            1
+        log:
+            "log/" + os.path.basename(inputs[0]) + ".index.log" 
         shell:
             "samtools index {input}"
 

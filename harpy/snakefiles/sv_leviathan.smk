@@ -123,8 +123,6 @@ rule sort_variants:
         "vcf/{sample}.vcf"
     output:
         "vcf/{sample}.bcf"
-    params:
-        "{wildcards.sample}"
     container:
         None
     shell:        
