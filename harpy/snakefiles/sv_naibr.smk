@@ -89,6 +89,7 @@ rule call_variants:
         bai   = get_align_index,
         conf  = "workflow/input/{sample}.naibr"
     output:
+        temp(directory("naibrlog")),
         bedpe = temp("{sample}/{sample}.bedpe"),
         refmt = temp("{sample}/{sample}.reformat.bedpe"),
         vcf   = temp("{sample}/{sample}.vcf"),
@@ -236,7 +237,7 @@ rule workflow_summary:
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
-        os.system(f"rm -rf naibrlog")
+        #os.system(f"rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
         naibr = "naibr variant calling ran using these configurations:\n"

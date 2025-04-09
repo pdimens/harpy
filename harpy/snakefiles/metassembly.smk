@@ -258,7 +258,7 @@ rule BUSCO_analysis:
     input:
         "athena/athena.asm.fa"
     output:
-        "busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
+        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
         "logs/busco.log"
     params:

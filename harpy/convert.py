@@ -18,7 +18,6 @@ INVALID_HAPLOTAGGING = "A00C00B00D00"
 INVALID_STLFR = "0_0_0"
 INVALID_TELLSEQ = "N" * 18
 
-#TODO figure out how to strip and then add the 1:N:blahblah
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):
         self.forward = FORWARD
@@ -106,13 +105,17 @@ class FQRecord():
 
 def compress_fq(fq: str):
     """use pysam bgzip to compress fastq and delete the original"""
-    pysam.tabix_compress(fq, f"{fq}.gz", force=True)
-    os.remove(fq)
+    try:
+        pysam.tabix_compress(fq, f"{fq}.gz", force=True)
+        os.remove(fq)
+    except Exception as e:
+        print_error("compression error", f"Failed to compress {fq}: {str(e)}")
+        sys.exit(1)
 
 @click.command(epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "2"]), callback = convert_to_int, help = '`0` (all) or `2` (no) output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
 @click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('fq1', metavar="R1_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)

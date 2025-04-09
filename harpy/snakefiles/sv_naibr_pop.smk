@@ -306,7 +306,7 @@ rule workflow_summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
         with open("workflow/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))
