@@ -103,8 +103,8 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     region = Path(f"{workflowdir}/regions.bed").resolve().as_posix()
     if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
-    elif os.path.isfile(regions):
-        os.system(f"cp -f {regions} {region}")
+    elif os.path.exists(regions):
+        shutil.copy2(regions, region)
     else:
         region = regions
     if populations:
@@ -199,7 +199,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
     elif os.path.isfile(regions):
-        os.system(f"cp -f {regions} {region}")
+        shutil.copy2(regions, region)
     else:
         region = regions
     if populations:

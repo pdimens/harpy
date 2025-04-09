@@ -29,7 +29,7 @@ groupings 	= config["inputs"].get("groupings", [])
 samplenames = {Path(i).stem for i in bamlist}
 sampldict = dict(zip(bamlist, samplenames))
 
-if os.path.isfile(regions_input):
+if os.path.exists(regions_input):
     with open(regions_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:

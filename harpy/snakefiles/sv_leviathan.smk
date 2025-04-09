@@ -9,7 +9,7 @@ onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
-    sample = r"[a-zA-Z0-9._-]+"
+    sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
 envdir      = os.path.join(os.getcwd(), "workflow", "envs")
