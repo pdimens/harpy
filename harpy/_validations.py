@@ -30,6 +30,20 @@ def is_gzip(file_path: str) -> bool:
     except gzip.BadGzipFile:
         return False
 
+# not currently used, but keeping it here for posterity
+def is_bgzipped(file_path: str) -> bool:
+    """Check if a file is truly BGZF-compressed (not just GZIP) by looking for the BGZF EOF marker."""
+    try:
+        # Try reading the BGZF EOF marker (last 28 bytes)
+        with open(file_path, 'rb') as f:
+            f.seek(-28, 2)  # Seek to 28 bytes before end
+            eof_block = f.read()
+            # BGZF EOF marker signature
+            bgzf_eof = b"\x1f\x8b\x08\x04\x00\x00\x00\x00\x00\xff\x06\x00\x42\x43\x02\x00\x1b\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            return eof_block == bgzf_eof
+    except (IOError, OSError):
+        return False
+
 def is_plaintext(file_path: str) -> bool:
     """helper function to determine if a file is plaintext"""
     try:
