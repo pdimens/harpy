@@ -120,13 +120,13 @@ rule naibr_config:
     output:
         cfg = "workflow/config/{population}.naibr"
     params:
-        pop = lambda wc: wc.get("population"),
+        popu = lambda wc: wc.get("population"),
         thd = min(10, workflow.cores - 1)
     run:
         with open(output.cfg, "w") as conf:
             _ = conf.write(f"bam_file={input.bam}\n")
-            _ = conf.write(f"outdir={params.pop}\n")
-            _ = conf.write(f"prefix={params.pop}\n")
+            _ = conf.write(f"outdir={params.popu}\n")
+            _ = conf.write(f"prefix={params.popu}\n")
             _ = conf.write(f"threads={params.thd}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
