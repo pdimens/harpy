@@ -53,11 +53,11 @@ populations = popdict.keys()
 
 rule preproc_groups:
     input:
-        groupfile
+        grp = groupfile
     output:
-        "workflow/sample.groups"
+        grp = "workflow/sample.groups"
     run:
-        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule concat_list:

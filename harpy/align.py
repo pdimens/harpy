@@ -6,7 +6,7 @@ import yaml
 import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._misc import fetch_report, fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_report, fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, ContigList, InputFile, HPCProfile, SnakemakeParams
 from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
@@ -84,7 +84,7 @@ docstring = {
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/bwa", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
@@ -108,6 +108,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
     harpy perform alignment-distance based barcode deconvolution.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "align_bwa")
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(reference)
@@ -115,8 +116,6 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         fasta_contig_match(contigs, reference)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_bwa.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -130,9 +129,6 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     fetch_rule(workflowdir, "align_bwa.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "align_bwa")
 
     conda_envs = ["align", "r", "qc"]
     configs = {
@@ -176,7 +172,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('-b', '--ema-bins', default = 500, show_default = True, type = click.IntRange(1,1000, clamp = True), help="Number of barcode bins")
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/ema", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/ema", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--platform', type = click.Choice(['haplotagging', '10x'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read bead technology\n[haplotagging, 10x]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False, resolve_path=True), help = "File of known barcodes for 10x linked reads")
@@ -202,6 +198,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
     sequences at the beginning of the forward reads are known barcodes.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "align_ema")
     ## checks and validations ##
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that (wishful thinking)
@@ -222,8 +219,6 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         validate_barcodefile(barcode_list, False, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_ema.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -237,9 +232,6 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     fetch_rule(workflowdir, "align_ema.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "align_ema")
 
     conda_envs = ["align", "r", "qc"]
     configs = {
@@ -285,7 +277,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
@@ -313,6 +305,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
     `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "align_strobe")
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     check_fasta(reference)
@@ -320,8 +313,6 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
         fasta_contig_match(contigs, reference)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/align_strobealign.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -335,9 +326,6 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     fetch_rule(workflowdir, "align_strobealign.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "align_strobe")
 
     conda_envs = ["align", "r", "qc"]
     configs = {

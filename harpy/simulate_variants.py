@@ -7,7 +7,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._printing import print_error, workflow_info
 from ._validations import check_fasta
 
@@ -126,7 +126,7 @@ docstring = {
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -155,6 +155,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_snpindel", True)
     ## checks and validations ##
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
@@ -171,8 +172,6 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     check_fasta(genome)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_snpindel.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -183,12 +182,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-
     fetch_rule(workflowdir, "simulate_snpindel.smk")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_snpindel")
 
     conda_envs = ["simulations"]
     configs = {
@@ -254,7 +248,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -273,6 +267,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_inversion", True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
@@ -283,8 +278,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     check_fasta(genome)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -295,12 +288,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-
     fetch_rule(workflowdir, "simulate_variants.smk")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_inversion")
 
     conda_envs = ["simulations"]
     configs = {
@@ -359,7 +347,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -386,6 +374,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
     | `--gain-ratio` | copy gain / loss | gain only | loss only| 
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_cnv", True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
@@ -396,8 +385,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     check_fasta(genome)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -408,12 +395,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-
     fetch_rule(workflowdir, "simulate_variants.smk")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_cnv")
 
     conda_envs = ["simulations"]
     configs = {
@@ -469,7 +451,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
 @click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -489,6 +471,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_translocation", True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
@@ -499,8 +482,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     check_fasta(genome)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -511,12 +492,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
-
     fetch_rule(workflowdir, "simulate_variants.smk")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_translocation")
 
     conda_envs = ["simulations"]
     configs = {

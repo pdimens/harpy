@@ -174,11 +174,11 @@ rule log_phasing:
 
 rule preproc_groups:
     input:
-        groupfile
+        grp = groupfile
     output:
-        "workflow/sample.groups"
+        grp = "workflow/sample.groups"
     run:
-        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule concat_list:
@@ -223,18 +223,18 @@ rule sort_groups:
 
 rule naibr_config:
     input:
-        "workflow/input/{population}.bam"
+        bam = "workflow/input/{population}.bam"
     output:
-        "workflow/config/{population}.naibr"
+        cfg = "workflow/config/{population}.naibr"
     params:
-        lambda wc: wc.get("population"),
-        min(10, workflow.cores - 1)
+        pop = lambda wc: wc.get("population"),
+        thd = min(10, workflow.cores - 1)
     run:
-        with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"outdir={params[0]}\n")
-            _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"threads={params[1]}\n")
+        with open(output.cfg, "w") as conf:
+            _ = conf.write(f"bam_file={input.bam\n")
+            _ = conf.write(f"outdir={params.pop}\n")
+            _ = conf.write(f"prefix={params.pop}\n")
+            _ = conf.write(f"threads={params.thd}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 

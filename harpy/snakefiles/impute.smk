@@ -191,12 +191,12 @@ rule contig_report:
 
 rule concat_list:
     input:
-        collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
+        cntg = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
-        temp("{paramset}/bcf.files")
+        bcf = temp("{paramset}/bcf.files")
     run:
-        with open(output, "w") as fout:
-            _ = fout.write("\n".join(input[0]))
+        with open(output.bcf, "w") as fout:
+            _ = fout.write("\n".join(input.cntg))
 
 if len(contigs) == 1:
     rule bcf_conversion:

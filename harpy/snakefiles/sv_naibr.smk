@@ -68,18 +68,18 @@ rule index_alignments:
 
 rule naibr_config:
     input:
-        get_alignments
+        bam = get_alignments
     output:
-        "workflow/input/{sample}.naibr"
+        cfg = "workflow/input/{sample}.naibr"
     params:
-        lambda wc: wc.get("sample"),
-        min(10, workflow.cores)
+        smp = lambda wc: wc.get("sample"),
+        thd = min(10, workflow.cores)
     run:
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir={params[0]}\n")
-            _ = conf.write(f"threads={params[1]}\n")
+            _ = conf.write(f"bam_file={input.bam}\n")
+            _ = conf.write(f"prefix={params.smp}\n")
+            _ = conf.write(f"outdir={params.smp}\n")
+            _ = conf.write(f"threads={params.thd}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 

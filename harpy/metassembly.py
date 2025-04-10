@@ -7,7 +7,7 @@ import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
 from ._misc import filepath
@@ -37,7 +37,7 @@ docstring = {
 @click.option('--ignore-bx', is_flag = True, show_default = True, default = False, help = 'Ignore linked-read info for initial spades assembly')
 @click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # Common Workflow
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -56,12 +56,11 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "metassembly")
     ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/metassembly.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -74,8 +73,6 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
 
     fetch_rule(workflowdir, f"metassembly.smk")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "metassembly")
     conda_envs = ["align", "assembly", "metassembly", "qc", "spades"]
     configs = {
         "workflow" : "metassembly",

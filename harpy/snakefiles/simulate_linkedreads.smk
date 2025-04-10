@@ -27,29 +27,29 @@ wildcard_constraints:
 
 rule barcode_keymap:
     input:
-        barcode_file
+        bc = barcode_file
     output:
-        "barcodes.key.gz"
+        bc = "barcodes.key.gz"
     run:
         bc_range = [f"{i}".zfill(2) for i in range(1,97)]
         bc_generator = product("A", bc_range, "C", bc_range, "B", bc_range, "D", bc_range)
-        with open(input[0], "r") as bc_in, gzip.open(output[0], "wb") as bc_out:
+        with open(input.bc, "r") as bc_in, gzip.open(output.bc, "wb") as bc_out:
             for nuc_barcode in bc_in:
                 haptag = "".join(next(bc_generator))
                 bc_out.write((nuc_barcode.rstrip() + "\t" + haptag + "\n").encode("utf-8"))
 
 rule link_genome:
     input:
-        lambda wc: genodict[wc.get("hap")]
+        hap lambda wc: genodict[wc.get("hap")]
     output: 
-        "workflow/input/hap.{hap}.fasta"
+        fa = "workflow/input/hap.{hap}.fasta"
     run:
-        if input[0].lower().endswith("gz"):
-            with gzip.open(input[0], 'rb') as gzip_file, open(output[0], 'wb') as output_file:
+        try:
+            with gzip.open(input.hap, 'rb') as gzip_file, open(output.fa, 'wb') as output_file:
                 shutil.copyfileobj(gzip_file, output_file)
-        else:
-            if not (Path(output[0]).is_symlink() or Path(output[0]).exists()):
-                Path(output[0]).symlink_to(Path(input[0]).resolve()) 
+        except gzip.BadGzipFile:
+            if not (Path(output.fa).is_symlink() or Path(output.fa).exists()):
+                Path(output.fa).symlink_to(Path(input.hap).resolve()) 
 
 rule index_genome:
     input:

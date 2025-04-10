@@ -8,7 +8,7 @@ import shutil
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 
 docstring = {
@@ -30,7 +30,7 @@ docstring = {
 @click.option('-i', '--invalid', default = 1, show_default = True, type=click.FloatRange(min=0,max=1), help = "Proportion of invalid barcodes to sample")
 @click.option('-p', '--prefix', type = click.Path(exists = False), default = "downsampled", show_default = True, help = 'Prefix for output file(s)')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Downsample", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Downsample", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
@@ -53,6 +53,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     - `1` adds all invalid barcodes to the barcode pool
     - 0<`i`<1 (e.g. `0.25`) keeps that proprotion of invalid barcodes in the barcode pool
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "downsample")
     ## checks and validations ##
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.')
@@ -68,8 +69,6 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
                 raise click.BadParameter('inputs must be 1 BAM (.bam) file or 2 FASTQ (.fastq|.fq) files. The FASTQ files can be gzipped.')            
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -80,10 +79,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     if snakemake:
         command += f" {snakemake}"
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-
     fetch_rule(workflowdir, "downsample.smk")
-    sm_log = snakemake_log(output_dir, "downsample")
 
     configs = {
         "workflow": "downsample",

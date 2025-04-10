@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs, parse_fastq_inputs
 from ._printing import workflow_info
 
@@ -41,7 +41,7 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -60,12 +60,11 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues. 
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "preflight_bam")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/preflight_bam.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -76,12 +75,9 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     if snakemake:
         command += f" {snakemake}"
 
-
     fetch_rule(workflowdir, "preflight_bam.smk")
     fetch_report(workflowdir, "preflight_bam.qmd")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "preflight_bam")
     conda_envs = ["r"]
     configs = {
         "workflow" : "preflight bam",
@@ -104,7 +100,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -125,12 +121,11 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "preflight_fastq")
     ## checks and validations ##
     fqlist, n = parse_fastq_inputs(inputs)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/preflight_fastq.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -144,8 +139,6 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     fetch_rule(workflowdir, "preflight_fastq.smk")
     fetch_report(workflowdir, "preflight_fastq.qmd")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "preflight_fastq")
     conda_envs = ["r"]
     configs = {
         "workflow" : "preflight fastq",

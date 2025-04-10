@@ -9,7 +9,7 @@ from ._cli_types_generic import convert_to_int, KParam, HPCProfile, SnakemakePar
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
@@ -51,7 +51,7 @@ docstring = {
 @click.option("-i", "--seq-identity", type = click.IntRange(0,100, clamp = True), default = 98, show_default = True, help = "Minimum sequence identity") 
 @click.option("-s", "--span", type = int, default = 20, show_default = True, help = "Minimum number of spanning molecules to be considered assembled")
 # Other Options
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Assembly", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -70,12 +70,11 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "assembly")
     ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
 
     ## setup workflow #
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/assembly.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -88,8 +87,6 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
 
     fetch_rule(workflowdir, f"assembly.smk")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "assembly")
     conda_envs = ["assembly","qc"]
     configs = {
         "workflow" : "assembly",

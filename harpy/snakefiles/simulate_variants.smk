@@ -83,17 +83,17 @@ rule rename_haploid:
 
 rule diploid_variants:
     input:
-        f"{outprefix}.{variant}.vcf"
+        vcf = f"{outprefix}.{variant}.vcf"
     output:
-        f"haplotype_1/{outprefix}.hap1.{variant}.vcf",
-        f"haplotype_2/{outprefix}.hap2.{variant}.vcf"
+        hap1 = f"haplotype_1/{outprefix}.hap1.{variant}.vcf",
+        hap2 = f"haplotype_2/{outprefix}.hap2.{variant}.vcf"
     params:
         het = heterozygosity
     run:
         os.makedirs("haplotype_1", exist_ok = True)
         os.makedirs("haplotype_2", exist_ok = True)
         rng = random.Random(randomseed) if randomseed else random.Random()
-        with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
+        with open(input.vcf, "r") as in_vcf, open(output.hap1, "w") as hap1, open(output.hap2, "w") as hap2:
             for line in in_vcf:
                 if line.startswith("#") or rng.uniform(0, 1) >= params.het:
                     # write header lines and homozygous variants to both files

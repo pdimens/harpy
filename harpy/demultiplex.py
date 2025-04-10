@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_script, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -44,7 +44,7 @@ docstring = {
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Demultiplex", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Demultiplex", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -65,12 +65,11 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "demultiplex_gen1")
     ## checks and validations ##
     validate_demuxschema(schema, return_len = False)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/demultiplex_gen1.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -84,8 +83,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "demultiplex_gen1")
     conda_envs = ["demultiplex", "qc"]
     configs = {
         "workflow" : "demultiplex gen1",

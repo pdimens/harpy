@@ -90,11 +90,11 @@ rule bwa_index:
 
 rule make_depth_intervals:
     input:
-        f"{workflow_geno}.fai"
+        fai = f"{workflow_geno}.fai"
     output:
-        "reports/data/coverage/coverage.bed"
+        bed = "reports/data/coverage/coverage.bed"
     run:
-        with open(input[0], "r") as fai, open(output[0], "w") as bed:
+        with open(input.fai, "r") as fai, open(output.bed, "w") as bed:
             for line in fai:
                 splitline = line.split()
                 contig = splitline[0]

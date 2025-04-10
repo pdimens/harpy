@@ -17,7 +17,7 @@ INVALID_10x = "N" * 16
 INVALID_HAPLOTAGGING = "A00C00B00D00"
 INVALID_STLFR = "0_0_0"
 INVALID_TELLSEQ = "N" * 18
-
+#TODO more meaningful progress bar? 
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):
         self.forward = FORWARD
@@ -235,7 +235,7 @@ def convert(from_,to_,fq1,fq2,output,barcodes, quiet):
                 else:
                     _bc = from_
                 # if input format is 10x, copy the barcode to R2
-                _r2 = FQRecord(r2, False, _r1.barcode if from_ == "10x" else from_, bc_len)
+                _r2 = FQRecord(r2, False, _bc, bc_len)
                 # check the inventory for existing barcode match
                 if _r2.barcode not in bc_inventory:
                     # if it's just tellseq<->10x, keep the existing nucleotide barcode

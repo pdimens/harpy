@@ -7,7 +7,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_script, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._printing import workflow_info
 from ._validations import check_fasta, validate_barcodefile
 
@@ -33,7 +33,7 @@ docstring = {
 @click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
 @click.option('-r', '--mutation-rate', type = click.FloatRange(min = 0), default=0.001, show_default=True,  help = "Random mutation rate for simulating reads")
 @click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/linkedreads", help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/linkedreads", help = 'Output directory name')
 @click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "Number (in thousands) of partitions/beads to generate")
 @click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number (in millions) of read pairs to simulate")
 @click.option('--merge-haplotypes',  is_flag = True, default = False, help = 'Concatenate sequences across haplotypes')
@@ -57,6 +57,7 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     linked-read barcode per line, given as nucleotides. Use `--merge-haplotypes` to merge haplotype 1 and haplotype 2 for R1 reads
     (same for R2), resulting in one file of R1 reads and one file of R2 reads.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_linkedreads")
     ## checks and validations ##
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
@@ -64,8 +65,6 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         bc_len = validate_barcodefile(barcodes, True, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_linkedreads.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -78,9 +77,6 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
 
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "HaploSim.pl")
-
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_linkedreads")
 
     conda_envs = ["simulations"]
     configs = {

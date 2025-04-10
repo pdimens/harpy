@@ -9,7 +9,7 @@ from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFil
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config, instantiate_dir
 from ._parsers import parse_alignment_inputs
 from ._printing import workflow_info
 from ._validations import check_fasta, check_phase_vcf
@@ -73,7 +73,7 @@ docstring = {
 @click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
 @click.option('-s', '--sharing-thresholds', type = click.IntRange(0,100, clamp = True), default = (95,95,95), nargs = 3, show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -97,6 +97,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
     have to be the same across the different size classes.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "sv_leviathan")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(reference)
@@ -107,8 +108,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         validate_popsamples(bamlist, populations,quiet)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     vcaller = "leviathan" if populations is None else "leviathan_pop"
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/sv_{vcaller}.smk"
@@ -124,8 +123,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     fetch_report(workflowdir, "leviathan.qmd")
     fetch_report(workflowdir, "leviathan_pop.qmd") if populations else None
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "sv_leviathan")
     conda_envs = ["align", "r", "variants"]
     configs = {
         "workflow" : "sv leviathan",
@@ -173,7 +170,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
 @click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Base-pair distance delineating separate molecules')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "SV/naibr", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/naibr", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True),  help = 'Path to phased bcf/vcf file')
@@ -201,6 +198,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "sv_naibr")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     check_fasta(reference)
@@ -213,8 +211,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         check_phase_vcf(vcf)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     vcaller = "naibr" if populations is None else "naibr_pop"
     vcaller += "_phase" if vcf else ""
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
@@ -231,8 +227,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     fetch_report(workflowdir, "naibr_pop.qmd") if populations else None
     fetch_report(workflowdir, "naibr.qmd")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "sv_naibr")
     conda_envs = ["phase", "r", "variants"]
     configs = {
         "workflow" : "sv naibr",

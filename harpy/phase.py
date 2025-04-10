@@ -7,7 +7,7 @@ import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._cli_types_generic import convert_to_int, ContigList, HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import HapCutParams
 from ._parsers import parse_alignment_inputs
@@ -34,7 +34,7 @@ docstring = {
 @click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), help = 'Path to reference genome if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = int, help = 'Distance cutoff to split molecules (bp)')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Phase", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -59,6 +59,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     the samples present in your input `VCF` file rather than all the samples present in
     the `INPUT` alignments.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "phase")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
@@ -69,8 +70,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         vcf_contig_match(contigs, vcf)
 
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     os.makedirs(f"{workflowdir}/input", exist_ok= True)
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/phase.smk"
@@ -85,8 +84,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     fetch_rule(workflowdir, "phase.smk")
     fetch_report(workflowdir, "hapcut.qmd")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "phase")
     conda_envs = ["phase", "r"]
     configs = {
         "workflow" : "phase",

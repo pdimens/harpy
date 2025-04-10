@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._parsers import parse_fastq_inputs
 from ._printing import workflow_info
 
@@ -33,7 +33,7 @@ docstring = {
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1), help = 'On average, 1/2^d kmers are indexed')
 @click.option('-a', '--dropout', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Deconvolve", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Deconvolve", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -50,12 +50,11 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
+    workflowdir,sm_log = instantiate_dir(output_dir, "deconvolve")
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     
     ## setup workflow ##
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
     write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
     command = f"snakemake --cores {threads} --snakefile {workflowdir}/deconvolve.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
@@ -68,8 +67,6 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
 
     fetch_rule(workflowdir, "deconvolve.smk")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "deconvolve")
     conda_envs = ["qc"]
     configs = {
         "workflow": "deconvolve",

@@ -10,7 +10,7 @@ from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, Snakemake
 from ._cli_types_params import MpileupParams, FreebayesParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs
 from ._printing import workflow_info
 from ._validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
@@ -94,7 +94,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflowdir = os.path.join(output_dir, 'workflow')
+    workflowdir,sm_log = instantiate_dir(output_dir, "snp_freebayes")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
@@ -126,8 +126,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     
     fetch_rule(workflowdir, "snp_freebayes.smk")
     fetch_report(workflowdir, "bcftools_stats.qmd")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "snp_freebayes")
+
     conda_envs = ["r", "variants"]
     configs = {
         "workflow" : "snp freebayes",
@@ -189,7 +188,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflowdir = os.path.join(output_dir, 'workflow')
+    workflowdir,sm_log = instantiate_dir(output_dir, "snp_mpileup")
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
     validate_bam_RG(bamlist, threads, quiet)
@@ -220,8 +219,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     fetch_rule(workflowdir, "snp_mpileup.smk")
     fetch_report(workflowdir, "bcftools_stats.qmd")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "snp_mpileup")
+
     conda_envs = ["r"]
 
     configs = {

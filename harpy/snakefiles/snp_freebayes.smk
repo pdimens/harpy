@@ -42,11 +42,11 @@ else:
 
 rule preproc_groups:
     input:
-        groupings
+        grp = groupings
     output:
-        "workflow/sample.groups"
+        grp = "workflow/sample.groups"
     run:
-        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule process_genome:
@@ -86,9 +86,9 @@ rule bam_list:
         bam = bamlist,
         bai = collect("{bam}.bai", bam = bamlist)
     output:
-        "workflow/samples.files"
+        smp = "workflow/samples.files"
     run:
-        with open(output[0], "w") as fout:
+        with open(output.smp, "w") as fout:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
@@ -124,9 +124,9 @@ rule concat_list:
     input:
         bcfs = collect("regions/{part}.bcf", part = intervals),
     output:
-        "logs/bcf.files"
+        bcf = "logs/bcf.files"
     run:
-        with open(output[0], "w") as fout:
+        with open(output.bcf, "w") as fout:
             for bcf in input.bcfs:
                 _ = fout.write(f"{bcf}\n")
 
@@ -234,7 +234,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
-        summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        summary.append(f"Genomic positions for which variants were called: {regions_input}")
         varcall = "The freebayes parameters:\n"
         varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
         varcall += f"\tbcftools sort -"

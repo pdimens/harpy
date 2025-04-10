@@ -140,7 +140,7 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
 def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
-    os.makedirs(f"{workdir}/", exist_ok = True)
+    os.makedirs(workdir, exist_ok = True)
     valid = []
     vcfheader = subprocess.check_output(['bcftools', 'view', '-h', vcf]).decode().split('\n')
     header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]

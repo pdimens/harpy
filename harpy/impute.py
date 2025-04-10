@@ -9,7 +9,7 @@ from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, Snakemake
 from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, snakemake_log, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
 from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
 from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -31,7 +31,7 @@ docstring = {
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', type = StitchParams(), help = 'Additional STITCH parameters, in quotes')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Impute", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-r', '--region', type = str, help = 'Specific region to impute')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -57,10 +57,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    os.makedirs(workflowdir, exist_ok= True)
-
+    workflowdir,sm_log = instantiate_dir(output_dir, "impute")
     ## checks and validations ##
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -92,8 +89,6 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     fetch_report(workflowdir, "impute.qmd")
     fetch_report(workflowdir, "stitch_collate.qmd")
 
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "impute")
     conda_envs = ["r", "stitch"]
     configs = {
         "workflow" : "impute",

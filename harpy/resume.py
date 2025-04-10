@@ -16,7 +16,7 @@ from ._conda import create_conda_recipes
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
 def resume(directory, conda, threads, quiet):
     """
     Resume a workflow from an existing Harpy directory
@@ -31,7 +31,6 @@ def resume(directory, conda, threads, quiet):
     - the target directory has `workflow/config.yaml` present in it
     - the targest directory has `workflow/envs/*.yaml` present in it
     """
-    directory = directory.rstrip("/")
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
         print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)

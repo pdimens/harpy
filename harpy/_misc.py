@@ -45,7 +45,7 @@ def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
         disable = quiet == 2
     )
 
-def filepath(infile):
+def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
     return Path(infile).resolve().as_posix()
 
@@ -125,6 +125,7 @@ def snakemake_log(outdir: str, workflow: str) -> str:
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
     attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")
     if not attempts:
+        os.makedirs(os.path.join(outdir, "logs", "snakemake"), exist_ok=True)
         return f"logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
     return f"logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
@@ -145,7 +146,7 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
-def write_snakemake_config(sdm, outdir):
+def write_snakemake_config(sdm: str, outdir:str) -> None:
     """
     Writes a config.yaml file to outdir/workflow to use with --profile. Creates outdir/workflow if it doesnt exist.
     sdm is the software deployment method
@@ -167,7 +168,7 @@ def write_snakemake_config(sdm, outdir):
     with open(os.path.join(workdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
 
-def write_workflow_config(configs, outdir):
+def write_workflow_config(configs: dict, outdir: str) -> None:
     """
     Writes a workflow.yaml file to workdir to use with --configfile. Creates outdir/workflow if it doesnt exist. Configs
     are expected to be a dict
@@ -177,3 +178,16 @@ def write_workflow_config(configs, outdir):
         os.makedirs(workdir, exist_ok=True)
     with open(os.path.join(workdir, 'config.harpy.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
+
+def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False) -> tuple(str,str):
+    """
+    Given an output_dir, creates a \'workflow\' directory.
+    Given a workflow_name, gets the name of the next incremental snakemake log file
+    to use for the workflow and creates the snakemake log directory if none found.
+    The \'input_dir\' is a special case for workflows that also need an `input` directory inside `workflow` too.
+    Returns the full path to created workflow directory and the name of the snakemake log file
+    """
+    wd = os.path.join(output_dir, 'workflow') if not input_dir else os.path.join(output_dir, 'workflow', 'input')
+    os.makedirs(wd, exist_ok = True)
+    sm_log = snakemake_log(output_dir, workflow)
+    return wd, sm_log

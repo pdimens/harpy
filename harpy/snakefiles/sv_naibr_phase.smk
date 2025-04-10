@@ -153,18 +153,18 @@ rule log_phasing:
 
 rule naibr_config:
     input:
-        "phasedbam/{sample}.bam"
+        bam = "phasedbam/{sample}.bam"
     output:
-        "workflow/input/{sample}.naibr"
+        cfg = "workflow/input/{sample}.naibr"
     params:
-        lambda wc: wc.get("sample"),
-        min(10, workflow.cores - 1)
+        smp = lambda wc: wc.get("sample"),
+        thd = min(10, workflow.cores - 1)
     run:
-        with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir={params[0]}\n")
-            _ = conf.write(f"threads={params[1]}\n")
+        with open(output.cfg, "w") as conf:
+            _ = conf.write(f"bam_file={input.bam}\n")
+            _ = conf.write(f"prefix={params.smp}\n")
+            _ = conf.write(f"outdir={params.smp}\n")
+            _ = conf.write(f"threads={params.thd}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
