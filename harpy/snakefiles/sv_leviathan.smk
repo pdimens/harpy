@@ -184,8 +184,8 @@ rule report_config:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp("/reports/_quarto.yml"),
-        scss = temp("/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -193,8 +193,8 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        "/reports/_quarto.yml",
-        "/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
         statsfile = "reports/data/{sample}.sv.stats",
         qmd       = "workflow/report/leviathan.qmd"
