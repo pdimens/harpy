@@ -195,7 +195,7 @@ rule call_variants:
     conda:
         f"{envdir}/variants.yaml"
     shell:
-        "naibr {input.conf} > {log} 2>&1"
+        "naibr {input.conf} > {log} 2>&1  && rm -r naibrlog"
 
 rule infer_variants:
     priority: 100

@@ -137,7 +137,6 @@ rule call_variants:
         bai   = "workflow/input/{population}.bam.bai",
         conf  = "workflow/config/{population}.naibr"
     output:
-        temp(directory("naibrlog")),
         bedpe = temp("{population}/{population}.bedpe"),
         refmt = temp("{population}/{population}.reformat.bedpe"),
         vcf   = temp("{population}/{population}.vcf"),
@@ -149,7 +148,7 @@ rule call_variants:
     conda:
         f"{envdir}/variants.yaml"
     shell:
-        "naibr {input.conf} > {log} 2>&1"
+        "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
 rule infer_variants:
     priority: 100

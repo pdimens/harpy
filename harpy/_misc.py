@@ -187,7 +187,8 @@ def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False
     The \'input_dir\' is a special case for workflows that also need an `input` directory inside `workflow` too.
     Returns the full path to created workflow directory and the name of the snakemake log file
     """
-    wd = os.path.join(output_dir, 'workflow') if not input_dir else os.path.join(output_dir, 'workflow', 'input')
-    os.makedirs(wd, exist_ok = True)
+    wd = os.path.join(output_dir, 'workflow')
+    creatdir = wd if not input_dir else os.path.join(output_dir, 'workflow', 'input')
+    os.makedirs(creatdir, exist_ok = True)
     sm_log = snakemake_log(output_dir, workflow_name)
     return wd, sm_log

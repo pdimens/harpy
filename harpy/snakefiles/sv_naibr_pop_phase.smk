@@ -231,7 +231,7 @@ rule naibr_config:
         thd = min(10, workflow.cores - 1)
     run:
         with open(output.cfg, "w") as conf:
-            _ = conf.write(f"bam_file={input.bam\n")
+            _ = conf.write(f"bam_file={input.bam}\n")
             _ = conf.write(f"outdir={params.pop}\n")
             _ = conf.write(f"prefix={params.pop}\n")
             _ = conf.write(f"threads={params.thd}\n")
@@ -255,7 +255,7 @@ rule call_variants:
     conda:
         f"{envdir}/variants.yaml"
     shell:
-        "naibr {input.conf} > {log} 2>&1"
+        "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
 rule infer_variants:
     priority: 100
@@ -380,7 +380,6 @@ rule workflow_summary:
         reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
         agg_report = "reports/naibr.summary.html" if not skip_reports else []
     run:
-        os.system("rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
         phase = "The alignment files were phased using:\n"

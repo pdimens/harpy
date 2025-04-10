@@ -89,7 +89,6 @@ rule call_variants:
         bai   = get_align_index,
         conf  = "workflow/input/{sample}.naibr"
     output:
-        temp(directory("naibrlog")),
         bedpe = temp("{sample}/{sample}.bedpe"),
         refmt = temp("{sample}/{sample}.reformat.bedpe"),
         vcf   = temp("{sample}/{sample}.vcf"),
@@ -101,7 +100,7 @@ rule call_variants:
     conda:
         f"{envdir}/variants.yaml"     
     shell:
-        "naibr {input.conf} > {log} 2>&1"
+        "naibr {input.conf} > {log} 2>&1 && rm -r naibrlog"
 
 rule infer_variants:
     input:
