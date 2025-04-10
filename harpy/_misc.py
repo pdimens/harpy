@@ -179,7 +179,7 @@ def write_workflow_config(configs: dict, outdir: str) -> None:
     with open(os.path.join(workdir, 'config.harpy.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
-def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False) -> tuple(str,str):
+def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False) -> tuple[str,str]:
     """
     Given an output_dir, creates a \'workflow\' directory.
     Given a workflow_name, gets the name of the next incremental snakemake log file
@@ -189,5 +189,5 @@ def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False
     """
     wd = os.path.join(output_dir, 'workflow') if not input_dir else os.path.join(output_dir, 'workflow', 'input')
     os.makedirs(wd, exist_ok = True)
-    sm_log = snakemake_log(output_dir, workflow)
+    sm_log = snakemake_log(output_dir, workflow_name)
     return wd, sm_log
