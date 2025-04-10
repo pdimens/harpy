@@ -7,7 +7,7 @@ import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._misc import filepath
@@ -67,7 +67,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
       - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by spaces. `21 40 3 0` would be the QuickDeconvolution defaults
       - use `harpy deconvolve` to perform this task separately
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "qc")
+    workflow = "qc"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     if trim_adapters:
@@ -82,22 +83,21 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         trim_adapters = False
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/qc.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "qc.smk")
     fetch_report(workflowdir, "bx_count.qmd")
 
     conda_envs = ["qc", "r"]
     configs = {
-        "workflow" : "qc",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "ignore_bx" : ignore_bx,
         "trim_adapters" : trim_adapters,
@@ -129,4 +129,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "qc", start_text, output_dir, sm_log, quiet, "workflow/qc.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

@@ -7,7 +7,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_script, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 from ._validations import check_fasta, validate_barcodefile
 
@@ -57,7 +57,8 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     linked-read barcode per line, given as nucleotides. Use `--merge-haplotypes` to merge haplotype 1 and haplotype 2 for R1 reads
     (same for R2), resulting in one file of R1 reads and one file of R2 reads.
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_linkedreads")
+    workflow = "simulate_linkedreads"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     check_fasta(genome_hap1)
     check_fasta(genome_hap2)
@@ -65,22 +66,21 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         bc_len = validate_barcodefile(barcodes, True, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/simulate_linkedreads.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
     fetch_script(workflowdir, "HaploSim.pl")
 
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate linkedreads",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "outer_distance" : outer_distance,
         "distance_sd" : distance_sd,
@@ -114,5 +114,5 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_linkedreads", start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
 

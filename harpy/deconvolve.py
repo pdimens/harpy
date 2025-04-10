@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._parsers import parse_fastq_inputs
 from ._printing import workflow_info
 
@@ -50,26 +50,26 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "deconvolve")
+    workflow = "deconvolve"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs)
     
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/deconvolve.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "deconvolve.smk")
 
     conda_envs = ["qc"]
     configs = {
-        "workflow": "deconvolve",
+        "workflow": workflow,
         "snakemake_log" : sm_log,
         "kmer_length" : kmer_length,       
         "window_size" : window_size,
@@ -90,4 +90,4 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "deconvolve", start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")

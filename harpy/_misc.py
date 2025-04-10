@@ -146,10 +146,13 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
-def write_snakemake_config(sdm: str, outdir:str) -> None:
+def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> str:
     """
-    Writes a config.yaml file to outdir/workflow to use with --profile. Creates outdir/workflow if it doesnt exist.
-    sdm is the software deployment method
+    Writes a config.yaml file to outdir/workflow to use with --profile.
+    Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
+    Copies the HPC config file to the workflow dir, if exists.
+    Sets up the snakemake command based on hpc, threads, and extra snakemake params.
+    Returns the command with which to launch snakemake.
     """
     profile = {
         "rerun-incomplete": True,
@@ -162,11 +165,20 @@ def write_snakemake_config(sdm: str, outdir:str) -> None:
         "apptainer-prefix": filepath("./.environments"),
         "directory": outdir
     }
-    workdir = os.path.join(outdir, "workflow")
-    if not os.path.exists(workdir):
-        os.makedirs(workdir, exist_ok=True)
-    with open(os.path.join(workdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
+    workflowdir = os.path.join(outdir, "workflow")
+    os.makedirs(workflowdir, exist_ok=True)
+    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
+
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
+    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
+    if hpc:
+        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
+        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
+        command += f" --workflow-profile {workflowdir}/hpc"
+    if snakemake:
+        command += f" {snakemake}"
+    return command
 
 def write_workflow_config(configs: dict, outdir: str) -> None:
     """

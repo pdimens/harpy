@@ -9,7 +9,7 @@ from ._cli_types_generic import convert_to_int, KParam, HPCProfile, SnakemakePar
 from ._cli_types_params import SpadesParams, ArcsParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
@@ -70,26 +70,26 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "assembly")
+    workflow = "assembly"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
 
     ## setup workflow #
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/assembly.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, f"assembly.smk")
 
     conda_envs = ["assembly","qc"]
     configs = {
-        "workflow" : "assembly",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
@@ -136,4 +136,4 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "assembly", start_text, output_dir, sm_log, quiet, f"workflow/assembly.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/assembly.summary")

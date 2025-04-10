@@ -9,7 +9,7 @@ from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, Snakemake
 from ._cli_types_params import StitchParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
 from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
 from ._printing import workflow_info, print_error, print_solution
 from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -57,7 +57,8 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "impute")
+    workflow = "impute"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     params = check_impute_params(parameters)
     bamlist, n = parse_alignment_inputs(inputs)
@@ -75,15 +76,14 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
             sys.exit(1)
     
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/impute.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "impute.smk")
     fetch_report(workflowdir, "impute.qmd")
@@ -91,7 +91,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
 
     conda_envs = ["r", "stitch"]
     configs = {
-        "workflow" : "impute",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         **({'stitch_extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
@@ -122,4 +122,4 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet, "workflow/impute.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/impute.summary")

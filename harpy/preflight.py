@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
 from ._parsers import parse_alignment_inputs, parse_fastq_inputs
 from ._printing import workflow_info
 
@@ -60,27 +60,27 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "preflight_bam")
+    workflow = "preflight_bam"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/preflight_bam.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "preflight_bam.smk")
     fetch_report(workflowdir, "preflight_bam.qmd")
 
     conda_envs = ["r"]
     configs = {
-        "workflow" : "preflight bam",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -97,7 +97,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "preflight_bam", start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
@@ -121,27 +121,27 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "preflight_fastq")
+    workflow = "preflight_fastq"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     fqlist, n = parse_fastq_inputs(inputs)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/preflight_fastq.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "preflight_fastq.smk")
     fetch_report(workflowdir, "preflight_fastq.qmd")
 
     conda_envs = ["r"]
     configs = {
-        "workflow" : "preflight fastq",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -158,7 +158,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "preflight_fastq", start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
 
 preflight.add_command(bam)
 preflight.add_command(fastq)

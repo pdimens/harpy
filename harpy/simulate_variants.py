@@ -7,7 +7,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import print_error, workflow_info
 from ._validations import check_fasta
 
@@ -155,7 +155,8 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_snpindel", True)
+    workflow = "simulate_snpindel"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
     ## checks and validations ##
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
@@ -172,21 +173,20 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     check_fasta(genome)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_snpindel.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "simulate_snpindel.smk")
 
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate snpindel",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
@@ -235,7 +235,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
@@ -267,7 +267,8 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_inversion", True)
+    workflow = "simulate_inversion"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
@@ -278,21 +279,20 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     check_fasta(genome)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "simulate_variants.smk")
 
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate inversion",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
@@ -331,7 +331,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
 
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
@@ -374,7 +374,8 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
     | `--gain-ratio` | copy gain / loss | gain only | loss only| 
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_cnv", True)
+    workflow = "simulate_cnv"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
@@ -385,21 +386,20 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     check_fasta(genome)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "simulate_variants.smk")
 
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate cnv",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
@@ -441,7 +441,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
@@ -471,7 +471,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "simulate_translocation", True)
+    workflow = "simulate_translocation"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
@@ -482,21 +483,20 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     check_fasta(genome)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores 2 --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "simulate_variants.smk")
 
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate translocation",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
@@ -533,5 +533,5 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
 

@@ -8,7 +8,7 @@ import shutil
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 
 docstring = {
@@ -42,7 +42,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     Downsample data by barcode
     
     Downsamples FASTQ or BAM file(s) by barcode in the `BX` tag to keep all reads
-    from `-d` barcodes. The `BX:Z` tag must be the **last tag** in the FASTQ file(s).
+    containing `-d` randomly sampled barcodes. The `BX:Z` tag must be the **last tag** in the FASTQ file(s).
     If the `BX` tag isn't terminal, use `bx_to_end.py` (provided by Harpy) to move
     the tag to the end. Input can be:
     - one BAM file
@@ -53,7 +53,8 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     - `1` adds all invalid barcodes to the barcode pool
     - 0<`i`<1 (e.g. `0.25`) keeps that proprotion of invalid barcodes in the barcode pool
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "downsample")
+    workflow = "downsample"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.')
@@ -69,20 +70,19 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
                 raise click.BadParameter('inputs must be 1 BAM (.bam) file or 2 FASTQ (.fastq|.fq) files. The FASTQ files can be gzipped.')            
 
     ## setup workflow ##
-    write_snakemake_config("conda", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "downsample.smk")
 
     configs = {
-        "workflow": "downsample",
+        "workflow": workflow,
         "snakemake_log" : sm_log,
         "prefix" :  prefix,
         "downsample" :  downsample,
@@ -102,4 +102,4 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         ("Invalid Proportion:", invalid),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "downsample", start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")

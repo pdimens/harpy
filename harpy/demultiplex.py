@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, instantiate_dir, write_snakemake_config, write_workflow_config
+from ._misc import fetch_rule, fetch_script, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -65,27 +65,27 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflowdir,sm_log = instantiate_dir(output_dir, "demultiplex_gen1")
+    workflow = "demultiplex_gen1"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     validate_demuxschema(schema, return_len = False)
 
     ## setup workflow ##
-    write_snakemake_config("conda" if not container else "conda apptainer", output_dir)
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/demultiplex_gen1.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
 
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
     fetch_script(workflowdir, "demultiplex_gen1.py")
 
     conda_envs = ["demultiplex", "qc"]
     configs = {
-        "workflow" : "demultiplex gen1",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "include_qx_rx_tags" : qx_rx,
         "keep_unknown" : keep_unknown,
@@ -115,7 +115,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "demultiplex_gen1", start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
 
 demultiplex.add_command(gen1)
 

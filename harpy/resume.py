@@ -46,7 +46,7 @@ def resume(directory, conda, threads, quiet):
     else:
         check_environments(directory, conda_envs)
     
-    workflow = harpy_config["workflow"].replace(" ", "_")
+    workflow = harpy_config["workflow"]
     sm_log = snakemake_log(directory, workflow)
     if sm_log != harpy_config["snakemake_log"]:
         harpy_config["snakemake_log"] = sm_log
@@ -57,10 +57,11 @@ def resume(directory, conda, threads, quiet):
     if threads:
         command = re.sub(r"--cores \d+", f"--cores {threads}", command)
     start_text = workflow_info(
+        ("Workflow:", workflow.replace("_", " ")),
         ("Output Folder:", directory + "/"),
         ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow.replace("_", ".")}.summary')
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
 
 
 
