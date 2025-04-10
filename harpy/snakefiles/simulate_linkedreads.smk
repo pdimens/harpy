@@ -40,7 +40,7 @@ rule barcode_keymap:
 
 rule link_genome:
     input:
-        hap lambda wc: genodict[wc.get("hap")]
+        hap = lambda wc: genodict[wc.get("hap")]
     output: 
         fa = "workflow/input/hap.{hap}.fasta"
     run:
