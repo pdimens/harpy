@@ -100,7 +100,7 @@ rule call_variants:
     conda:
         f"{envdir}/variants.yaml"     
     shell:
-        "naibr {input.conf} > {log} 2>&1 && rm -r naibrlog"
+        "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
 rule infer_variants:
     input:
