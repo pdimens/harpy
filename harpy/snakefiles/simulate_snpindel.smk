@@ -148,10 +148,10 @@ rule diploid_snps:
 
 use rule diploid_snps as diploid_indels with:
     input:
-        f"{outprefix}.indel.vcf"
+        vcf = f"{outprefix}.indel.vcf"
     output:
-        f"haplotype_1/{outprefix}.hap1.indel.vcf",
-        f"haplotype_2/{outprefix}.hap2.indel.vcf"
+        hap1 = f"haplotype_1/{outprefix}.hap1.indel.vcf",
+        hap2 = f"haplotype_2/{outprefix}.hap2.indel.vcf"
 
 rule simulate_diploid:
     input:
