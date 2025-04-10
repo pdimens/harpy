@@ -72,7 +72,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
     ## setup workflow ##
     command = setup_snakemake(
         workflow,
-        "conda" if not container else "conda apptainer",
+        "conda",
         output_dir,
         threads,
         hpc if hpc else None,

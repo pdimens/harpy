@@ -176,8 +176,8 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
         command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
+    if sm_extra:
+        command += f" {sm_extra}"
     return command
 
 def write_workflow_config(configs: dict, outdir: str) -> None:
