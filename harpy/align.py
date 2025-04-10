@@ -199,7 +199,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     sequences at the beginning of the forward reads are known barcodes.
     """
     workflow = "align_ema"
-    workflowdir,sm_log = instantiate_dir(output_dir, worklfow)
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that (wishful thinking)
@@ -323,7 +323,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "align_strobealign.smk")
+    fetch_rule(workflowdir, "align_strobe.smk")
     fetch_report(workflowdir, "align_stats.qmd")
     fetch_report(workflowdir, "align_bxstats.qmd")
 

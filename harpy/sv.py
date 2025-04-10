@@ -119,7 +119,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    fetch_rule(workflowdir, f"{vcaller}.smk")
     fetch_report(workflowdir, "leviathan.qmd")
     fetch_report(workflowdir, "leviathan_pop.qmd") if populations else None
 
@@ -223,13 +223,13 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, f"sv_{vcaller}.smk")
+    fetch_rule(workflowdir, f"{vcaller}.smk")
     fetch_report(workflowdir, "naibr_pop.qmd") if populations else None
     fetch_report(workflowdir, "naibr.qmd")
 
     conda_envs = ["phase", "r", "variants"]
     configs = {
-        "workflow" : worklfow,
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
         "min_barcodes" : min_barcodes,
         "min_quality" : min_quality,

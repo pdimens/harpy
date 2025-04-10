@@ -9,7 +9,7 @@ onstart:
     logger.addHandler(logfile_handler)
 
 envdir = os.path.join(os.getcwd(), "workflow", "envs")
-variant = config["workflow"].split()[1]
+variant = config["workflow"].split("_")[-1]
 simuG_variant = variant.upper() if variant == "cnv" else variant
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
