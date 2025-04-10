@@ -160,7 +160,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "align_bwa", start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
@@ -266,7 +266,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
         ("Platform:", platform),
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "align_ema", start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
@@ -358,7 +358,7 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "align_strobe", start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")

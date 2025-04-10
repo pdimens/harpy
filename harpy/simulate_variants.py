@@ -232,7 +232,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
@@ -328,7 +328,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
@@ -438,7 +438,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
@@ -530,7 +530,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")

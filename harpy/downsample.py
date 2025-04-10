@@ -97,7 +97,7 @@ def downsample(input, invalid, output_dir, prefix, downsample, random_seed, hpc,
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Downsample to:", f"{downsample} barcodes"),
         ("Invalid Proportion:", invalid),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")

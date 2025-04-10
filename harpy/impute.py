@@ -119,7 +119,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         ("Alignment Files:", n),
         ("Parameter File:", os.path.basename(parameters)),
         ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, "impute", start_text, output_dir, sm_log, quiet, "workflow/impute.summary")
