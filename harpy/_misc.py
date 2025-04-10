@@ -170,7 +170,7 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
 
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/downsample.smk"
+    command = f"snakemake --cores {threads} --snakefile {workflowdir}/{workflow_name}.smk"
     command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
