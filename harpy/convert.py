@@ -17,7 +17,7 @@ INVALID_10x = "N" * 16
 INVALID_HAPLOTAGGING = "A00C00B00D00"
 INVALID_STLFR = "0_0_0"
 INVALID_TELLSEQ = "N" * 18
-#TODO more meaningful progress bar? 
+
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):
         self.forward = FORWARD
