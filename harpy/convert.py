@@ -112,7 +112,7 @@ def compress_fq(fq: str):
         print_error("compression error", f"Failed to compress {fq}: {str(e)}")
         sys.exit(1)
 
-@click.command(epilog = "Documentation: https://pdimens.github.io/harpy/convert")
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')

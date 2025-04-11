@@ -87,7 +87,7 @@ def view():
     | `q`                     | exit                       |
     """
 
-@click.command(context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def config(directory):
     """
@@ -131,7 +131,7 @@ def config(directory):
         file = sys.stderr
     )
 
-@click.command(context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def log(directory):
     """
@@ -176,7 +176,7 @@ def log(directory):
         file = sys.stderr
     )
 
-@click.command(context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakefile(directory):
     """
@@ -221,7 +221,7 @@ def snakefile(directory):
         file = sys.stderr
     )
 
-@click.command(context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory):
     """

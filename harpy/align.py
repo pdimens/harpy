@@ -78,7 +78,7 @@ docstring = {
     ]
 }
 
-@click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
+@click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
@@ -165,7 +165,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     )
     launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = EmaParams(), help = 'Additional ema align parameters, in quotes')
 @click.option('-d', '--fragment-density',  is_flag = True, show_default = True, default = False, help = 'Perform read fragment density optimization')
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
@@ -271,7 +271,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     )
     launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
-@click.command(epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
+@click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = int, help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', type = StrobeAlignParams(), help = 'Additional aligner parameters, in quotes')
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')

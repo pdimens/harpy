@@ -39,7 +39,7 @@ docstring = {
     ]
 }
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-u', '--keep-unknown',  is_flag = True, default = False, help = 'Keep reads that could not be demultiplexed')
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`barcode`')

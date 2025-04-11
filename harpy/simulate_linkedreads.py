@@ -26,7 +26,7 @@ docstring = {
     ]
 }
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
 @click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "File of linked-read barcodes to add to reads")
 @click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
 @click.option('-m', '--molecules-per', type = click.IntRange(min = 1, max = 4700), default = 10, show_default=True,  help = "Average number of molecules per partition")

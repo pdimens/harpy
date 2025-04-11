@@ -39,7 +39,7 @@ docstring = {
     ]
 }
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
@@ -99,7 +99,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     )
     launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
