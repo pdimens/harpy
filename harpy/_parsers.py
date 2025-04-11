@@ -8,15 +8,34 @@ from typing import Tuple
 from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
+from ._misc import filepath
 from ._printing import print_error, print_solution_with_culprits
 
 def getnames(directory: str, ext: str) -> list[str]:
     """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
-        print_error("no files found", f"No sample files ending with [bold]{ext}[/bold] found in [bold]{directory}[/bold].")
+        print_error("no files found", f"No sample files ending with [bold]{ext}[/] found in [bold]{directory}[/].")
         sys.exit(1)
     return samplenames
+
+def parse_impute_regions(regioninput: str, vcf: str) -> list:
+    """Validates the --regions input of harpy impute to infer it's a properly formatted region
+    Use the contigs and lengths of the vcf file to check that the region is valid. Returns
+    a tuple of (contig, start, end)
+    """
+    contigs = contigs_from_vcf(vcf)
+    # already validated by CLI type checking
+    contig, positions = regioninput.split(":")
+    startpos,endpos,buffer = [int(i) for i in positions.split("-")]
+    # check if the region is in the genome
+    if contig not in contigs:
+        print_error("contig not found", f"The contig [bold yellow]{contig}[/] was not found in [blue]{vcf}[/].")
+        sys.exit(1)
+    if endpos > contigs[contig]:
+        print_error("invalid region", f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
+        sys.exit(1)
+    return contig, startpos, endpos, buffer
 
 def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
     """
@@ -29,12 +48,12 @@ def parse_fastq_inputs(inputs: list[str]) -> Tuple[list[str], int]:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re.search(re_ext, j):
-                    infiles.append(Path(os.path.join(i, j)).resolve())
+                    infiles.append(filepath(os.path.join(i, j)))
         else:
             if re.search(re_ext, i):
-                infiles.append(Path(i).resolve())
+                infiles.append(filepath(i))
     if len(infiles) < 1:
-        print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/blue]")
+        print_error("no files found", "There were no files found in the provided inputs that end with the accepted fastq extensions [blue].fq .fastq .fq.gz .fastq.gz[/]")
         sys.exit(1)
     # check if any names will be clashing
     bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
@@ -79,16 +98,16 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
         if os.path.isdir(i):
             for j in os.listdir(i):
                 if re_bam.match(j):
-                    bam_infiles.append(Path(os.path.join(i, j)).resolve())
+                    bam_infiles.append(filepath(os.path.join(i, j)))
                 elif re_bai.match(j):
-                    bai_infiles.append(Path(os.path.join(i, j)).resolve())
+                    bai_infiles.append(filepath(os.path.join(i, j)))
         else:
             if re_bam.match(i):
-                bam_infiles.append(Path(i).resolve())
+                bam_infiles.append(filepath(i))
             elif re_bai.match(i):
-                bai_infiles.append(Path(i).resolve())
+                bai_infiles.append(filepath(i))
     if len(bam_infiles) < 1:
-        print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/blue] or [blue].sam[/blue] extensions.")
+        print_error("no files found", "There were no files found in the provided inputs that end with the [blue].bam[/] or [blue].sam[/] extensions.")
         sys.exit(1)
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
 
@@ -118,10 +137,10 @@ def parse_alignment_inputs(inputs:list[str]) -> Tuple[list[str], int]:
         sys.exit(1)
     return bam_infiles, len(uniqs)
 
-def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,int]:
+def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
     """Identify which contigs have at least 2 biallelic SNPs and write them to workdir/vcf.biallelic"""
     vbn = os.path.basename(vcf)
-    os.makedirs(f"{workdir}/", exist_ok = True)
+    os.makedirs(workdir, exist_ok = True)
     valid = []
     vcfheader = subprocess.check_output(['bcftools', 'view', '-h', vcf]).decode().split('\n')
     header_contigs = [i.split(",")[0].replace("##contig=<ID=","") for i in vcfheader if i.startswith("##contig=")]
@@ -150,4 +169,17 @@ def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,int]:
         sys.exit(1)
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
-    return f"{workdir}/{vbn}.biallelic", len(valid)
+    return filepath(f"{workdir}/{vbn}.biallelic"), valid, len(valid)
+
+def contigs_from_vcf(vcf: str) -> dict:
+    """reads the header of a vcf/bcf file and returns a dict of the contigs (keys) and their lengths (values)"""
+    header = subprocess.check_output(f"bcftools head {vcf}".split(), text = True)
+    contigs = [i for i in header.splitlines() if i.startswith("##contig=<ID")]
+    d = {}
+    for i in contigs:
+        contig,length = i.split(",length=")
+        contig = contig.replace("##contig=<ID=", "")
+        # remove the trailing '>' and convert to integer
+        length = int(length[:-1])
+        d[contig] = length
+    return d

@@ -6,18 +6,13 @@ import logging
 from pathlib import Path
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = f"{outdir}/workflow"
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile  = config["inputs"]["genome"]
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
+genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -28,7 +23,7 @@ min_barcodes = config["min_barcodes"]
 min_quality  = config["min_quality"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"workflow/reference/{bn}"
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
@@ -73,18 +68,18 @@ rule index_alignments:
 
 rule naibr_config:
     input:
-        get_alignments
+        bam = get_alignments
     output:
-        outdir + "/workflow/input/{sample}.naibr"
+        cfg = "workflow/input/{sample}.naibr"
     params:
-        lambda wc: wc.get("sample"),
-        min(10, workflow.cores)
+        smp = lambda wc: wc.get("sample"),
+        thd = min(10, workflow.cores)
     run:
         with open(output[0], "w") as conf:
-            _ = conf.write(f"bam_file={input[0]}\n")
-            _ = conf.write(f"prefix={params[0]}\n")
-            _ = conf.write(f"outdir={outdir}/{params[0]}\n")
-            _ = conf.write(f"threads={params[1]}\n")
+            _ = conf.write(f"bam_file={input.bam}\n")
+            _ = conf.write(f"prefix={params.smp}\n")
+            _ = conf.write(f"outdir={params.smp}\n")
+            _ = conf.write(f"threads={params.thd}\n")
             for i in argdict:
                 _ = conf.write(f"{i}={argdict[i]}\n")
 
@@ -92,31 +87,31 @@ rule call_variants:
     input:
         bam   = get_alignments,
         bai   = get_align_index,
-        conf  = outdir + "/workflow/input/{sample}.naibr"
+        conf  = "workflow/input/{sample}.naibr"
     output:
-        bedpe = temp(outdir + "/{sample}/{sample}.bedpe"),
-        refmt = temp(outdir + "/{sample}/{sample}.reformat.bedpe"),
-        vcf   = temp(outdir + "/{sample}/{sample}.vcf"),
-        log   = temp(outdir + "/{sample}/{sample}.log")
+        bedpe = temp("{sample}/{sample}.bedpe"),
+        refmt = temp("{sample}/{sample}.reformat.bedpe"),
+        vcf   = temp("{sample}/{sample}.vcf"),
+        log   = temp("{sample}/{sample}.log")
     log:
-        outdir + "/logs/naibr/{sample}.naibr.log"
+        "logs/naibr/{sample}.naibr.log"
     threads:
         min(10, workflow.cores -1)
     conda:
         f"{envdir}/variants.yaml"     
     shell:
-        "naibr {input.conf} > {log} 2>&1"
+        "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
 rule infer_variants:
     input:
-        bedpe = outdir + "/{sample}/{sample}.bedpe",
-        refmt = outdir + "/{sample}/{sample}.reformat.bedpe",
-        vcf   = outdir + "/{sample}/{sample}.vcf"
+        bedpe = "{sample}/{sample}.bedpe",
+        refmt = "{sample}/{sample}.reformat.bedpe",
+        vcf   = "{sample}/{sample}.vcf"
     output:
-        bedpe = outdir + "/bedpe/{sample}.bedpe",
-        refmt = outdir + "/IGV/{sample}.reformat.bedpe",
-        fail  = outdir + "/bedpe/qc_fail/{sample}.fail.bedpe",
-        vcf   = outdir + "/vcf/{sample}.vcf" 
+        bedpe = "bedpe/{sample}.bedpe",
+        refmt = "IGV/{sample}.reformat.bedpe",
+        fail  = "bedpe/qc_fail/{sample}.fail.bedpe",
+        vcf   = "vcf/{sample}.vcf" 
     container:
         None
     shell:
@@ -128,11 +123,11 @@ rule infer_variants:
 
 rule aggregate_variants:
     input:
-        collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames)
+        collect("bedpe/{sample}.bedpe", sample = samplenames)
     output:
-        outdir + "/inversions.bedpe",
-        outdir + "/deletions.bedpe",
-        outdir + "/duplications.bedpe"
+        "inversions.bedpe",
+        "deletions.bedpe",
+        "duplications.bedpe"
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -199,11 +194,11 @@ rule index_genome:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -211,16 +206,16 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
-        bedpe = outdir + "/bedpe/{sample}.bedpe",
-        qmd   = f"{workflowdir}/report/naibr.qmd"
+        bedpe = "bedpe/{sample}.bedpe",
+        qmd   = "workflow/report/naibr.qmd"
     output:
-        report = outdir + "/reports/{sample}.naibr.html",
-        qmd = temp(outdir + "/reports/{sample}.naibr.qmd")
+        report = "reports/{sample}.naibr.html",
+        qmd = temp("reports/{sample}.naibr.qmd")
     log:
-        outdir + "/logs/reports/{sample}.report.log"
+        "logs/reports/{sample}.report.log"
     params:
         sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
@@ -237,13 +232,13 @@ rule sample_reports:
 rule workflow_summary:
     default_target: True
     input:
-        bedpe = collect(outdir + "/bedpe/{sample}.bedpe", sample = samplenames),
-        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports =  collect(outdir + "/reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
+        bedpe = collect("bedpe/{sample}.bedpe", sample = samplenames),
+        bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
+        reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
     run:
-        os.system(f"rm -rf {outdir}/naibrlog")
+        #os.system(f"rm -rf naibrlog")
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"
         naibr += "\tprefix=PREFIX\n"
@@ -251,7 +246,7 @@ rule workflow_summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(f"{workflowdir}/sv.naibr.summary", "w") as f:
+        with open("workflow/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))

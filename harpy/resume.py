@@ -9,14 +9,14 @@ from ._conda import check_environments
 from ._cli_types_generic import convert_to_int
 from ._printing import print_error, workflow_info
 from ._launch import launch_snakemake
-from ._misc import snakemake_log
+from ._misc import snakemake_log, write_workflow_config
 from ._conda import create_conda_recipes
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
 def resume(directory, conda, threads, quiet):
     """
     Resume a workflow from an existing Harpy directory
@@ -31,11 +31,14 @@ def resume(directory, conda, threads, quiet):
     - the target directory has `workflow/config.yaml` present in it
     - the targest directory has `workflow/envs/*.yaml` present in it
     """
-    directory = directory.rstrip("/")
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
-        print_error("missing config file", f"Target directory [blue]{directory}[/blue] does not contain the file [bold]workflow/config.yaml[/bold]")
+        print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)
-    with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
+    if not os.path.exists(f"{directory}/workflow/config.harpy.yaml"):
+        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.harpy.yaml[/]")
+        sys.exit(1)
+    
+    with open(f"{directory}/workflow/config.harpy.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     conda_envs = harpy_config["conda_environments"] 
     if conda:
@@ -43,16 +46,22 @@ def resume(directory, conda, threads, quiet):
     else:
         check_environments(directory, conda_envs)
     
-    workflow = harpy_config["workflow"].replace(" ", "_")
+    workflow = harpy_config["workflow"]
     sm_log = snakemake_log(directory, workflow)
-    command = harpy_config["workflow_call"] + f" --config snakemake_log={sm_log}"
+    if sm_log != harpy_config["snakemake_log"]:
+        harpy_config["snakemake_log"] = sm_log
+        ## overwrite config file with this updated one, where only the snakemake log has been changed ##
+        write_workflow_config(harpy_config, directory)
+
+    command = harpy_config["snakemake_command"]
     if threads:
-        command = re.sub(r"--threads \d+", f"--threads {threads}", command)
+        command = re.sub(r"--cores \d+", f"--cores {threads}", command)
     start_text = workflow_info(
+        ("Workflow:", workflow.replace("_", " ")),
         ("Output Folder:", directory + "/"),
         ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow.replace("_", ".")}.summary')
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
 
 
 

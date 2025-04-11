@@ -3,7 +3,9 @@
 .condarc
 .environments/
 .cache/
+*.egg
 container/
+localenv/
 hpc/
 QC/
 Deconvolve/

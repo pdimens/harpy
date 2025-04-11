@@ -43,7 +43,8 @@ jobs:
       simreads: ${{ steps.filter.outputs.simreads }}
       assembly: ${{ steps.filter.outputs.assembly }}
       other: ${{ steps.filter.outputs.other }}
-      container: ${{ steps.filter.outputs.container }}
+      convert: ${{ steps.filter.outputs.convert }}
+      environments: ${{ steps.filter.outputs.environments }}
       modules: ${{ steps.filter.outputs.modules }}
     steps:
       - name: Checkout
@@ -82,7 +83,7 @@ jobs:
         uses: jlumbroso/free-disk-space@main
       - name: Rebuild Dockerfile
         id: rebuild
-        if: ${{ needs.changes.outputs.container == 'true' }}
+        if: ${{ needs.changes.outputs.environments == 'true' }}
         shell: micromamba-shell {0}
         run: harpy containerize
       - name: Set up Docker Buildx
@@ -151,7 +152,9 @@ jobs:
 #          path: .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
-        run: harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+        run: |
+          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+          ls -lh Demultiplex
 
   preflight:
     needs: [changes]
@@ -189,11 +192,15 @@ jobs:
 #          path: .snakemake/singularity
       - name: test preflight fastq
         shell: micromamba-shell {0}
-        run: harpy preflight fastq test/fastq
+        run: |
+          harpy preflight fastq test/fastq
+          ls -lh Preflight/fastq
       - name: test preflight bam
         if: always()
         shell: micromamba-shell {0}
-        run: harpy preflight bam --quiet 2 test/bam
+        run: |
+          harpy preflight bam --quiet 2 test/bam
+          ls -lh Preflight/bam
 
   qc:
     needs: [changes]
@@ -231,10 +238,15 @@ jobs:
 #          path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
-        run: harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq
+        run: |
+          harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq
+          ls -lh  QC
       - name: harpy qc all options
         shell: micromamba-shell {0}
-        run: harpy qc -a auto -d -c 21 40 3 0 --quiet 2 test/fastq
+        run: |
+          harpy qc -o QC/auto -a auto -d -c 21 40 3 0 --quiet 2 test/fastq
+          ls -lh QC/auto
+
   deconvolve:
     needs: [changes]
     if: ${{ needs.changes.outputs.deconvolve == 'true' }}
@@ -271,7 +283,10 @@ jobs:
 #          path: .snakemake/singularity
       - name: harpy deconvolve
         shell: micromamba-shell {0}
-        run: harpy deconvolve --quiet 2 test/fastq
+        run: |
+          harpy deconvolve --quiet 2 test/fastq
+          ls -lh Deconvolve
+  
   bwa:
     needs: [changes]
     if: ${{ needs.changes.outputs.bwa == 'true' }}
@@ -308,8 +323,10 @@ jobs:
 #          path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
-        run: harpy align bwa --quiet 2 -g test/genome/genome.fasta.gz  -x "-A 2" test/fastq
-  
+        run: |
+          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq
+          ls -lh Align/bwa
+
   ema:
     needs: [changes]
     if: ${{ needs.changes.outputs.ema == 'true' }}
@@ -346,7 +363,9 @@ jobs:
 #          path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
-        run: harpy align ema --quiet 2 --ema-bins 150 -g test/genome/genome.fasta.gz test/fastq
+        run: |
+          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq
+          ls -lh Align/ema
 
   strobe:
     needs: [changes]
@@ -384,7 +403,9 @@ jobs:
 #          path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
-        run: harpy align strobe --quiet 2 -l 125 -g test/genome/genome.fasta.gz  test/fastq
+        run: |
+          harpy align strobe --quiet 2 -l 125 test/genome/genome.fasta.gz test/fastq
+          ls -lh Align/strobealign
 
   mpileup:
     needs: [changes]
@@ -422,11 +443,15 @@ jobs:
 #          path: .snakemake/singularity
       - name: snp mpileup
         shell: micromamba-shell {0}
-        run: harpy snp mpileup --quiet 2 -r test/positions.bed -g test/genome/genome.fasta.gz -x "--ignore-RG" test/bam
+        run: |
+          harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam
+          ls -lh SNP/mpileup
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
-        run: harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
-  
+        run: |
+          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          ls -lh SNP/poptest
+
   freebayes:
     needs: [changes]
     if: ${{ needs.changes.outputs.freebayes == 'true' }}
@@ -463,10 +488,14 @@ jobs:
 #          path: .snakemake/singularity
       - name: snp freebayes
         shell: micromamba-shell {0}
-        run: harpy snp freebayes --quiet 2 -r test/positions.bed -g test/genome/genome.fasta.gz -x "-g 200" test/bam
+        run: |
+          harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam
+          ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
-        run: harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -g test/genome/genome.fasta.gz -p test/samples.groups  test/bam
+        run: |
+          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          ls -lh SNP/poptest
 
   impute:
     needs: [changes]
@@ -504,11 +533,21 @@ jobs:
 #          path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
-        run: harpy impute --quiet 2 --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
+        run: |
+          harpy impute --quiet 2 test/stitch.params test/vcf/test.bcf test/bam
+          ls -lh Impute
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
-        run: harpy impute --quiet 2 --vcf-samples -o vcfImpute --vcf test/vcf/test.bcf -p test/stitch.params  test/bam
+        run: |
+          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam
+          ls -lh vcfImpute
+      - name: impute one region
+        shell: micromamba-shell {0}
+        if: always()
+        run: |
+          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam
+          ls -lh regionImpute
 
   phase:
     needs: [changes]
@@ -546,17 +585,22 @@ jobs:
 #          path: .snakemake/singularity
       - name: phase
         shell: micromamba-shell {0}
-        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf  -x "--max_iter 10001" test/bam
+        run: |
+          harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam
+          ls -lh Phase
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
-        run: harpy phase --quiet 2 --vcf test/vcf/test.bcf -o phaseindel -g test/genome/genome.fasta.gz  test/bam
+        run: |
+          harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam
+          ls -lh phaseindel
       - name: phase from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam.py -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -o phasevcf --vcf test/vcf/test.bcf  test/bam
+          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam
+          ls -lh phasevcf
 
   leviathan:
     needs: [changes]
@@ -594,12 +638,15 @@ jobs:
 #          path: .snakemake/singularity
       - name: leviathan
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -g test/genome/genome.fasta.gz  -x "-M 2002" test/bam
-        continue-on-error: true
+        run: |
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
+          ls -lh SV/leviathan
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv leviathan --quiet 2 -s 100 -b 1 -g test/genome/genome.fasta.gz -o SV/leviathanpop -p test/samples.groups  test/bam
+        run: | 
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          ls -lh SV/leviathanpop
 
   naibr:
     needs: [changes]
@@ -637,21 +684,27 @@ jobs:
 #          path: .snakemake/singularity
       - name: naibr
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/naibr test/bam_phased
+        run: |
+          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased
+          ls -lh SV/naibr
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/pop -p test/samples.groups test/bam_phased
+        run: |
+          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased
+          ls -lh SV/pop
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phase -v test/vcf/test.phased.bcf test/bam
+          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam
+          ls -lh SV/phase
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
-        run: harpy sv naibr --quiet 2 -g test/genome/genome.fasta.gz -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/bam
-
+        run: |
+          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          ls -lh SV/phasepop
 
   simulate_variants:
     needs: [changes]
@@ -691,26 +744,33 @@ jobs:
         shell: micromamba-shell {0}
         run: |
           harpy simulate snpindel --quiet 2 --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
+          ls -lh Simulate/snpindel
           harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf  test/genome/genome.fasta.gz
+          ls -lh Simulate
       - name: simulate inversions
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate inversion --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
+          ls -lh Simulate/inversion
           harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf  test/genome/genome.fasta.gz
+          ls -lh Simulate
       - name: simulate cnv
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
+          ls -lh Simulate/cnv
           harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf  test/genome/genome.fasta.gz
+          ls -lh Simulate
       - name: simulate translocations
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate translocation --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
+          ls -lh Simulate/translocation
           harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf  test/genome/genome.fasta.gz
-
+          ls -lh Simulate
   simulate_linkedreads:
     needs: [changes]
     if: ${{ needs.changes.outputs.simreads == 'true' }}
@@ -750,6 +810,7 @@ jobs:
         run: |
           haplotag_barcodes.py -n 14000000 > test/haplotag.bc
           harpy simulate linkedreads --quiet 2 -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+          ls -lh Simulate/linkedreads
 
   assembly:
     needs: [changes]
@@ -787,18 +848,24 @@ jobs:
 #          path: .snakemake/singularity
       - name: test assembly
         shell: micromamba-shell {0}
-        run: harpy assembly --quiet 2 -r 4000 test/fastq/sample1.*
+        run: |
+          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Assembly
       - name: test metassembly
         shell: micromamba-shell {0}
-        run: harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.*
+        run: |
+          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
-        run: harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.*
+        run: |
+          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Metassembly
 
-  extras:
+  other:
     needs: [changes]
     if: ${{ needs.changes.outputs.other == 'true' }}
-    name: harpy extras
+    name: harpy other
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -826,16 +893,16 @@ jobs:
 #       uses: jlumbroso/free-disk-space@main
       - name: harpy template impute
         shell: micromamba-shell {0}
-        run: harpy template impute -o params.file
+        run: harpy template impute
       - name: harpy template groupings
         shell: micromamba-shell {0}
         run: harpy template groupings test/fastq
       - name: harpy downsample bam
         shell: micromamba-shell {0}
-        run: harpy downsample -d 1 --random-seed 699 --quiet 2 test/bam/sample1.bam
+        run: harpy downsample -d 10 --random-seed 699 --quiet 2 test/bam/sample1.bam && ls -lh Downsample
       - name: harpy downsample fastq
         shell: micromamba-shell {0}
-        run: harpy downsample -d 1 --quiet 2 test/fastq/sample1.*gz
+        run: harpy downsample -d 10 --quiet 2 test/fastq/sample1.*gz && ls -lh Downsample
       - name: harpy hpc
         shell: micromamba-shell {0}
         run: |
@@ -843,3 +910,95 @@ jobs:
           harpy template hpc-googlebatch
           harpy template hpc-lsf
           harpy template hpc-generic
+
+  convert:
+    needs: [changes]
+    if: ${{ needs.changes.outputs.convert == 'true' }}
+    name: harpy convert
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Mamba
+        uses: mamba-org/setup-micromamba@v1
+        env:
+          ACTIONS_STEP_DEBUG: true
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+          log-level: error
+      - name: Install Harpy
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
+      - name: convert haplotag to stlfr
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert/stlfr haplotagging stlfr test/fastq/sample1.*gz
+      - name: convert haplotag to tellseq
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert/tellseq haplotagging tellseq test/fastq/sample1.*gz
+      - name: convert haplotag to 10x
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert/10x haplotagging 10x test/fastq/sample1.*gz
+      - name: convert stlfr to haplotag
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_stlfr/haptag stlfr haplotagging convert/stlfr.*gz
+      - name: convert stlfr to tellseq
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_stlfr/tellseq stlfr tellseq convert/stlfr.*gz
+      - name: convert stlfr to 10x
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_stlfr/10x stlfr 10x convert/stlfr.*gz
+      - name: convert stlfr to standard
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert --quiet 2 -o convert_stlfr/standard stlfr standard convert/stlfr.*gz
+          rm -rf convert_stlfr
+      - name: convert tellseq to 10x
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_tellseq/10x tellseq 10x convert/tellseq.*gz
+      - name: convert tellseq to stlfr
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_tellseq/stlfr tellseq stlfr convert/tellseq.*gz
+      - name: convert tellseq to haplotag
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_tellseq/haptag tellseq haplotagging convert/tellseq.*gz
+      - name: convert tellseq to standard
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert --quiet 2 -o convert_tellseq/standard tellseq standard convert/tellseq.*gz
+          rm -rf convert_tellseq
+      - name: convert standard to 10x
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_standard/10x standard 10x test/fastq/sample1.*gz
+      - name: convert standard to stlfr
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_standard/stlfr standard stlfr test/fastq/sample1.*gz
+      - name: convert standard to tellseq
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert --quiet 2 -o convert_standard/haptag standard tellseq test/fastq/sample1.*gz
+          rm -rf convert_standard
+      - name: convert 10x to standard
+        shell: micromamba-shell {0}
+        run: |
+          cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes
+          harpy convert --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
+      - name: convert 10x to haplotagging
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
+      - name: convert 10x to tellseq
+        shell: micromamba-shell {0}
+        run: harpy convert --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
+      - name: convert 10x to stlfr
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
+          rm -rf convert_10x

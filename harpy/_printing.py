@@ -72,7 +72,7 @@ def print_setup_error(exitcode: int) -> None:
         errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         errortype = "Snakefile Error"
     else:
-        errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/blue], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         errortype = "Software Environment Error"
     console.rule(f"[bold]{errortype}", style = "red")
     console.print(errortext)
@@ -98,7 +98,7 @@ def print_onsuccess(outdir: str, summary = None, time = None) -> None:
 def print_onerror(logfile: str) -> None:
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
     console.rule("[bold]Workflow Error", style = "red")
-    console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/bold]")
+    console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/]")
     console.rule("[bold]Where Error Occurred", style = "red")
 
 def workflow_info(*arg: tuple[str, str | int | float]) -> Table:

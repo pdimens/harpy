@@ -15,11 +15,9 @@ EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
-SNAKEMAKE_CMD = "snakemake --rerun-incomplete --show-failed-logs --rerun-triggers input mtime params --nolock --conda-prefix .environments --conda-cleanup-pkgs cache --apptainer-prefix .environments --directory ."
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
-
 def iserror(text):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
@@ -27,23 +25,23 @@ def iserror(text):
 def highlight_params(text):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
     if text.startswith("    jobid:"):
-        return text.replace("jobid:", "[bold default]jobid:[/bold default]").rstrip()
+        return text.replace("jobid:", "[bold default]jobid:[/]").rstrip()
     if text.startswith("    input:"):
-        return text.replace("input:", "[bold default]input:[/bold default]").rstrip()
+        return text.replace("input:", "[bold default]input:[/]").rstrip()
     if text.startswith("    output:"):
-        return text.replace("output:", "[bold default]output:[/bold default]").rstrip()
+        return text.replace("output:", "[bold default]output:[/]").rstrip()
     if text.startswith("    log:"):
-        return text.replace("log:", "[bold default]log:[/bold default]").rstrip()
+        return text.replace("log:", "[bold default]log:[/]").rstrip()
     if text.startswith("    conda-env:"):
-        return text.replace("conda-env:", "[bold default]conda-env:[/bold default]").rstrip()
+        return text.replace("conda-env:", "[bold default]conda-env:[/]").rstrip()
     if text.startswith("    container:"):
-        return text.replace("container:", "[bold default]container:[/bold default]").rstrip()
+        return text.replace("container:", "[bold default]container:[/]").rstrip()
     if text.startswith("    shell:"): 
-        return text.replace("shell:", "[bold default]shell:[/bold default]").rstrip()
+        return text.replace("shell:", "[bold default]shell:[/]").rstrip()
     if text.startswith("    wildcards:"): 
-        return text.replace("wildcards:", "[bold default]wildcards:[/bold default]").rstrip()
+        return text.replace("wildcards:", "[bold default]wildcards:[/]").rstrip()
     if text.startswith("    affected files:"): 
-        return text.replace("affected files:", "[bold default]affected files:[/bold default]").rstrip()
+        return text.replace("affected files:", "[bold default]affected files:[/]").rstrip()
     return text.rstrip()
 
 def purge_empty_logs(target_dir):
@@ -78,6 +76,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
                     while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
+                if "Nothing to be" in output:
+                    exitcode = EXIT_CODE_SUCCESS
+                    break
             else:
                 while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                     output = process.stderr.readline()
@@ -96,12 +97,14 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     break
                 if "Nothing to be" in output:
                     exitcode = EXIT_CODE_SUCCESS
+                    break
                 if "MissingInput" in output:
                     exitcode = EXIT_CODE_GENERIC_ERROR
+                    break
                 if "AmbiguousRuleException" in output or "Error" in output or "Exception" in output:
                     exitcode = EXIT_CODE_RUNTIME_ERROR
+                    break
                 output = process.stderr.readline()
-
             # if dependency text present, print pulsing progress bar
             if deps:
                 with harpy_pulsebar(quiet, deploy_text) as progress:
@@ -147,27 +150,29 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         progress.stop()
                         exitcode = EXIT_CODE_RUNTIME_ERROR
                         break
-                    if process.poll() == 0 or output.startswith("Complete log:") or output.startswith("Nothing to be"):
+                    if process.poll() == 0 or output.startswith("Complete log") or output.startswith("Nothing to be"):
                         progress.stop()
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
-                    rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
-                    if rulematch:
-                        rule = rulematch.group().replace(":","").split()[-1]
+                    #rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
+                    if output.startswith("rule ") or output.startswith("localrule "):
+                        # catch the 2nd word and remove the colon
+                        rule = output.split()[-1].replace(":", "")
+                        # add progress bar if it doesn't exist
                         if rule not in task_ids:
                             task_ids[rule] = progress.add_task(job_inventory[rule][0], total=job_inventory[rule][1], visible = quiet != 1)
-                        continue
-                    # store the job id in the inventory so we can later look up which rule it's associated with
-                    jobidmatch = re.search(r"jobid:\s\d+", string = output)
-                    if jobidmatch:
-                        job_id = int(re.search(r"\d+",output).group())
-                        # rule should be the most previous rule recorded
-                        job_inventory[rule][2].add(job_id)
-                        continue
+                        # parse the rest of the rule block to get the job ID and add it to the inventory
+                        while True:
+                            output = process.stderr.readline()
+                            if "jobid: " in output:
+                                job_id = int(output.strip().split()[-1])
+                                job_inventory[rule][2].add(job_id)
+                                break
+                        # store the job id in the inventory so we can later look up which rule it's associated with
                     # check which rule the job is associated with and update the corresponding progress bar
-                    finishmatch = re.search(r"Finished\sjob\s\d+", output)
-                    if finishmatch:
+                    #finishmatch = re.search(r"Finished\sjobid:\s\d+", output)
+                    if output.startswith("Finished jobid: "):
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
@@ -211,7 +216,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             purge_empty_logs(outdir)
             sys.exit(1)
     except KeyboardInterrupt:
-        # Handle a keyboard interrupt
         console = Console(stderr=True)
         console.print("")
         console.rule("[bold]Terminating Harpy", style = "yellow")

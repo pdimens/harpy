@@ -3,12 +3,11 @@ import os
 import sys
 import yaml
 import shutil
-from pathlib import Path
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import print_error, workflow_info
 from ._validations import check_fasta
 
@@ -126,8 +125,8 @@ docstring = {
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/snpindel", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -156,6 +155,9 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
+    workflow = "simulate_snpindel"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
+    ## checks and validations ##
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
         sys.exit(1)
@@ -168,31 +170,24 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     if indel_count > 0 and indel_vcf:
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
         sys.exit(1)
-
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
-    command += f" --snakefile {workflowdir}/simulate_snpindel.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-    # instantiate workflow directory
-    # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
+
+    ## setup workflow ##
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
+
     fetch_rule(workflowdir, "simulate_snpindel.smk")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_snpindel")
+
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate snpindel",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -200,60 +195,60 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             "only_vcf" : only_vcf,
         },
         "snp" : {
-            **({"vcf" : Path(snp_vcf).resolve().as_posix()} if snp_vcf else {}),
+            **({"vcf" : snp_vcf} if snp_vcf else {}),
             **({'count': snp_count} if snp_count and not snp_vcf else {}),
             **({"gene_constraints":  snp_gene_constraints} if snp_gene_constraints and not snp_vcf else {}),
             **({"titv_ratio" : titv_ratio} if titv_ratio and not snp_vcf else {})
         },
         "indel" : {
-            **({"vcf" : Path(indel_vcf).resolve().as_posix()} if indel_vcf else {}),
+            **({"vcf" : indel_vcf} if indel_vcf else {}),
             **({"count" : indel_count} if indel_count and not indel_vcf else {}),
             **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {}),
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
+
     start_text = workflow_info(
         ("Input Genome:", os.path.basename(genome)),
         ("SNP File:", os.path.basename(snp_vcf)) if snp_vcf else None,
         ("Random SNPs:", snp_count) if snp_count > 0 else None,
         ("Indel File:", os.path.basename(indel_vcf)) if indel_vcf else None,
-        ("Random Indels:", f"{indel_count}") if indel_count else None,
+        ("Random Indels:", indel_count) if indel_count else None,
         ("Centromere GFF:", os.path.basename(centromeres)) if centromeres else None,
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_snpindel", start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known inversions to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum inversion size (bp)")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/inversion", show_default=True,  help = 'Output directory name')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -272,38 +267,33 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
+    workflow = "simulate_inversion"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
+    ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
         sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
         sys.exit(1)   
-
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
-    command += f" --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    # instantiate workflow directory
-    # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
+
+    ## setup workflow ##
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
+
     fetch_rule(workflowdir, "simulate_variants.smk")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_inversion")
+
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate inversion",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -311,26 +301,26 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             "only_vcf" : only_vcf,
         },
         "inversion" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {}),
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
+
     start_text = workflow_info(
         ("Input Genome:", os.path.basename(genome)),
         ("Inversion File:", os.path.basename(vcf)) if vcf else ("Random Inversions:", count),
@@ -338,14 +328,14 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_inversion", start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
 
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known copy number variants to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum variant size (bp)")
@@ -356,8 +346,8 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/cnv", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -384,38 +374,33 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
     | `--gain-ratio` | copy gain / loss | gain only | loss only| 
     """
+    workflow = "simulate_cnv"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
+    ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
         sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
         sys.exit(1) 
-    
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
-    command += f" --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    # instantiate workflow directory
-    # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
+
+    ## setup workflow ##
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
+
     fetch_rule(workflowdir, "simulate_variants.smk")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_cnv")
+
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate cnv",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -423,7 +408,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             "only_vcf" : only_vcf,
         },
         "cnv" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {}),
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {}),
@@ -431,21 +416,21 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"max_copy" : max_copy} if not vcf else {}),
             **({"gain_ratio" : gain_ratio} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
+
     start_text = workflow_info(
         ("Input Genome:", os.path.basename(genome)),
         ("CNV File:", os.path.basename(vcf)) if vcf else ("Random CNVs:", count),
@@ -453,20 +438,20 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_cnv", start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True), help = 'VCF file of known translocations to simulate')
+@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
 @click.option('-z', '--heterozygosity', type = click.FloatRange(0,1), default = 0, show_default=True, help = 'heterozygosity to simulate diploid variants')
 @click.option('--only-vcf',  is_flag = True, default = False, help = 'If setting heterozygosity, only create the vcf rather than the fasta files')
-@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True), help = "Text file of chromosomes to avoid")
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
+@click.option('-e', '--exclude-chr', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "Text file of chromosomes to avoid")
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/translocation", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prefix', type = str, default= "sim", show_default=True, help = "Naming prefix for output files")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -486,37 +471,33 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
+    workflow = "simulate_translocation"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow, True)
+    ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
         sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
         sys.exit(1) 
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores 2'
-    command += f" --snakefile {workflowdir}/simulate_variants.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
-    # instantiate workflow directory
-    # move necessary files to workflow dir
-    os.makedirs(f"{workflowdir}/input/", exist_ok= True)
     check_fasta(genome)
+
+    ## setup workflow ##
+    command = setup_snakemake(
+        "simulate_variants",
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        2,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
+
     fetch_rule(workflowdir, "simulate_variants.smk")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "simulate_translocation")
+
     conda_envs = ["simulations"]
     configs = {
-        "workflow" : "simulate translocation",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -524,25 +505,24 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
             "only_vcf" : only_vcf
         },
         "translocation" : {
-            **({"vcf" : Path(vcf).resolve().as_posix()} if vcf else {}),
+            **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "inputs" : {
-            "genome" : Path(genome).resolve().as_posix(),
-            **({"centromeres" : Path(centromeres).resolve().as_posix()} if centromeres else {}),
-            **({"genes" : Path(genes).resolve().as_posix()} if genes else {}),
-            **({"excluded_chromosomes" : Path(exclude_chr).resolve().as_posix()} if exclude_chr else {})
+            "genome" : genome,
+            **({"centromeres" : centromeres} if centromeres else {}),
+            **({"genes" : genes} if genes else {}),
+            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
-    # setup the config file depending on inputs
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
+
     start_text = workflow_info(
         ("Input Genome:", os.path.basename(genome)),
         ("Translocation File:", os.path.basename(vcf)) if vcf else ("Random Translocations:", f"{count}"),
@@ -550,8 +530,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         ("Genes GFF:", os.path.basename(genes)) if genes else None,
         ("Excluded Chromosomes:", os.path.basename(exclude_chr)) if exclude_chr else None,
         ("Heterozygosity:", heterozygosity) if heterozygosity > 0 else None,
-        ("Output Folder:", output_dir + "/"),
+        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "simulate_translocation", start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
 

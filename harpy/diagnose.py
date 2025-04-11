@@ -14,13 +14,19 @@ def diagnose(directory):
     Run the Snakemake debugger to identify hang-ups 
     """
     directory = directory.rstrip("/")
-    if not os.path.exists(f"{directory}/workflow/config.yaml"):
-        print_error("missing config file", f"Target directory [blue]{directory}[/blue] does not contain the file [bold]workflow/config.yaml[/bold]")
+    if not os.path.exists(f"{directory}/workflow/config.harpy.yaml"):
+        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.harpy.yaml[/]")
         sys.exit(1)
-    with open(f"{directory}/workflow/config.yaml", 'r', encoding="utf-8") as f:
+    if not os.path.exists(f"{directory}/workflow/config.yaml"):
+        print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
+        sys.exit(1)
+
+    with open(f"{directory}/workflow/config.harpy.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     
-    command = harpy_config["workflow_call"] + " --dry-run --debug-dag"
+    command = harpy_config["snakemake_command"]
+    # prefix the new arguments, in case a positional argument was added at the end by user
+    command = command.replace("snakemake -", "snakemake --dry-run --debug-dag -")
     console = Console(stderr=True)
     console.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
     try:
@@ -38,6 +44,11 @@ def diagnose(directory):
                 break
             if error:
                 rprint(f"[red]{error}", end="", file=sys.stderr)
+                # error usually prints more than one line, so this will make sure all
+                # consecutive stderr text will be printed together
+                while error:
+                    error = process.stderr.readline()
+                    rprint(f"[red]{error}", end="", file=sys.stderr)
             if output:
                 if output.startswith("This was a dry-run"):
                     process.terminate()
@@ -46,7 +57,7 @@ def diagnose(directory):
                     rprint(f"[yellow]{output}", end="", file=sys.stderr)
     except:
         console.print("")
-        console.rule("[bold]Terminating Snakemake", style = "yellow")
+        console.rule("[bold]End of diagnosis", style = "yellow")
         process.terminate()
         process.wait()
         sys.exit(1)

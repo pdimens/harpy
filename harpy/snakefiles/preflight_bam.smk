@@ -6,16 +6,12 @@ import logging
 from pathlib import Path
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir = config["output_directory"]
-envdir  = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir  = os.path.join(os.getcwd(), "workflow", "envs")
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -30,7 +26,7 @@ rule check_bam:
     input:
         get_alignments
     output:
-        temp(outdir + "/{sample}.log")
+        temp("{sample}.log")
     container:
         None
     shell: 
@@ -38,9 +34,9 @@ rule check_bam:
 
 rule concat_results:
     input:
-        collect(outdir + "/{sample}.log", sample = samplenames)
+        collect("{sample}.log", sample = samplenames)
     output:
-        outdir + "/filecheck.bam.tsv"
+        "filecheck.bam.tsv"
     container:
         None
     shell:
@@ -51,11 +47,11 @@ rule concat_results:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/_quarto.yml"),
-        scss = temp(f"{outdir}/_harpy.scss")
+        yaml = temp("_quarto.yml"),
+        scss = temp("_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -63,15 +59,15 @@ rule report_config:
 
 rule create_report:
     input:
-        f"{outdir}/_quarto.yml",
-        f"{outdir}/_harpy.scss",
-        data = f"{outdir}/filecheck.bam.tsv",
-        qmd = f"{outdir}/workflow/report/preflight_bam.qmd"
+        "_quarto.yml",
+        "_harpy.scss",
+        data = "filecheck.bam.tsv",
+        qmd = "workflow/report/preflight_bam.qmd"
     output:
-        html = f"{outdir}/filecheck.bam.html",
-        qmd = temp(f"{outdir}/filecheck.bam.qmd")
+        html = "filecheck.bam.html",
+        qmd = temp("filecheck.bam.qmd")
     log:
-        f"{outdir}/logs/report.log"
+        "logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -84,15 +80,14 @@ rule create_report:
 rule workflow_summary:
     default_target: True
     input:
-        outdir + "/filecheck.bam.html"
+        "filecheck.bam.html"
     run:
-        os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy preflight bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += "\tcheck_bam.py sample.bam > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(outdir + "/workflow/preflight.bam.summary", "w") as f:
+        with open("workflow/preflight.bam.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -6,12 +6,18 @@
 ### Modules
 - `harpy diagnose` to view snakemake's `--debug-diag` output for troubleshooting
 - `harpy template` to create template files (see breaking changes below)
+- `harpy convert` to convert FASTQ files between linked-read formats
+  - supports 10x, haplotagging, stlfr, tellseq, and "standard"
+  - `standard` introduces the option to have the barcode in the BX:Z tag (like haplotagging), but encoded in the original barcode format (e.g. stlfr in standard format would be `@SEQID BX:Z:1_2_3`)
 ### Options
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
 - `harpy demultiplex gen1` adds `--qxrx` to include the `QX:Z` and `RX:Z` tags in the read headers (defaults to not doing that)
 - `harpy downsample` adds `--hpc` for cluster submission
 - `harpy simulate linkedreads` adds `--merge-haplotypes` as a convenience features to merge R1 reads for hap0 and hap1 (same for R2)
+- `harpy impute` adds `--region/-r` to specify imputation for a single region only
+  - takes the format of `contig:start-end-buffer`, where `buffer` is how much STITCH looks before and after you start/end positions (respectively)
+  - e.g. `-r 3L:3000-28110227-1000`
 
 ## Breaking Changes
 ### Renamed Commands
@@ -19,6 +25,11 @@
 - `harpy imputeparams` is now `harpy template impute`
 - `harpy hpc` is now `harpy template hpc-*`
   - where `*` is the type of scheduler, e.g. `harpy template hpc-slurm`
+- `harpy view` has its usage changed
+  - `harpy view` has been replaced with `harpy view log`
+  - `--config` has been replaced with `harpy view config`
+  - `--snakefile` has been replaced with `harpy view config`
+  - `harpy view snakeparams` exists to view the new snakemake profile yaml
 ### HPC support
 - `harpy template hpc-*` now outputs `hpc/system.yaml` rather than `hpc/system/config.yaml`
 - the `--hpc` option for workflows now takes the configuration yaml file directly, directory input is disabled
@@ -29,11 +40,22 @@
   - `0` prints starting text and progress bars as is normal (default)
   - `1` prints starting text and single progress bar for `Total`
   - `2` prints nothing, like the original `--quiet` behavior
-### misc
+### Snakemake things
+- most of the command-line snakemake stuff have been moved to `workflow/config.yaml` to make the snakemake invocation significantly less verbose
+- this also now means that the previous `config.yaml`, which contained the workflow configuration (via user inputs), is now `config.harpy.yaml`
+  - not a design choice we _wanted_, but we had to accomodate snakemake's particulars for this to work
+- this means that every output folder now has its own `.snakemake` directory (but the `.environments` folder is still in the directory you ran `harpy`)
+- also means the workflow snakefiles dont need all the `outdir + ...` or `workflowdir` calls, so it looks quite a bit cleaner under the hood
+### Usage changes / Misc
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
 - updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
   - empty module call no longer brings up the docstring
 - direct HTCondor support is gone in `harpy template hpc-` because the snakemake plugin seems to have vanished
+- instances of `--genome` (`-g`) have been replaced with `REFERENCE` as an input argument (`snp`, `sv`, `align`) to be more accurate and easier to use
+  - except in `phase`, where it is now `--reference/-r` (because a reference is optional)
+- `harpy sv` short option for `--min-size` is now `-m`
+- `--paramaters` in `harpy impute` has been removed in favor of `parameters`, `vcf`, and `inputs` all being position arguments:
+  - e.g. `harpy impute --threads 14 stitch.params file.bcf data/alignments`
 
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution
@@ -47,7 +69,7 @@
 - `demultiplex gen1` now uses the purpose-built `dmox` for significantly faster demultiplexing
 - different spinner for progress bars
 - the BUSCO analysis in `harpy assembly` and `harpy metassembly` is now hardcoded to use orthoDB v12
-- the unified `Genome/` folder has been replaced with a per-output-folder `outdir/workflow/genome/` folder that serves the same function to avoid situations where multiple fasta files with the same name are being used simultaneously across concurrent workflows.
+- the unified `Genome/` folder has been replaced with a per-output-folder `outdir/workflow/reference/` folder that serves the same function to avoid situations where multiple fasta files with the same name are being used simultaneously across concurrent workflows.
   - the lack of unification results in extra redundancy (more disk space used =/) but with the benefit of more reliable behavior 
 
 ## Fixes
@@ -66,3 +88,7 @@
 - `popgroup.py` and `imputeparams.py` merged into `template.py`
 - the `click` bindings for `simulate` were moved out of `__main__.py` and into `simulate.py`
   - result is less cluttered and more intuitive `__main__.py`
+- containerization snakefile dramatically simplified
+- new [hidden] `harpy localenv` workflow to instantiate software environments for harpy workflows (dev testing idea spawned from Discussion #222)
+- the python scripts governing each module have been internally reorganized to follow a pattern of validations then workflow setup
+  - the two sections are annotated too

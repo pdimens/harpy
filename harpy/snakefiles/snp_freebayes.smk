@@ -5,54 +5,48 @@ import logging
 from pathlib import Path
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = f"{outdir}/workflow"
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
-regiontype  = config["region_type"]
-windowsize  = config.get("windowsize", None)
+regions_input = config["inputs"]["regions"]
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["inputs"]["genome"]
+genomefile 	= config["inputs"]["reference"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     genome_zip  = True
     bn = bn[:-3]
 else:
     genome_zip  = False
-workflow_geno = f"{workflowdir}/genome/{bn}"
+workflow_geno = f"workflow/reference/{bn}"
 groupings 	= config["inputs"].get("groupings", [])
-regioninput = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
 sampldict = dict(zip(bamlist, samplenames))
-if regiontype == "region":
-    intervals = [regioninput]
-    regions = {f"{regioninput}" : f"{regioninput}"}
-else:
-    with open(regioninput, "r") as reg_in:
+
+if os.path.exists(regions_input):
+    with open(regions_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
+else:
+    intervals = [regions_input]
+    regions = {f"{regions_input}" : f"{regions_input}"}
 
 rule preproc_groups:
     input:
-        groupings
+        grp = groupings
     output:
-        f"{workflowdir}/sample.groups"
+        grp = "workflow/sample.groups"
     run:
-        with open(input[0], "r") as infile, open(output[0], "w") as outfile:
+        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
 rule process_genome:
@@ -92,9 +86,9 @@ rule bam_list:
         bam = bamlist,
         bai = collect("{bam}.bai", bam = bamlist)
     output:
-        outdir + "/workflow/samples.files"
+        smp = "workflow/samples.files"
     run:
-        with open(output[0], "w") as fout:
+        with open(output.smp, "w") as fout:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
@@ -102,19 +96,19 @@ rule call_variants:
     input:
         bam = bamlist,
         bai = collect("{bam}.bai", bam = bamlist),
-        groupfile = outdir + "/workflow/sample.groups" if groupings else [],
+        groupfile = "workflow/sample.groups" if groupings else [],
         ref     = workflow_geno,
         ref_idx = f"{workflow_geno}.fai",
-        samples = outdir + "/workflow/samples.files"
+        samples = "workflow/samples.files"
     output:
-        bcf = temp(outdir + "/regions/{part}.bcf"),
-        idx = temp(outdir + "/regions/{part}.bcf.csi")
+        bcf = temp("regions/{part}.bcf"),
+        idx = temp("regions/{part}.bcf.csi")
     log:
-        outdir + "/logs/{part}.freebayes.log"
+        "logs/{part}.freebayes.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        populations = f"--populations {outdir}/workflow/sample.groups" if groupings else "",
+        populations = "--populations workflow/sample.groups" if groupings else "",
         extra = extra
     threads:
         2
@@ -128,22 +122,22 @@ rule call_variants:
 
 rule concat_list:
     input:
-        bcfs = collect(outdir + "/regions/{part}.bcf", part = intervals),
+        bcfs = collect("regions/{part}.bcf", part = intervals),
     output:
-        outdir + "/logs/bcf.files"
+        bcf = "logs/bcf.files"
     run:
-        with open(output[0], "w") as fout:
+        with open(output.bcf, "w") as fout:
             for bcf in input.bcfs:
                 _ = fout.write(f"{bcf}\n")
 
 rule concat_variants:
     input:
-        bcfs = collect(outdir + "/regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = outdir + "/logs/bcf.files"
+        bcfs = collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        filelist = "logs/bcf.files"
     output:
-        temp(outdir + "/variants.raw.unsort.bcf")
+        temp("variants.raw.unsort.bcf")
     log:
-        outdir + "/logs/concat.log"
+        "logs/concat.log"
     threads:
         workflow.cores
     container:
@@ -153,10 +147,10 @@ rule concat_variants:
 
 rule sort_variants:
     input:
-        outdir + "/variants.raw.unsort.bcf"
+        "variants.raw.unsort.bcf"
     output:
-        bcf = outdir + "/variants.raw.bcf",
-        csi = outdir + "/variants.raw.bcf.csi"
+        bcf = "variants.raw.bcf",
+        csi = "variants.raw.bcf.csi"
     container:
         None
     shell:
@@ -165,13 +159,13 @@ rule sort_variants:
 rule indel_realign:
     input:
         genome  = workflow_geno,
-        bcf     = outdir + "/variants.raw.bcf",
-        idx     = outdir + "/variants.raw.bcf.csi"
+        bcf     = "variants.raw.bcf",
+        idx     = "variants.raw.bcf.csi"
     output:
-        bcf = outdir + "/variants.normalized.bcf",
-        idx = outdir + "/variants.normalized.bcf.csi"
+        bcf = "variants.normalized.bcf",
+        idx = "variants.normalized.bcf.csi"
     log:
-        outdir + "/logs/variants.normalized.log"
+        "logs/variants.normalized.log"
     threads:
         workflow.cores
     container:
@@ -183,10 +177,10 @@ rule general_stats:
     input:
         genome  = workflow_geno,
         ref_idx = f"{workflow_geno}.fai",
-        bcf     = outdir + "/variants.{type}.bcf",
-        idx     = outdir + "/variants.{type}.bcf.csi"
+        bcf     = "variants.{type}.bcf",
+        idx     = "variants.{type}.bcf.csi"
     output:
-        outdir + "/reports/data/variants.{type}.stats",
+        "reports/data/variants.{type}.stats",
     container:
         None
     shell:
@@ -196,11 +190,11 @@ rule general_stats:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -208,17 +202,17 @@ rule report_config:
 
 rule variant_report:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
-        data = outdir + "/reports/data/variants.{type}.stats",
-        qmd  = f"{workflowdir}/report/bcftools_stats.qmd"
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
+        data = "reports/data/variants.{type}.stats",
+        qmd  = "workflow/report/bcftools_stats.qmd"
     output:
-        report = outdir + "/reports/variants.{type}.html",
-        qmd = temp(outdir + "/reports/variants.{type}.qmd")
+        report = "reports/variants.{type}.html",
+        qmd = temp("reports/variants.{type}.qmd")
     params:
         lambda wc: "-P vcf:variants." + wc.get("type")
     log:
-        outdir + "/logs/variants.{type}.report.log"
+        "logs/variants.{type}.report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -231,21 +225,18 @@ rule variant_report:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = collect(outdir + "/variants.{file}.bcf", file = ["raw","normalized"]),
-        reports = collect(outdir + "/reports/variants.{file}.html", file = ["raw","normalized"]) if not skip_reports else []
+        vcf = collect("variants.{file}.bcf", file = ["raw","normalized"]),
+        reports = collect("reports/variants.{file}.html", file = ["raw","normalized"]) if not skip_reports else []
     params:
         ploidy = f"-p {ploidy}",
         populations = f"--populations {groupings}" if groupings else '',
         extra = extra
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
-        if windowsize:
-            summary.append(f"Size of intervals to split genome for variant calling: {windowsize}")
-        else:
-            summary.append(f"Genomic positions for which variants were called: {regioninput}")
+        summary.append(f"The provided reference genome: {bn}")
+        summary.append(f"Genomic positions for which variants were called: {regions_input}")
         varcall = "The freebayes parameters:\n"
-        varcall += f"\tfreebayes -f GENOME -L samples.list -r REGION {params} |\n"
+        varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
         varcall += f"\tbcftools sort -"
         summary.append(varcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"
@@ -255,7 +246,7 @@ rule workflow_summary:
         normalize += "\tbcftools norm -m -both -d both"
         summary.append(normalize)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(f"{workflowdir}/snp.freebayes.summary", "w") as f:
+        with open("workflow/snp.freebayes.summary", "w") as f:
             f.write("\n\n".join(summary))

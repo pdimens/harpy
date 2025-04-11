@@ -7,7 +7,6 @@ dependencies:
   - bcftools =1.20
   - click =8
   - conda >24.7
-  - lrez
   - pysam
   - python
   - rich-click

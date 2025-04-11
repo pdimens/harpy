@@ -3,19 +3,14 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir = os.path.join(os.getcwd(), "workflow", "envs")
 samplefile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
 keep_unknown = config["keep_unknown"]
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-    os.makedirs(f"{outdir}/reports/data", exist_ok = True)
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     FR = r"[12]",
@@ -46,9 +41,9 @@ fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
 
 rule barcode_segments:
     output:
-        collect(outdir + "/workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
+        collect("workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
     params:
-        f"{outdir}/workflow"
+        "workflow"
     container:
         None
     shell:
@@ -59,16 +54,16 @@ rule partition_reads:
         r1 = config["inputs"]["R1"],
         r2 = config["inputs"]["R2"]       
     output:
-        r1 = temp(f"{outdir}/reads.R1.fq.gz"),
-        r2 = temp(f"{outdir}/reads.R2.fq.gz"),
-        parts = temp(collect(outdir + "/reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+        r1 = temp("reads.R1.fq.gz"),
+        r2 = temp("reads.R2.fq.gz"),
+        parts = temp(collect("reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
     log:
-        outdir + "/logs/partition.reads.log"
+        "logs/partition.reads.log"
     threads:
         workflow.cores
     params:
         chunks = min(workflow.cores, 999),
-        outdir = f"{outdir}/reads_chunks"
+        outdir = "reads_chunks"
     conda:
         f"{envdir}/demultiplex.yaml"
     shell:
@@ -83,33 +78,33 @@ use rule partition_reads as partition_index with:
         r1 = config["inputs"]["I1"],
         r2 = config["inputs"]["I2"]       
     output:
-        r1 = temp(f"{outdir}/reads.I1.fq.gz"),
-        r2 = temp(f"{outdir}/reads.I2.fq.gz"),
-        parts = temp(collect(outdir + "/index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
+        r1 = temp("reads.I1.fq.gz"),
+        r2 = temp("reads.I2.fq.gz"),
+        parts = temp(collect("index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
     log:
-        outdir + "/logs/partition.index.log"
+        "logs/partition.index.log"
     params:
         chunks = min(workflow.cores, 999),
-        outdir = f"{outdir}/index_chunks"
+        outdir = "index_chunks"
 
 rule demultiplex:
     input:
-        R1 = outdir + "/reads_chunks/reads.R1.part_{part}.fq.gz",
-        R2 = outdir + "/reads_chunks/reads.R2.part_{part}.fq.gz",
-        I1 = outdir + "/index_chunks/reads.I1.part_{part}.fq.gz",
-        I2 = outdir + "/index_chunks/reads.I2.part_{part}.fq.gz",
-        segment_a = f"{outdir}/workflow/segment_A.bc",
-        segment_b = f"{outdir}/workflow/segment_B.bc",
-        segment_c = f"{outdir}/workflow/segment_C.bc",
-        segment_d = f"{outdir}/workflow/segment_D.bc",
+        R1 = "reads_chunks/reads.R1.part_{part}.fq.gz",
+        R2 = "reads_chunks/reads.R2.part_{part}.fq.gz",
+        I1 = "index_chunks/reads.I1.part_{part}.fq.gz",
+        I2 = "index_chunks/reads.I2.part_{part}.fq.gz",
+        segment_a = "workflow/segment_A.bc",
+        segment_b = "workflow/segment_B.bc",
+        segment_c = "workflow/segment_C.bc",
+        segment_d = "workflow/segment_D.bc",
         schema = samplefile
     output:
-        temp(collect(outdir + "/{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
-        bx_info = temp(f"{outdir}/logs/part.{{part}}.barcodes")
+        temp(collect("{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
+        bx_info = temp("logs/part.{part}.barcodes")
     log:
-        f"{outdir}/logs/demultiplex.{{part}}.log"
+        "logs/demultiplex.{{part}}.log"
     params:
-        outdir = outdir,
+        outdir = os.getcwd(),
         qxrx = config["include_qx_rx_tags"],
         keep_unknown = keep_unknown,
         part = lambda wc: wc.get("part")
@@ -120,11 +115,11 @@ rule demultiplex:
 
 rule merge_partitions:
     input:
-        collect(outdir + "/{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
+        collect("{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
     output:
-        outdir + "/{sample}.R{FR}.fq.gz"
+        "{sample}.R{FR}.fq.gz"
     log:
-        outdir + "/logs/{sample}.{FR}.concat.log"
+        "logs/{sample}.{FR}.concat.log"
     container:
         None
     shell:
@@ -132,13 +127,12 @@ rule merge_partitions:
 
 rule merge_barcode_logs:
     input:
-        bc = collect(outdir + "/logs/part.{part}.barcodes", part = fastq_parts)
+        bc = collect("logs/part.{part}.barcodes", part = fastq_parts)
     output:
-        concat = temp(f"{outdir}/logs/barcodes.concat"),
-        log = f"{outdir}/logs/barcodes.log"
+        concat = temp("logs/barcodes.concat"),
+        log = "logs/barcodes.log"
     run:
-        shell("cat {input.bc} | sort -k1,1 > {output.concat}")
-        #shell("cat {input.bc} | sort -k1,1 > /home/pdimens/test.concat")
+        shell(f"cat {input.bc} | sort -k1,1 > {output.concat}")
         with open(output.concat, "r") as file, open(output.log, "w") as file_out:
             file_out.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
             prev_bc, prev_1, prev_2, prev_3 = file.readline().split()
@@ -165,11 +159,11 @@ rule merge_barcode_logs:
 
 rule assess_quality:
     input:
-        outdir + "/{sample}.R{FR}.fq.gz"
+        "{sample}.R{FR}.fq.gz"
     output: 
-        outdir + "/reports/data/{sample}.R{FR}.fastqc"
+        "reports/data/{sample}.R{FR}.fastqc"
     log:
-        outdir + "/logs/{sample}.R{FR}.qc.log"
+        "logs/{sample}.R{FR}.qc.log"
     threads:
         1
     conda:
@@ -194,7 +188,7 @@ EOF
 
 rule report_config:
     output:
-        outdir + "/workflow/multiqc.yaml"
+        "workflow/multiqc.yaml"
     run:
         import yaml
         configs = {
@@ -217,16 +211,16 @@ rule report_config:
 
 rule quality_report:
     input:
-        fqc = collect(outdir + "/reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
-        mqc_yaml = outdir + "/workflow/multiqc.yaml"
+        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
+        mqc_yaml = "workflow/multiqc.yaml"
     output:
-        outdir + "/reports/demultiplex.QA.html"
+        "reports/demultiplex.QA.html"
     log:
-        f"{outdir}/logs/multiqc.log"
+        "logs/multiqc.log"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
         module = " --module fastqc",
-        logdir = outdir + "/reports/data/"
+        logdir = "reports/data/"
     conda:
         f"{envdir}/qc.yaml"
     shell:
@@ -235,9 +229,9 @@ rule quality_report:
 rule workflow_summary:
     default_target: True
     input:
-        fq = collect(outdir + "/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        barcode_logs = f"{outdir}/logs/barcodes.log",
-        reports = outdir + "/reports/demultiplex.QA.html" if not skip_reports else []
+        fq = collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
+        barcode_logs = "logs/barcodes.log",
+        reports = "reports/demultiplex.QA.html" if not skip_reports else []
     params:
         R1 = config["inputs"]["R1"],
         R2 = config["inputs"]["R2"],
@@ -260,7 +254,7 @@ rule workflow_summary:
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(outdir + "/workflow/demux.gen1.summary", "w") as f:
+        with open("workflow/demux.gen1.summary", "w") as f:
             f.write("\n\n".join(summary))

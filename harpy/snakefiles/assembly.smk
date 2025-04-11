@@ -4,16 +4,12 @@ import os
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
-outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {
@@ -44,15 +40,15 @@ rule cloudspades:
         FQ_R1 = FQ1,
         FQ_R2 = FQ2
     output:
-        f"{outdir}/spades/contigs.fasta",
-        f"{outdir}/spades/scaffolds.fasta"
+        "spades/contigs.fasta",
+        "spades/scaffolds.fasta"
     params:
-        outdir = f"{outdir}/spades",
+        outdir = "spades",
         k = k_param,
         mem = max_mem // 1000,
         extra = spades_extra
     log:
-        outdir + "/logs/assembly.log"
+        "logs/assembly.log"
     conda:
         f"{envdir}/assembly.yaml"
     threads:
@@ -67,7 +63,7 @@ rule interleave_fastq:
         FQ1,
         FQ2
     output:
-        temp(f"{outdir}/scaffold/interleaved.fq.gz")
+        temp("scaffold/interleaved.fq.gz")
     container:
         None
     shell:
@@ -75,9 +71,9 @@ rule interleave_fastq:
 
 rule link_assembly:
     input:
-        f"{outdir}/spades/scaffolds.fasta",
+        "spades/scaffolds.fasta",
     output:
-        f"{outdir}/scaffold/spades.fa"
+        "scaffold/spades.fa"
     container:
         None
     shell:  
@@ -85,19 +81,19 @@ rule link_assembly:
 
 rule scaffolding:
     input:
-        asm = f"{outdir}/scaffold/spades.fa",
-        reads = f"{outdir}/scaffold/interleaved.fq.gz"
+        asm = "scaffold/spades.fa",
+        reads = "scaffold/interleaved.fq.gz"
     output:
-        f"{outdir}/scaffolds.fasta"
+        "scaffolds.fasta"
     log:
-        outdir + "/logs/scaffolding.log"
+        "logs/scaffolding.log"
     threads:
         workflow.cores
     params:
-        workdir = f"{outdir}/scaffold",
+        workdir = "scaffold",
         threads = f"-j {workflow.cores}",
-        draft_asm = f"draft=spades",
-        reads = f"reads=interleaved",
+        draft_asm = "draft=spades",
+        reads = "reads=interleaved",
         bwa_threads = f"t={workflow.cores}",
         min_mapq = f"mapq={mapq}",
         max_mismatch = f"nm={mismatch}",
@@ -120,15 +116,15 @@ rule scaffolding:
 
 rule QUAST_assessment:
     input:
-        contigs = f"{outdir}/spades/contigs.fasta",
-        scaffolds = f"{outdir}/scaffolds.fasta",
-        fastq = f"{outdir}/scaffold/interleaved.fq.gz"
+        contigs = "spades/contigs.fasta",
+        scaffolds = "scaffolds.fasta",
+        fastq = "scaffold/interleaved.fq.gz"
     output:
-        f"{outdir}/quast/report.tsv"
+        "quast/report.tsv"
     log:
-        f"{outdir}/quast/quast.log"
+        "quast/quast.log"
     params:
-        output_dir = f"-o {outdir}/quast",
+        output_dir = "-o quast",
         organism = f"--{organism}" if organism != "prokaryote" else "",
         quast_params = "--labels spades_contigs,arcs_scaffolds --rna-finding",
         skip_things = "--no-sv"
@@ -141,30 +137,30 @@ rule QUAST_assessment:
 
 rule BUSCO_analysis:
     input:
-        f"{outdir}/scaffolds.fasta"
+        f"scaffolds.fasta"
     output:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
+        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
     log:
-        f"{outdir}/logs/busco.log"
+        "logs/busco.log"
     params:
-        output_folder = outdir,
+        #output_folder = f"--out_path {outdir}",
         out_prefix = "-o busco",
         lineage = f"-l {lineagedb}_odb{odb_version}",
-        download_path = f"--download_path {outdir}/busco",
+        download_path = "--download_path busco",
         metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
     threads:
         workflow.cores
     conda:
         f"{envdir}/assembly.yaml"
     shell:
-        "( busco -f -i {input} -c {threads} -m genome --out_path {params} > {log} 2>&1 ) || touch {output}"
+        "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
 rule build_report:
     input:
-        f"{outdir}/busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
-        f"{outdir}/quast/report.tsv"
+        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
+        "quast/report.tsv"
     output:
-        f"{outdir}/reports/assembly.metrics.html"
+        "reports/assembly.metrics.html"
     params:
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Assembly Metrics\""
@@ -176,13 +172,13 @@ rule build_report:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/scaffolds.fasta",
-        f"{outdir}/reports/assembly.metrics.html" if not skip_reports else [],
+        "scaffolds.fasta",
+        "reports/assembly.metrics.html" if not skip_reports else [],
     params:
         k_param = k_param,
         max_mem = max_mem // 1000,
         spades_extra = spades_extra,
-        workdir = f"-C {outdir}/scaffold",
+        workdir = f"-C scaffold",
         threads = f"-j {workflow.cores}",
         draft_asm = f"draft=spades",
         reads = f"reads=interleaved",
@@ -206,7 +202,7 @@ rule workflow_summary:
         arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(outdir + "/workflow/assembly.summary", "w") as f:
+        with open("workflow/assembly.summary", "w") as f:
             f.write("\n\n".join(summary))

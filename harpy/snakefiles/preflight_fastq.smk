@@ -5,17 +5,13 @@ import re
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist = config["inputs"]
-outdir = config["output_directory"]
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
@@ -35,7 +31,7 @@ rule check_forward:
     input:
         get_fq1
     output:
-        temp(outdir + "/{sample}.F.log")
+        temp("{sample}.F.log")
     container:
         None
     shell: 
@@ -45,7 +41,7 @@ rule check_reverse:
     input:
         get_fq2
     output:
-        temp(outdir + "/{sample}.R.log")
+        temp("{sample}.R.log")
     container:
         None
     shell: 
@@ -53,9 +49,9 @@ rule check_reverse:
 
 rule concat_results:
     input:
-        collect(outdir + "/{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
+        collect("{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        outdir + "/filecheck.fastq.tsv"
+        "filecheck.fastq.tsv"
     container:
         None
     shell:
@@ -66,11 +62,11 @@ rule concat_results:
 
 rule report_config:
     input:
-        yaml = f"{outdir}/workflow/report/_quarto.yml",
-        scss = f"{outdir}/workflow/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/_quarto.yml"),
-        scss = temp(f"{outdir}/_harpy.scss")
+        yaml = temp("_quarto.yml"),
+        scss = temp("_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -78,15 +74,15 @@ rule report_config:
 
 rule create_report:
     input:
-        f"{outdir}/_quarto.yml",
-        f"{outdir}/_harpy.scss",
-        data = f"{outdir}/filecheck.fastq.tsv",
-        qmd = f"{outdir}/workflow/report/preflight_fastq.qmd"
+        "_quarto.yml",
+        "_harpy.scss",
+        data = "filecheck.fastq.tsv",
+        qmd = "workflow/report/preflight_fastq.qmd"
     output:
-        html = f"{outdir}/filecheck.fastq.html",
-        qmd = temp(f"{outdir}/filecheck.fastq.qmd")
+        html = "filecheck.fastq.html",
+        qmd = temp("filecheck.fastq.qmd")
     log:
-        f"{outdir}/logs/report.log"
+        "logs/report.log"
     conda:
         f"{envdir}/r.yaml"
     shell:
@@ -99,15 +95,14 @@ rule create_report:
 rule workflow_summary:
     default_target: True
     input:
-        outdir + "/filecheck.fastq.html"
+        "filecheck.fastq.html"
     run:
-        os.makedirs(f"{outdir}/workflow/", exist_ok= True)
         summary = ["The harpy preflight fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += "\tcheck_fastq.py sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(outdir + "/workflow/preflight.fastq.summary", "w") as f:
+        with open("workflow/preflight.fastq.summary", "w") as f:
             f.write("\n\n".join(summary))

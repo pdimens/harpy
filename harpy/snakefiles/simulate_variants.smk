@@ -5,15 +5,11 @@ import random
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 
-outdir = config["output_directory"]
-envdir = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-variant = config["workflow"].split()[1]
+envdir = os.path.join(os.getcwd(), "workflow", "envs")
+variant = config["workflow"].split("_")[-1]
 simuG_variant = variant.upper() if variant == "cnv" else variant
 outprefix = config["prefix"]
 genome = config["inputs"]["genome"]
@@ -58,13 +54,13 @@ rule simulate_haploid:
         vcf_correct if vcf else [],
         geno = genome
     output:
-        temp(f"{outdir}/{outprefix}.simseq.genome.fa"),
-        f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
-        f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+        temp(f"{outprefix}.simseq.genome.fa"),
+        f"{outprefix}.refseq2simseq.{simuG_variant}.vcf",
+        f"{outprefix}.refseq2simseq.map.txt"
     log:
-        f"{outdir}/logs/{outprefix}.log"
+        f"logs/{outprefix}.log"
     params:
-        prefix = f"{outdir}/{outprefix}",
+        prefix = f"{outprefix}",
         parameters = variant_params
     conda:
         f"{envdir}/simulations.yaml"
@@ -73,13 +69,13 @@ rule simulate_haploid:
 
 rule rename_haploid:
     input:
-        fasta = f"{outdir}/{outprefix}.simseq.genome.fa",
-        vcf = f"{outdir}/{outprefix}.refseq2simseq.{simuG_variant}.vcf",
-        mapfile = f"{outdir}/{outprefix}.refseq2simseq.map.txt"
+        fasta = f"{outprefix}.simseq.genome.fa",
+        vcf = f"{outprefix}.refseq2simseq.{simuG_variant}.vcf",
+        mapfile = f"{outprefix}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/{outprefix}.fasta.gz",
-        vcf = f"{outdir}/{outprefix}.{variant}.vcf",
-        mapfile = f"{outdir}/{outprefix}.{variant}.map"
+        fasta = f"{outprefix}.fasta.gz",
+        vcf = f"{outprefix}.{variant}.vcf",
+        mapfile = f"{outprefix}.{variant}.map"
     run:
         shell(f"bgzip -c {input.fasta} > {output.fasta}")
         os.rename(input.mapfile, output.mapfile)
@@ -87,17 +83,17 @@ rule rename_haploid:
 
 rule diploid_variants:
     input:
-        f"{outdir}/{outprefix}.{variant}.vcf"
+        vcf = f"{outprefix}.{variant}.vcf"
     output:
-        f"{outdir}/haplotype_1/{outprefix}.hap1.{variant}.vcf",
-        f"{outdir}/haplotype_2/{outprefix}.hap2.{variant}.vcf"
+        hap1 = f"haplotype_1/{outprefix}.hap1.{variant}.vcf",
+        hap2 = f"haplotype_2/{outprefix}.hap2.{variant}.vcf"
     params:
         het = heterozygosity
     run:
-        os.makedirs(f"{outdir}/haplotype_1", exist_ok = True)
-        os.makedirs(f"{outdir}/haplotype_2", exist_ok = True)
+        os.makedirs("haplotype_1", exist_ok = True)
+        os.makedirs("haplotype_2", exist_ok = True)
         rng = random.Random(randomseed) if randomseed else random.Random()
-        with open(input[0], "r") as in_vcf, open(output[0], "w") as hap1, open(output[1], "w") as hap2:
+        with open(input.vcf, "r") as in_vcf, open(output.hap1, "w") as hap1, open(output.hap2, "w") as hap2:
             for line in in_vcf:
                 if line.startswith("#") or rng.uniform(0, 1) >= params.het:
                     # write header lines and homozygous variants to both files
@@ -110,16 +106,16 @@ rule diploid_variants:
 
 rule simulate_diploid:
     input:
-        hap = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.vcf",
+        hap = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.vcf",
         geno = genome
     output:
-        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa"),
-        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"),
-        temp(f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{simuG_variant}.vcf")
+        temp(f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa"),
+        temp(f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"),
+        temp(f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.{simuG_variant}.vcf")
     log:
-        f"{outdir}/logs/{outprefix}.hap{{haplotype}}.log"
+        f"logs/{outprefix}.hap{{haplotype}}.log"
     params:
-        prefix = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}",
+        prefix = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}",
         vcf_arg = f"-{variant}_vcf"
     conda:
         f"{envdir}/simulations.yaml"
@@ -128,11 +124,11 @@ rule simulate_diploid:
 
 rule rename_diploid:
     input:
-        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
-        mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
+        fasta = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.simseq.genome.fa",
+        mapfile = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.refseq2simseq.map.txt"
     output:
-        fasta = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta.gz",
-        mapfile = f"{outdir}/haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
+        fasta = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta.gz",
+        mapfile = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
     container:
         None
     shell:
@@ -144,13 +140,13 @@ rule rename_diploid:
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/{outprefix}.fasta.gz",
-        f"{outdir}/{outprefix}.{variant}.vcf",
-        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}.fasta.gz", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
-        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
-        collect(f"{outdir}/haplotype_" + "{n}" + f"/{outprefix}.hap" + "{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
+        f"{outprefix}.fasta.gz",
+        f"{outprefix}.{variant}.vcf",
+        collect("haplotype_{n}/" + outprefix + ".hap{n}.fasta.gz", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
+        collect("haplotype_{n}/" + outprefix + ".hap{n}" + f".{variant}.vcf", n = [1,2]) if heterozygosity > 0 else [],
+        collect("haplotype_{n}/" + outprefix + ".hap{n}" + f".{variant}.map", n = [1,2]) if heterozygosity > 0 else []
     params:
-        prefix = f"{outdir}/{outprefix}",
+        prefix = f"{outprefix}",
         parameters = variant_params,
         vcf_arg = f"-{variant}_vcf"
     run:
@@ -165,7 +161,7 @@ rule workflow_summary:
             diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {params.vcf_arg} hapX.vcf"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(f"{outdir}/workflow/simulate.{variant}.summary", "w") as f:
+        with open(f"workflow/simulate.{variant}.summary", "w") as f:
             f.write("\n\n".join(summary))

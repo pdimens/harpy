@@ -6,18 +6,14 @@ import logging
 from pathlib import Path
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 wildcard_constraints:
-    sample = r"[a-zA-Z0-9._-]+"
+    sample = r"[a-zA-Z0-9._-]+",
+    population = r"[a-zA-Z0-9._-]+"
 
-outdir      = config["output_directory"]
-workflowdir = f"{outdir}/workflow"
-envdir      = os.path.join(os.getcwd(), outdir, "workflow", "envs")
-genomefile  = config["inputs"]["genome"]
+envdir      = os.path.join(os.getcwd(), "workflow", "envs")
+genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist,bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -33,9 +29,9 @@ skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
-    workflow_geno = f"{workflowdir}/genome/{bn[:-3]}"
+    workflow_geno = f"workflow/reference/{bn[:-3]}"
 else:
-    workflow_geno = f"{workflowdir}/genome/{bn}"
+    workflow_geno = f"workflow/reference/{bn}"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -47,13 +43,13 @@ rule index_barcodes:
     input: 
         get_alignments
     output:
-        temp(outdir + "/lrez_index/{sample}.bci")
+        temp("lrez_index/{sample}.bci")
     log:
-        outdir + "/logs/process_alignments/{sample}.log"
+        "logs/process_alignments/{sample}.log"
     threads:
         min(10, workflow.cores)
-    container:
-        None
+    conda:
+        f"{envdir}/variants.yaml"
     shell:
         """
         samtools index {input} 2> {log}
@@ -97,14 +93,14 @@ rule bwa_index_genome:
 rule call_variants:
     input:
         bam = get_alignments,
-        bc_idx = outdir + "/lrez_index/{sample}.bci",
+        bc_idx = "lrez_index/{sample}.bci",
         genome = workflow_geno,
         genidx = multiext(workflow_geno, ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        vcf = temp(outdir + "/vcf/{sample}.vcf"),
-        candidates = outdir + "/logs/leviathan/{sample}.candidates"
+        vcf = temp("vcf/{sample}.vcf"),
+        candidates = "logs/leviathan/{sample}.candidates"
     log:  
-        runlog = outdir + "/logs/leviathan/{sample}.leviathan.log"
+        runlog = "logs/leviathan/{sample}.leviathan.log"
     params:
         min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
@@ -124,11 +120,9 @@ rule call_variants:
 rule sort_variants:
     priority: 100
     input:
-        outdir + "/vcf/{sample}.vcf"
+        "vcf/{sample}.vcf"
     output:
-        outdir + "/vcf/{sample}.bcf"
-    params:
-        "{wildcards.sample}"
+        "vcf/{sample}.bcf"
     container:
         None
     shell:        
@@ -136,9 +130,9 @@ rule sort_variants:
 
 rule variant_stats:
     input: 
-        outdir + "/vcf/{sample}.bcf"
+        "vcf/{sample}.bcf"
     output: 
-        temp(outdir + "/reports/data/{sample}.sv.stats")
+        temp("reports/data/{sample}.sv.stats")
     container:
         None
     shell:
@@ -149,12 +143,12 @@ rule variant_stats:
 
 rule aggregate_variants:
     input:
-        collect(outdir + "/reports/data/{sample}.sv.stats", sample = samplenames)
+        collect("reports/data/{sample}.sv.stats", sample = samplenames)
     output:
-        outdir + "/inversions.bedpe",
-        outdir + "/deletions.bedpe",
-        outdir + "/duplications.bedpe",
-        outdir + "/breakends.bedpe"
+        "inversions.bedpe",
+        "deletions.bedpe",
+        "duplications.bedpe",
+        "breakends.bedpe"
     run:
         with (
             open(output[0], "w") as inversions,
@@ -187,11 +181,11 @@ rule aggregate_variants:
 
 rule report_config:
     input:
-        yaml = f"{workflowdir}/report/_quarto.yml",
-        scss = f"{workflowdir}/report/_harpy.scss"
+        yaml = "workflow/report/_quarto.yml",
+        scss = "workflow/report/_harpy.scss"
     output:
-        yaml = temp(f"{outdir}/reports/_quarto.yml"),
-        scss = temp(f"{outdir}/reports/_harpy.scss")
+        yaml = temp("reports/_quarto.yml"),
+        scss = temp("reports/_harpy.scss")
     run:
         import shutil
         for i,o in zip(input,output):
@@ -199,16 +193,16 @@ rule report_config:
 
 rule sample_reports:
     input: 
-        f"{outdir}/reports/_quarto.yml",
-        f"{outdir}/reports/_harpy.scss",
+        "reports/_quarto.yml",
+        "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
-        statsfile = outdir + "/reports/data/{sample}.sv.stats",
-        qmd       = f"{workflowdir}/report/leviathan.qmd"
+        statsfile = "reports/data/{sample}.sv.stats",
+        qmd       = "workflow/report/leviathan.qmd"
     output:
-        report = outdir + "/reports/{sample}.leviathan.html",
-        qmd = temp(outdir + "/reports/{sample}.leviathan.qmd")
+        report = "reports/{sample}.leviathan.html",
+        qmd = temp("reports/{sample}.leviathan.qmd")
     log:
-        outdir + "/logs/reports/{sample}.report.log"
+        "logs/reports/{sample}.report.log"
     params:
         sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
@@ -225,9 +219,9 @@ rule sample_reports:
 rule workflow_summary:
     default_target: True
     input: 
-        vcf = collect(outdir + "/vcf/{sample}.bcf", sample = samplenames),
-        bedpe_agg = collect(outdir + "/{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect(outdir + "/reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
+        vcf = collect("vcf/{sample}.bcf", sample = samplenames),
+        bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
+        reports = collect("reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
     params:
         min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
@@ -235,7 +229,7 @@ rule workflow_summary:
         extra = extra
     run:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {bn}")
+        summary.append(f"The provided reference genome: {bn}")
         summary.append("The alignments were deconvolved using: leviathan_bx_shim.py")
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "LRez index bam -p -b INPUT"
@@ -244,7 +238,7 @@ rule workflow_summary:
         svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
         summary.append(svcall)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['workflow_call']}"
+        sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open(f"{workflowdir}/sv.leviathan.summary", "w") as f:
+        with open("workflow/sv.leviathan.summary", "w") as f:
             f.write("\n\n".join(summary))

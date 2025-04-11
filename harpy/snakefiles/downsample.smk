@@ -5,20 +5,18 @@ import pysam
 import logging
 
 onstart:
-    logger.logger.addHandler(logging.FileHandler(config["snakemake_log"]))
-onsuccess:
-    os.remove(logger.logfile)
-onerror:
-    os.remove(logger.logfile)
+    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logger.addHandler(logfile_handler)
 
-outdir      = config["output_directory"]
 inputs      = config["inputs"]
 invalids    = config["invalid_proportion"]
 random_seed = config.get("random_seed", None)
 downsample  = config["downsample"]
+bc_tag      = config["barcode-tag"]
 prefix      = config["prefix"]
 infiles     = dict(zip(inputs, inputs))
 is_fastq    = True if len(inputs) == 2 else False
+bam_file = "input.bam" if is_fastq else inputs[0]
 
 if is_fastq:
     try:
@@ -34,7 +32,7 @@ rule bam_convert:
     input:
         inputs
     output:
-        temp(f"{outdir}/input.bam")
+        temp("input.bam")
     threads:
         workflow.cores
     shell:
@@ -44,91 +42,61 @@ rule bam_convert:
 
 rule sample_barcodes:
     input:
-        f"{outdir}/input.bam" if is_fastq else inputs[0]
+        bam_file
     output:
-        f"{outdir}/{prefix}.barcodes"
+        f"{prefix}.barcodes"
     log:
-        f"{outdir}/logs/sampled_barcodes.log"
+        "logs/sampled_barcodes.log"
     threads:
         workflow.cores
     params:
         inv_prop = f"-i {invalids}",
         downsample_amt = f"-d {downsample}",
-        bx_tag = "-b BX",
+        bx_tag = f"-b {bc_tag}",
         random_seed = f"-r {random_seed}" if random_seed else ""
     shell:
         "extract_bxtags.py {params} {input} > {output} 2> {log}"
 
-rule index_barcodes:
+rule index_input:
     input:
-        lambda wc: infiles[wc.inputfile]
+        bam_file
     output:
-        bci = temp("{inputfile}.bci"),
-        bai = temp("{inputfile}.bai") if not is_fastq else [],
-        gzi = temp("{inputfile}i") if is_fastq and is_gzip else []
-    threads:
-        workflow.cores
-    run:
-        if is_fastq:
-            gz_arg = "--gzip" if is_gzip else ""
-            shell(f"LRez index fastq -t {threads} -f {input} -o {output.bci} {gz_arg}")
-        else:
-            shell(f"samtools index {input}")
-            shell(f"LRez index bam --offsets -t {threads} -b {input} -o {output.bci}")
+        temp(bam_file + ".bai")
+    log:
+        "logs/" + os.path.basename(bam_file) + ".index.log" 
+    shell:
+        "samtools index {input}"
 
 rule downsample:
     input:
-        bam = inputs[0],
-        bai = inputs[0] + ".bai",
-        bc_index = inputs[0] + ".bci",
-        bc_list = f"{outdir}/{prefix}.barcodes"
+        bam = bam_file,
+        bai = bam_file + ".bai",
+        bc_list = f"{prefix}.barcodes"
     output:
-        sam = temp(f"{outdir}/{prefix}.sam"),
-        bam = f"{outdir}/{prefix}.bam"
-    threads:
-        workflow.cores
-    shell:
-        """
-        samtools view -H {input.bam} > {output.sam}
-        LRez query bam -t {threads} -b {input.bam} -i {input.bc_index} -l {input.bc_list} >> {output.sam}
-        samtools view -O BAM {output.sam} > {output.bam}
-        """
-
-rule downsample_read_1:
-    input:
-        fastq = inputs[0],
-        bc_index = inputs[0] + ".bci",
-        fq_index = inputs[0] + "i",
-        bc_list = f"{outdir}/{prefix}.barcodes"
-    output:
-        f"{outdir}/{prefix}.R1.fq.gz"
+        bam = temp(f"{prefix}.bam") if is_fastq else f"{prefix}.bam"
     params:
-        "--gzip" if is_gzip else ""
+        bc_tag
     threads:
         workflow.cores
     shell:
-        "LRez query fastq -t {threads} -f {input.fastq} -i {input.bc_index} -l {input.bc_list} {params} | bgzip > {output}"
+        "samtools view -O BAM -h -D {params}:{input.bc_list} {input.bam} > {output.bam}"
 
-rule downsample_read_2:
+rule revert_to_fastq:
     input:
-        file = inputs[-1],
-        bc_index = inputs[-1] + ".bci",
-        fq_index = inputs[-1] + "i",
-        bc_list = f"{outdir}/{prefix}.barcodes"
+        f"{prefix}.bam"
     output:
-        f"{outdir}/{prefix}.R2.fq.gz"
-    params:
-        "--gzip" if is_gzip else ""
+        R1 = f"{prefix}.R1.fq.gz",
+        R2 = f"{prefix}.R2.fq.gz"
     threads:
         workflow.cores
     shell:
-        "LRez query fastq -t {threads} -f {input.file} -i {input.bc_index} -l {input.bc_list} {params} | bgzip > {output}"
+        "samtools fastq -@ {threads} -T \"*\" -1 {output.R1} -2 {output.R2} {input}"
 
 rule workflow_summary:
     default_target: True
     input:
-        f"{outdir}/{prefix}.bam" if not is_fastq else [],
-        collect(f"{outdir}/{prefix}.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
+        f"{prefix}.bam" if not is_fastq else [],
+        collect(f"{prefix}.R" + "{FR}.fq.gz", FR = [1,2]) if is_fastq else []
     params:
         random_seed = f"-r {random_seed}" if random_seed else ""
     run:
@@ -141,11 +109,12 @@ rule workflow_summary:
         extraction = "Barcodes were extracted and sampled using:\n"
         extraction += f"\textract_bxtags.py -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
         summary.append(extraction)
-        lrez = "The inputs were indexed and downsampled using LRez:\n"
+        downsampled = "The inputs were indexed and downsampled using:\n"
+        downsampled += f"\tsamtools view -O BAM -h -D {bc_tag}:barcodes.txt input.bam"
+        summary.append(downsampled)
+        revs = "The input fastq fles were reverted to FASTQ format with:\n"
+        revs += "\tsamtools fastq -T \"*\" -1 R1 -2 R2 input.bam"
         if is_fastq:
-            lrez += "\tLRez query fastq -f fastq -i index.bci -l barcodes.txt"
-        else:
-            lrez += "\tLRez query bam -b bam -i index.bci -l barcodes.txt"
-        summary.append(lrez)
-        with open(outdir + "/workflow/downsample.summary", "w") as f:
+            summary.append(revs)
+        with open("workflow/downsample.summary", "w") as f:
             f.write("\n\n".join(summary))

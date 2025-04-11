@@ -6,10 +6,11 @@ import yaml
 import shutil
 import rich_click as click
 from ._conda import create_conda_recipes
-from ._launch import launch_snakemake, SNAKEMAKE_CMD
-from ._misc import fetch_rule, snakemake_log
+from ._launch import launch_snakemake
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._cli_types_generic import convert_to_int, HPCProfile, KParam, SnakemakeParams
 from ._cli_types_params import SpadesParams
+from ._misc import filepath
 from ._printing import workflow_info
 from ._validations import validate_fastq_bx
 
@@ -36,7 +37,7 @@ docstring = {
 @click.option('--ignore-bx', is_flag = True, show_default = True, default = False, help = 'Ignore linked-read info for initial spades assembly')
 @click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # Common Workflow
-@click.option('-o', '--output-dir', type = click.Path(exists = False), default = "Metassembly", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -45,8 +46,8 @@ docstring = {
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True), nargs=1)
-@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True), nargs=1)
+@click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
     Create a metassembly from linked-reads
@@ -55,29 +56,27 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    output_dir = output_dir.rstrip("/")
-    workflowdir = os.path.join(output_dir, 'workflow')
-    sdm = "conda" if not container else "conda apptainer"
-    command = f'{SNAKEMAKE_CMD} --software-deployment-method {sdm} --cores {threads}'
-    command += f" --snakefile {workflowdir}/metassembly.smk"
-    command += f" --configfile {workflowdir}/config.yaml"
-    if hpc:
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
-    if snakemake:
-        command += f" {snakemake}"
-
+    workflow = "metassembly"
+    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
-    os.makedirs(workflowdir, exist_ok=True)
+
+    ## setup workflow ##
+    command = setup_snakemake(
+        workflow,
+        "conda" if not container else "conda apptainer",
+        output_dir,
+        threads,
+        hpc if hpc else None,
+        snakemake if snakemake else None
+    )
+
     fetch_rule(workflowdir, f"metassembly.smk")
-    os.makedirs(f"{output_dir}/logs/snakemake", exist_ok = True)
-    sm_log = snakemake_log(output_dir, "metassembly")
+
     conda_envs = ["align", "assembly", "metassembly", "qc", "spades"]
     configs = {
-        "workflow" : "metassembly",
+        "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "output_directory" : output_dir,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
             'ignore_barcodes' : ignore_bx,
@@ -85,7 +84,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
-        "workflow_call" : command.rstrip(),
+        "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -96,9 +95,8 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             "fastq_r2" : fastq_r2
         }
     }
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-    
+
+    write_workflow_config(configs, output_dir)
     create_conda_recipes(output_dir, conda_envs)
     if setup_only:
         sys.exit(0)
@@ -109,4 +107,4 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, "metassembly", start_text, output_dir, sm_log, quiet, f"workflow/metassembly.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/metassembly.summary")
