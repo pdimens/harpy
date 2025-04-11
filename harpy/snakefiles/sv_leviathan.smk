@@ -48,8 +48,8 @@ rule index_barcodes:
         "logs/process_alignments/{sample}.log"
     threads:
         min(10, workflow.cores)
-    container:
-        None
+    conda:
+        f"{envdir}/variants.yaml"
     shell:
         """
         samtools index {input} 2> {log}

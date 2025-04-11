@@ -109,9 +109,9 @@ rule index_barcode:
     output:
         temp("lrez_index/{population}.bci")
     threads:
-        max(10, workflow.cores)
-    container:
-        None
+        min(5, workflow.cores)
+    conda:
+        f"{envdir}/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
@@ -183,6 +183,8 @@ rule sort_variants:
         "vcf/{population}.vcf"
     output:
         "vcf/{population}.bcf"
+    params:
+        lambda wc: wc.population
     container:
         None
     shell:        
