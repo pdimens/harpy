@@ -29,22 +29,17 @@ def template():
     """
     Create template files and HPC configs for workflows
 
-    Call any one of the sub-commands with `--help` to see its usage.
-    - `groupings` creates the optional grouping file for variant calling
-    - `impute` create the parameter input for `harpy impute` 
-    - `hpc-*` creates snakemake HPC configs to auto-submit cluster jobs
+    All subcommands write to `stdout`.
     """
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
-@click.option('-o', '--output', type=str, default = "samples.groups", help = "Output file name")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
-def groupings(inputdir, output):
+def groupings(inputdir):
     """
     Create a template sample-grouping file
 
     This command generates a sample grouping file, like the kind optional for variant calling.
-    Provide the input fastq/bam directory at the end of the command.
-    By default, the output file will be named `samples.groups`.
+    Provide the input fastq/bam directory at the end of the command. Writes to `stdout`.
     **Note** that Harpy cannot reliably infer populations from filenames, therefore all samples
     will be assigned to `pop1`. Please modify this file with appropriate population
     designations.
@@ -74,41 +69,25 @@ def groupings(inputdir, output):
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
     rprint(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[/]\n", file = sys.stderr)
-    if os.path.exists(output):
-        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-        if overwrite not in ["yes", "y"]:
-            click.echo("Please suggest a different name for the output file")
-            sys.exit(0)
-    with open(output, "w", encoding="utf-8") as file:
-        for i in samplenames:
-            _ = file.write(i + '\tpop1\n')
-    print_notice(f"Created sample population grouping file [blue]{output}[/]. Please review it, as all samples have been grouped into a single population")
+    for i in samplenames:
+        _ = sys.stdout.write(i + '\tpop1\n')
+    print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
 @click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
-@click.option('-o', '--output', type=str, required = True, help = 'Output file name')
-def impute(output):
+def impute():
     """
     Create a template imputation parameter file
 
     With this command you can create a template parameter
     file necessary for imputation via `harpy impute`. The resulting
     file will have generic values and should be modified to be appropriate
-    for your study system.
+    for your study system. Writes to `stdout`.
     """
-    if os.path.exists(output):
-        overwrite = input(f"File {output} already exists, overwrite (no|yes)?  ").lower()
-        if overwrite not in ["yes", "y"]:
-            click.echo("Please suggest a different name for the output file")
-            sys.exit(0)
-    with open(output, "w", encoding="utf-8") as file:
-        _ = file.write('name\tmodel\tusebx\tbxlimit\tk\ts\tngen\n')
-        _ = file.write('k10_ng50\tdiploid\tTRUE\t50000\t10\t1\t50\n')
-        _ = file.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
-        _ = file.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100')
-    print_notice(
-        f"Created template imputation parameter file: [blue]{output}[/]\n" +
-        "Modify the model parameters as needed, but [yellow bold]do not add/remove columns."
-    )
+    sys.stdout.write('name\tmodel\tusebx\tbxlimit\tk\ts\tngen\n')
+    sys.stdout.write('k10_ng50\tdiploid\tTRUE\t50000\t10\t1\t50\n')
+    sys.stdout.write('k1_ng30\tdiploid\tTRUE\t50000\t5\t1\t30\n')
+    sys.stdout.write('high_ngen\tdiploid\tTRUE\t50000\t15\t1\t100\n')
+    print_notice("Modify the model parameters as needed, but [yellow bold]do not add/remove columns.")
 
 template.add_command(impute)
 template.add_command(groupings)

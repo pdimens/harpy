@@ -848,13 +848,19 @@ jobs:
 #          path: .snakemake/singularity
       - name: test assembly
         shell: micromamba-shell {0}
-        run: harpy assembly --quiet 2 -r 4000 test/fastq/sample1.* && ls -lh Assembly
+        run: |
+          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Assembly
       - name: test metassembly
         shell: micromamba-shell {0}
-        run: harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.* && ls -lh Metassembly
+        run: |
+          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
-        run: harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.* && ls -lh Metassembly
+        run: |
+          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.*
+          ls -lh Metassembly
 
   other:
     needs: [changes]
@@ -887,7 +893,7 @@ jobs:
 #       uses: jlumbroso/free-disk-space@main
       - name: harpy template impute
         shell: micromamba-shell {0}
-        run: harpy template impute -o params.file
+        run: harpy template impute
       - name: harpy template groupings
         shell: micromamba-shell {0}
         run: harpy template groupings test/fastq

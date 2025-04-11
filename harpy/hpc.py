@@ -32,15 +32,11 @@ def hpc_generic():
     """
     Create a template config for a generic scheduler
     
-    This command creates a configuration (`hpc/generic.yaml`) for a generic HPC scheduler.
+    This command creates a configuration for a generic HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-generic` for the HPC job submission to work.
     """
-    outfile = "hpc/generic.yaml"
-    os.makedirs("hpc", exist_ok=True)
-    if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("cluster-generic")
-    with open(outfile, "w", encoding = "utf-8") as yml:
+    with open(sys.stdout, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: cluster-generic\n")
         yml.write("default-resources:\n")
@@ -73,15 +69,11 @@ def hpc_lsf():
     """
     Create a template config for LSF
     
-    This command creates a configuration (`hpc/lsf.yaml`) for the LSF HPC scheduler.
+    This command creates a configuration for the LSF HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-lsf` for the HPC job submission to work.
     """
-    os.makedirs("hpc", exist_ok=True)
-    outfile = "hpc/lsf.yaml"
-    if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("lsf")
-    with open(outfile, "w", encoding = "utf-8") as yml:
+    with open(sys.stdout, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: lsf\n")
         yml.write("default-resources:\n")
@@ -105,13 +97,14 @@ def hpc_lsf():
 
 @click.command()
 def hpc_slurm():
-    """Configuration for SLURM"""
-    os.makedirs("hpc", exist_ok=True)
-    outfile = "hpc/slurm.yaml"
-    if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
+    """
+    Create a template config for SLURM
+    
+    This command creates a configuration for the SLURM HPC scheduler. Writes to `stdout`.
+    You will also need to install `snakemake-executor-plugin-slurm` for the HPC job submission to work.
+    """
     package_exists("slurm")
-    with open(outfile, "w", encoding = "utf-8") as yml:
+    with open(sys.stdout, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: slurm\n")
         yml.write("default-resources:\n")
@@ -140,12 +133,8 @@ def hpc_googlebatch():
     This command creates a configuration (`hpc/googlebatch.yaml`) for the Google Batch scheduler.
     You will also need to install `snakemake-executor-plugin-googlebatch` for the HPC job submission to work.
     """
-    os.makedirs("hpc", exist_ok=True)
-    outfile = "hpc/googlebatch.yaml"
-    if os.path.exists(outfile):
-        rprint(f"HPC profile [blue]{outfile}[/] already exists, overwriting\n", file = sys.stderr)
     package_exists("googlebatch")
-    with open(outfile, "w", encoding = "utf-8") as yml:
+    with open(sys.stdout, "w", encoding = "utf-8") as yml:
         yml.write("__use_yte__: true\n")
         yml.write("executor: googlebatch\n")
         yml.write("jobs: 50\n")

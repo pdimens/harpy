@@ -336,6 +336,7 @@ def validate_regions(regioninput: int | str, genome: str) -> None:
 
     # is a file specifying regions
     if os.path.isfile(regioninput):
+        contigs = contig_lens(genome)
         with open(regioninput, "r", encoding="utf-8") as fin:
             for idx, line in enumerate(fin, 1):
                 row = line.split()
@@ -358,7 +359,6 @@ def validate_regions(regioninput: int | str, genome: str) -> None:
                             )
                         click.echo(line, file = sys.stderr)
                         sys.exit(1)
-                contigs = contig_lens(genome)
                 if row[0] not in contigs:
                     print_error("missing contig", f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(genome)}[/]). This is the first row triggering this error, but it may not be the only one.")
                     print_solution(
