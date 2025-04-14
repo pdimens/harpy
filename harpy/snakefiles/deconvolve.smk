@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist      = config["inputs"]
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 kmer_length = config["kmer_length"]
 window_size = config["window_size"]
 density 	= config["density"] 
@@ -55,7 +54,7 @@ rule deconvolve:
     threads:
         2
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 

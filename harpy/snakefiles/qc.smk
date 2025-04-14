@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist       = config["inputs"]
-envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
@@ -66,7 +65,7 @@ if not deconvolve:
         threads:
             workflow.cores
         conda:
-            f"{envdir}/qc.yaml"
+            "envs/qc.yaml"
         shell: 
             "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 else:
@@ -92,7 +91,7 @@ else:
         threads:
             workflow.cores
         conda:
-            f"{envdir}/qc.yaml"
+            "envs/qc.yaml"
         shell: 
             "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} 2> {log.serr} > {output.fq}"
 
@@ -111,7 +110,7 @@ else:
         threads:
             workflow.cores
         conda:
-            f"{envdir}/qc.yaml"
+            "envs/qc.yaml"
         shell:
             "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -169,7 +168,7 @@ rule barcode_report:
     log:
         "logs/barcode.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -189,7 +188,7 @@ rule qc_report:
         title = "--title \"QC Summary\"",
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell: 
         "multiqc {params} --filename {output}"
 

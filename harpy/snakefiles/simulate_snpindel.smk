@@ -8,7 +8,6 @@ onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
     logger.addHandler(logfile_handler)
 
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
 genome = config["inputs"]["genome"]
 snp_vcf = config["snp"].get("vcf", None)
 indel_vcf = config["indel"].get("vcf", None)
@@ -100,7 +99,7 @@ rule simulate_haploid:
         prefix = f"{outprefix}",
         parameters = variant_params
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -170,7 +169,7 @@ rule simulate_diploid:
         snp = f"-snp_vcf haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.snp.vcf" if snp else "",
         indel = f"-indel_vcf haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.indel.vcf" if indel else ""
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
 

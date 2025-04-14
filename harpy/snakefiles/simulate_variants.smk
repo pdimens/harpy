@@ -8,7 +8,6 @@ onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
     logger.addHandler(logfile_handler)
 
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
 variant = config["workflow"].split("_")[-1]
 simuG_variant = variant.upper() if variant == "cnv" else variant
 outprefix = config["prefix"]
@@ -63,7 +62,7 @@ rule simulate_haploid:
         prefix = f"{outprefix}",
         parameters = variant_params
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -118,7 +117,7 @@ rule simulate_diploid:
         prefix = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}",
         vcf_arg = f"-{variant}_vcf"
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
 

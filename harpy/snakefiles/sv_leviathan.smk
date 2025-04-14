@@ -12,7 +12,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist,bamlist))
@@ -49,7 +48,7 @@ rule index_barcodes:
     threads:
         min(10, workflow.cores)
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         """
         samtools index {input} 2> {log}
@@ -86,7 +85,7 @@ rule bwa_index_genome:
     log:
         f"{workflow_geno}.bwa.idx.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -113,7 +112,7 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -207,7 +206,7 @@ rule sample_reports:
         sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

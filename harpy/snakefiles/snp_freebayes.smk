@@ -10,7 +10,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
 regions_input = config["inputs"]["regions"]
@@ -113,7 +112,7 @@ rule call_variants:
     threads:
         2
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         """
         freebayes -f {input.ref} -L {input.samples} {params} 2> {log} |
@@ -214,7 +213,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

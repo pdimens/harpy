@@ -7,7 +7,6 @@ import logging
 from pathlib import Path
 from itertools import product
 
-envdir   = os.path.join(os.getcwd(), "workflow", "envs")
 gen_hap1 = config["inputs"]["genome_hap1"]
 gen_hap2 = config["inputs"]["genome_hap2"]
 barcode_file = config["barcodes"]["file"]
@@ -86,7 +85,7 @@ rule simulate_reads:
         input_file = lambda wc: "workflow/input/hap." + wc.get("hap") + ".fasta",
         prefix = lambda wc: "dwgsim/sim_reads." + wc.get("hap") + ".12"
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "dwgsim -N {params} 2> {log}"
 
@@ -126,7 +125,7 @@ rule create_molecules:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell: 
         "perl {params} -z {threads} -d 2 2> {log}"
 
@@ -136,7 +135,7 @@ rule sort_molecules:
     output:
         "linked_molecules/lrsim.{hap}.sort.manifest"
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "msort -kn1 {input} > {output}"
 

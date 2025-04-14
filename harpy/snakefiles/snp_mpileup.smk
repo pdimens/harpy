@@ -10,7 +10,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
 skip_reports = config["reports"]["skip"]
@@ -249,7 +248,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

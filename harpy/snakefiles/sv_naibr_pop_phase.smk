@@ -12,7 +12,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-envdir       = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile   = config["inputs"]["reference"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
@@ -151,7 +150,7 @@ rule phase_alignments:
     threads:
         4
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -253,7 +252,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores - 1)
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -337,7 +336,7 @@ rule sample_reports:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -362,7 +361,7 @@ rule aggregate_report:
         bedpedir = "bedpe",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

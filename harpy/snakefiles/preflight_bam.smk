@@ -11,7 +11,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir  = os.path.join(os.getcwd(), "workflow", "envs")
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -69,7 +68,7 @@ rule create_report:
     log:
         "logs/report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

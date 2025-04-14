@@ -10,7 +10,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
@@ -97,7 +96,7 @@ rule bwa_index:
     log:
         f"{workflow_geno}.bwa.idx.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -119,7 +118,7 @@ rule align:
     threads:
         4
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
         bwa mem -C -v 2 -t {threads} {params.extra} -R {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
@@ -244,7 +243,7 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.alignstats.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -295,7 +294,7 @@ rule samtools_report:
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc {params} --filename {output} 2> /dev/null"
 
@@ -313,7 +312,7 @@ rule barcode_report:
     log:
         f"logs/reports/bxstats.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

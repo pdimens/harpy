@@ -4,11 +4,9 @@ out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "r", "simulation
 if config.get("spades", None):
     out_envs.append("spades")
     outdir = os.path.join(os.getcwd(), "localenv/")
-    envdir = os.path.join(os.getcwd(), "localenv/workflow/envs")
-else:
+    else:
     # spades isn't added b/c it has a post-setup script, i.e. incompatible with containerization
-    envdir = os.path.join(os.getcwd(), "container/workflow/envs")
-    outdir = ""
+        outdir = ""
 
 rule all:
     input:
@@ -16,5 +14,5 @@ rule all:
 
 rule conda_env:
     output: outdir + "{conda}.env"
-    conda: f"{envdir}/{{conda}}.yaml"
+    conda: "envs/{{conda}}.yaml"
     shell: "touch {output}"

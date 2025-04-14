@@ -16,7 +16,6 @@ bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
 region       = config.get("region", None)
-envdir        = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
@@ -123,7 +122,7 @@ rule impute:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/stitch.yaml"
+        "envs/stitch.yaml"
     shell:
         """
         mkdir -p {output.tmp}
@@ -180,7 +179,7 @@ rule contig_report:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -304,7 +303,7 @@ rule impute_reports:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

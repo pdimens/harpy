@@ -23,7 +23,6 @@ bn 			= os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 windowsize  = config["depth_windowsize"]
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["reports"]["skip"]
@@ -84,7 +83,7 @@ rule bwa_index:
     log:
         f"{workflow_geno}.bwa.idx.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -116,7 +115,7 @@ rule ema_count:
         prefix = lambda wc: "ema_count/" + wc.get("sample"),
         beadtech = "-p" if lr_platform == "haplotag" else f"-w {barcode_list}"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
         mkdir -p {params.prefix}
@@ -140,7 +139,7 @@ rule ema_preprocess:
     threads:
         2
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
         seqtk mergepe {input.reads} |
@@ -173,7 +172,7 @@ rule align_ema:
     threads:
         10
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
         ema align -t {threads} {params.extra} {params.frag_opt} {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
@@ -199,7 +198,7 @@ rule align_bwa:
     threads:
         10
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
         bwa mem -t {threads} -v2 -C -R {params.RG_tag} {input.genome} {input.reads} 2> {log} |
@@ -337,7 +336,7 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.alignstats.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -373,7 +372,7 @@ rule samtools_report:
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc {params} --filename {output} 2> /dev/null"
 
@@ -391,7 +390,7 @@ rule barcode_report:
     log:
         f"logs/reports/bxstats.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

@@ -11,7 +11,6 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -98,7 +97,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores -1)
     conda:
-        f"{envdir}/variants.yaml"     
+        "envs/variants.yaml"     
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -220,7 +219,7 @@ rule sample_reports:
         sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

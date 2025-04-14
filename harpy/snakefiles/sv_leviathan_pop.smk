@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile 	= config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 groupfile 	= config["inputs"]["groupings"]
@@ -111,7 +110,7 @@ rule index_barcode:
     threads:
         min(5, workflow.cores)
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
@@ -145,7 +144,7 @@ rule bwa_index_genome:
     log:
         f"{workflow_geno}.bwa.idx.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell: 
         "bwa index {input} 2> {log}"
 
@@ -173,7 +172,7 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -264,7 +263,7 @@ rule group_reports:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -289,7 +288,7 @@ rule aggregate_report:
         statsdir = "reports/data/",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

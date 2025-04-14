@@ -14,7 +14,6 @@ wildcard_constraints:
 pruning           = config["prune"]
 molecule_distance = config["molecule_distance"]
 extra             = config.get("extra", "") 
-envdir            = os.path.join(os.getcwd(), "workflow", "envs")
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 skip_reports      = config["reports"]["skip"]
@@ -134,7 +133,7 @@ rule extract_hairs:
         indels = indelarg,
         bx = linkarg
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
@@ -150,7 +149,7 @@ rule link_fragments:
     params:
         d = molecule_distance
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -168,7 +167,7 @@ rule phase:
         fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
         extra = extra
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
@@ -272,7 +271,7 @@ rule phase_report:
     params:
         f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}

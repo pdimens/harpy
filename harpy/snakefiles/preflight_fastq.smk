@@ -11,7 +11,6 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist = config["inputs"]
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
@@ -84,7 +83,7 @@ rule create_report:
     log:
         "logs/report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
