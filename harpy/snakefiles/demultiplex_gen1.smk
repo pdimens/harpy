@@ -3,9 +3,9 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
-samplefile = config["inputs"]["demultiplex_schema"]
+schemafile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
+incl_qxrx = config["include_qx_rx_tags"]
 keep_unknown = config["keep_unknown"]
 
 onstart:
@@ -16,146 +16,54 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-def parse_schema(smpl, keep_unknown):
-    d = {}
-    with open(smpl, "r") as f:
-        for i in f.readlines():
-            # a casual way to ignore empty lines or lines with !=2 fields
-            try:
-                sample, bc = i.split()
-                id_segment = bc[0]
-                if sample not in d:
-                    d[sample] = [bc]
-                else:
-                    d[sample].append(bc)
-            except ValueError:
-                continue
-    if keep_unknown:
-        d["_unknown_sample"] = f"{id_segment}00"
-    return d
-
-samples = parse_schema(samplefile, keep_unknown)
-samplenames = [i for i in samples]
-print(samplenames)
-fastq_parts = [f"{i:03d}" for i in range(1, min(workflow.cores, 999) + 1)]
+samplenames = set()
+with open(schemafile, "r") as f:
+    for i in f.readlines():
+        line = i.split()
+        samplenames.add(line[0])
+if keep_unknown:
+    samplenames.add("_unknown_sample")
 
 rule barcode_segments:
     output:
         collect("workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
-    params:
-        "workflow"
     container:
         None
     shell:
-        "haplotag_acbd.py {params}"
-
-rule partition_reads:
-    input:
-        r1 = config["inputs"]["R1"],
-        r2 = config["inputs"]["R2"]       
-    output:
-        r1 = temp("reads.R1.fq.gz"),
-        r2 = temp("reads.R2.fq.gz"),
-        parts = temp(collect("reads_chunks/reads.R{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-    log:
-        "logs/partition.reads.log"
-    threads:
-        workflow.cores
-    params:
-        chunks = min(workflow.cores, 999),
-        outdir = "reads_chunks"
-    conda:
-        f"{envdir}/demultiplex.yaml"
-    shell:
-        """
-        ln -sr {input.r1} {output.r1}
-        ln -sr {input.r2} {output.r2}
-        seqkit split2 -f --quiet -1 {output.r1} -2 {output.r2} -p {params.chunks} -j {threads} -O {params.outdir} -e .gz 2> {log}
-        """
-
-use rule partition_reads as partition_index with:
-    input:
-        r1 = config["inputs"]["I1"],
-        r2 = config["inputs"]["I2"]       
-    output:
-        r1 = temp("reads.I1.fq.gz"),
-        r2 = temp("reads.I2.fq.gz"),
-        parts = temp(collect("index_chunks/reads.I{FR}.part_{part}.fq.gz", part = fastq_parts, FR = [1,2]))
-    log:
-        "logs/partition.index.log"
-    params:
-        chunks = min(workflow.cores, 999),
-        outdir = "index_chunks"
+        "haplotag_acbd.py workflow"
 
 rule demultiplex:
     input:
-        R1 = "reads_chunks/reads.R1.part_{part}.fq.gz",
-        R2 = "reads_chunks/reads.R2.part_{part}.fq.gz",
-        I1 = "index_chunks/reads.I1.part_{part}.fq.gz",
-        I2 = "index_chunks/reads.I2.part_{part}.fq.gz",
+        R1 = config["inputs"]["R1"],
+        R2 = config["inputs"]["R2"],
+        I1 = config["inputs"]["I1"],
+        I2 = config["inputs"]["I2"],
         segment_a = "workflow/segment_A.bc",
         segment_b = "workflow/segment_B.bc",
         segment_c = "workflow/segment_C.bc",
         segment_d = "workflow/segment_D.bc",
-        schema = samplefile
+        schema = schemafile
     output:
-        temp(collect("{sample}.{{part}}.R{FR}.fq", sample = samplenames, FR = [1,2])),
-        bx_info = temp("logs/part.{part}.barcodes")
+        collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
+        bx_info = "logs/demultiplex.barcodes"
     log:
-        "logs/demultiplex.{{part}}.log"
+        "logs/demultiplex.log"
     params:
-        outdir = os.getcwd(),
-        qxrx = config["include_qx_rx_tags"],
-        keep_unknown = keep_unknown,
-        part = lambda wc: wc.get("part")
+        outdir = "--samples " + os.getcwd(),
+        qxrx = "--rx --qx" if incl_qxrx else "",
+        keep_unknown = "--undetermined _unknown_sample" if keep_unknown else ""
+    threads:
+        workflow.cores
     conda:
-        f"{envdir}/demultiplex.yaml"
-    script:
-        "scripts/demultiplex_gen1.py"
-
-rule merge_partitions:
-    input:
-        collect("{{sample}}.{part}.R{{FR}}.fq", part = fastq_parts)
-    output:
-        "{sample}.R{FR}.fq.gz"
-    log:
-        "logs/{sample}.{FR}.concat.log"
-    container:
-        None
+        "envs/demultiplex.yaml"
     shell:
-        "cat {input} | gzip > {output} 2> {log}"
-
-rule merge_barcode_logs:
-    input:
-        bc = collect("logs/part.{part}.barcodes", part = fastq_parts)
-    output:
-        concat = temp("logs/barcodes.concat"),
-        log = "logs/barcodes.log"
-    run:
-        shell(f"cat {input.bc} | sort -k1,1 > {output.concat}")
-        with open(output.concat, "r") as file, open(output.log, "w") as file_out:
-            file_out.write("Barcode\tTotal_Reads\tCorrect_Reads\tCorrected_Reads\n")
-            prev_bc, prev_1, prev_2, prev_3 = file.readline().split()
-            # protect against the headers appearing at the top, just in case
-            while prev_bc == "Barcode":
-                prev_bc, prev_1, prev_2, prev_3 = file.readline.split()
-            for line in file:
-                # another redundancy
-                if line.startswith("Barcode"):
-                    continue
-                bc, c1, c2, c3 = line.split()
-                if bc != prev_bc:
-                    # the barcode is different, write the previous line to file
-                    _ = file_out.write(f"{prev_bc}\t{prev_1}\t{prev_2}\t{prev_3}\n")
-                    # current becomes the basis for comparison (previous)
-                    prev_bc, prev_1, prev_2, prev_3 = bc, c1, c2, c3
-                else:
-                    # the barcode is the same, sum the count columns
-                    # the summed row becomes the basis of comparison
-                    prev_bc = bc
-                    prev_1 = int(prev_1) + int(c1)
-                    prev_2 = int(prev_2) + int(c2)
-                    prev_3 = int(prev_3) + int(c3)
+        """"
+        dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \
+        --ref-a {input.segment_a} --ref-b {input.segment_b} --ref-c {input.segment_c} \
+        --ref-d {input.segment_d} --schema {input.schema} \
+        --n-writers {threads} {params} \
+        --barcodes-table {output.bx_info} 2> {log}
+        """
 
 rule assess_quality:
     input:
@@ -167,7 +75,7 @@ rule assess_quality:
     threads:
         1
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         """
         ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
@@ -222,7 +130,7 @@ rule quality_report:
         module = " --module fastqc",
         logdir = "reports/data/"
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc --filename {output} --config {input.mqc_yaml} {params} 2> {log}"
 
@@ -230,13 +138,16 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        barcode_logs = "logs/barcodes.log",
+        barcode_logs = "logs/demultiplex.barcodes",
         reports = "reports/demultiplex.QA.html" if not skip_reports else []
     params:
         R1 = config["inputs"]["R1"],
         R2 = config["inputs"]["R2"],
         I1 = config["inputs"]["I1"],
-        I2 = config["inputs"]["I2"]
+        I2 = config["inputs"]["I2"],
+        outdir = f"--samples {os.getcwd()}",
+        qxrx = "--rx --qx" if incl_qxrx else "",
+        keep_unknown = "--undetermined _unknown_sample"
     run:
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
         summary.append("Linked Read Barcode Design: Generation I")
@@ -245,10 +156,10 @@ rule workflow_summary:
         inputs += f"\tread 2: {params.R2}\n"
         inputs += f"\tindex 1: {params.I1}\n"
         inputs += f"\tindex 2: {params.I2}"
-        inputs += f"Sample demultiplexing schema: {samplefile}"
+        inputs += f"Sample demultiplexing schema: {schemafile}"
         summary.append(inputs)
         demux = "Samples were demultiplexed using:\n"
-        demux += "\tworkflow/scripts/demultiplex_gen1.py"
+        demux += f"\tdmox --R1 --R2 --I1 --I2 {params.outdir} {params.qxrx} {params.keep_unknown}"
         summary.append(demux)
         qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"

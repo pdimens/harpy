@@ -48,14 +48,17 @@
 - also means the workflow snakefiles dont need all the `outdir + ...` or `workflowdir` calls, so it looks quite a bit cleaner under the hood
 ### Usage changes / Misc
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
-- updates to `click` (internal) mean you need to call the docstring up deliberately with `harpy XXXX --help`
-  - empty module call no longer brings up the docstring
+- `harpy qc` `--max-length` short name changed to `-M`
+- `harpy qc` `--min-length` short name changed t0 `-m`
 - direct HTCondor support is gone in `harpy template hpc-` because the snakemake plugin seems to have vanished
 - instances of `--genome` (`-g`) have been replaced with `REFERENCE` as an input argument (`snp`, `sv`, `align`) to be more accurate and easier to use
   - except in `phase`, where it is now `--reference/-r` (because a reference is optional)
 - `harpy sv` short option for `--min-size` is now `-m`
 - `--paramaters` in `harpy impute` has been removed in favor of `parameters`, `vcf`, and `inputs` all being position arguments:
   - e.g. `harpy impute --threads 14 stitch.params file.bcf data/alignments`
+- `simulate linkedreads` no longer users LRSIM internally and instead uses Mimick (formerly of the VISOR/XENIA project). Mimick is the new direction for the XENIA simulator with more granular parameter control, it's faster, and better parallelized.
+  - as a result, just about all the command-line options for `simulate linkedreads` is different
+
 
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution

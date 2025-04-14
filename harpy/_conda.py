@@ -33,10 +33,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::tigmint"
         ],
         "demultiplex": [
-            "bioconda::pheniqs",
-            "bioconda::pysam=0.22",
-            "bioconda::seqkit",
-            "conda-forge::python-levenshtein"
+            "bioconda::dmox"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
@@ -68,14 +65,8 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "r::r-biocircos"
         ],
         "simulations" : [
-            "alienzj::msort",
-            "bioconda::dwgsim=1.1.14",
-            "bioconda::perl-math-random",
-            "bioconda::perl-inline-c",
-            "bioconda::perl-parse-recdescent",
             "bioconda::simug>1.0.0",
-            "conda-forge::numpy",
-            "conda-forge::perl"
+            "bioconda::mimick",
         ],
         "spades" : [
             "conda-forge::python=3"

@@ -1,5 +1,6 @@
 """Module with python-click types for command-line level validations of program-specific extra-params inputs"""
 
+import os
 import click
 from shlex import split as shellsplit
 from shlex import join as shelljoin
@@ -256,7 +257,22 @@ class FreebayesParams(click.ParamType):
             self.fail(f"No valid options recognized. Available freebayes options begin with one or two dashes (e.g. -t or --targets). See the freebayes documentation for a list of available options: {docs}.", param, ctx)
         return sanitize_shell(value)
 
-
-
-
-
+class Barcodes(click.ParamType):
+    """A class for a click type which accepts either a file or two integers, separated by a comma."""
+    name = "barcodes"
+    def convert(self, value, param, ctx):
+        if os.path.isfile(value):
+            return os.path.abspath(value)
+        try:
+            bp,count = value.split(",")
+        except ValueError:
+            self.fail(f"{value} is not a file, not in int,int format", param, ctx)
+        try:
+            bp = int(bp)
+        except ValueError:
+            self.fail(f"{value} is not an integer.", param, ctx)
+        try:
+            count = int(count)
+        except ValueError:
+            self.fail(f"{value} is not an integer.", param, ctx)
+        return f"{bp},{count}"

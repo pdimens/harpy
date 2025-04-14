@@ -5,65 +5,94 @@ import yaml
 import shutil
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_params import Barcodes
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, instantiate_dir, setup_snakemake, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
-from ._validations import check_fasta, validate_barcodefile
+from ._validations import check_fasta
 
 docstring = {
     "harpy simulate linkedreads": [
         {
-            "name": "Parameters",
-            "options": ["--barcodes", "--distance-sd", "--outer-distance", "--molecule-length", "--molecules-per", "--mutation-rate", "--partitions", "--read-pairs"],
-            "panel_styles": {"border_style": "blue"}
+            "name": "Read Simulation Parameters",
+            "options": ["--coverage","--distance","--error", "--length",  "--regions", "--stdev"],
+            "panel_styles": {"border_style": "dim blue"}
+        },
+        {
+            "name": "Linked Read Parameters",
+            "options": ["--lr-type", "--molecule-coverage", "--molecule-length", "--molecule-number"],
+            "panel_styles": {"border_style": "dim magenta"}
         },
         {
             "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--merge-haplotypes", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--help", "--hpc", "--output-prefix", "--output-type", "--quiet", "--snakemake", "--threads", "--version"],
             "panel_styles": {"border_style": "dim"}
         }
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads")
-@click.option('-b', '--barcodes', type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = "File of linked-read barcodes to add to reads")
-@click.option('-s', '--distance-sd', type = click.IntRange(min = 1), default = 15, show_default=True,  help = "Standard deviation of read-pair distance")
-@click.option('-m', '--molecules-per', type = click.IntRange(min = 1, max = 4700), default = 10, show_default=True,  help = "Average number of molecules per partition")
-@click.option('-l', '--molecule-length', type = click.IntRange(min = 2), default = 100, show_default=True,  help = "Mean molecule length (kbp)")
-@click.option('-r', '--mutation-rate', type = click.FloatRange(min = 0), default=0.001, show_default=True,  help = "Random mutation rate for simulating reads")
-@click.option('-d', '--outer-distance', type = click.IntRange(min = 100), default = 350, show_default= True, help = "Outer distance between paired-end reads (bp)")
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Simulate/linkedreads", help = 'Output directory name')
-@click.option('-p', '--partitions', type = click.IntRange(min = 1), default=1500, show_default=True,  help = "Number (in thousands) of partitions/beads to generate")
-@click.option('-n', '--read-pairs', type = click.FloatRange(min = 0.001), default = 600, show_default=True,  help = "Number (in millions) of read pairs to simulate")
-@click.option('--merge-haplotypes',  is_flag = True, default = False, help = 'Concatenate sequences across haplotypes')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
+@click.command(epilog = "Documentation: https://pdimens.github.io/mimick/", no_args_is_help = True)
+#Paired-end FASTQ simulation using pywgsim
+@click.option('--coverage', help='mean coverage target for simulated data', show_default=True, default=30, type=click.FloatRange(min=0.05))
+@click.option('--distance', help='outer distance between the two ends in bp', default=500, show_default=True, type=click.IntRange(min=0))
+@click.option('--error', help='base error rate', default=0.02, show_default=True, type=click.FloatRange(min=0, max=1))
+@click.option('--extindels', help='indels extension rate', default=0, hidden=True, type=click.FloatRange(min=0, max=1))
+@click.option('--indels', help='indels rate', default=0, hidden=True, type=click.FloatRange(min=0, max=1))
+@click.option('--length', help='length of reads in bp', default=150, show_default=True, type=click.IntRange(min=30))
+@click.option('--mutation', help='mutation rate', default=0, hidden=True, type=click.FloatRange(min=0))
+@click.option('--regions', help='one or more regions to simulate, in BED format', type = click.Path(dir_okay=False, readable=True, resolve_path=True))
+@click.option('--stdev', help='standard deviation of --distance', default=50, show_default=True, type=click.IntRange(min=0))
+#Linked-read simulation
+@click.option('-l', '--lr-type', help='type of linked-read experiment', default = "haplotagging", show_default=True, show_choices=True, type= click.Choice(["10x", "stlfr", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-c','--molecule-coverage', help='mean percent coverage per molecule if <1, else mean number of reads per molecule', default=0.2, show_default=True, type=click.FloatRange(min=0.00001))
+@click.option('-m','--molecule-length', help='mean length of molecules in bp', show_default=True, default=80000, type=click.IntRange(min=50))
+@click.option('-n','--molecule-number', help='mean number of unrelated molecules per barcode, where a negative number (e.g. `-2`) will use a fixed number of unrelated molecules and a positive one will draw from a Poisson distribution', default=3, show_default=True, type=int)
+# general
+@click.option('-o','--output-prefix', help='output file prefix', type = click.Path(exists = False, writable=True, resolve_path=True), default = "Simulate/linkedreads/SIM", show_default=True)
+@click.option('-O','--output-type', help='output format of FASTQ files', type = click.Choice(["10x", "stlfr", "standard", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-t','--threads', help='number of threads to use for simulation', type = click.IntRange(1, 999, clamp = True), default=2, show_default=True)
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome_hap1', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
-@click.argument('genome_hap2', required=True, type = InputFile("fasta", gzip_ok = True), nargs=1)
-def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_rate, distance_sd, barcodes, read_pairs, molecule_length, partitions, molecules_per, threads, snakemake, quiet, merge_haplotypes, hpc, container, setup_only):
+@click.argument('barcodes', type = Barcodes())
+@click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
+def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecule_number, snakemake, quiet, hpc, container, setup_only):
     """
-    Create linked reads from a genome
- 
-    Two haplotype genomes (un/compressed fasta) need to be provided as inputs at the end of the command. If
-    you don't have a diploid genome, you can simulate one with `harpy simulate` as described [in the documentation](https://pdimens.github.io/harpy/blog/simulate_diploid/).
+    Create linked reads using genome haplotypes
 
-    If not providing a file for `--barcodes`, Harpy will generate a file containing the original
-    (96^4) set of 24-basepair haplotagging barcodes (~2GB disk space). The `--barcodes` file is expected to have one
-    linked-read barcode per line, given as nucleotides. Use `--merge-haplotypes` to merge haplotype 1 and haplotype 2 for R1 reads
-    (same for R2), resulting in one file of R1 reads and one file of R2 reads.
+    Barcodes can be supplied one of two ways:
+   
+    1. randomly generate barcodes based on a specification of `length,count`
+        - two integers, comma-separated, no space
+        - e.g. `16,400000` would generate 400,000 unique 16bp barcodes 
+    2. providing a file of nucleotide barcodes, 1 per line
+
+    You can specify the linked-read barcode chemistry to simulate via `--lr-type` as well as
+    the output format of FASTQ files (default: same as `lr-type`).
+
+    | --lr-type | Format |
+    |:------------------|:-------|
+    |`10x`/`tellseq`   | single barcode on R1 |
+    |`haplotagging`  | R1 and R2 each have different combinatorial 2-barcodes |
+    |`stlfr`         | combinatorial 3-barcode on R2 |
+
+    | --output-type | Barcode Location | Example |
+    |:-----------------|:-------|:---------------------|
+    |`10x`           | start of R1 sequence | `ATAGACCATAGA`GGACA... |
+    |`haplotagging`  | sequence header as `BX:Z:ACBD` |  `@SEQID BX:Z:A0C331B34D87` |
+    |`standard`      | sequence header as `BX:Z:BARCODE`, no specific format | `@SEQID BX:Z:ATACGAGACA` |
+    |`stlfr`         | appended to sequence ID via `#1_2_3` | `@SEQID#1_354_39` |
+    |`tellseq`       | appended to sequence ID via `:ATCG` | `@SEQID:TATTAGCAC` |
     """
     workflow = "simulate_linkedreads"
+    output_dir = os.path.dirname(output_prefix)
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    check_fasta(genome_hap1)
-    check_fasta(genome_hap2)
-    if barcodes:
-        bc_len = validate_barcodefile(barcodes, True, quiet, gzip_ok=False, haplotag_only=True)
+    for i in fasta:
+        check_fasta(i)
 
     ## setup workflow ##
     command = setup_snakemake(
@@ -76,29 +105,31 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
     )
 
     fetch_rule(workflowdir, "simulate_linkedreads.smk")
-    fetch_script(workflowdir, "HaploSim.pl")
 
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "outer_distance" : outer_distance,
-        "distance_sd" : distance_sd,
-        "read_pairs" : read_pairs,
-        "mutation_rate" : mutation_rate,
-        "molecule_length" : molecule_length,
-        "partitions" : partitions,
-        "molecules_per_partition" : molecules_per,
-        "merge_haplotypes": merge_haplotypes,
+        "read_coverage" : coverage,
+        "outer_distance" : distance,
+        "error_rate" :   error,
+        "length" :  length,
+        "stdev" : stdev,
+        "lr-type" : lr_type,            
+        "molecule-coverage" : molecule_coverage,  
+        "molecule-length" : molecule_length,
+        "molecule-number" : molecule_number,   
+        "mutation" : mutation,
+        "indels" :  indels,
+        "extindels" : extindels,
+        "output-prefix" : output_prefix,
+        "output-type" : output_type if output_type else lr_type,
+        **({"regions":  regions} if regions else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
-        'barcodes': {
-            "file": barcodes if barcodes else f"{workflowdir}/input/haplotag_barcodes.txt",
-            "length": bc_len if barcodes else 24
-        },
         "inputs" : {
-            "genome_hap1" : genome_hap1,
-            "genome_hap2" : genome_hap2,
+            "barcodes" : barcodes,
+            "haplotypes" : list(fasta),
         }
     }
 
@@ -108,11 +139,9 @@ def linkedreads(genome_hap1, genome_hap2, output_dir, outer_distance, mutation_r
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Genome Haplotype 1:", os.path.basename(genome_hap1)),
-        ("Genome Haplotype 2:", os.path.basename(genome_hap2)),
-        ("Barcodes:", os.path.basename(barcodes) if barcodes else "Haplotagging Default"),
+        ("Haplotypes:", len(fasta)),
+        ("Barcodes:", os.path.basename(barcodes) if os.path.exists(barcodes) else "randomly generated"),
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
-

@@ -1,4 +1,4 @@
-"""Harpy preflight-check workflows for FASTQ and BAM files"""
+"""Harpy validation checks of FASTQ and BAM files for workflows"""
 
 import os
 import sys
@@ -13,9 +13,9 @@ from ._parsers import parse_alignment_inputs, parse_fastq_inputs
 from ._printing import workflow_info
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-def preflight():
+def validate():
     """
-    File format checks for haplotagging data
+    File format checks for linked-read data
 
     This is useful to make sure your input files are formatted correctly for the processing pipeline 
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
@@ -23,14 +23,14 @@ def preflight():
     """
 
 docstring = {
-    "harpy preflight bam": [
+    "harpy validate bam": [
         {
             "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
             "panel_styles": {"border_style": "dim"}
         },
     ],
-    "harpy preflight fastq": [
+    "harpy validate fastq": [
         {
             "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
@@ -39,9 +39,9 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/bam", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -75,8 +75,8 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "preflight_bam.smk")
-    fetch_report(workflowdir, "preflight_bam.qmd")
+    fetch_rule(workflowdir, "validate_bam.smk")
+    fetch_report(workflowdir, "validate_bam.qmd")
 
     conda_envs = ["r"]
     configs = {
@@ -97,10 +97,10 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/preflight.bam.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.bam.summary")
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preflight/")
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Preflight/fastq", show_default=True,  help = 'Output directory name')
+@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
+@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -121,7 +121,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = "preflight_fastq"
+    workflow = "validate_fastq"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     fqlist, n = parse_fastq_inputs(inputs)
@@ -136,8 +136,8 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "preflight_fastq.smk")
-    fetch_report(workflowdir, "preflight_fastq.qmd")
+    fetch_rule(workflowdir, "validate_fastq.smk")
+    fetch_report(workflowdir, "validate_fastq.qmd")
 
     conda_envs = ["r"]
     configs = {
@@ -158,7 +158,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/preflight.fastq.summary")
+    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.fastq.summary")
 
-preflight.add_command(bam)
-preflight.add_command(fastq)
+validate.add_command(bam)
+validate.add_command(fastq)
