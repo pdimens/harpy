@@ -61,7 +61,7 @@ rule create_report:
         "_quarto.yml",
         "_harpy.scss",
         data = "filecheck.bam.tsv",
-        qmd = "workflow/report/preflight_bam.qmd"
+        qmd = "workflow/report/validate_bam.qmd"
     output:
         html = "filecheck.bam.html",
         qmd = temp("filecheck.bam.qmd")
@@ -81,12 +81,12 @@ rule workflow_summary:
     input:
         "filecheck.bam.html"
     run:
-        summary = ["The harpy preflight bam workflow ran using these parameters:"]
+        summary = ["The harpy validate bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += "\tcheck_bam.py sample.bam > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open("workflow/preflight.bam.summary", "w") as f:
+        with open("workflow/validate.bam.summary", "w") as f:
             f.write("\n\n".join(summary))

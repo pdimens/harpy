@@ -76,7 +76,7 @@ rule create_report:
         "_quarto.yml",
         "_harpy.scss",
         data = "filecheck.fastq.tsv",
-        qmd = "workflow/report/preflight_fastq.qmd"
+        qmd = "workflow/report/validate_fastq.qmd"
     output:
         html = "filecheck.fastq.html",
         qmd = temp("filecheck.fastq.qmd")
@@ -96,12 +96,12 @@ rule workflow_summary:
     input:
         "filecheck.fastq.html"
     run:
-        summary = ["The harpy preflight fastq workflow ran using these parameters:"]
+        summary = ["The harpy validate fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += "\tcheck_fastq.py sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake_command']}"
         summary.append(sm)
-        with open("workflow/preflight.fastq.summary", "w") as f:
+        with open("workflow/validate.fastq.summary", "w") as f:
             f.write("\n\n".join(summary))
