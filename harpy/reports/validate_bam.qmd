@@ -129,7 +129,7 @@ formatStyle(
 ## interpret
 ::: {.card title="Interpreting the Data"}
 
-The `harpy preflight bam ...` command created a `filecheck.bam.tsv` file in the specified
+The `harpy validate bam ...` command created a `filecheck.bam.tsv` file in the specified
 output directory that summarizes the results that are included in this report.
 This file contains a tab-delimited table with the columns: `file`,	`nameMismatch`, `alignments`,	`noBX`, and	`badBX`.
 These columns are defined below and the severities of their issues are given as colored emoji:
@@ -171,7 +171,7 @@ BX Tag
 : A proper linked-read alignment file will contain a `BX:Z` tag with an alignment record
 that features a properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
 format, then it's likely the input FASTQ used for read mapping is the source of the
-issue. You can check those FASTQ files for errors with `harpy preflight fastq`. 
+issue. You can check those FASTQ files for errors with `harpy validate fastq`. 
 
 : Example Alignment Record
 Below is an example of a proper alignment record for a file named `sample1.bam`.

@@ -112,7 +112,7 @@ formatStyle(
 ## interpret
 ::: {.card title="Interpreting the Data"}
 
-The `harpy preflight fastq ...` command created a `filecheck.fastq.tsv` file in the specified
+The `harpy validate fastq ...` command created a `filecheck.fastq.tsv` file in the specified
 output directory that summarizes the results that are included in this report.
 This file contains a tab-delimited table with the columns: `file`,	`reads`, `noBX`,	`badBX`, and	`badSamSpec`.
 These columns are defined below and the severities of their issues are given as colored emoji:
