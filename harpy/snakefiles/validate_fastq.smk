@@ -10,6 +10,7 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+lr_platform = config["platform"]
 fqlist = config["inputs"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -31,26 +32,30 @@ rule check_forward:
         get_fq1
     output:
         temp("{sample}.F.log")
+    params
+        lr_platform
     container:
         None
     shell: 
-        "check_fastq.py {input} > {output}"
+        "check_fastq.py {params} {input} > {output}"
 
 rule check_reverse:
     input:
         get_fq2
     output:
         temp("{sample}.R.log")
+    params:
+        lr_platform
     container:
         None
     shell: 
-        "check_fastq.py {input} > {output}"
+        "check_fastq.py {params} {input} > {output}"
 
 rule concat_results:
     input:
         collect("{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
-        "filecheck.fastq.tsv"
+        "validate.fastq.tsv"
     container:
         None
     shell:
@@ -75,30 +80,32 @@ rule create_report:
     input:
         "_quarto.yml",
         "_harpy.scss",
-        data = "filecheck.fastq.tsv",
+        data = "validate.fastq.tsv",
         qmd = "workflow/report/validate_fastq.qmd"
     output:
-        html = "filecheck.fastq.html",
-        qmd = temp("filecheck.fastq.qmd")
+        html = "validate.fastq.html",
+        qmd = temp("validate.fastq.qmd")
     log:
         "logs/report.log"
+    params:
+        lr_platform
     conda:
         "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE
+        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE platform:{params}
         """
 
 rule workflow_summary:
     default_target: True
     input:
-        "filecheck.fastq.html"
+        "validate.fastq.html"
     run:
         summary = ["The harpy validate fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
-        valids += "\tcheck_fastq.py sample.fastq > sample.txt"
+        valids += f"\tcheck_fastq.py {platform} sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake_command']}"

@@ -173,7 +173,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('-u', '--keep-unmapped',  is_flag = True, default = False, help = 'Retain unmapped sequences in the output')
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/ema", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--platform', type = click.Choice(['haplotagging', '10x'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read bead technology\n[haplotagging, 10x]")
+@click.option('-p', '--platform', type = click.Choice(['haplotagging', '10x'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[haplotagging, 10x]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False, resolve_path=True), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')

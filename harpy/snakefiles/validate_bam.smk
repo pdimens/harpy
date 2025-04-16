@@ -11,6 +11,7 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+lr_platform = config["platform"]
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
@@ -26,16 +27,18 @@ rule check_bam:
         get_alignments
     output:
         temp("{sample}.log")
+    params:
+        lr_platform
     container:
         None
     shell: 
-        "check_bam.py {input} > {output}"
+        "check_bam.py {params} {input} > {output}"
 
 rule concat_results:
     input:
         collect("{sample}.log", sample = samplenames)
     output:
-        "filecheck.bam.tsv"
+        "validate.bam.tsv"
     container:
         None
     shell:
@@ -60,11 +63,13 @@ rule create_report:
     input:
         "_quarto.yml",
         "_harpy.scss",
-        data = "filecheck.bam.tsv",
+        data = "validate.bam.tsv",
         qmd = "workflow/report/validate_bam.qmd"
     output:
-        html = "filecheck.bam.html",
-        qmd = temp("filecheck.bam.qmd")
+        html = "validate.bam.html",
+        qmd = temp("validate.bam.qmd")
+    params:
+        lr_platform
     log:
         "logs/report.log"
     conda:
@@ -73,17 +78,17 @@ rule create_report:
         """
         cp -f {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE
+        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE platform:{params}
         """
 
 rule workflow_summary:
     default_target: True
     input:
-        "filecheck.bam.html"
+        "validate.bam.html"
     run:
         summary = ["The harpy validate bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
-        valids += "\tcheck_bam.py sample.bam > sample.txt"
+        valids += f"\tcheck_bam.py {lr_platform} sample.bam > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake_command']}"

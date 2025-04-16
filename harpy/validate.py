@@ -25,12 +25,22 @@ def validate():
 docstring = {
     "harpy validate bam": [
         {
+            "name": "Parameters",
+            "options": ["--platform"],
+            "panel_styles": {"border_style": "blue"}
+        },
+        {
             "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
             "panel_styles": {"border_style": "dim"}
         },
     ],
     "harpy validate fastq": [
+        {
+            "name": "Parameters",
+            "options": ["--platform"],
+            "panel_styles": {"border_style": "blue"}
+        },
         {
             "name": "Workflow Options",
             "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
@@ -40,6 +50,7 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
+@click.option('-p', '--platform', type = click.Choice(['haplotagging', 'stlfr','tellseq'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[haplotagging, stlfr, tellseq]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
@@ -48,19 +59,19 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
+def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged BAM files
 
     Provide the input alignment (`.bam`) files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/betula*.bam`), or both.
     
-    It will check that alignments have BX:Z: tags, that haplotag
-    barcodes are properly formatted (`AxxCxxBxxDxx`) and that the filename matches the `@RG ID` tag.
+    It will check if alignments have BX:Z: tags, that the barcodes are properly formatted for the given
+    `--platform` and that the filename matches the `@RG ID` tag.
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = "preflight_bam"
+    workflow = "validate_bam"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs)
@@ -84,6 +95,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
+        "platform": platform.lower(),
         "inputs" : bamlist
     }
 
@@ -101,6 +113,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
+@click.option('-p', '--platform', type = click.Choice(['haplotagging', 'stlfr','tellseq'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[haplotagging, stlfr, tellseq]")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -108,16 +121,16 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable = True, resolve_path=True), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
+def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged FASTQ files.
 
     Provide the input fastq files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/wombat*.fastq.gz`), or both.
     
-    It will check that fastq reads have `BX:Z:` tags, that haplotag
-    barcodes are propery formatted (`AxxCxxBxxDxx`) and that the comments in the
-    read headers conform to the SAM specification of `TAG:TYPE:VALUE`. This **will not**
+    It will check if fastq reads have properly formatted barcodes present in the location and format
+    they are expected to be given `--platform` and that the comments in the read headers conform to the
+    SAM specification of `TAG:TYPE:VALUE`. This **will not**
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
@@ -145,6 +158,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
         "snakemake_log" : sm_log,
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
+        "platform": platform.lower(),
         "inputs" : fqlist
     }
 

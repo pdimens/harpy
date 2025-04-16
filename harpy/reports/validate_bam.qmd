@@ -2,6 +2,7 @@
 title: "BAM Haplotag Format Check"
 params:
   infile: 'test.tsv'
+  platform: 'haplotagging'
 ---
 _`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`_
 
@@ -86,13 +87,13 @@ list(
 
 ## viz desc
 
-| column           | 🟦 pass condition 🟦                                                               | 🟨 fail condition 🟨                                    |
+| column           | 🟦 pass condition 🟦                                                               | 🟨 fail condition 🟨                                      |
 | :--------------- | :--------------------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **Name Mismatch**   | the file name matches the `@RG ID:` tag in the header                              | file name does not match `@RG ID:` in the header          |
+| **Name Mismatch**   | the file name matches the `@RG ID:` tag in the header                           | file name does not match `@RG ID:` in the header          |
 | **MI tag**       | **any** alignments with `BX:Z` tag also have `MI`                                  | **all** reads have `BX:Z` tag present but `MI` tag absent |
 | **BX:Z tag**     | **any** `BX:Z` tags present                                                        | **all** alignments lack `BX:Z` tag                        |
-| **BX:Z last**    | **all** reads have `BX:Z` as final tag in alignment records                        | **any** `BX:Z` barcodes have incorrect format             |
-| **AxxCxxBxxDxx** | **all** alignments with `BX:Z` tag have properly formatted `AxxCxxBxxDxx` barcodes | **at least 1 read** doesn't have `BX:Z` tag as final tag  |
+| **BX:Z last**    | **all** reads have `BX:Z` as final tag in alignment records                        | **at least 1 read** doesn't have `BX:Z` tag as final tag  |
+| **Format** | **all** alignments with `BX:Z` tag have properly formatted `{r platform}` barcodes        | **any** `BX:Z` barcodes have incorrect `{r platform}` format  |
 
 ## file stats
 ```{r resultstable}
@@ -105,7 +106,7 @@ datatable(
   filter = "top",
   extensions = 'Buttons',
   fillContainer = T,
-  colnames = c("File", "Reads", "Name Mismatch", "MI tag", "BX:Z tag", "BX:Z last", "AxxCxxBxxDxx"),
+  colnames = c("File", "Reads", "Name Mismatch", "MI tag", "BX:Z tag", "BX:Z last", "Format"),
   options = list(
     paging = F,
     scrollX = F,
@@ -155,7 +156,7 @@ noBX ⬜
 If you expect all or some of your reads should have `BX:Z` tags, then further investigation is necessary
 
 badBX 🛑
-: The haplotag barcode in the `BX:Z` tag does not adhere to the proper `AxxCxxBxxDxx` format
+: The barcode in the `BX:Z` tag does not adhere to the proper `{r platform}` format
 
 bxNotLast 🔶
 : The `BX:Z` tag in the alignment record is not the last tag
@@ -169,14 +170,24 @@ record. `harpy align` will automatically move the `BX:Z` tag to the end of the a
 
 BX Tag
 : A proper linked-read alignment file will contain a `BX:Z` tag with an alignment record
-that features a properly-formatted haplotag barcode `AxxCxxBxxDxx`. If this barcode is not in that
-format, then it's likely the input FASTQ used for read mapping is the source of the
+that features a properly-formatted barcode. The formats are:
+- haplotagging: `AXXCXXBXXDXX` where `X` is a 0-9 integer
+  - e.g. `A02C56B09D88`
+  - invalidated: if any position is `00` (e.g. `A91C00B42D57`)
+- stlfr: `X_X_X` where `X` is any integer
+  - e.g. `9_851_22 
+  - invalidated: if any position is `0` (e.g. `51_0_492`)
+- tellseq/10x: `ATCGN` nucleotide letters
+  - e.g. `ATATTTACGGGAC`
+  - invalidated: if any nucleotide is `N` (e.g. `ATACANGGAT`)
+
+If a barcode is not in that format, then it's likely the input FASTQ used for read mapping is the source of the
 issue. You can check those FASTQ files for errors with `harpy validate fastq`. 
 
 : Example Alignment Record
 Below is an example of a proper alignment record for a file named `sample1.bam`.
 Note the tag `RG:Z:sample1`, indicating this alignment is associated with `sample1` and
-matches the file name. Also note the correctly formatted haplotag barcode `BX:Z:A19C01B86D78`
+matches the file name. Also note the correctly formatted haplotagging barcode `BX:Z:A19C01B86D78`
 and the presence of a `MI:` tag. To reduce horizontal scrolling, the alignment sequence and Phred
 scores have been replaced with `SEQUENCE` and `QUALITY`, respectively.
 
