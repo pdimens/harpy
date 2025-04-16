@@ -72,7 +72,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "conda-forge::python=3"
         ],
         "stitch" : [
-            "bioconda::r-stitch=1.6.10"
+            "bioconda::r-stitch>=1.7"
         ],
         "variants" : [
             "bioconda::bcftools=1.20",
