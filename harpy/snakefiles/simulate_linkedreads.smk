@@ -17,7 +17,7 @@ rule simulate_reads:
         in_fasta,
         in_bc if os.path.exists(in_bc) else [],
     output:
-        collect(output_pref + "_S1_L{hap}_R{FR}_001.fq.gz", hap = haps, FR = [1,2])
+        collect(output_pref + "_S1_L{hap}_R{FR}_001.fastq.gz", hap = haps, FR = [1,2])
     log:
         "logs/mimick.simulation.log"        
     params:
