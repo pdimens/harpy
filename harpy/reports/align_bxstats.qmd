@@ -297,7 +297,10 @@ if(length(unique(aggregate_df$averagereadspermol)) > 1){
 ## Distribution of valid bx alignments
 ::: {.card title="Distribution of alignments with valid barcodes"}
 This is a distribution of what percent of total alignments each sample
-had valid haplotag barcodes (`AXXCXXBXXDXX` where `XX` is not `00`).
+had valid barcodes:
+- haplotagging: `AXXCXXBXXDXX` where `XX` is not `00`
+- stlfr: `X_Y_Z` where `X`, `Y`, or `Z` is not `0`
+- tellseq: `ATCG` where there is no `N` nucleotide
 
 ```{r perc_valid_dist}
 hs <- hist(

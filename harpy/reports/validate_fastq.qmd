@@ -72,7 +72,7 @@ list(
 
 | column           | 🟦 pass condition 🟦                                                        | 🟨 fail condition 🟨                                     |
 | :--------------- | :---------------------------------------------------------------------------- | :--------------------------------------------------------- |
-| **Format** | **all** reads with `BX:Z` tag have properly formatted `{r platform}` barcodes | **any** BX:Z barcodes have incorrect `{r platform}` format                |
+| **Format** | **all** reads with `BX:Z` tag have properly formatted `r platform` barcodes | **any** BX:Z barcodes have incorrect `r platform` format                |
 | **SAM Spec**     | **all** reads have proper `TAG:TYPE:VALUE` comments                           | **any** reads have incorrectly formatted comments          |
 | **BX:Z last**    | **all** reads have `BX:Z` as final comment                                    | **at least 1 read** doesn’t have BX:Z tag as final comment |
 | **BX:Z tag**     | **any** `BX:Z` tags present                                                   | **all** reads lack BX:Z tag                                |

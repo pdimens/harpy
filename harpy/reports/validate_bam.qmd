@@ -93,7 +93,7 @@ list(
 | **MI tag**       | **any** alignments with `BX:Z` tag also have `MI`                                  | **all** reads have `BX:Z` tag present but `MI` tag absent |
 | **BX:Z tag**     | **any** `BX:Z` tags present                                                        | **all** alignments lack `BX:Z` tag                        |
 | **BX:Z last**    | **all** reads have `BX:Z` as final tag in alignment records                        | **at least 1 read** doesn't have `BX:Z` tag as final tag  |
-| **Format** | **all** alignments with `BX:Z` tag have properly formatted `{r platform}` barcodes        | **any** `BX:Z` barcodes have incorrect `{r platform}` format  |
+| **Format** | **all** alignments with `BX:Z` tag have properly formatted `r platform` barcodes        | **any** `BX:Z` barcodes have incorrect `r platform` format  |
 
 ## file stats
 ```{r resultstable}
@@ -156,7 +156,7 @@ noBX ⬜
 If you expect all or some of your reads should have `BX:Z` tags, then further investigation is necessary
 
 badBX 🛑
-: The barcode in the `BX:Z` tag does not adhere to the proper `{r platform}` format
+: The barcode in the `BX:Z` tag does not adhere to the proper `r platform` format
 
 bxNotLast 🔶
 : The `BX:Z` tag in the alignment record is not the last tag

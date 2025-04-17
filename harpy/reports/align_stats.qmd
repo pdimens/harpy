@@ -175,7 +175,7 @@ list(
 ```{r NX_stats, eval = VALID_PRESENT}
 #| title: "Stats by Contig"
 if(!VALID_PRESENT){
-  cat(paste0("**`",infile,"` has no valid haplotagging barcodes, skipping reporting on linked-read metrics.**"))
+  cat(paste0("**`",infile,"` has no valid barcodes, skipping reporting on linked-read metrics.**"))
 } else {
   summary_table <- valids %>% 
       group_by(contig) %>%
@@ -187,7 +187,7 @@ if(!VALID_PRESENT){
   column_description <- c(
     "name of the contig",
     "number of valid linked-read barcodes",
-    "number of invalid linked-read barcodes, given by a segment with 00",
+    "number of invalid linked-read barcodes (dependent on linked-read type)",
     "the unique DNA molecules as inferred from linked-read barcodes",
     "N50 of inferred molecules",
     "N75 of inferred molecules",
@@ -222,9 +222,9 @@ if(!VALID_PRESENT){
 ## Reads per molecule 
 ::: {.card title="Reads per Molecule"}
 
-This chart shows the distribution of the number of reads per haplotag molecule. That is, how many alignments
+This chart shows the distribution of the number of reads per linked molecule. That is, how many alignments
 are associated with a unique molecule. This excludes the number of reads associated with invalid
-or absent haplotag barcodes. There are two distributions: one with `all` the alignments (purple)
+or absent linked-read barcodes. There are two distributions: one with `all` the alignments (purple)
 and another with only `non-singletons` (green). The percent of molecules in the `non-singletons`
 distribution is relative to the total number of non-singleton molecules.
 
@@ -291,7 +291,7 @@ highchart() |>
 :::{.card title="Inferred Molecule Lengths"}
 This is the frequency distribution of molecule lengths 
 inferred from the first and last alignment positions along a contig for all
-alignments associated with a single haplotag barcode on a given contig. 
+alignments associated with a single linked-read barcode on a given contig. 
 Be aware that the Y axis may not start at `0`. There are two distributions:
 one with `all` the alignments (purple) and another with only `non-singletons`
 (green). The percent of molecules in the `non-singletons` distribution is
