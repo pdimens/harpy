@@ -429,9 +429,16 @@ def standardize(sam, quiet):
             harpy_pulsebar(quiet, "Standardizing", True) as progress,
         ):
             for record in SAM.fetch(until_eof=True):
-                if record.has_tag("BX"):
-                    print_error("BX tag present", f"The BX:Z tag is already present in {os.path.basename(sam)} and does not need to be standardized.")
+                if record.has_tag("BX") and record.has_tag("BV"):
+                    print_error("BX/BV tags present", f"The BX:Z and BV:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
                     sys.exit(1)
+                if record.has_tag("BX"):
+                    bx = record.get_tag("BX")
+                    if "0" in bx.split("_") or re.search(r"(?:N|[ABCD]00)", bx):
+                        record.set_tag("BV", 0, "i")
+                    else:
+                        record.set_tag("BV", 1, "i")
+                    continue
                 # matches either tellseq or stlfr   
                 bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", record.query_name)
                 if bx:
@@ -439,7 +446,7 @@ def standardize(sam, quiet):
                     bx_sanitized = bx[0][1:]
                     record.query_name = record.query_name.remove_suffix(bx)
                     if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
-                        record.set_tag("BV", 0, "i")    
+                        record.set_tag("BV", 0, "i")
                     else:
                         record.set_tag("BV", 1, "i")
                     record.set_tag("BX", bx_sanitized, "Z")
