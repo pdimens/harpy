@@ -37,55 +37,37 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule process_genome:
+rule peprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
+        geno = workflow_geno,
+        bwa_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        genome_zip
+    conda:
+        "envs/align.yaml"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno}
         else
-            cp -f {input} {output}
+            cp -f {input} {output.geno}
         fi
-        """
 
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
         if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno} 2>> {log}
         else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
         fi
-        """
 
-rule bwa_index:
-    input: 
-        workflow_geno
-    output: 
-        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
-    log:
-        f"{workflow_geno}.bwa.idx.log"
-    conda:
-        "envs/align.yaml"
-    shell: 
-        "bwa index {input} 2> {log}"
+        bwa index {output.geno} 2> {log}
+        """
 
 rule make_depth_intervals:
     input:
@@ -154,11 +136,10 @@ rule align_ema:
         geno_faidx = workflow_geno_idx,
         geno_idx   = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        aln = temp("ema_align/{sample}.bc.bam"),
-        idx = temp("ema_align/{sample}.bc.bam.bai")
+        aln = temp("ema_align/{sample}.ema.bam")
     log:
         ema  = "logs/align/{sample}.ema.align.log",
-        sort = "logs/align/{sample}.ema.sort.log",
+        sort = "logs/align/{sample}.ema.sort.log"
     resources:
         mem_mb = 500
     params:
@@ -177,8 +158,22 @@ rule align_ema:
         """
         ema align -t {threads} {params.extra} {params.frag_opt} {params.bxtype} -r {input.genome} -R {params.RG_tag} -x {input.readbin} 2> {log.ema} |
             samtools view -h {params.unmapped} -q {params.quality} | 
-            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam --write-index -m {resources.mem_mb}M -o {output.aln}##idx##{output.idx} - 2> {log.sort}
+            samtools sort -T {params.tmpdir} --reference {input.genome} -O bam -m {resources.mem_mb}M -o {output.aln} - 2> {log.sort}
         rm -rf {params.tmpdir}
+        """
+
+rule standardize_barcodes:
+    input:
+        "ema_align/{sample}.ema.bam"
+    output:
+        bam = temp("ema_align/{sample}.ema.bam"),
+        idx = temp("ema_align/{sample}.ema.bam.bai")
+    container:
+        None
+    shell:
+        """
+        standardize_barcodes_sam.py < {input} | samtools view -h -b > {output.bam}
+        samtools index {output.bam}
         """
 
 rule align_bwa:
@@ -426,6 +421,9 @@ rule workflow_summary:
         bwa_align = "Non-barcoded and invalid-barcoded sequences were aligned with BWA using:\n"
         bwa_align += '\tbwa mem -C -v 2 -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         bwa_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]}"
+        standardization = "Barcodes were standardized in the EMA aligments using:\n"
+        standardization += "\tstandardize_barcodes_sam.py < {input} | samtools view -h -b > {output}"
+        summary.append(standardization)
         summary.append(bwa_align)
         duplicates = "Duplicates in non-barcoded alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"

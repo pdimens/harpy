@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from importlib_resources import files
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn, MofNCompleteColumn
+from rich.console import Console
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
@@ -31,7 +32,7 @@ def harpy_progressbar(quiet: int) -> Progress:
         disable = quiet == 2
     )
 
-def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
+def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress:
     """
     The pre-configured transient pulsing progress bar that workflows use, typically for
     installing the software dependencies/container
@@ -42,7 +43,8 @@ def harpy_pulsebar(quiet: int, desc_text: str) -> Progress:
         TimeElapsedColumn(),
         auto_refresh = True,
         transient = True,
-        disable = quiet == 2
+        disable = quiet == 2,
+        console=Console(file=sys.stderr) if stderr else None
     )
 
 def filepath(infile: str) -> str:

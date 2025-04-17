@@ -12,17 +12,19 @@ parser = argparse.ArgumentParser(
     description =
     """
     Calculates various linked-read molecule metrics from the input alignment file.
-    Metrics include (per molecule): number of reads, position start, position end,
-    length of molecule inferred from alignments, total aligned basepairs, total,
-    length of inferred inserts, molecule coverage (%) based on aligned bases, molecule
-    coverage (%) based on total inferred insert length.
-    Input file MUST BE COORDINATE SORTED.
+    The alignment file is expected to be in "standard" linked-read format, that is,
+    the barcode is contained in the BX:Z tag and the barcode validation is stored
+    in the BV:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
+    number of reads, position start, position end, length of molecule inferred from
+    alignments, total aligned basepairs, total, length of inferred inserts, molecule
+    coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
+    insert length. Input file **must be coordinate sorted**.
     """,
     usage = "bx_stats.py input.bam > output.gz",
     exit_on_error = False
     )
 
-parser.add_argument('input', help = "Input coordinate-sorted bam/sam file. If bam, a matching index file should be in the same directory.")
+parser.add_argument('input', help = "Input coordinate-sorted bam/sam file.")
 
 if len(sys.argv) == 1:
     parser.print_help(sys.stderr)
@@ -78,9 +80,9 @@ with pysam.AlignmentFile(args.input) as alnfile:
         try:
             mi = read.get_tag("MI")
             bx = read.get_tag("BX")
+            valid = bool(int(read.get_tag("BV")))
             # do a regex search to find X00 pattern in the BX
-            if re.search("[ABCD]0{2,4}", bx):
-                # if found, invalid
+            if not valid:
                 if "invalidBX" not in d:
                     d["invalidBX"] = {
                         "start":  0,

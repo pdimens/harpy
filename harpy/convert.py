@@ -5,6 +5,7 @@ import gzip
 from itertools import product, zip_longest
 import os
 from random import sample
+import re
 import sys
 import rich_click as click
 import pysam
@@ -12,6 +13,22 @@ from ._misc import safe_read, harpy_pulsebar
 from ._cli_types_generic import convert_to_int
 from ._printing import print_error
 from ._validations import validate_barcodefile
+
+@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+def convert():
+    """
+    Convert data between linked-read types
+    """
+
+module_docstring = {
+    "harpy convert": [
+        {
+            "name": "Commands",
+            "commands": ["barcode", "fastq", "standardize"],
+            "panel_styles": {"border_style" : "blue"}
+        }
+    ]
+}
 
 INVALID_10x = "N" * 16
 INVALID_HAPLOTAGGING = "A00C00B00D00"
@@ -120,7 +137,7 @@ def compress_fq(fq: str):
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('fq1', metavar="R1_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
 @click.argument('fq2', metavar="R2_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required=True, nargs= 1)
-def convert(from_,to_,fq1,fq2,output,barcodes, quiet):
+def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
     """
     Convert between linked-read FASTQ formats
     
@@ -147,6 +164,26 @@ def convert(from_,to_,fq1,fq2,output,barcodes, quiet):
     if from_ == "10x" and not barcodes:
         print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x.")
         sys.exit(1)
+    # check that the file is fastq
+    with pysam.FastxFile(fq1, persist=False) as R1:
+        try:
+            for i in R1:
+                if i.name == "HD":
+                    raise ValueError
+                break
+        except ValueError:
+            print_error("Unrecognized file type", f"[blue]{os.path.basename(fq1)}[/] was unable to be processed as a FASTQ file by samtools, suggesting it is not a FASTQ file.")
+            sys.exit(1)
+    with pysam.FastxFile(fq2, persist=False) as R2:
+        try:
+            for i in R2:
+                if i.name == "HD":
+                    raise ValueError
+                break
+        except ValueError:
+            print_error("Unrecognized file type", f"[blue]{os.path.basename(fq2)}[/] was unable to be processed as a FASTQ by samtools, suggesting it is not a FASTQ file.")
+            sys.exit(1)
+
     # just make sure it's all lowercase
     from_ = from_.lower()
     to_ = to_.lower()
@@ -194,7 +231,8 @@ def convert(from_,to_,fq1,fq2,output,barcodes, quiet):
         bc_len = 0
     bc_inventory = {}
     # create the output directory in case it doesn't exist
-    os.makedirs(os.path.dirname(output), exist_ok=True)
+    if os.path.dirname(output):
+        os.makedirs(os.path.dirname(output), exist_ok=True)
 
     with (
         pysam.FastxFile(fq1, persist=False) as R1,
@@ -258,3 +296,157 @@ def convert(from_,to_,fq1,fq2,output,barcodes, quiet):
     with ThreadPoolExecutor(max_workers=2) as executor:
         executor.submit(compress_fq, f"{output}.R1.fq")
         executor.submit(compress_fq, f"{output}.R2.fq")
+
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
+@click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `BV:i` to output')
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
+@click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
+@click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+def barcode(to_,sam, standardize, quiet):
+    """
+    Convert between linked-read barcode formats in alignments
+
+    This conversion changes the barcode type of the alignment file (SAM/BAM), expecting
+    the barcode to be in the `BX:Z` tag of the alignment. The barcode type is automatically
+    detected and the resulting barcode will be in the `BX:Z` tag. Use `--standardize` to 
+    optionally standardize the output file (recommended), meaning a `BV:i` tag is added to describe
+    barcode validation with `0` (invalid) and `1` (valid). Writes to `stdout`.
+    """
+    # Do a quick scan of the file until the first barcode
+    # to assess what kind of linked read tech it is and set
+    # the appropriate kind of MISSING barcode
+    from_ = None
+    try:
+        with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
+            progress.add_task(f"[dim]Determining barcode type", total = None)
+            HEADER = alnfile.header
+            for record in alnfile.fetch(until_eof = True):
+                try:
+                    bx = record.get_tag("BX")
+                    if re.search(r"[ATCGN]+", bx):
+                        # tellseq
+                        from_ = "tellseq"
+                    elif re.search(r"\d+_\d+_\d+", bx):
+                        # stlfr
+                        from_ = "stlfr"
+                    elif re.search(r"A\d{2}C\d{2}B\d{2}D\d{2}", bx):
+                        from_ = "haplotagging"
+                    else:
+                        continue
+                    break
+                except KeyError:
+                    continue
+            if not from_:
+                print_error("unrecognized barcode", f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified.")
+                sys.exit(1)
+    except ValueError:
+        print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
+        sys.exit(1)
+
+    to_ = to_.lower()
+    if from_ == to_:
+        print_error("invalid to/from", f"The barcode formats between [green]{from_}[/] (detected from input) and [green]{to_}[/] (user-specified) must be different from each other.")
+        sys.exit(1)
+
+    # for barcodes, use sample() so the barcodes don't all start with AAAAAAAAAAAAA (or 1)
+    # it's not functionally important, but it does make the barcodes *look* more distinct
+    if to_ == "10x":
+        bc_generator = product(*[sample("ATCG", 4) for i in range(16)])
+        invalid = INVALID_10x
+        def is_valid(bc):
+            return "N" not in bc
+        def format_bc(bc):
+            return "".join(bc)
+    elif to_ == "tellseq":
+        bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
+        invalid = INVALID_TELLSEQ
+        def is_valid(bc):
+            return "N" not in bc
+        def format_bc(bc):
+            return "".join(bc)
+    elif to_ == "stlfr":
+        bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
+        invalid = INVALID_STLFR
+        def is_valid(bc):
+            return "0" not in bc.split("_")
+        def format_bc(bc):
+            return "_".join(str(i) for i in bc)
+    elif to_ == "haplotagging":
+        bc_generator = product(
+            ["A" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["C" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
+        )
+        invalid = INVALID_HAPLOTAGGING
+        def is_valid(bc):
+            return "00" not in bc
+        def format_bc(bc):
+            return "".join(bc)
+
+    bc_inventory = {}
+    with (
+        pysam.AlignmentFile(sam, require_index=False) as SAM,
+        pysam.AlignmentFile(sys.stdout, "wb", header=HEADER) as OUT,
+        harpy_pulsebar(quiet, "Converting", True) as progress,
+    ):
+        progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
+        for record in SAM.fetch(until_eof=True):
+            if record.has_tag("BX"):
+                bx = record.get_tag("BX")
+                # the standardization is redundant but ensures being written before the BX tag
+                if bx in bc_inventory:
+                    if standardize:
+                        record.set_tag("BV", int(is_valid(bx)), "i")
+                    record.set_tag("BX", bc_inventory[bx] ,"Z")
+                else:
+                    try:
+                        bc_inventory[bx] = format_bc(next(bc_generator))
+                        if standardize:
+                            record.set_tag("BV", int(is_valid(bx)), "i")
+                        record.set_tag("BX", bc_inventory[bx] ,"Z")
+                    except StopIteration:
+                        print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
+                        sys.exit(1)
+            OUT.write(record)
+
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
+@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
+@click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+def standardize(sam, quiet):
+    """
+    Move barcode to BX:Z tag in alignments
+
+    This conversion moves the barcode from the sequence name in to the `BX:Z` tag of the alignment,
+    maintaining the same barcode type (i.e. there is no linked-read format conversion). It is intended
+    for tellseq and stlfr data, which encode the barcode in the read name. Also writes a `BV:i` tag
+    to describe barcode validation `0` (invalid) or `1` (valid). Writes to `stdout`.
+    """
+    try:
+        with (
+            pysam.AlignmentFile(sam, require_index=False) as SAM, 
+            pysam.AlignmentFile(sys.stdout, "wb", template=SAM),
+            harpy_pulsebar(quiet, "Standardizing", True) as progress,
+        ):
+            for record in SAM.fetch(until_eof=True):
+                if record.has_tag("BX"):
+                    print_error("BX tag present", f"The BX:Z tag is already present in {os.path.basename(sam)} and does not need to be standardized.")
+                    sys.exit(1)
+                # matches either tellseq or stlfr   
+                bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", record.query_name)
+                if bx:
+                    # the 1:0 ignores the first character, which will either be : or #
+                    bx_sanitized = bx[0][1:]
+                    record.query_name = record.query_name.remove_suffix(bx)
+                    if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
+                        record.set_tag("BV", 0, "i")    
+                    else:
+                        record.set_tag("BV", 1, "i")
+                    record.set_tag("BX", bx_sanitized, "Z")
+    except ValueError:
+        print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
+        sys.exit(1)
+
+convert.add_command(fastq)
+convert.add_command(barcode)
+convert.add_command(standardize)

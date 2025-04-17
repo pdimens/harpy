@@ -81,7 +81,7 @@ click.rich_click.COMMAND_GROUPS = {
                 "panel_styles": {"border_style": "dim"}
             }
         ],
- } | align.module_docstring | snp.module_docstring | sv.module_docstring | simulate.docstring | template.docstring
+ } | align.module_docstring | convert.module_docstring | snp.module_docstring | sv.module_docstring | simulate.docstring | template.docstring
 
 click.rich_click.OPTIONS_PANEL_TITLE = None
 for i in [align, deconvolve, downsample, demultiplex, impute, phase, validate, qc, simulate, snp, sv, assembly, metassembly]:

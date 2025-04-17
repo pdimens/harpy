@@ -21,8 +21,6 @@ windowsize  = config["depth_windowsize"]
 molecule_distance = config["molecule_distance"]
 ignore_bx = config["ignore_bx"]
 keep_unmapped = config["keep_unmapped"]
-readlen = config["average_read_length"]
-autolen = isinstance(readlen, str)
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
@@ -34,27 +32,21 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
-    shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai",
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai"
     log:
-        f"{workflow_geno}.faidx.log"
+        f"{workflow_geno}.preprocess.log"
     container:
         None
     shell: 
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        """
+        seqtk seq {input} > {output.geno}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule make_depth_intervals:
     input:
@@ -74,51 +66,43 @@ rule make_depth_intervals:
                 for start,end in zip(starts,ends):
                     bed.write(f"{contig}\t{start}\t{end}\n")
 
-rule strobe_index:
-    input: 
-        workflow_geno
-    output:
-        f"{workflow_geno}.r{readlen}.sti"
-    log:
-        f"{workflow_geno}.r{readlen}.sti.log"
-    params:
-        readlen
-    conda:
-        "envs/align.yaml"
-    threads:
-        2
-    shell: 
-        "strobealign --create-index -t {threads} -r {params} {input} 2> {log}"
-
 rule align:
     input:
         fastq = get_fq,
-        genome   = workflow_geno,
-        genome_index   = f"{workflow_geno}.r{readlen}.sti" if not autolen else []
+        genome   = workflow_geno
     output:  
-        temp("samples/{sample}/{sample}.strobe.sam")
+        pipe("samples/{sample}/{sample}.strobe.sam")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
-        readlen = "" if autolen else f"--use-index -r {readlen}",
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
-        4
+        min(4, workflow.cores - 1)
     conda:
         "envs/align.yaml"
     shell:
         """
-        strobealign {params.readlen} -N 2 -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+        strobealign -N 2 -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
+rule standardize_barcodes:
+    input:
+        "samples/{sample}/{sample}.strobe.sam"
+    output:
+        temp("samples/{sample}/{sample}.standard.sam")
+    container:
+        None
+    shell:
+        "standardize_barcodes_sam.py > {output} < {input}"
+
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.strobe.sam",
+        sam    = "samples/{sample}/{sample}.standard.sam",
         genome = workflow_geno,
         faidx  = f"{workflow_geno}.fai"
     output:
@@ -319,7 +303,6 @@ rule workflow_summary:
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
     params:
-        readlen = readlen,
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
@@ -329,15 +312,12 @@ rule workflow_summary:
         summary = ["The harpy align strobe workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with strobealign using:\n"
-        if autolen:
-            align += f"\tstrobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
-        else:
-            align = "The genome index was created using:\n"
-            align += f"\tstrobealign --create-index -r {params.readlen} genome\n\n"
-            align += "Sequences were aligned with strobealign using:\n"
-            align += f"\tstrobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        align += f"\tstrobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
         align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
+        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"

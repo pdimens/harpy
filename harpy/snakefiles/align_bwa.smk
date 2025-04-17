@@ -32,42 +32,36 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule process_genome:
+rule peprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
+        geno = workflow_geno,
+        bwa_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        genome_zip
+    conda:
+        "envs/align.yaml"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno}
         else
-            cp -f {input} {output}
+            cp -f {input} {output.geno}
         fi
-        """
 
-rule samtools_faidx:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
         if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno} 2>> {log}
         else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
         fi
+
+        bwa index {output.geno} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -88,25 +82,13 @@ rule make_depth_intervals:
                 for start,end in zip(starts,ends):
                     bed.write(f"{contig}\t{start}\t{end}\n")
 
-rule bwa_index:
-    input: 
-        workflow_geno
-    output: 
-        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
-    log:
-        f"{workflow_geno}.bwa.idx.log"
-    conda:
-        "envs/align.yaml"
-    shell: 
-        "bwa index {input} 2> {log}"
-
 rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp("samples/{sample}/{sample}.bwa.sam")
+        pipe("samples/{sample}/{sample}.bwa.sam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -116,18 +98,28 @@ rule align:
         unmapped = "" if keep_unmapped else "-F 4",
         extra = extra
     threads:
-        4
+        min(4, workflow.cores - 1)
     conda:
         "envs/align.yaml"
     shell:
         """
         bwa mem -C -v 2 -t {threads} {params.extra} -R {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
-            samtools view -h {params.unmapped} -q {params.quality} > {output} 
+            samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
+
+rule standardize_barcodes:
+    input:
+        "samples/{sample}/{sample}.bwa.sam"
+    output:
+        temp("samples/{sample}/{sample}.standard.sam")
+    container:
+        None
+    shell:
+        "standardize_barcodes_sam.py > {output} < {input}"
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.bwa.sam",
+        sam    = "samples/{sample}/{sample}.standard.sam",
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
@@ -339,6 +331,9 @@ rule workflow_summary:
         align += f'\tbwa mem -C -v 2 {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
+        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"

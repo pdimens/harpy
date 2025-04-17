@@ -58,14 +58,6 @@ if err:
 # Get the max number of unique haplotag barcodes
 haplotag_limit = 96**4
 
-# instantiate output file
-#if aln_list[0].lower().endswith(".bam"):
-#    if not os.path.exists(f"{aln_list[0]}.bai"):
-#        pysam.index(aln_list[0])
-#        # for housekeeping
-#        DELETE_FIRST_INDEX = True
-#    else:
-#        DELETE_FIRST_INDEX = False
 with pysam.AlignmentFile(aln_list[0]) as xam_in:
     header = xam_in.header.to_dict()
 # Remove all @PG lines
@@ -98,13 +90,6 @@ with pysam.AlignmentFile(sys.stdout.buffer, "wb", header = header) as bam_out:
     for xam in aln_list:
         # create MI dict for this sample
         MI_LOCAL = {}
-        # create index if it doesn't exist
-        #if xam.lower().endswith(".bam"):
-        #    if not os.path.exists(f"{xam}.bai"):
-        #        pysam.index(xam)
-        #        DELETE_INDEX = True
-        #    else:
-        #        DELETE_INDEX = False
         with pysam.AlignmentFile(xam) as xamfile:
             for record in xamfile.fetch(until_eof=True):
                 try:
@@ -136,7 +121,3 @@ with pysam.AlignmentFile(sys.stdout.buffer, "wb", header = header) as bam_out:
                 except KeyError:
                     pass
                 bam_out.write(record)
-
-# just for consistent housekeeping
-#if DELETE_FIRST_INDEX:
-#    Path.unlink(f"{aln_list[0]}.bai")

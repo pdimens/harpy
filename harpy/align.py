@@ -278,7 +278,6 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('-q', '--min-quality', default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to pass filtering')
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
-@click.option('-l', '--read-length', default = "auto", show_default = True, type = click.Choice(["auto", "50", "75", "100", "125", "150", "250", "400"]), help = 'Average read length for creating index')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -290,7 +289,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=InputFile("fasta", gzip_ok = True), nargs = 1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
-def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using strobealign
  
@@ -300,10 +299,6 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
     strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
     not use barcodes when mapping. Use a value >`0` for `--molecule-distance` to have
     harpy perform alignment-distance based barcode deconvolution.
-    
-    The `--read-length` is an *approximate* parameter and should be one of [`auto`, `50`, `75`, `100`, `125`, `150`, `250`, `400`].
-    The alignment process will be faster and take up less disk/RAM if you specify an `-l` value that isn't
-    `auto`. If your input has adapters removed, then you should expect the read lengths to be <150.
     """
     workflow = "align_strobe"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
@@ -334,7 +329,6 @@ def strobe(reference, inputs, output_dir, read_length, ignore_bx, keep_unmapped,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "ignore_bx": ignore_bx,
-        "average_read_length": read_length,
         "depth_windowsize" : depth_window,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
