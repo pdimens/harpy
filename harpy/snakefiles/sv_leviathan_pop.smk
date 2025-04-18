@@ -50,7 +50,7 @@ def pop_manifest(groupingfile, filelist):
 popdict = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupfile
     output:
@@ -114,39 +114,23 @@ rule index_barcode:
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
-    shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai"
+        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        geno = workflow_geno,
+        fai  = f"{workflow_geno}.fai"
     log:
-        f"{workflow_geno}.faidx.log"
-    container:
-        None
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
-
-rule bwa_index_genome:
-    input: 
-        workflow_geno
-    output: 
-        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
-    log:
-        f"{workflow_geno}.bwa.idx.log"
+        f"{workflow_geno}.preprocess.log"
     conda:
         "envs/align.yaml"
     shell: 
-        "bwa index {input} 2> {log}"
+        """
+        seqtk seq {input} > {output.geno}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        bwa index {output.geno} 2>> {log}
+        """
 
 rule call_variants:
     input:

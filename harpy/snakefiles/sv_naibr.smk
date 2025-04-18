@@ -152,11 +152,17 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
     container:
         None
     shell: 
@@ -168,27 +174,7 @@ rule process_genome:
             # if BZgipped or isn't compressed, just copied
             cp -f {input} {output}
         fi
-        """
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
-        fi
+        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2> {log}
         """
 
 rule report_config:

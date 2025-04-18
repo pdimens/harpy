@@ -82,27 +82,21 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai"
+    log:
+        f"{workflow_geno}.preprocess.log"
     container:
         None
     shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai"
-    container:
-        None
-    log:
-        f"{workflow_geno}.faidx.log"
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        """
+        seqtk seq {input} > {output}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule index_snps:
     input:
@@ -171,7 +165,7 @@ rule log_phasing:
         done
         """
 
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupfile
     output:

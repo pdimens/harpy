@@ -39,7 +39,7 @@ else:
     intervals = [regions_input]
     regions = {f"{regions_input}" : f"{regions_input}"}
 
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupings
     output:
@@ -48,27 +48,21 @@ rule preproc_groups:
         with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai"
+    log:
+        f"{workflow_geno}.preprocess.log"
     container:
         None
     shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai"
-    log:
-        f"{workflow_geno}.faidx.log"
-    container:
-        None
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        """
+        seqtk seq {input} > {output}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule index_alignments:
     input:

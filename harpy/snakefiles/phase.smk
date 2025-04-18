@@ -96,27 +96,21 @@ rule index_alignments:
         "samtools index {input}"
 
 if indels:
-    rule process_genome:
+    rule preprocess_reference:
         input:
             genomefile
         output: 
-            geno
-        container:
-            None
-        shell: 
-            "seqtk seq {input} > {output}"
-
-    rule index_genome:
-        input: 
-            geno
-        output: 
-            genofai
+            fasta = geno,
+            fai = genofai
         log:
-            f"workflow/reference/{bn}.faidx.log"
+            f"workflow/reference/{bn}.preprocess.log"
         container:
             None
         shell: 
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+            """
+            seqtk seq {input} > {output.fasta}
+            samtools faidx --fai-idx {output.fai} {output.fasta} 2> {log}
+            """
 
 rule extract_hairs:
     input:
