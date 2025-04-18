@@ -120,7 +120,7 @@ rule impute:
         tmpdir  = lambda wc: "--tempdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig, "tmp"),
         extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
-        workflow.cores - 1
+        1
     conda:
         "envs/stitch.yaml"
     shell:
