@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(
     Calculates various linked-read molecule metrics from the input alignment file.
     The alignment file is expected to be in "standard" linked-read format, that is,
     the barcode is contained in the BX:Z tag and the barcode validation is stored
-    in the BV:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
+    in the VX:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
     number of reads, position start, position end, length of molecule inferred from
     alignments, total aligned basepairs, total, length of inferred inserts, molecule
     coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
@@ -80,7 +80,7 @@ with pysam.AlignmentFile(args.input) as alnfile:
         try:
             mi = read.get_tag("MI")
             bx = read.get_tag("BX")
-            valid = bool(int(read.get_tag("BV")))
+            valid = bool(int(read.get_tag("VX")))
             # do a regex search to find X00 pattern in the BX
             if not valid:
                 if "invalidBX" not in d:

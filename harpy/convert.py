@@ -298,7 +298,7 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
         executor.submit(compress_fq, f"{output}.R2.fq")
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
-@click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `BV:i` to output')
+@click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `VX:i` to output')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
@@ -309,7 +309,7 @@ def barcode(to_,sam, standardize, quiet):
     This conversion changes the barcode type of the alignment file (SAM/BAM), expecting
     the barcode to be in the `BX:Z` tag of the alignment. The barcode type is automatically
     detected and the resulting barcode will be in the `BX:Z` tag. Use `--standardize` to 
-    optionally standardize the output file (recommended), meaning a `BV:i` tag is added to describe
+    optionally standardize the output file (recommended), meaning a `VX:i` tag is added to describe
     barcode validation with `0` (invalid) and `1` (valid). Writes to `stdout`.
     """
     # Do a quick scan of the file until the first barcode
@@ -397,13 +397,13 @@ def barcode(to_,sam, standardize, quiet):
                 # the standardization is redundant but ensures being written before the BX tag
                 if bx in bc_inventory:
                     if standardize:
-                        record.set_tag("BV", int(is_valid(bx)), "i")
+                        record.set_tag("VX", int(is_valid(bx)), "i")
                     record.set_tag("BX", bc_inventory[bx] ,"Z")
                 else:
                     try:
                         bc_inventory[bx] = format_bc(next(bc_generator))
                         if standardize:
-                            record.set_tag("BV", int(is_valid(bx)), "i")
+                            record.set_tag("VX", int(is_valid(bx)), "i")
                         record.set_tag("BX", bc_inventory[bx] ,"Z")
                     except StopIteration:
                         print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
@@ -419,7 +419,7 @@ def standardize(sam, quiet):
 
     This conversion moves the barcode from the sequence name in to the `BX:Z` tag of the alignment,
     maintaining the same barcode type (i.e. there is no linked-read format conversion). It is intended
-    for tellseq and stlfr data, which encode the barcode in the read name. Also writes a `BV:i` tag
+    for tellseq and stlfr data, which encode the barcode in the read name. Also writes a `VX:i` tag
     to describe barcode validation `0` (invalid) or `1` (valid). Writes to `stdout`.
     """
     try:
@@ -429,15 +429,15 @@ def standardize(sam, quiet):
             harpy_pulsebar(quiet, "Standardizing", True) as progress,
         ):
             for record in SAM.fetch(until_eof=True):
-                if record.has_tag("BX") and record.has_tag("BV"):
-                    print_error("BX/BV tags present", f"The BX:Z and BV:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
+                if record.has_tag("BX") and record.has_tag("VX"):
+                    print_error("BX/VX tags present", f"The BX:Z and VX:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
                     sys.exit(1)
                 if record.has_tag("BX"):
                     bx = record.get_tag("BX")
                     if "0" in bx.split("_") or re.search(r"(?:N|[ABCD]00)", bx):
-                        record.set_tag("BV", 0, "i")
+                        record.set_tag("VX", 0, "i")
                     else:
-                        record.set_tag("BV", 1, "i")
+                        record.set_tag("VX", 1, "i")
                     continue
                 # matches either tellseq or stlfr   
                 bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", record.query_name)
@@ -446,9 +446,9 @@ def standardize(sam, quiet):
                     bx_sanitized = bx[0][1:]
                     record.query_name = record.query_name.remove_suffix(bx)
                     if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
-                        record.set_tag("BV", 0, "i")
+                        record.set_tag("VX", 0, "i")
                     else:
-                        record.set_tag("BV", 1, "i")
+                        record.set_tag("VX", 1, "i")
                     record.set_tag("BX", bx_sanitized, "Z")
     except ValueError:
         print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")

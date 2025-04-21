@@ -140,8 +140,8 @@ with (
 
         try:
             bx = record.get_tag("BX")
-            if record.get_tag("BV") == 0:
-                # BV:i:0 is invalid
+            if record.get_tag("VX") == 0:
+                # VX:i:0 is invalid
                 write_invalidbx(outfile, record)
                 LAST_CONTIG = chrm
                 continue
