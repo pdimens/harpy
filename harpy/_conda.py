@@ -33,7 +33,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::tigmint"
         ],
         "demultiplex": [
-            "bioconda::dmox"
+            "bioconda::dmox>=0.2"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
