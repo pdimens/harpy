@@ -11,8 +11,9 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist       = config["inputs"]["fastq"]
-molecule_distance = config["molecule_distance"]
-ignore_bx = config["ignore_bx"]
+molecule_distance = config["barcodes"]["distance_threshold"]
+ignore_bx = config["barcodes"]["ignore"]
+is_standardized = config["barcodes"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]
@@ -92,18 +93,19 @@ rule align:
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
-        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
+        RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
+        static = "-C -v 2" if is_standardized else "-v 2",
         extra = extra
     threads:
-        min(4, workflow.cores - 1)
+        min(6, workflow.cores - 1)
     conda:
         "envs/align.yaml"
     shell:
         """
-        bwa mem -C -v 2 -t {threads} {params.extra} -R {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
+        bwa mem {params.static} -t {threads} {params.extra} {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
 
@@ -323,12 +325,13 @@ rule workflow_summary:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",\
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        bwa_static = "-C -v 2" if is_standardized else "-v 2",
         extra   = extra
     run:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with BWA using:\n"
-        align += f'\tbwa mem -C -v 2 {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
+        align += f'\tbwa mem {params.bwa_static} {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"

@@ -18,8 +18,9 @@ if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
 windowsize  = config["depth_windowsize"]
-molecule_distance = config["molecule_distance"]
-ignore_bx = config["ignore_bx"]
+molecule_distance = config["barcodes"]["distance_threshold"]
+ignore_bx = config["barcodes"]["ignore"]
+is_standardized = config["barcodes"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
@@ -79,6 +80,7 @@ rule align:
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
+        static = "-N 2 -C" if is_standardized else "-N 2",
         extra = extra
     threads:
         min(4, workflow.cores - 1)
@@ -86,7 +88,7 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        strobealign -N 2 -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+        strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
@@ -307,12 +309,13 @@ rule workflow_summary:
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        static = "-C" if is_standardized else "",
         extra   = extra
     run:
         summary = ["The harpy align strobe workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with strobealign using:\n"
-        align += f"\tstrobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        align += f"\tstrobealign -U {params.static} --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
         align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"

@@ -12,7 +12,7 @@ from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
 from ._launch import launch_snakemake
 from ._parsers import parse_fastq_inputs
 from ._printing import print_error, print_solution, print_notice, workflow_info
-from ._validations import check_fasta, fasta_contig_match, validate_barcodefile
+from ._validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -115,6 +115,10 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
+    if ignore_bx:
+        is_standardized = False
+    else:
+        is_standardized = fastq_has_bx(fqlist, threads, quiet)
 
     ## setup workflow ##
     command = setup_snakemake(
@@ -137,8 +141,11 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
-        "ignore_bx" : ignore_bx,
-        "molecule_distance" : molecule_distance,
+        "barcodes": {
+            "ignore" : ignore_bx,
+            "standardized": is_standardized,
+            "distance_threshold" : molecule_distance,
+        },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
@@ -307,6 +314,10 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
+    if ignore_bx:
+        is_standardized = False
+    else:
+        is_standardized = fastq_has_bx(fqlist, threads, quiet)
 
     ## setup workflow ##
     command = setup_snakemake(
@@ -328,9 +339,12 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
         "snakemake_log" : sm_log,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
-        "ignore_bx": ignore_bx,
         "depth_windowsize" : depth_window,
-        "molecule_distance" : molecule_distance,
+        "barcodes": {
+            "ignore" : ignore_bx,
+            "standardized": is_standardized,
+            "distance_threshold" : molecule_distance,
+        },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,

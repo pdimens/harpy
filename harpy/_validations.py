@@ -464,6 +464,33 @@ def fasta_contig_match(contigs: str, fasta: str) -> None:
         click.echo(",".join([i for i in bad_names]), file = sys.stderr)
         sys.exit(1)
 
+def fastq_has_bx(fastq_list: list[str], threads: int, quiet: int, max_records: int = 50) -> bool:
+    """
+    Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
+    """
+    def has_bx_tag(fastq, max_rec):
+        records = 0
+        with safe_read(fastq) as fq:
+            while records <= max_rec:
+                line = fq.readline()
+                if not line:
+                    break
+                if not line.startswith("@"):
+                    continue
+                if "BX:Z" in line:
+                    return True
+                records += 1
+        return False
+    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[green]Parsing FASTQ input", total=len(fastq_list))
+        futures = [executor.submit(has_bx_tag, i, max_records) for i in fastq_list]
+        for future in as_completed(futures):
+            if future.result():
+                progress.advance(task_progress)
+                executor.shutdown(wait = False)
+                return True
+    return False
+
 def validate_fastq_bx(fastq_list: list[str], threads: int, quiet: int) -> None:
     """
     Parse a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
