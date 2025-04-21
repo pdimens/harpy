@@ -24,7 +24,7 @@ module_docstring = {
     "harpy convert": [
         {
             "name": "Commands",
-            "commands": ["barcode", "fastq", "standardize"],
+            "commands": ["bam", "fastq", "standardize"],
             "panel_styles": {"border_style" : "blue"}
         }
     ]
@@ -302,7 +302,7 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
-def barcode(to_,sam, standardize, quiet):
+def bam(to_,sam, standardize, quiet):
     """
     Convert between linked-read barcode formats in alignments
 
@@ -455,5 +455,5 @@ def standardize(sam, quiet):
         sys.exit(1)
 
 convert.add_command(fastq)
-convert.add_command(barcode)
+convert.add_command(bam)
 convert.add_command(standardize)
