@@ -19,7 +19,7 @@ from ._conda import create_conda_recipes
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
 def resume(directory, conda, threads, quiet):
     """
-    Resume a workflow from an existing Harpy directory
+    Resume a Harpy workflow from an existing directory
 
     In the event you need to run the Snakemake workflow present in a Harpy output directory
     (e.g. `Align/bwa`) without Harpy rewriting any of the configuration files, this command
