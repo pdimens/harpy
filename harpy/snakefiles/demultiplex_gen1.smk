@@ -5,8 +5,9 @@ import logging
 
 schemafile = config["inputs"]["demultiplex_schema"]
 skip_reports = config["reports"]["skip"]
-incl_qxrx = config["include_qx_rx_tags"]
-keep_unknown = config["keep_unknown"]
+qxrx = config["retain"]["qx_rx"]
+unknown_samples = config["retain"]["samples"]
+unknown_barcodes = config["retain"]["barcodes"]
 
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
@@ -21,8 +22,11 @@ with open(schemafile, "r") as f:
     for i in f.readlines():
         line = i.split()
         samplenames.add(line[0])
-if keep_unknown:
-    samplenames.add("_unknown_sample")
+
+if unknown_samples:
+    samplenames.add("_unknown_samples")
+if unknown_barcodes:
+    samplenames.add("_unknown_barcodes")
 
 rule barcode_segments:
     output:
@@ -50,14 +54,17 @@ rule demultiplex:
         "logs/demultiplex.log"
     params:
         outdir = "--samples " + os.getcwd(),
-        qxrx = "--rx --qx" if incl_qxrx else "",
-        keep_unknown = "--undetermined _unknown_sample" if keep_unknown else ""
+        qxrx = "--rx --qx" if qxrx else "",
+        unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
+        unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else "",
+        #bc_per_segment = "--n-modules {bc_per_segment}"
+        #bc_len = "--module-size {bc_len}",
     threads:
         workflow.cores
     conda:
         "envs/demultiplex.yaml"
     shell:
-        """"
+        """
         dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \
         --ref-a {input.segment_a} --ref-b {input.segment_b} --ref-c {input.segment_c} \
         --ref-d {input.segment_d} --schema {input.schema} \
@@ -146,8 +153,9 @@ rule workflow_summary:
         I1 = config["inputs"]["I1"],
         I2 = config["inputs"]["I2"],
         outdir = f"--samples {os.getcwd()}",
-        qxrx = "--rx --qx" if incl_qxrx else "",
-        keep_unknown = "--undetermined _unknown_sample"
+        qxrx = "--rx --qx" if qxrx else "",
+        unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
+        unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
     run:
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
         summary.append("Linked Read Barcode Design: Generation I")
@@ -159,7 +167,7 @@ rule workflow_summary:
         inputs += f"Sample demultiplexing schema: {schemafile}"
         summary.append(inputs)
         demux = "Samples were demultiplexed using:\n"
-        demux += f"\tdmox --R1 --R2 --I1 --I2 {params.outdir} {params.qxrx} {params.keep_unknown}"
+        demux += f"\tdmox --R1 --R2 --I1 --I2 {params.outdir} {params.qxrx} {params.unknown_barcodes} {params.unknown_samples}"
         summary.append(demux)
         qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"

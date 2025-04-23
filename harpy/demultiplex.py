@@ -28,7 +28,7 @@ docstring = {
     "harpy demultiplex gen1": [
         {
             "name": "Parameters",
-            "options": ["--keep-unknown", "--qx-rx","--schema"],
+            "options": ["--keep-unknown-barcodes", "--keep-unknown-samples", "--qx-rx","--schema"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -40,7 +40,8 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
-@click.option('-u', '--keep-unknown',  is_flag = True, default = False, help = 'Keep reads that could not be demultiplexed')
+@click.option('-u', '--keep-unknown-samples',  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
+@click.option('-b', '--keep-unknown-barcodes',  is_flag = True, default = False, help = 'Keep a separate file of reads with unrecognized barcodes')
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-s', '--schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`barcode`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
@@ -55,7 +56,7 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex Generation I haplotagged FASTQ files
 
@@ -87,8 +88,11 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, keep_unknown, schema, qx_rx, th
     configs = {
         "workflow" : workflow,
         "snakemake_log" : sm_log,
-        "include_qx_rx_tags" : qx_rx,
-        "keep_unknown" : keep_unknown,
+        "retain" : {
+            "qx_rx" : qx_rx,
+            "barcodes" : keep_unknown_barcodes,
+            "samples" : keep_unknown_samples,
+        },
         "snakemake_command" : command.rstrip(),
         "conda_environments" : conda_envs,
         "reports" : {
