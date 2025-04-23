@@ -6,6 +6,7 @@ order: 10
 ---
 
 # :icon-fold-down: Downsample data by barcode
+[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - One of either:
@@ -34,7 +35,7 @@ harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="downsample"]
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="downsample"]
 module is configured using the command-line arguments below.
 
 {.compact}

@@ -6,6 +6,8 @@ order: 4
 ---
 
 # :icon-codescan-checkmark: Quality Trim Sequences
+[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
+
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
 - paired-end [fastq](../haplotagdata.md/#naming-conventions) sequence files [!badge variant="secondary" text="gzip recommended"]
@@ -29,20 +31,19 @@ harpy qc --threads 20 -a auto Sequences_Raw/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
 {.compact}
-| argument              | short name |   default   | description                                                                                                                    |
-| :-------------------- | :--------: | :---------: | :----------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`              |            |             | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
-| `--deconvolve`        |    `-c`    |             | Resolve barcode clashes between reads from different molecules                                                                 |
-| `--deconvolve-params` |    `-p`    | `21,40,3,0` | Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order      |
-| `--deduplicate`       |    `-d`    |             | Identify and remove PCR duplicates                                             |
-| `--extra-params`      |    `-x`    |             | Additional fastp arguments, in quotes                                                                                          |
-| `--ignore-bx`         |            |   false     | Ignore parts of the workflow specific to linked-read sequences                                                                 |
-| `--min-length`        |    `-n`    |    `30`     | Discard reads shorter than this length                                                                                         |
-| `--max-length`        |    `-m`    |    `150`    | Maximum length to trim sequences down to                                                                                       |
-| `--trim-adapters`     |    `-a`    |             | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                           |
+| argument          | short name | default | description                                                                                                                                                                                                  |
+|:------------------|:----------:|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `INPUTS`          |            |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments)                                                                               |
+| `--deconvolve`    |    `-c`    |         | Resolve barcode clashes between reads from different molecules. Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order (e.g. `21 40 3 0`) |
+| `--deduplicate`   |    `-d`    |         | Identify and remove PCR duplicates                                                                                                                                                                           |
+| `--extra-params`  |    `-x`    |         | Additional fastp arguments, in quotes                                                                                                                                                                        |
+| `--ignore-bx`     |            |  false  | Ignore parts of the workflow specific to linked-read sequences                                                                                                                                               |
+| `--min-length`    |    `-m`    |  `30`   | Discard reads shorter than this length                                                                                                                                                                       |
+| `--max-length`    |    `-M`    |  `150`  | Maximum length to trim sequences down to                                                                                                                                                                     |
+| `--trim-adapters` |    `-a`    |         | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                                                                                         |
 
 By default, this workflow will only quality-trim the sequences.
 #### deduplicate reads [!badge variant="warning" text="not recommended"]
@@ -68,11 +69,11 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 ```
 ==- Trimming reads to different lengths
 In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
-setting `-m` (`--max-length`) to the length you want the **forward** reads trimmed down to (e.g. `-m 125`), then specify an extra
+setting `-M` (`--max-length`) to the length you want the **forward** reads trimmed down to (e.g. `-M 125`), then specify an extra
 `fastp` parameter with `-x "--max_len2 VAL"` to set the maximum length of the **reverse** reads to `VAL`, e.g. `-x "--max_len2 130"`.
 In practice that would look like:
 ```bash
-harpy qc -m 150 -x "--max_len2 125" -a data/fastq/
+harpy qc -M 150 -x "--max_len2 125" -a data/fastq/
 ```
 ===
 

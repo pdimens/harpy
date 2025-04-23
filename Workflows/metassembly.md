@@ -6,6 +6,7 @@ order: 8
 ---
 
 # :icon-workflow: Create a Metagenome Assembly
+[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -26,7 +27,7 @@ harpy metassembly --threads 20 -u prokaryote -k 13,51,75,83 FASTQ_R1 FASTQ_R2
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="metassembly"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="metassembly"] module is configured using these command-line arguments:
 
 {.compact}
 | argument          | short name |   default   | description                                                                                                                                    |

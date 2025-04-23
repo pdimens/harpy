@@ -6,6 +6,7 @@ order: 9
 ---
 
 # :icon-versions: Demultiplex Raw Sequences
+[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -16,7 +17,7 @@ When pooling samples and sequencing them in parallel on an Illumina sequencer, y
 files in return. These files contain sequences for all of your samples and need to be demultiplexed using barcodes to 
 separate the sequences for each sample into their own files (a forward and reverse file for each sample). These barcodes
 should have been added during the sample DNA preparation in a laboratory. The demultiplexing strategy will vary based on the
-haplotag technology you are using (read [Haplotag Types](#haplotag-types)).
+haplotag technology you are using (read [Haplotag Types](#haplotagging-types)).
 
 ```bash usage
 harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
@@ -25,7 +26,7 @@ harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="demultiplex gen1"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="demultiplex gen1"] module is configured using these command-line arguments:
 
 {.compact}
 | argument   | short name | description                                                      |
@@ -46,7 +47,7 @@ have Harpy still separate those reads from the original multiplex. Those reads w
 Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode)
 tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
 
-## Haplotag Types[!badge variant="secondary" text="gzip recommended"]
+## Haplotagging Types
 ==- Generation 1 - `gen1`
 - Barcode configuration: `13 + 13`
 - sequencing mask: `151+13+13+151`

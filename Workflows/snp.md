@@ -6,6 +6,7 @@ order: 2
 ---
 
 # :icon-sliders: Call SNPs and small indels
+[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
@@ -19,8 +20,8 @@ This file is optional and useful if you want variant calling to happen on a per-
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with [!badge corners="pill" text="harpy popgroup"](other.md/#popgroup) or manually
-- if created with [!badge corners="pill" text="harpy popgroup"](other.md/#popgroup), all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
+- create with [!badge corners="pill" text="harpy template groupings"](other.md/#groupings) or manually
+- if created with [!badge corners="pill" text="harpy template groupings"](other.md/#groupings), all the samples will be assigned to group `pop1`, so make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
 sample1 pop1
@@ -44,30 +45,29 @@ After reads have been aligned, _e.g._, with [!badge corners="pill" text="harpy a
 You can call SNPs with the [!badge corners="pill" text="snp"] module:
 
 ```bash usage
-harpy snp method OPTIONS... INPUTS...
+harpy snp method OPTIONS... REFERENCE INPUTS...
 ```
 
 ```bash examples
 # call variants with mpileup
-harpy snp mpileup --threads 20 --genome genome.fasta Align/bwa
+harpy snp mpileup --threads 20 genome.fasta Align/bwa
 
 # call variants with freebayes
-harpy snp freebayes --threads 20 --genome genome.fasta Align/bwa
+harpy snp freebayes --threads 20 genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../commonoptions.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../common_options.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | default | description                                                                                                                  |
-| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
-| `--extra-params` |    `-x`    |         | Additional mpileup/freebayes arguments, in quotes                                                                            |
-| `--genome`       |    `-g`    |         | [!badge variant="info" text="required"] Genome assembly for variant calling                                                  |
-| `--ploidy`       |    `-n`    |   `2`   | Ploidy of samples                                                                                                            |
-| `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                   |
-| `--regions`      |    `-r`    | `50000` | Regions to call variants on ([see below](#regions))                                                                          |
-
+| argument         | short name | default | description                                                                                                                   |
+|:-----------------|:----------:|:-------:|:------------------------------------------------------------------------------------------------------------------------------|
+| `REFERENCE`      |    `-g`    |         | [!badge variant="info" text="required"] Reference genome used for variant calling                                             |
+| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `--extra-params` |    `-x`    |         | Additional mpileup/freebayes arguments, in quotes                                                                             |
+| `--ploidy`       |    `-n`    |   `2`   | Ploidy of samples                                                                                                             |
+| `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                    |
+| `--regions`      |    `-r`    | `50000` | Regions to call variants on ([see below](#regions))                                                                           |
 
 ### ploidy
 If you are calling haploid or diploid samples, using either `mpileup` or `freebayes` will be comparable. However, if you need to call SNPs in polyploids (ploidy >2),

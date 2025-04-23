@@ -6,6 +6,7 @@ order: 10
 ---
 
 # :icon-tag: Resolve barcodes shared by different molecules
+[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
@@ -47,7 +48,7 @@ harpy deconvolve OPTIONS... INPUTS...
 {.compact}
 | argument        | short name | default | description                                                                                                                    |
 | :-------------- | :--------: | :-----: | :----------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`        |            |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
+| `INPUTS`        |            |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
 | `--density`     |    `-d`    |   `3`   | On average, $\frac{1}{2^d}$ kmers are indexed                                                                                  |
 | `--dropout`     |    `-a`    |   `0`   | Minimum cloud size to deconvolve                                                                                               |
 | `--kmer-length` |    `-k`    |  `21`   | Size of k-mers to search for similarities                                                                                      |

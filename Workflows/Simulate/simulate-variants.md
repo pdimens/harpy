@@ -18,8 +18,9 @@ do that, you'll need *known* variants, and typically simulations are how you ach
 that. This series of modules simulates genomic variants onto a genome, either randomly
 or specific variants provided in VCF files. The simulator Harpy uses,
 [simuG](https://github.com/yjx1217/simuG), can only simulate one type of
-variant at a time and each variant type has their own set of parameters. This page
-is divided by variant types to help you navigate the process. The general usage
+variant at a time and each variant type has their own set of parameters. If you are interested
+in very fine-grained variation simulation, consider using [VISOR/HACk](https://davidebolo1993.github.io/visordoc/usage/usage.html#visor-hack).
+This page is divided by variant types to help you navigate the process. The general usage
 for simulating variants is:
 
 ```bash usage
@@ -41,7 +42,7 @@ There are 4 submodules with very obvious names:
 
 ## :icon-terminal: Running Options
 While there are serveral differences between individual workflow options, each has available all the
-[!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md) like other Harpy modules.
+[!badge variant="info" corners="pill" text="common runtime options"](/common_options.md) like other Harpy modules.
 Each requires and input genome at the end of the command line, and each requires either a `--count` of variants
 to randomly simulate, or a `--vcf` of specific variants to simulate. There are also these unifying options among the different variant types:
 

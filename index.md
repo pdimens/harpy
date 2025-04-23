@@ -28,7 +28,7 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 | [!badge corners="pill" text="impute"](Workflows/impute.md)              | Impute genotypes using variants and sequences                        |
 | [!badge corners="pill" text="metassembly"](Workflows/metassembly.md)    | Create a metagenome assembly from linked-reads                       |
 | [!badge corners="pill" text="phase"](Workflows/phase.md)                | Phase SNPs into haplotypes                                           |
-| [!badge corners="pill" text="preflight"](Workflows/preflight.md)        | Run various format checks for FASTQ and BAM files                    |
+| [!badge corners="pill" text="preflight"](Workflows/validate.md)         | Run various format checks for FASTQ and BAM files                    |
 | [!badge corners="pill" text="qc"](Workflows/qc.md)                      | Remove adapters, deduplicate, and quality trim sequences             |
 | [!badge corners="pill" text="simulate"](Workflows/Simulate/Simulate.md) | Simulate haplotag linked reads or genomic variants                   |
 | [!badge corners="pill" text="snp"](Workflows/snp.md)                    | Call SNPs and small indels                                           |

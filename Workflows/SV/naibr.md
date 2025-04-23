@@ -6,7 +6,7 @@ order: 1
 ---
 
 # :icon-sliders: Call Structural Variants using NAIBR
-(like indels, insertions, duplications)
+[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
@@ -20,8 +20,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup) or manually
-- if created with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup), all the samples will be assigned to group `pop1`
+- create with [!badge corners="pill" text="harpy template groupings"](../other.md#groupings) or manually
+- if created with [!badge corners="pill" text="harpy template groupings"](../other.md#groupings), all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -48,38 +48,38 @@ which haplotype the read/alignment belongs to. If your alignments don't have pha
 then you will need to do a little extra work for NAIBR to work best with your data. This process is described below.
 
 ```bash usage
-harpy sv naibr OPTIONS... INPUTS...
+harpy sv naibr OPTIONS... REFERENCE INPUTS...
 ```
 
 ```bash examples
 # input bams already phased
-harpy sv naibr --threads 20 --genome genome.fasta Align/bwa
+harpy sv naibr --threads 20 genome.fasta Align/bwa
 
 # input bams require phasing
-harpy sv naibr --threads 20 --genome genome.fasta --vcf Variants/data.vcf.gz Align/bwa
+harpy sv naibr --threads 20 --vcf Variants/data.vcf.gz genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | short name | default  | description                                                                                                                   |
 | :-------------------- | :--------: | :------: | :---------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments)  |
-| `--contigs`           |            |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                  |
+| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments)  |
+| `REFERENCE`           |            |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
+| `--contigs`           |            |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                  |
 | `--extra-params`      |    `-x`    |          | Additional naibr arguments, in quotes                                                                                         |
-| `--genome`            |    `-g`    |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
 | `--min-barcodes`      |    `-b`    |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
 | `--min-quality`       |    `-q`    |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
-| `--min-size`            |    `-n`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
-| `--molecule-distance` |    `-m`    | `100000` | Base-pair distance threshold to separate molecules                                                                            |
+| `--min-size`          |    `-m`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
+| `--molecule-distance` |    `-d`    | `100000` | Base-pair distance threshold to separate molecules                                                                            |
 | `--populations`       |    `-p`    |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
 | `--vcf`               |    `-v`    |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See 
-[haplotag data](/haplotagdata/#barcode-thresholds) for more information on what this value does. If you want
+[haplotagging data](/haplotagdata/#barcode-thresholds) for more information on what this value does. If you want
 NAIBR to not split molecules in this manner (e.g. you might be looking for inversions greater than this threshold),
 then set this number to be unreasonably high, such as the length of your largest chromosome.
 

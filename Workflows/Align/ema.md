@@ -6,6 +6,8 @@ order: 5
 ---
 
 # :icon-quote: Map Reads onto a genome with EMA
+[!badge variant="secondary" text="linked reads"]
+
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
@@ -30,35 +32,35 @@ such as those derived using [!badge corners="pill" text="harpy qc"](../qc.md). Y
 using the [!badge corners="pill" text="align ema"] module:
 
 ```bash usage
-harpy align ema OPTIONS... INPUTS...
+harpy align ema OPTIONS... REFERENCE INPUTS...
 ```
 ```bash example
-harpy align ema --genome genome.fasta Sequences/ 
+harpy align ema genome.fasta Sequences/ 
 ```
 
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
 
 {.compact}
-| argument             | short name | type                 | default  | description                                                                                                                    |
-| :------------------- | :--------: | :------------------- | :------: | :----------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`             |            | file/directory paths |          | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
-| `--contigs`          |            | file path or list    |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                   |
-| `--fragment-density` |    `-d`    | toggle               |  false   | Perform read fragment density optimization                                                                                     |
-| `--ema-bins`         |    `-e`    | integer (1-1000)     |   `500`    | Number of barcode bins for EMA                                                                                                 |
-| `--extra-params`     |    `-x`    | string               |          | Additional EMA-align arguments, in quotes                                                                                      |
-| `--genome`           |    `-g`    | file path            |          | [!badge variant="info" text="required"] Genome assembly for read mapping                                                       |
-| `--keep-unmapped`    |    `-u`    | toggle               |  false   | Output unmapped sequences too                                                                                                  |
-| `--min-quality`      |    `-q`    | integer (0-40)       |    `30`    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                           |
-| `--platform`         |    `-p`    | string               | `haplotag` | [!badge variant="info" text="required"] Linked read technology: `haplotag` or `10x`                                            |
-| `--whitelist`        |    `-w`    | file path            |          | Path to barcode whitelist (`--platform 10x` only)                                                                              |
+| argument             | short name | type                 |    default     | description                                                                                                                     |
+|:---------------------|:----------:|:---------------------|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------|
+| `REFERENCE`          |            | file path            |                | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
+| `INPUTS`             |            | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--contigs`          |            | file path or list    |                | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `--fragment-density` |    `-d`    | toggle               |     false      | Perform read fragment density optimization                                                                                      |
+| `--ema-bins`         |    `-e`    | integer (1-1000)     |     `500`      | Number of barcode bins for EMA                                                                                                  |
+| `--extra-params`     |    `-x`    | string               |                | Additional EMA-align arguments, in quotes                                                                                       |
+| `--keep-unmapped`    |    `-u`    | toggle               |     false      | Output unmapped sequences too                                                                                                   |
+| `--min-quality`      |    `-q`    | integer (0-40)       |      `30`      | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
+| `--platform`         |    `-p`    | string               | `haplotagging` | [!badge variant="info" text="required"] Linked read technology: `haplotagging` or `10x`                                         |
+| `--barcode-list`     |    `-b`    | file path            |                | Path to barcode list (`--platform 10x` only)                                                                                    |
 
-### Barcode whitelist
-Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode "whitelist." This file is a 
-simple text file that has one barcode per line so a given software knows what barcodes to expect in your data.
-If you need to process 10x data, then you will need to include the whitelist file (usually provided by 10x).
-Conveniently, **haplotag data doesn't require this file**.
+### Barcode list
+Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode list (often referred to a "whitelist", unfortunately).
+This file is a simple text file that has one barcode per line so a given software knows what barcodes to expect in your data.
+If you need to process 10x data, then you will need to include the barcode list file (usually provided by 10x).
+Conveniently, **haplotaggging data doesn't require this file**.
 
 ## Quality filtering
 The `--min-quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments

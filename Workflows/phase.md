@@ -6,6 +6,7 @@ order: 6
 ---
 
 # :icon-stack: Phase SNPs into Haplotypes
+[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -26,34 +27,34 @@ or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
-harpy phase OPTIONS... INPUTS...
+harpy phase OPTIONS... VCF INPUTS...
 ```
 ```bash example
-harpy phase --threads 20 --vcf Variants/variants.raw.bcf Align/ema 
+harpy phase --threads 20 Variants/variants.raw.bcf Align/ema 
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | short name | default  | description                                                                                                                  |
 | :-------------------- | :--------: | :------: | :--------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
-| `--contigs`           |            |          | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                 |
+| `VCF`                 |            |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                 |
+| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `--contigs`           |            |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                 |
 | `--extra-params`      |    `-x`    |          | Additional Hapcut2 arguments, in quotes                                                                                      |
-| `--genome           ` |    `-g`    |          | Path to genome if wanting to also use reads spanning indels                                                                  |
-| `--ignore-bx`         |    `-b`    |          | Ignore haplotag barcodes for phasing                                                                                         |
+| `--reference`         |    `-r`    |          | Path to reference genome if wanting to also use reads spanning indels                                                                  |
+| `--ignore-bx`         |    `-b`    |          | Ignore linked-read barcodes for phasing                                                                                         |
 | `--molecule-distance` |    `-d`    | `100000` | Base-pair distance threshold to separate molecules                                                                           |
 | `--prune-threshold`   |    `-p`    |   `7`    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                    |
-| `--vcf`               |    `-v`    |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                 |
 | `--vcf-samples`       |            |          | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory             |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
 to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
 present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
-present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
-around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
+present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
+around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
 are missing from the provided `INPUTS`.  
 
 The molecule distance and pruning thresholds are considered the most impactful parameters

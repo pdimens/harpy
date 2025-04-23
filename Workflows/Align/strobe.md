@@ -6,6 +6,8 @@ order: 5
 ---
 
 # :icon-quote: Map Reads onto a genome with strobealign
+[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
+
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
@@ -22,41 +24,26 @@ such as those derived using [!badge corners="pill" text="harpy qc"](../qc.md). Y
 using the [!badge corners="pill" text="align strobe"] module:
 
 ```bash usage
-harpy align strobe OPTIONS... INPUTS...
+harpy align strobe OPTIONS... REFERENCE INPUTS...
 ```
 ```bash example
-harpy align strobe --genome genome.fasta Sequences/ 
+harpy align strobe genome.fasta Sequences/ 
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="align strobe"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align strobe"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | short name | type                 | default | description                                                                                                                    |
 | :-------------------- | :--------: | :------------------- | :-----: | :----------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`              |            | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/commonoptions.md#input-arguments) |
-| `--contigs`           |            | file path or list    |         | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                   |
+| `REFERENCE`           |            | file path            |         | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
+| `INPUTS`              |            | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--contigs`           |            | file path or list    |         | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
 | `--extra-params`      |    `-x`    | string               |         | Additional EMA-align/BWA arguments, in quotes                                                                                  |
-| `--genome`            |    `-g`    | file path            |         | [!badge variant="info" text="required"] Genome assembly for read mapping                                                       |
 | `--ignore-bx`         |            | toggle               | false   | Ignore parts of the workflow specific to linked-read sequences                                                                 |
 | `--keep-unmapped`     |    `-u`    | toggle               |  false  | Output unmapped sequences too                                                                                                  |
 | `--min-quality`       |    `-d`    | integer (0-40)       |   `30`    | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                         |
 | `--molecule-distance` |    `-m`    | integer              | `100000`  | Base-pair distance threshold to separate molecules, disabled with `0`                                                        |
-| `--read-length`       |    `-l`    | choice               | `auto`  | Average read length for creating index. Options: [auto, 50, 75, 100, 125, 150, 250, 400]                                       |
-
-### Read Length
-The strobealign program uses a new _strobemer_ design for aligning and requires its own way of indexing the genome.
-The index must be configured for the average read length of **the sample** being aligned. If your samples are all about
-the same length (on average), then you may specify a read length for `-l` from one of [`50`, `75`, `100`, `125`, `150`, `250`, `400`],
-which correspond to base pairs. Specifying an average read length would create a genomic index once and align samples afterwards,
-cutting down the time and disk usage for the workflow. If choosing `auto` (the default), strobealign will create an index on the fly
-for each sample, guesstimating the average read length for that sample from the first 500 sequences in the FASTQ files.
-
-!!! Read lengths
-Keep in mind that your sequences should have had their adapters removed by this point, which means the maximum length would be ~25bp less
-than the total read length from your sequencer. In other words, if you have 2x150bp reads, your average
-read length will likely not exceed 125bp  after adapter removal.
-!!!
 
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow
@@ -92,10 +79,11 @@ $$
 ===
 
 ## Marking PCR duplicates
-Harpy uses `samtools markdup` to mark putative PCR duplicates. By using the `--barcode-tag BX`
-option, it considers the linked-read barcode for more accurate duplicate detection. Duplicate
-marking also uses the `-S` option to mark supplementary (chimeric) alignments as duplicates
-if the primary alignment was marked as a duplicate. Duplicates get marked but **are not removed**.
+Harpy uses `samtools markdup` to mark putative PCR duplicates by using both the `BX` tag
+as a UMI (unique molecule identified) for more accurate duplicate detection. The read name
+is also parsed to determine if the sequencing platform was HiSeq/NovaSeq to distinguish between
+PCR and optical duplicates. Duplicate marking also uses the `-S` option to mark supplementary (chimeric)
+alignments as duplicates if the primary alignment was marked as a duplicate. Duplicates get marked but **are not removed**.
 
 ----
 
@@ -116,7 +104,8 @@ are not used to inform mapping. The `-m` threshold is used for alignment molecul
 graph LR
     A([index genome]):::clean --> B([align to genome]):::clean
     B-->C([sort alignments]):::clean
-    C-->D([mark duplicates]):::clean
+    C-->XX([standardize barcodes]):::clean
+    XX-->D([mark duplicates]):::clean
     D-->E([assign molecules]):::clean
     E-->F([alignment metrics]):::clean
     D-->G([barcode stats]):::clean

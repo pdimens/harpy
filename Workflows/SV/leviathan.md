@@ -6,6 +6,8 @@ order: 1
 ---
 
 # :icon-sliders: Call Structural Variants using LEVIATHAN
+[!badge variant="secondary" text="linked reads"]
+
 (like indels, insertions, duplications, breakends)
 
 ===  :icon-checklist: You will need
@@ -25,8 +27,8 @@ This file is optional and only useful if you want variant calling to happen on a
     - spaces can be used as delimeters too
 - the groups can be numbers or text (_i.e._ meaningful population names)
 - you can comment out lines with `#` for Harpy to ignore them
-- create with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup) or manually
-- if created with [!badge corners="pill" text="harpy popgroup"](../other.md#popgroup), all the samples will be assigned to group `pop1`
+- create with [!badge corners="pill" text="harpy template groupings"](../other.md#groupings) or manually
+- if created with [!badge corners="pill" text="harpy template groupings"](../other.md#groupings), all the samples will be assigned to group `pop1`
     - make sure to edit the second column to reflect your data correctly.
 
 ``` example file for --populations
@@ -47,34 +49,34 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 
 After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using LEVIATHAN. To make sure your data
-will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/commonoptions.md) should **end**
-with a `BX:Z:AxxCxxBxxDxx` tag. Use [!badge corners="pill" text="preflight bam"](../preflight.md) if you want to double-check file
+will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/common_options.md) should **end**
+with a `BX:Z` tag. Use [!badge corners="pill" text="validate bam"](../validate.md) if you want to double-check file
 format validity.
 
 ```bash usage
-harpy sv leviathan OPTIONS... INPUTS...
+harpy sv leviathan OPTIONS... REFERENCE INPUTS...
 ```
 
 ```bash example
-harpy sv leviathan --threads 20 -g genome.fasta Align/bwa
+harpy sv leviathan --threads 20 genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
 {.compact}
-| argument         | short name | default | description                                                                                                                  |
-| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md#input-arguments) |
-| `--contigs`      |            |         | [Contigs to plot](/commonoptions.md#--contigs) in the report                                                                 |
-| `--duplicates`   |    `-d`    |  `10`   | Consider SV of the same type as duplicates if their breakpoints are within this distance                                     |
-| `--extra-params` |    `-x`    |         | Additional naibr arguments, in quotes                                                                                        |
-| `--genome`       |    `-g`    |         | [!badge variant="info" text="required"] Genome assembly that was used to create alignments                                   |
-| `--iterations`   |    `-i`    |  `50`   | Number of iterations to perform through index (reduces memory)                                                               |
-| `--min-barcodes` |    `-b`    |   `2`   | Minimum number of barcode overlaps supporting candidate SV                                                                   |
-| `--min-size`     |    `-m`    | `1000`  | Minimum size of SV to detect                                                                                                 |
-| `--populations`  |    `-p`    |         | Tab-delimited file of sample\<*tab*\>group                                                                                   |
-| `--sharing-thresholds`| `-r`  | `99,99,99` | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas |
+| argument               | short name |  default   | description                                                                                                                        |
+|:-----------------------|:----------:|:----------:|:-----------------------------------------------------------------------------------------------------------------------------------|
+| `INPUTS`               |            |            | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments)       |
+| `REFERENCE`            |            |            | [!badge variant="info" text="required"] Reference genome that was used to create alignments                                        |
+| `--contigs`            |            |            | [Contigs to plot](/common_options.md#--contigs) in the report                                                                       |
+| `--duplicates`         |    `-d`    |    `10`    | Consider SV of the same type as duplicates if their breakpoints are within this distance                                           |
+| `--extra-params`       |    `-x`    |            | Additional naibr arguments, in quotes                                                                                              |
+| `--iterations`         |    `-i`    |    `50`    | Number of iterations to perform through index (reduces memory)                                                                     |
+| `--min-barcodes`       |    `-b`    |    `2`     | Minimum number of barcode overlaps supporting candidate SV                                                                         |
+| `--min-size`           |    `-m`    |   `1000`   | Minimum size of SV to detect                                                                                                       |
+| `--populations`        |    `-p`    |            | Tab-delimited file of sample\<*tab*\>group                                                                                         |
+| `--sharing-thresholds` |    `-s`    | `99 99 99` | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces |
 
 ### Duplicates
 If it feels like Leviathan is unneccesarily splitting larger variants into smaller overlapping or adjacent ones,
@@ -83,7 +85,7 @@ this parameter should help limit that from occuring.
 ### Barcode sharing thresholds
 The default Leviathan setting of `99` for these three parameters can be too strict and omit
 variants you are expecting to find (e.g. certain large inversions). If you suspect the program
-is missing variants, then you may trying relaxing these thresholds (e.g. `99,95,95`).
+is missing variants, then you may trying relaxing these thresholds (e.g. `99 95 95`).
 
 ### Single-sample variant calling
 When **not** using a population grouping file via `--populations`, variants will be called per-sample. 

@@ -6,6 +6,7 @@ order: 8
 ---
 
 # :icon-project: Impute Genotypes using Sequences
+[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
@@ -40,43 +41,49 @@ method that is linked-read aware. Imputing genotypes requires a variant call fil
 **containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/blog/filtering_snps.md).
 You can impute genotypes with Harpy using the [!badge corners="pill" text="impute"] module:
 ```bash usage
-harpy impute OPTIONS... INPUTS...
+harpy impute OPTIONS... PARAMETERS VCF INPUTS...
 ```
 
 ```bash example
 # create the parameter file 'stitch.params'
-harpy imputeparams -o stitch.params 
+harpy template impute > stitch.params
 
 # run imputation
-harpy impute --threads 20 --vcf Variants/mpileup/variants.raw.bcf --parameters stitch.params Align/ema
+harpy impute --threads 20  --parameters stitch.params Variants/mpileup/variants.raw.bcf Align/ema
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/commonoptions.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
 {.compact}
 | argument         | short name | default | description                                                                                                                  |
-| :--------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/commonoptions.md)                 |
+|:-----------------|:----------:|:-------:|:-----------------------------------------------------------------------------------------------------------------------------|
+| `PARAMETERS`     |            |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
+| `VCF`            |            |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
+| `INPUTS`         |            |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md)                 |
 | `--extra-params` |    `-x`    |         | Extra arguments to add to STITCH, provided in quotes                                                                         |
-| `--parameters`   |    `-p`    |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
-| `--vcf`          |    `-v`    |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
+| `--region`       |    `-r`    |         | Specific region to impute, in the format `contig:start-end-buffer`                                                          |
 | `--vcf-samples`  |            |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |
+
+### Impute a specific region
+Use `--region` to only impute a specific genomic region, given as `contig:start-end-buffer`,
+otherwise all contigs will be imputed. The `buffer` is an integer for how much before and after
+your region STITCH will also look at for imputation (but will not attempt to impute).
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
 `--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
 without spaces. Example:
 ```bash
-harpy impute -v file.vcf -p stitch.params -t 15 -x "--regionStart=20, --regionEnd=500" Align/ema
+harpy impute -t 15 -x "--regionStart=20, --regionEnd=500" stitch.params file.vcf Align/ema
 ```
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
-to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
+to only impute the samples present in the `VCF` file. By default, Harpy assumes you want to use all the samples
 present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
-present and those listed in the `--vcf` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
-around the samples present in the `--vcf` file. When using this toggle, Harpy will inform you when samples in the `--vcf` file
+present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
+around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
 are missing from the provided `INPUTS`.   
 
 ## :icon-file: Parameter file
@@ -84,7 +91,7 @@ Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters (explained in next section). The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with [!badge corners="pill" text="harpy imputeparams"](other.md/#imputeparams).
+is required and can be created manually or with [!badge corners="pill" text="harpy template impute"](other.md/#impute).
 If created using harpy, the resulting file includes largely meaningless values 
 that you will need to adjust for your study. The parameter must follow a particular format:
 - tab or comma delimited
@@ -150,7 +157,7 @@ The `bxlimit` parameter is an integer that informs STITCH when alignments with t
 should be considered as originating from different molecules. This is a common consideration for linked-read analyses
 and 50kb (`50000`) is often a reasonable default. A lower value is considered more strict (fewer reads per moleucle)
 and a higher value is considered more generous (more reads per molecule). You can/should change this value if you 
-have evidence that 50kb isn't appropriate. See [haplotag data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
+have evidence that 50kb isn't appropriate. See [haplotagging data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
 
 +++k
 ##### Number ancestral haplotypes

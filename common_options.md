@@ -16,7 +16,7 @@ is where you provide the input files/directories without flags and following sta
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
 In most cases, you can provide an unlimited amount of input arguments. In practice, that can look like:
 ```bash
-harpy align bwa -t 5 -g genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz 
+harpy align bwa -t 5 genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz 
 ```
 !!!info not recursive
 Keep in mind that Harpy will not recursively scan input directories for files. If you provide `data/` as an input,
@@ -50,17 +50,18 @@ of calling the module. These runtime parameters are listed in the modules' help 
 configured using these arguments:
 
 {.compact}
-| argument        | short name | type    | default | description                                                                       |
-|:--------------- |:----------:|:------- |:-------:|:--------------------------------------------------------------------------------- |
-| `--container`   |            | toggle  |         | Use preconfigured Singularity container instead of local conda environments       |
-| `--contigs`     |            | file path or list |   | Contigs to plot in the report(s)                                           |
-| `--help`        |   `-h`     |         |         | Show the module docstring                                                         |
-| `--hpc`         |            |         |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                     |
-| `--output-dir`  |   `-o`     | string  | varies  | Name of output directory                                                          |
-| `--quiet`       |            | toggle  |         | Suppress the progress bars and other status text when running                     |
-| `--skip-reports` |            | toggle  |         | Skip the processing and generation of HTML reports in a workflow                  |
-| `--snakemake`   |            | string  |         | Additional [Snakemake](snakemake/#adding-snakemake-parameters) options, in quotes |
-| `--threads`     |   `-t`     | integer | 4       | Number of threads to use                                                          |
+| argument         | short name | type              | default | description                                                                       |
+|:-----------------|:----------:|:------------------|:-------:|:----------------------------------------------------------------------------------|
+| `--container`    |            | toggle            |         | Use preconfigured Singularity container instead of local conda environments       |
+| `--contigs`      |            | file path or list |         | Contigs to plot in the report(s)                                                  |
+| `--help`         |    `-h`    |                   |         | Show the module docstring                                                         |
+| `--hpc`          |            |                   |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                     |
+| `--ignore-bx`    |            | toggle            |         | Ignore parts of the workflow specific to linked-read data                         |
+| `--output-dir`   |    `-o`    | string            | varies  | Name of output directory                                                          |
+| `--quiet`        |            | toggle            |         | Suppress the progress bars and other status text when running                     |
+| `--skip-reports` |            | toggle            |         | Skip the processing and generation of HTML reports in a workflow                  |
+| `--snakemake`    |            | string            |         | Additional [Snakemake](snakemake#adding-snakemake-parameters) options, in quotes |
+| `--threads`      |    `-t`    | integer           |    4    | Number of threads to use                                                          |
 
 ### --contigs
 Some of the workflows (like [!badge corners="pill" text="align"](Workflows/Align/Align.md)) plot per-contig information in their reports.
@@ -76,9 +77,9 @@ sexchrom1
 ```
 ===
 ```bash
-harpy align bwa -g genome.fasta --contigs contig1,contig2,sexchrom1 dir/data
+harpy align bwa --contigs contig1,contig2,sexchrom1 genome.fasta dir/data
 # or #
-harpy align bwa -g genome.fasta --contigs contigs.txt dir/data
+harpy align bwa --contigs contigs.txt genome.fasta dir/data
 ```
 !!!warning too many contigs
 Things start to look sloppy and cluttered with >30 contigs, so it's advisable not to
@@ -89,11 +90,11 @@ exceed that number.
 You could call [!badge corners="pill" text="align strobe"](Workflows/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
-harpy align strobe --threads 20 --quiet samples/trimmedreads
+harpy align strobe --threads 20 --quiet genome.fasta samples/trimmedreads
 
 # identical to #
 
-harpy align strobe -t 20 -q samples/trimmedreads
+harpy align strobe -t 20 -q genome.fasta samples/trimmedreads
 ```
 ---
 
@@ -104,19 +105,13 @@ understanding or as a point of reference when writing the Methods within a manus
 and the contents therein also allow you to rerun the workflow manually. The `workflow` folder may contain the following:
 
 {.compact}
-| item | contents | utility |
-|:-----|:---------|:--------|
-|`*.smk`               | Snakefile with the full recipe of the workflow | understanding the entire workflow |
-| `config.yml`         | Configuration file generated from command-line arguments and consumed by the Snakefile | general bookkeeping, advanced runs | 
-| `envs/`              | Configurations of the software environments required by the workflow | bookkeeping |
-| `report/*.qmd`       | Quarto files used to generate the fancy reports | seeing math behind plots/tables or borrow code from |
-| `*.summary` | Plain-text overview of the important parts of the workflow | bookkeeping and writing Methods in manuscripts |
-
----
-
-## The `Genome` folder
-You will notice that many of the workflows will create a `Genome` folder in the working 
-directory. This folder is to make it easier for Harpy to store the genome and the associated
-indexing/etc. files across workflows without having to redo things unnecessarily. Your input 
-genome will be symlinked into that directory (not copied, unless a workflow requires gzipping/decompressing),
-but all the other files (`.fai`, `.bwt`, `.bed`, etc.) will be created in that directory.
+| item               | contents                                                                                                       | utility                                                |
+|:-------------------|:---------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------|
+| `*.smk`            | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
+| `config.yml`       | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
+| `config.harpy.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
+| `envs/`            | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
+| `hpc/`             | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
+| `reference/`       | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
+| `report/*.qmd`     | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
+| `*.summary`        | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |

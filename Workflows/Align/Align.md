@@ -19,7 +19,7 @@ Despite the fact that EMA is the only barcode-aware aligner offered, when using 
 assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../haplotagdata.md/#barcode-thresholds).
 
 ## [!badge text="New"] Works with regular WGS data
-Starting with Harpy version `2`, the `--ignore-bx` option lets you skip the workflow
+Starting with Harpy `v2.x`, the `--ignore-bx` option lets you skip the workflow
 routines that do things specific to linked reads, meaning you can comfortably use
 [!badge corners="pill" text="harpy align bwa"](bwa.md) and [!badge corners="pill" text="harpy align strobe"](strobe.md) to align your WGS sequence data. 
 
