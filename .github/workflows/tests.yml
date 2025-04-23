@@ -26,7 +26,7 @@ jobs:
       pull-requests: read
     # Set job outputs to values from filter step
     outputs:
-      preflight: ${{ steps.filter.outputs.preflight }}
+      validate: ${{ steps.filter.outputs.validate }}
       deconvolve: ${{ steps.filter.outputs.deconvolve }}
       demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
@@ -156,10 +156,10 @@ jobs:
           harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
           ls -lh Demultiplex
 
-  preflight:
+  validate:
     needs: [changes]
-    if: ${{ needs.changes.outputs.preflight == 'true' }}
-    name: preflight
+    if: ${{ needs.changes.outputs.validate == 'true' }}
+    name: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -190,17 +190,17 @@ jobs:
 #        with:
 #          name: deps-image
 #          path: .snakemake/singularity
-      - name: test preflight fastq
+      - name: test validate fastq
         shell: micromamba-shell {0}
         run: |
-          harpy preflight fastq test/fastq
-          ls -lh Preflight/fastq
-      - name: test preflight bam
+          harpy validate fastq test/fastq
+          ls -lh validate/fastq
+      - name: test validate bam
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy preflight bam --quiet 2 test/bam
-          ls -lh Preflight/bam
+          harpy validate bam --quiet 2 test/bam
+          ls -lh validate/bam
 
   qc:
     needs: [changes]
@@ -404,7 +404,7 @@ jobs:
       - name: test strobealign
         shell: micromamba-shell {0}
         run: |
-          harpy align strobe --quiet 2 -l 125 test/genome/genome.fasta.gz test/fastq
+          harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq
           ls -lh Align/strobealign
 
   mpileup:
@@ -805,11 +805,16 @@ jobs:
 #        with:
 #          name: deps-image
 #          path: .snakemake/singularity
-      - name: simulate linked reads
+      - name: simulate linked reads (random barcodes)
+        shell: micromamba-shell {0}
+        run: |
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 18,96 test/genome/genome*.fasta.gz
+          ls -lh Simulate/linkedreads
+      - name: simulate linked reads (known barcodes)
         shell: micromamba-shell {0}
         run: |
           haplotag_barcodes.py -n 14000000 > test/haplotag.bc
-          harpy simulate linkedreads --quiet 2 -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 test/haplotag.bc test/genome/genome*.fasta.gz
           ls -lh Simulate/linkedreads
 
   assembly:
@@ -940,65 +945,88 @@ jobs:
           resources/buildforCI.sh
       - name: convert haplotag to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/stlfr haplotagging stlfr test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/stlfr haplotagging stlfr test/fastq/sample1.*gz
       - name: convert haplotag to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/tellseq haplotagging tellseq test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/tellseq haplotagging tellseq test/fastq/sample1.*gz
       - name: convert haplotag to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/10x haplotagging 10x test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/10x haplotagging 10x test/fastq/sample1.*gz
       - name: convert stlfr to haplotag
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/haptag stlfr haplotagging convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/haptag stlfr haplotagging convert/stlfr.*gz
       - name: convert stlfr to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/tellseq stlfr tellseq convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/tellseq stlfr tellseq convert/stlfr.*gz
       - name: convert stlfr to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/10x stlfr 10x convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/10x stlfr 10x convert/stlfr.*gz
       - name: convert stlfr to standard
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_stlfr/standard stlfr standard convert/stlfr.*gz
+          harpy convert fastq --quiet 2 -o convert_stlfr/standard stlfr standard convert/stlfr.*gz
           rm -rf convert_stlfr
       - name: convert tellseq to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/10x tellseq 10x convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/10x tellseq 10x convert/tellseq.*gz
       - name: convert tellseq to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/stlfr tellseq stlfr convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/stlfr tellseq stlfr convert/tellseq.*gz
       - name: convert tellseq to haplotag
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/haptag tellseq haplotagging convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/haptag tellseq haplotagging convert/tellseq.*gz
       - name: convert tellseq to standard
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_tellseq/standard tellseq standard convert/tellseq.*gz
+          harpy convert fastq --quiet 2 -o convert_tellseq/standard tellseq standard convert/tellseq.*gz
           rm -rf convert_tellseq
       - name: convert standard to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_standard/10x standard 10x test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert_standard/10x standard 10x test/fastq/sample1.*gz
       - name: convert standard to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_standard/stlfr standard stlfr test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert_standard/stlfr standard stlfr test/fastq/sample1.*gz
       - name: convert standard to tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_standard/haptag standard tellseq test/fastq/sample1.*gz
+          harpy convert fastq --quiet 2 -o convert_standard/haptag standard tellseq test/fastq/sample1.*gz
           rm -rf convert_standard
       - name: convert 10x to standard
         shell: micromamba-shell {0}
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes
-          harpy convert --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
+          harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
       - name: convert 10x to haplotagging
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
+        run: harpy convert fastq --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
       - name: convert 10x to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
+        run: harpy convert fastq --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
       - name: convert 10x to stlfr
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
+          harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
           rm -rf convert_10x
+
+      - name: convert BAM haplotagging to tellseq
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert bam --quiet 2 tellseq test/bam/sample1.bam > tellseq.bam
+          samtools view tellseq.bam | head -3
+      - name: convert BAM haplotagging to stlfr
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert bam --quiet 2 stlfr test/bam/sample1.bam > stlfr.bam
+          samtools view stlfr.bam | head -3
+      - name: convert BAM stlfr to haplotagging
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 haplotagging stlfr.bam | samtools view | head -3
+      - name: convert BAM stlfr to tellseq
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 tellseq stlfr.bam | samtools view | head -3
+      - name: convert BAM tellseq to haplotagging
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 haplotagging tellseq.bam | samtools view | head -3
+      - name: convert BAM tellseq to stlfr
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 stlfr tellseq.bam | samtools view | head -3

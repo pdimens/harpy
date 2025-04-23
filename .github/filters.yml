@@ -15,18 +15,18 @@ environments: &environments
   - 'harpy/_conda.py'
   - 'harpy/environments.py'
   - 'harpy/environments.smk'
-preflight: &preflight
+validate: &validate
   - *common
   - *environments
-  - 'harpy/preflight.py'
-  - 'harpy/snakefiles/preflight_fastq.smk'
-  - 'harpy/snakefiles/preflight_bam.smk'
+  - 'harpy/validate.py'
+  - 'harpy/snakefiles/validate_fastq.smk'
+  - 'harpy/snakefiles/validate_bam.smk'
   - 'test/fastq/**'
   - 'test/bam/**'
   - 'harpy/bin/check_bam.py'
   - 'harpy/bin/check_fastq.py'
-  - 'harpy/reports/preflight_fastq.qmd'
-  - 'harpy/reports/preflight_bam.qmd'
+  - 'harpy/reports/validate_fastq.qmd'
+  - 'harpy/reports/validate_bam.qmd'
 deconvolve: &deconvolve
   - *common
   - *environments
@@ -175,7 +175,7 @@ modules:
   - *common
   - *demux
   - *deconvolve
-  - *preflight
+  - *validate
   - *qc
   - *bwa
   - *ema

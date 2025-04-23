@@ -3,12 +3,15 @@
 ## New
 ### Non-linked-read compatibility
 - `--ignore-bx` added to `harpy qc` and `harpy align` to skip linked-read routines and make the workflows suitable for non linked-read data
+### other linked-read tech compatibility (tellseq, stlft)
+- preflight (now `validate`) have a `--platform` option to modify the checks for other linked-read technologies
+- `qc` and `align`, `phase`, `impute`, `snp`, and `sv` modules should work just fine 
 ### Modules
 - `harpy diagnose` to view snakemake's `--debug-diag` output for troubleshooting
 - `harpy template` to create template files (see breaking changes below)
-- `harpy convert` to convert FASTQ files between linked-read formats
+- `harpy convert` to convert files between linked-read formats
   - supports 10x, haplotagging, stlfr, tellseq, and "standard"
-  - `standard` introduces the option to have the barcode in the BX:Z tag (like haplotagging), but encoded in the original barcode format (e.g. stlfr in standard format would be `@SEQID BX:Z:1_2_3`)
+  - `standard` introduces the option to have the barcode in the BX:Z tag (like haplotagging), but encoded in the original barcode format (e.g. stlfr in standard format would be `@SEQID BX:Z:1_2_3`) and a `VX:i` tag that indicates if the barcode is invalid `0` or if it's valid (`1`)
 ### Options
 - `harpy sv leviathan` adds `--duplicates` and `--sharing-thresholds` options
 - `harpy demultiplex gen1` adds `--keep-unknown` to retain reads that failed to demultiplex in a separate file
@@ -21,6 +24,7 @@
 
 ## Breaking Changes
 ### Renamed Commands
+- `harpy preflight` is now `harpy validate`
 - `harpy popgroup` is now `harpy template groupings`
 - `harpy imputeparams` is now `harpy template impute`
 - `harpy hpc` is now `harpy template hpc-*`
@@ -59,7 +63,6 @@
 - `simulate linkedreads` no longer users LRSIM internally and instead uses Mimick (formerly of the VISOR/XENIA project). Mimick is the new direction for the XENIA simulator with more granular parameter control, it's faster, and better parallelized.
   - as a result, just about all the command-line options for `simulate linkedreads` is different
 
-
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution
 - quarto-based html reports now use the Lumen theme again, tweaked to look like how it did when they were originally made by FlexDashboard.
@@ -70,10 +73,16 @@
 - duplicate-marking in the `align` workflows now internally sets a distance threshold for determining optical duplicates based on sequencing platform
 - coverage and molecular coverage are calculated faster and more accurately
 - `demultiplex gen1` now uses the purpose-built `dmox` for significantly faster demultiplexing
+- `simluate linkedreads` is now a wrapper for `Mimick`, which was absorbed by the Harpy project
 - different spinner for progress bars
 - the BUSCO analysis in `harpy assembly` and `harpy metassembly` is now hardcoded to use orthoDB v12
 - the unified `Genome/` folder has been replaced with a per-output-folder `outdir/workflow/reference/` folder that serves the same function to avoid situations where multiple fasta files with the same name are being used simultaneously across concurrent workflows.
   - the lack of unification results in extra redundancy (more disk space used =/) but with the benefit of more reliable behavior 
+- dependency versions updated:
+  - samtools/bcftools/htslib: 1.21
+  - pysam: 0.23
+  - click: 8
+
 
 ## Fixes
 - improved error handling in quarto-based reports when there are NAs or NaNs, or too few data points to make a histogram
@@ -86,6 +95,7 @@
   - no more [direct] reliance on `subprocess` calls
   - calls `pygmentize` directly through python API
 - updated mentions of `popgroup` and `stitchparams` (legacy) to `harpy template`
+- STITCH tasks in `harpy impute` are fixed at 1 thread each to avoid an odd unresolved bug in the software
 
 ## Internal
 - `popgroup.py` and `imputeparams.py` merged into `template.py`
