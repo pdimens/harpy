@@ -101,11 +101,12 @@ rule mpileup:
         logfile = temp("logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
+        annotations = "-a INFO/FS",
         extra = mp_extra
     container:
         None
     shell:
-        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
 rule call_genotypes:
     input:
@@ -116,6 +117,7 @@ rule call_genotypes:
         idx = temp("call/{part}.bcf.csi")
     params: 
         f"--ploidy {ploidy}",
+        "-a GQ,GP",
         "--group-samples" if groupings else "--group-samples -"
     threads:
         2
@@ -123,7 +125,7 @@ rule call_genotypes:
         None
     shell:
         """
-        bcftools call --multiallelic-caller --variants-only --output-type b {params} {input} |
+        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} |
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
