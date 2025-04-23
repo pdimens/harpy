@@ -29,19 +29,19 @@ requirements:
   build:
     - {{ compiler('cxx') }}
   host:
-    - python
+    - python >=3.11
     - pip
     - setuptools-scm >=3.4
   run:
     - apptainer
-    - bcftools =1.20
+    - bcftools =1.21
     - click =8
     - conda >24.7
     - pysam
-    - python
+    - python >=3.11
     - rich-click
-    - snakemake-minimal >7
-    - samtools =1.20
+    - snakemake-minimal =9
+    - samtools =1.21
     - seqtk
     - tabix
 
