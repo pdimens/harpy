@@ -153,7 +153,7 @@ jobs:
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: |
-          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
           ls -lh Demultiplex
 
   validate:
@@ -199,7 +199,7 @@ jobs:
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy validate bam --quiet 2 test/bam
+          harpy validate bam --quiet 2 test/bam && \
           ls -lh Validate/bam
 
   qc:
@@ -239,12 +239,12 @@ jobs:
       - name: harpy qc
         shell: micromamba-shell {0}
         run: |
-          harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq
+          harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
           ls -lh  QC
       - name: harpy qc all options
         shell: micromamba-shell {0}
         run: |
-          harpy qc -o QC/auto -a auto -d -c 21 40 3 0 --quiet 2 test/fastq
+          harpy qc -o QC/auto -a auto -d -c 21 40 3 0 --quiet 2 test/fastq && \
           ls -lh QC/auto
 
   deconvolve:
@@ -284,7 +284,7 @@ jobs:
       - name: harpy deconvolve
         shell: micromamba-shell {0}
         run: |
-          harpy deconvolve --quiet 2 test/fastq
+          harpy deconvolve --quiet 2 test/fastq && \
           ls -lh Deconvolve
   
   bwa:
@@ -324,7 +324,7 @@ jobs:
       - name: test bwa
         shell: micromamba-shell {0}
         run: |
-          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq
+          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/bwa
 
   ema:
@@ -364,7 +364,7 @@ jobs:
       - name: test ema
         shell: micromamba-shell {0}
         run: |
-          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq
+          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/ema
 
   strobe:
@@ -404,7 +404,7 @@ jobs:
       - name: test strobealign
         shell: micromamba-shell {0}
         run: |
-          harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq
+          harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/strobealign
 
   mpileup:
@@ -444,12 +444,12 @@ jobs:
       - name: snp mpileup
         shell: micromamba-shell {0}
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam
+          harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   freebayes:
@@ -489,12 +489,12 @@ jobs:
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam
+          harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   impute:
@@ -540,13 +540,13 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam
+          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute
       - name: impute one region
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam
+          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute
 
   phase:
@@ -586,13 +586,13 @@ jobs:
       - name: phase
         shell: micromamba-shell {0}
         run: |
-          harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam
+          harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
           ls -lh Phase
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam
+          harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phaseindel
       - name: phase from vcf
         shell: micromamba-shell {0}
@@ -639,13 +639,13 @@ jobs:
       - name: leviathan
         shell: micromamba-shell {0}
         run: |
-          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathan
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
         run: | 
-          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathanpop
 
   naibr:
@@ -685,25 +685,25 @@ jobs:
       - name: naibr
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased
+          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased
+          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam
+          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phase
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phasepop
 
   simulate_variants:
@@ -745,7 +745,7 @@ jobs:
         run: |
           harpy simulate snpindel --quiet 2 --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
           ls -lh Simulate/snpindel
-          harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf  test/genome/genome.fasta.gz
+          harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate inversions
         shell: micromamba-shell {0}
@@ -753,7 +753,7 @@ jobs:
         run: |
           harpy simulate inversion --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/inversion
-          harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf  test/genome/genome.fasta.gz
+          harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate cnv
         shell: micromamba-shell {0}
@@ -761,7 +761,7 @@ jobs:
         run: |
           harpy simulate cnv --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/cnv
-          harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf  test/genome/genome.fasta.gz
+          harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate translocations
         shell: micromamba-shell {0}
@@ -769,7 +769,7 @@ jobs:
         run: |
           harpy simulate translocation --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/translocation
-          harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf  test/genome/genome.fasta.gz
+          harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
   simulate_linkedreads:
     needs: [changes]
@@ -808,13 +808,13 @@ jobs:
       - name: simulate linked reads (random barcodes)
         shell: micromamba-shell {0}
         run: |
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 18,96 test/genome/genome*.fasta.gz
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 18,96 test/genome/genome*.fasta.gz && \
           ls -lh Simulate/linkedreads
       - name: simulate linked reads (known barcodes)
         shell: micromamba-shell {0}
         run: |
           haplotag_barcodes.py -n 14000000 > test/haplotag.bc
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 test/haplotag.bc test/genome/genome*.fasta.gz
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 test/haplotag.bc test/genome/genome*.fasta.gz && \
           ls -lh Simulate/linkedreads
 
   assembly:
@@ -854,17 +854,17 @@ jobs:
       - name: test assembly
         shell: micromamba-shell {0}
         run: |
-          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Assembly
       - name: test metassembly
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
 
   other:

@@ -45,7 +45,7 @@ rule preprocess_reference:
     log:
         f"{workflow_geno}.preprocess.log"
     params:
-        f"--gzi-index {workflow_geno}.gzi" if genome_zip else ""
+        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
     container:
         None
     shell: 
