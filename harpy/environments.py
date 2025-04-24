@@ -23,7 +23,7 @@ def containerize():
 
     with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
-            'snakemake -s workflow/workflow.smk --containerize --directory container'.split(),
+            'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
             stdout = dockerraw
         )
 
@@ -52,7 +52,6 @@ def containerize():
                 "\n\t".join(runcmds)
             )
     os.remove("Dockerfile.raw")
-    os.remove("environments.smk")
 
 @click.command(hidden = True)
 @click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
