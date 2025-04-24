@@ -50,6 +50,16 @@
   - not a design choice we _wanted_, but we had to accomodate snakemake's particulars for this to work
 - this means that every output folder now has its own `.snakemake` directory (but the `.environments` folder is still in the directory you ran `harpy`)
 - also means the workflow snakefiles dont need all the `outdir + ...` or `workflowdir` calls, so it looks quite a bit cleaner under the hood
+- the configuration yaml breaks `snakemake_command` into a `snakemake` parent category and now provides two snakemake call varieties:
+  - `absolute` is the snakemake call where all **snakemake arguments** are given as absolute paths
+    - useful if your workflow moved but the source data hasnt
+  - `relative` is the snakemake call where all **snakemake arguments** are given as relative paths (now the default)
+    - useful if your workflow and data has moved
+    - usually makes for a significantly shorter snakemake invocation, making troubleshooting less tedious
+  - all input file paths are still fed into the configuration (and workflows) as absolute paths
+    - keep in mind, `harpy resume` doesn't remake configuration YAMLs, so you'll want to avoid using `harpy resume` if your workflow AND data moves
+- the `snakemake_log` variable in the config has been moved to `log` under the new `snakemake` category
+
 ### Usage changes / Misc
 - `harpy qc -d` parameter no longer needs commas, e.g. `harpy qc -d 10 12 14 51 -a auto ...`
 - `harpy qc` `--max-length` short name changed to `-M`
@@ -62,6 +72,8 @@
   - e.g. `harpy impute --threads 14 stitch.params file.bcf data/alignments`
 - `simulate linkedreads` no longer users LRSIM internally and instead uses Mimick (formerly of the VISOR/XENIA project). Mimick is the new direction for the XENIA simulator with more granular parameter control, it's faster, and better parallelized.
   - as a result, just about all the command-line options for `simulate linkedreads` is different
+- workflow snakefiles (e.g. `qc.smk`) are now renamed to `workflow.smk` when Harpy copies the workflow into your output directory
+  - all harpy modules use a single snakefile, so this was done to simplify troubleshooting pointing towards a consistent file name regardless of module/workflow
 
 ## Non-breaking changes
 - the molecule distance parameter for `align bwa` and `align strobe` now defaults to `0` to disable distance-based deconvolution

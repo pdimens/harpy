@@ -71,7 +71,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         vcf_contig_match(contigs, vcf)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -86,7 +86,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     conda_envs = ["phase", "r"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "prune" : prune_threshold/100,
         "samples_from_vcf" : vcf_samples,
         "barcodes": {
@@ -94,7 +93,11 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -121,4 +124,4 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/phase.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/phase.summary")

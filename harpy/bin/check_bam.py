@@ -28,7 +28,7 @@ if len(sys.argv) == 1:
 args = parser.parse_args()
 if not os.path.exists(args.input):
     parser.error(f"{args.input} was not found")
-if not args.platform in ["10x","tellseq", "stlfr", "haplotagging"]:
+if args.platform not in ["10x","tellseq", "stlfr", "haplotagging"]:
     parser.error("Invalid option for --platform\nMust be one of: 10x, haplotagging, stlfr, tellseq")
 
 if args.platform == "haplotagging":

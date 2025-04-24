@@ -5,7 +5,7 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -32,7 +32,7 @@ rule check_forward:
         get_fq1
     output:
         temp("{sample}.F.log")
-    params
+    params:
         lr_platform
     container:
         None
@@ -95,7 +95,7 @@ rule create_report:
         """
         cp -f {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE platform:{params}
+        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE -P platform:{params}
         """
 
 rule workflow_summary:
@@ -108,7 +108,7 @@ rule workflow_summary:
         valids += f"\tcheck_fastq.py {platform} sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/validate.fastq.summary", "w") as f:
             f.write("\n\n".join(summary))

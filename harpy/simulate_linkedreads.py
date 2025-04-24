@@ -95,7 +95,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         check_fasta(i)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -109,7 +109,6 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "read_coverage" : coverage,
         "outer_distance" : distance,
         "error_rate" :   error,
@@ -125,7 +124,11 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         "output-prefix" : output_prefix,
         "output-type" : output_type if output_type else lr_type,
         **({"regions":  regions} if regions else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs" : {
             "barcodes" : barcodes,
@@ -144,4 +147,4 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")

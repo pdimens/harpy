@@ -60,8 +60,8 @@ def fetch_script(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy script and write it into workdir/scripts
     """
-    os.makedirs(f"{workdir}/scripts/", exist_ok= True)
-    with open(f"{workdir}/scripts/{target}", "w", encoding="utf-8") as f:
+    os.makedirs(os.path.join(workdir, "scripts"), exist_ok= True)
+    with open(os.path.join(workdir, "scripts", target), "w", encoding="utf-8") as f:
         if os.path.isfile(files(harpy.scripts).joinpath(target)):
             f.write(files(harpy.scripts).joinpath(target).read_text())
         else:
@@ -71,10 +71,10 @@ def fetch_script(workdir: str, target: str) -> None:
 
 def fetch_rule(workdir: str, target: str) -> None:
     """
-    Retrieve the target harpy rule and write it into the workdir
+    Retrieve the target harpy rule and write it into the workdir as workflow.smk
     """
-    os.makedirs(f"{workdir}/", exist_ok= True)
-    with open(f"{workdir}/{target}", "w", encoding="utf-8") as f:
+    os.makedirs(workdir, exist_ok= True)
+    with open(os.path.join(workdir,"workflow.smk"), "w", encoding="utf-8") as f:
         if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
             f.write(files(harpy.snakefiles).joinpath(target).read_text())
         else:
@@ -86,8 +86,8 @@ def fetch_report(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy report and write it into workdir/report
     """
-    os.makedirs(f"{workdir}/report/", exist_ok= True)
-    with open(f"{workdir}/report/{target}", "w", encoding="utf-8") as f:
+    os.makedirs(os.path.join(workdir, "report"), exist_ok= True)
+    with open(os.path.join(workdir, "report",target), "w", encoding="utf-8") as f:
         if os.path.isfile(files(harpy.reports).joinpath(target)):
             f.write(files(harpy.reports).joinpath(target).read_text())
         else:
@@ -95,13 +95,13 @@ def fetch_report(workdir: str, target: str) -> None:
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
     # pull yaml config file from github, use local if fails
+    destination = os.path.join(workdir, "report", "_quarto.yml")
     try:
         yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
-        destination = f"{workdir}/report/_quarto.yml"
         with urllib.request.urlopen(yaml) as response, open(destination, 'w') as yaml_out:
             yaml_out.write(response.read().decode("utf-8"))
     except:
-        with open(f"{workdir}/report/_quarto.yml", "w", encoding="utf-8") as yml:
+        with open(destination, "w", encoding="utf-8") as yml:
             if os.path.isfile(files(harpy.reports).joinpath("_quarto.yml")):
                 yml.write(files(harpy.reports).joinpath("_quarto.yml").read_text())
             else:
@@ -109,13 +109,13 @@ def fetch_report(workdir: str, target: str) -> None:
                 print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
     # same for the scss file
+    destination = os.path.join(workdir, "report", "_harpy.scss")
     try:
         scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
-        destination = f"{workdir}/report/_harpy.scss"
         with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
             scss_out.write(response.read().decode("utf-8"))
     except:
-        with open(f"{workdir}/report/_harpy.scss", "w", encoding="utf-8") as yml:
+        with open(destination, "w", encoding="utf-8") as yml:
             if os.path.isfile(files(harpy.reports).joinpath("_harpy.scss")):
                 yml.write(files(harpy.reports).joinpath("_harpy.scss").read_text())
             else:
@@ -125,12 +125,13 @@ def fetch_report(workdir: str, target: str) -> None:
 
 def snakemake_log(outdir: str, workflow: str) -> str:
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
-    attempts = glob.glob(f"{outdir}/logs/snakemake/*.log*")
+    attempts = glob.glob(os.path.join(outdir, "logs", "snakemake", "*.log*"))
+    timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
     if not attempts:
         os.makedirs(os.path.join(outdir, "logs", "snakemake"), exist_ok=True)
-        return f"logs/snakemake/{workflow}.1." + datetime.now().strftime("%d_%m_%Y") + ".log"
+        return os.path.join("logs", "snakemake", f"{workflow}.1.{timestamp}")
     increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
-    return f"logs/snakemake/{workflow}.{increment}." + datetime.now().strftime("%d_%m_%Y") + ".log"
+    return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
 def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
@@ -148,7 +149,7 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
-def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> str:
+def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> list[str]:
     """
     Writes a config.yaml file to outdir/workflow to use with --profile.
     Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
@@ -171,16 +172,37 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     os.makedirs(workflowdir, exist_ok=True)
     with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
         yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
-
-    command = f"snakemake --cores {threads} --snakefile {workflowdir}/{workflow_name}.smk"
-    command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
+    # command with absolute paths
+    _command = []
+    _command.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workflowdir, "workflow.smk")]))
+    #command = f"snakemake --cores {threads} --snakefile {workflowdir}/workflow.smk"
+    _command.append(" ".join(["--configfile", os.path.join(workflowdir, "config.harpy.yaml"), "--profile", workflowdir]))
+    #command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
     if hpc:
+        hpc_dir = os.path.join(workflowdir, "hpc")
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        command += f" --workflow-profile {workflowdir}/hpc"
+        _command.append(" ".join(["--workflow-profile", hpc_dir]))
     if sm_extra:
-        command += f" {sm_extra}"
-    return command
+        command.append(sm_extra)
+
+    # command with relative paths
+    workdir_rel = os.path.relpath(workflowdir)
+    _command_rel = []
+    _command_rel.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]))
+    _command_rel.append(" ".join([" --configfile", os.path.join(workdir_rel, "config.harpy.yaml"),"--profile", workdir_rel]))
+    if hpc:
+        hpc_dir = os.path.join(workdir_rel, "hpc")
+        os.makedirs(hpc_dir, exist_ok=True)
+        shutil.copy2(hpc, os.path.join(hpc_dir, "config.yaml"))
+        _command_rel.append(" ".join(["--workflow-profile", hpc_dir]))
+    if sm_extra:
+        _command_rel.append(sm_extra)
+ 
+    command = " ".join(_command)
+    command_rel = " ".join(_command_rel)
+
+    return command, command_rel
 
 def write_workflow_config(configs: dict, outdir: str) -> None:
     """

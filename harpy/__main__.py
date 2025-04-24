@@ -27,8 +27,8 @@ click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-@click.version_option("0.0.0", prog_name="harpy")
+@click.group(options_metavar='', context_settings={"help_option_names" : []} )
+@click.version_option("0.0.0", prog_name="harpy", hidden = True)
 def cli():
     """
     An automated workflow for haplotagging linked-read data

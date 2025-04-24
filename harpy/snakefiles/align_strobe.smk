@@ -5,7 +5,7 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -303,7 +303,7 @@ rule workflow_summary:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
+        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
     params:
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
@@ -328,7 +328,7 @@ rule workflow_summary:
         duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/align.strobealign.summary", "w") as f:
             f.write("\n\n".join(summary))

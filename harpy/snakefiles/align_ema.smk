@@ -5,7 +5,7 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -166,8 +166,8 @@ rule standardize_barcodes:
     input:
         "ema_align/{sample}.ema.bam"
     output:
-        bam = temp("ema_align/{sample}.ema.bam"),
-        idx = temp("ema_align/{sample}.ema.bam.bai")
+        bam = temp("ema_align/{sample}.bc.bam"),
+        idx = temp("ema_align/{sample}.bc.bam.bai")
     container:
         None
     shell:
@@ -399,7 +399,7 @@ rule workflow_summary:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = [ "bam", "bam.bai"] ),
         cov_report = collect("reports/{sample}.html", sample = samplenames) if not skip_reports else [],
         agg_report = f"reports/ema.stats.html" if not skip_reports else [],
-        bx_report = "reports/barcode.summary.html" if (not skip_reports or len(samplenames) == 1) else []
+        bx_report = "reports/barcode.summary.html" if (not skip_reports and len(samplenames) > 1) else []
     params:
         beadtech = "-p" if lr_platform == "haplotag" else f"-w {barcode_list}",
         unmapped = "" if keep_unmapped else "-F 4",
@@ -438,7 +438,7 @@ rule workflow_summary:
         sorting += "\tsamtools sort -m 2000M concat.bam"
         summary.append(sorting)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/align.ema.summary", "w") as f:
             f.write("\n\n".join(summary))

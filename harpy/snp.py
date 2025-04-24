@@ -115,7 +115,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         validate_popsamples(bamlist, populations,quiet)
 
     ## workflow setup ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -130,10 +130,13 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     conda_envs = ["r", "variants"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : {
@@ -155,7 +158,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.freebayes.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.freebayes.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
@@ -208,7 +211,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         validate_popsamples(bamlist, populations, quiet)
 
     ## workflow setup ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -224,10 +227,13 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
@@ -251,7 +257,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

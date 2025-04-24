@@ -5,7 +5,7 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -93,7 +93,7 @@ rule workflow_summary:
         recover += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
         summary.append(recover)
         sm = "Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/deconvolve.summary", "w") as f:  
             f.write("\n\n".join(summary))

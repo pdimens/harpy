@@ -5,7 +5,7 @@ import random
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
 variant = config["workflow"].split("_")[-1]
@@ -160,7 +160,7 @@ rule workflow_summary:
             diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {params.vcf_arg} hapX.vcf"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open(f"workflow/simulate.{variant}.summary", "w") as f:
             f.write("\n\n".join(summary))

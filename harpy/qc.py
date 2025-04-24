@@ -83,7 +83,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         trim_adapters = False
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command, command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -98,7 +98,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     conda_envs = ["qc", "r"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "ignore_bx" : ignore_bx,
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
@@ -111,7 +110,11 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "density" : deconvolve[2],
             "dropout" : deconvolve[3]
         }} if deconvolve else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : fqlist
@@ -129,4 +132,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

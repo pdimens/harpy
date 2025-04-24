@@ -14,16 +14,17 @@ from ._conda import create_conda_recipes
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
+@click.option('-r', '--relative',  is_flag = True, default = False, help = 'Call Snakemake with relative paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, conda, threads, quiet):
+def resume(directory, conda, relative, threads, quiet):
     """
     Resume a Harpy workflow from an existing directory
 
     In the event you need to run the Snakemake workflow present in a Harpy output directory
-    (e.g. `Align/bwa`) without Harpy rewriting any of the configuration files, this command
-    bypasses all the preprocessing steps of Harpy workflows and executes the Snakemake command
+    (e.g. `Align/bwa`) without Harpy redoing validations and rewriting any of the configuration files,
+    this command bypasses all the preprocessing steps of Harpy workflows and executes the Snakemake command
     present in `directory/workflow/config.yaml`. It will reuse an existing `workflow/envs/` folder
     for conda environments, otherwise use `--conda` to create one.
 
@@ -48,12 +49,12 @@ def resume(directory, conda, threads, quiet):
     
     workflow = harpy_config["workflow"]
     sm_log = snakemake_log(directory, workflow)
-    if sm_log != harpy_config["snakemake_log"]:
-        harpy_config["snakemake_log"] = sm_log
+    if sm_log != harpy_config["snakemake"]["log"]:
+        harpy_config["snakemake"]["log"] = sm_log
         ## overwrite config file with this updated one, where only the snakemake log has been changed ##
         write_workflow_config(harpy_config, directory)
 
-    command = harpy_config["snakemake_command"]
+    command = harpy_config["snakemake"]["relative"]
     if threads:
         command = re.sub(r"--cores \d+", f"--cores {threads}", command)
     start_text = workflow_info(
@@ -61,7 +62,7 @@ def resume(directory, conda, threads, quiet):
         ("Output Folder:", directory + "/"),
         ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
+    launch_snakemake(command_rel, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
 
 
 

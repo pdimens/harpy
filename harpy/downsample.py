@@ -75,7 +75,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
 
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda",
         output_dir,
@@ -88,13 +88,16 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
 
     configs = {
         "workflow": workflow,
-        "snakemake_log" : sm_log,
         "prefix" :  prefix,
         "downsample" :  downsample,
         "barcode-tag" : barcode_tag.upper(),
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "inputs": input
     }
 
@@ -108,4 +111,4 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         ("Invalid Proportion:", invalid),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")

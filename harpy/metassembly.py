@@ -62,7 +62,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -76,7 +76,6 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     conda_envs = ["align", "assembly", "metassembly", "qc", "spades"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
             'ignore_barcodes' : ignore_bx,
@@ -84,7 +83,11 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -107,4 +110,4 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, f"workflow/metassembly.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/metassembly.summary")

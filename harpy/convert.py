@@ -444,7 +444,7 @@ def standardize(sam, quiet):
                 if bx:
                     # the 1:0 ignores the first character, which will either be : or #
                     bx_sanitized = bx[0][1:]
-                    record.query_name = record.query_name.remove_suffix(bx)
+                    record.query_name = record.query_name.remove_suffix(bx[0])
                     if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
                         record.set_tag("VX", 0, "i")
                     else:

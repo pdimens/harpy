@@ -24,7 +24,7 @@ def diagnose(directory):
     with open(f"{directory}/workflow/config.harpy.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     
-    command = harpy_config["snakemake_command"]
+    command = harpy_config["snakemake"]["absolute"]
     # prefix the new arguments, in case a positional argument was added at the end by user
     command = command.replace("snakemake -", "snakemake --dry-run --debug-dag -")
     console = Console(stderr=True)

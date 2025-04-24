@@ -81,6 +81,6 @@ def localenv(workflows):
     else:
         create_conda_recipes(output_dir)
     fetch_rule(os.path.join(output_dir, 'workflow'), "environments.smk")
-    command = f'snakemake -s {output_dir}/workflow/environments.smk --sdm conda --cores 2 --conda-prefix .environments --conda-cleanup-pkgs cache --directory . --config spades=True'
+    command = " ".join(["snakemake", "-s", os.path.join(output_dir, "workflow", "environments.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix .environments", "--conda-cleanup-pkgs cache", "--directory .", "--config spades=True"])
     launch_snakemake(command, "localenv", "", output_dir, sm_log, 1, "workflow/localenv.summary")
     shutil.rmtree(output_dir, ignore_errors = True)

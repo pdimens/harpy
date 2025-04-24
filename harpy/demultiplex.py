@@ -72,7 +72,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
     validate_demuxschema(schema, return_len = False)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -87,13 +87,16 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
     conda_envs = ["demultiplex", "qc"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "retain" : {
             "qx_rx" : qx_rx,
             "barcodes" : keep_unknown_barcodes,
             "samples" : keep_unknown_samples,
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports
@@ -119,7 +122,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
 
 demultiplex.add_command(gen1)
 

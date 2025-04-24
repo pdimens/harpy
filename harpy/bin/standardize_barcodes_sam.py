@@ -30,6 +30,11 @@ elif len(sys.argv) > 1:
     # First argument passed via command line
     input_data = sys.argv[1]
 
-with pysam.AlignmentFile(input_data, require_index=False) as SAM, pysam.AlignmentFile(sys.stdout.buffer, "w", template=SAM) as OUT:
-    for record in SAM.fetch(until_eof=True):
-        OUT.write(bx_search(record))
+try:
+    with pysam.AlignmentFile(input_data, require_index=False) as SAM, \
+         pysam.AlignmentFile(sys.stdout.buffer, "w", template=SAM) as OUT:
+        for record in SAM.fetch(until_eof=True):
+            OUT.write(bx_search(record))
+except (IOError, ValueError) as e:
+    print(f"Error processing file: {e}", file=sys.stderr)
+    sys.exit(1)

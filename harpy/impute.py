@@ -76,7 +76,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
             sys.exit(1)
     
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -92,9 +92,12 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
     conda_envs = ["r", "stitch"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         **({'stitch_extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "samples_from_vcf" : vcf_samples,
         **({'region': region} if region else {}),
@@ -122,4 +125,4 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/impute.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/impute.summary")

@@ -9,13 +9,12 @@ in_bc = config["inputs"]["barcodes"]
 haps = [f"{i}".zfill(3) for i in range(1,len(in_fasta) + 1)]
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
 rule simulate_reads:
     input:
-        in_fasta,
-        in_bc if os.path.exists(in_bc) else [],
+        in_fasta
     output:
         collect(output_pref + ".hap_{hap}.R{FR}.fq.gz", hap = haps, FR = [1,2])
     log:
@@ -35,7 +34,7 @@ rule simulate_reads:
         f'--extindels {config["extindels"]}',
         f'-o {config["output-prefix"]}',
         f'-O {config["output-type"]}',
-        bc = in_bc if not os.path.exists(in_bc) else ""
+        bc = in_bc
     threads:
         workflow.cores
     conda:

@@ -4,7 +4,7 @@ import os
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
 FQ1 = config["inputs"]["fastq_r1"]
@@ -325,7 +325,7 @@ rule workflow_summary:
         athena += "\tathena-meta --config athena.config"
         summary.append(athena)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/metassembly.summary", "w") as f:  
             f.write("\n\n".join(summary))

@@ -10,7 +10,7 @@ unknown_samples = config["retain"]["samples"]
 unknown_barcodes = config["retain"]["barcodes"]
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
@@ -19,8 +19,10 @@ wildcard_constraints:
 
 samplenames = set()
 with open(schemafile, "r") as f:
-    for i in f.readlines():
-        line = i.split()
+    for i in f:
+        if not i or i.startswith("#"):
+            continue
+        line = i.strip().split()
         samplenames.add(line[0])
 
 if unknown_samples:
@@ -173,7 +175,7 @@ rule workflow_summary:
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
         summary.append(qc)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/demux.gen1.summary", "w") as f:
             f.write("\n\n".join(summary))

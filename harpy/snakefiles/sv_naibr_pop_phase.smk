@@ -6,7 +6,7 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
@@ -388,7 +388,7 @@ rule workflow_summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config['snakemake_command']}"
+        sm = f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))

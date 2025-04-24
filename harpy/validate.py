@@ -77,7 +77,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     bamlist, n = parse_alignment_inputs(inputs)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -92,8 +92,11 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     conda_envs = ["r"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "platform": platform.lower(),
         "inputs" : bamlist
@@ -109,7 +112,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.bam.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.bam.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
@@ -140,7 +143,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     fqlist, n = parse_fastq_inputs(inputs)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -155,8 +158,11 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     conda_envs = ["r"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "platform": platform.lower(),
         "inputs" : fqlist
@@ -172,7 +178,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.fastq.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.fastq.summary")
 
 validate.add_command(bam)
 validate.add_command(fastq)

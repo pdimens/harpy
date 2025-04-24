@@ -145,7 +145,7 @@ with (
                 write_invalidbx(outfile, record)
                 LAST_CONTIG = chrm
                 continue
-        except:
+        except KeyError:
             # There is no bx tag
             write_missingbx(outfile, record, MISSING)
             LAST_CONTIG = chrm
