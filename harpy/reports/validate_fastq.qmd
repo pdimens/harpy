@@ -21,7 +21,7 @@ using("dplyr","tidyr","DT","scales")
 
 ```{r}
 infile <- params$infile
-
+platform <- params$platform
 data <- read.table(infile, header = T)
 attention_df <- data %>% 
   mutate(allmissing = (reads == noBX)) %>% 

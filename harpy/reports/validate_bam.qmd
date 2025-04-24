@@ -21,6 +21,7 @@ using("dplyr","tidyr","DT","scales")
 
 ```{r read_inputs}
 infile <- params$infile
+platform <- params$platform
 data <- read.table(infile, header = T)
 attention_df <- data %>% select(-1,-2) %>% rowwise() %>% summarise(count = sum(c(nameMismatch, noBX, badBX)))
 attention <- sum(attention_df$count > 0)
