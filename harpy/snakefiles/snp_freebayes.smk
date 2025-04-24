@@ -101,7 +101,7 @@ rule call_variants:
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
-        static = "--strict-vcf"
+        static = "--strict-vcf",
         populations = "--populations workflow/sample.groups" if groupings else "",
         extra = extra
     threads:
