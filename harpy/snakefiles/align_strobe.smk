@@ -110,7 +110,8 @@ rule mark_duplicates:
     output:
         temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam")
     log:
-        "logs/markdup/{sample}.markdup.log"
+        debug = "logs/markdup/{sample}.markdup.log",
+        stats = "logs/markdup/{sample}.markdup.stats"
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -127,10 +128,10 @@ rule mark_duplicates:
         else
             OPTICAL_BUFFER=100
         fi
-        samtools collate -O -u {input.sam} |
-            samtools fixmate -m -u - - |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
+        samtools collate -O -u {input.sam} 2> {log.debug} |
+            samtools fixmate -m -u - - 2>> {log.debug} |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
         rm -rf {params.tmpdir}
         """
 

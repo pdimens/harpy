@@ -37,7 +37,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule peprocess_reference:
+rule preprocess_reference:
     input:
         genomefile
     output: 
@@ -252,6 +252,8 @@ rule concat_alignments:
     output: 
         bam = "{sample}.bam",
         bai = "{sample}.bam.bai"
+    log:
+        "logs/concat/{sample}.concat.log"
     threads:
         2
     resources:
@@ -261,7 +263,7 @@ rule concat_alignments:
     shell:
         """
         samtools cat -@ 1 {input.aln_bc} {input.aln_nobc} |
-            samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} -
+            samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} - 2> {log}
         """
 
 rule alignment_coverage:

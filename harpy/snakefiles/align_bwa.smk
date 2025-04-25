@@ -33,7 +33,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule peprocess_reference:
+rule preprocess_reference:
     input:
         genomefile
     output: 
