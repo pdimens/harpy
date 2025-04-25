@@ -814,7 +814,8 @@ jobs:
         shell: micromamba-shell {0}
         run: |
           haplotag_acbd.py .
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 segment_A.bc test/genome/genome*.fasta.gz && \
+          cut -f2 segment_A.bc > hap.bc
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 hap.bc test/genome/genome*.fasta.gz && \
           ls -lh Simulate/linkedreads
 
   assembly:
