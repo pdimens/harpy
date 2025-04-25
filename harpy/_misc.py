@@ -17,6 +17,8 @@ import harpy.reports
 import harpy.snakefiles
 from ._printing import print_error, print_solution
 
+_STDERR_CONSOLE = Console(file=sys.stderr)
+
 def harpy_progressbar(quiet: int) -> Progress:
     """
     The pre-configured transient progress bar that workflows and validations use
@@ -39,12 +41,12 @@ def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress
     """
     return Progress(
         TextColumn("[progress.description]{task.description}"),
-        BarColumn(bar_width= 70 - len(desc_text), pulse_style = "grey46"),
+        BarColumn(bar_width= max(10, 70 - len(desc_text)), pulse_style = "grey46"),
         TimeElapsedColumn(),
         auto_refresh = True,
         transient = True,
         disable = quiet == 2,
-        console=Console(file=sys.stderr) if stderr else None
+        console = _STDERR_CONSOLE if stderr else None
     )
 
 def filepath(infile: str) -> str:
