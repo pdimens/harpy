@@ -97,8 +97,8 @@ def fetch_report(workdir: str, target: str) -> None:
     # pull yaml config file from github, use local if fails
     destination = os.path.join(workdir, "report", "_quarto.yml")
     try:
-        yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
-        with urllib.request.urlopen(yaml) as response, open(destination, 'w') as yaml_out:
+        _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
+        with urllib.request.urlopen(_yaml) as response, open(destination, 'w') as yaml_out:
             yaml_out.write(response.read().decode("utf-8"))
     except:
         with open(destination, "w", encoding="utf-8") as yml:
@@ -149,13 +149,13 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
-def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> list[str]:
+def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> tuple[str, str]:
     """
     Writes a config.yaml file to outdir/workflow to use with --profile.
     Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
     Copies the HPC config file to the workflow dir, if exists.
     Sets up the snakemake command based on hpc, threads, and extra snakemake params.
-    Returns the command with which to launch snakemake.
+    Returns the command with which to launch snakemake, one with absolute paths and another with relative paths.
     """
     profile = {
         "rerun-incomplete": True,

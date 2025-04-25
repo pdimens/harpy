@@ -20,10 +20,10 @@ wildcard_constraints:
 samplenames = set()
 with open(schemafile, "r") as f:
     for i in f:
-        if not i.strip() or i.startswith("#"):
+        line = i.strip()
+        if not i or i.startswith("#"):
             continue
-        line = i.strip().split()
-        samplenames.add(line[0])
+        samplenames.add(line.split()[0])
 
 if unknown_samples:
     samplenames.add("_unknown_samples")
