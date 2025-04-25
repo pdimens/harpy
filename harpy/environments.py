@@ -1,7 +1,6 @@
 """Command to regenerate Dockerfile for container building"""
 
 import os
-import sys
 import shutil
 import subprocess
 from pathlib import Path
@@ -21,38 +20,36 @@ def containerize():
     create_conda_recipes("container")
     fetch_rule("container/workflow", "environments.smk")
 
-    #with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
-    with open("Dockerfile", "w", encoding = "utf-8") as dockerraw:
+    with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
             'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
             stdout = dockerraw
         )
 
-    #with open("Dockerfile.raw", "r") as dockerraw, open("Dockerfile", "w") as dockerfile:
-    #        # copy over the first three lines
-    #        dockerfile.write(dockerraw.readline())
-    #        dockerfile.write(dockerraw.readline())
-    #        dockerfile.write(dockerraw.readline())
-    #        #dockerfile.write("\nRUN mkdir -p /conda-envs/\n")
-    #        dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
-    #        env_hash = {}
-    #        for line in dockerraw:
-    #            if line.startswith("#"):
-    #                continue
-    #            if line.startswith("COPY"):
-    #                dockercmd, env, hashname = line.split()
-    #                env = Path(env).stem
-    #                hashname = hashname.split("/")[-2]
-    #                env_hash[env] = hashname
-    #        runcmds = []
-    #        for env, _hash in env_hash.items():
-    #            runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /{env}.yaml && \\")
-    #        runcmds.append("conda clean --all -y")
-    #        dockerfile.write("\nRUN ")
-    #        dockerfile.write(
-    #            "\n\t".join(runcmds)
-    #        )
-    #os.remove("Dockerfile.raw")
+    with open("Dockerfile.raw", "r") as dockerraw, open("Dockerfile", "w") as dockerfile:
+            # copy over the first three lines
+            dockerfile.write(dockerraw.readline())
+            dockerfile.write(dockerraw.readline())
+            dockerfile.write(dockerraw.readline())
+            dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
+            env_hash = {}
+            for line in dockerraw:
+                if line.startswith("#"):
+                    continue
+                if line.startswith("COPY"):
+                    dockercmd, env, hashname = line.split()
+                    env = Path(env).stem
+                    hashname = hashname.split("/")[-2]
+                    env_hash[env] = hashname
+            runcmds = []
+            for env, _hash in env_hash.items():
+                runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /{env}.yaml && \\")
+            runcmds.append("conda clean --all -y")
+            dockerfile.write("\nRUN ")
+            dockerfile.write(
+                "\n\t".join(runcmds)
+            )
+    os.remove("Dockerfile.raw")
 
 @click.command(hidden = True)
 @click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
