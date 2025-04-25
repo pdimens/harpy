@@ -859,14 +859,7 @@ jobs:
       - name: test metassembly
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --quiet 2 -r 4000 test/fasamplenames = set()
-with open(schemafile, "r") as f:
-    for i in f:
-        if not i or i.startswith("#"):
-            continue
-        line = i.strip().split()
-        samplenames.add(line[0])
-stq/sample1.* && \
+          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
