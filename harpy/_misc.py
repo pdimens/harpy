@@ -184,7 +184,7 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
         shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
         _command.append(" ".join(["--workflow-profile", hpc_dir]))
     if sm_extra:
-        command.append(sm_extra)
+        _command.append(sm_extra)
 
     # command with relative paths
     workdir_rel = os.path.relpath(workflowdir)

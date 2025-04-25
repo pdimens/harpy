@@ -54,7 +54,7 @@ def resume(directory, conda, relative, threads, quiet):
         ## overwrite config file with this updated one, where only the snakemake log has been changed ##
         write_workflow_config(harpy_config, directory)
 
-    command = harpy_config["snakemake"]["relative"]
+    command = harpy_config["snakemake"]["relative"] if relative else harpy_config["snakemake"]["absolute"]
     if threads:
         command = re.sub(r"--cores \d+", f"--cores {threads}", command)
     start_text = workflow_info(
@@ -62,7 +62,7 @@ def resume(directory, conda, relative, threads, quiet):
         ("Output Folder:", directory + "/"),
         ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
     )
-    launch_snakemake(command_rel, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
+    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
 
 
 
