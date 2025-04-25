@@ -117,7 +117,7 @@ rule call_genotypes:
         idx = temp("call/{part}.bcf.csi")
     params: 
         f"--ploidy {ploidy}",
-        "-a GQ,GP",
+        "-a AD,GQ,GP",
         "--group-samples" if groupings else "--group-samples -"
     threads:
         2
