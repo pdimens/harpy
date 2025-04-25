@@ -169,12 +169,12 @@ rule preprocess_reference:
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno} 2> {log}
         else
             # if BZgipped or isn't compressed, just copied
-            cp -f {input} {output}
+            cp -f {input} {output.geno} 2> {log}
         fi
-        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2> {log}
+        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2>> {log}
         """
 
 rule report_config:
