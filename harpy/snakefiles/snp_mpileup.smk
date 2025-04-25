@@ -101,7 +101,7 @@ rule mpileup:
         logfile = temp("logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
-        annotations = "-a INFO/FS",
+        annotations = "-a AD,INFO/FS",
         extra = mp_extra
     container:
         None
@@ -117,15 +117,17 @@ rule call_genotypes:
         idx = temp("call/{part}.bcf.csi")
     params: 
         f"--ploidy {ploidy}",
-        "-a AD,GQ,GP",
+        "-a GQ,GP",
         "--group-samples" if groupings else "--group-samples -"
+    log:
+        "logs/{part}.call.log"
     threads:
         2
     container:
         None
     shell:
         """
-        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} |
+        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} 2> {log}|
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
