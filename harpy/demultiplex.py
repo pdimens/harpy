@@ -8,7 +8,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_script, instantiate_dir, setup_snakemake, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -82,7 +82,6 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
     )
 
     fetch_rule(workflowdir, "demultiplex_gen1.smk")
-    fetch_script(workflowdir, "demultiplex_gen1.py")
 
     conda_envs = ["demultiplex", "qc"]
     configs = {
