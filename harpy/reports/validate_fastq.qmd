@@ -1,5 +1,5 @@
 ---
-title: "FASTQ Haplotag Format Check"
+title: "FASTQ Format Validation"
 params:
   infile: 'test.tsv'
   platform: 'haplotagging'
@@ -133,7 +133,7 @@ noBX ⬜
 If you expect all or some of your reads should have `BX:Z` tags, then further investigation is necessary.
 
 badBX 🛑
-: The haplotag barcode in the `BX:Z` comment does not adhere to the proper `AxxCxxBxxDxx` format.
+: The barcode does is not in the proper `r platform` format.
 
 badSamSpec 🛑
 : The comments in the read header after the read ID do not conform to the `TAG:TYPE:VALUE` [SAM specification](https://samtools.github.io/hts-specs/SAMv1.pdf).
@@ -152,7 +152,7 @@ SAM Specification
 : An example of a proper FASTQ read header is like the one below, where all comments
 following the initial read ID (`@A00814...`) have the proper [SAM spec](https://samtools.github.io/hts-specs/SAMv1.pdf)
 `TAG:TYPE:VALUE` format and among them is a `BX:Z` tag followed by a `AxxCxxBxxDxx`
-formatted haplotag barcode. 
+formatted haplotagging barcode. 
 
 Comments
 : The comments must be **TAB separated** because the `:Z` tag type allows a 
@@ -160,7 +160,7 @@ whitespace character for its value.
 
 Example Header
 : The read header below contains the read ID `@A00814...`,
-the `BX:Z` haplotag barcode tag, and two more comments `RX:Z` and `QX:Z` that both
+the `BX:Z` haplotagging barcode tag, and two more comments `RX:Z` and `QX:Z` that both
 adhere to the SAM specification. If using LEVIATHAN to call structural variants, the `BX:Z` tag
 must be the last comment in the read header.
 ```

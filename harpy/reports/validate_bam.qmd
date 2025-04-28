@@ -1,5 +1,5 @@
 ---
-title: "BAM Haplotag Format Check"
+title: "BAM Format Validation"
 params:
   infile: 'test.tsv'
   platform: 'haplotagging'
@@ -172,6 +172,7 @@ record. `harpy align` will automatically move the `BX:Z` tag to the end of the a
 BX Tag
 : A proper linked-read alignment file will contain a `BX:Z` tag with an alignment record
 that features a properly-formatted barcode. The formats are:
+
 - haplotagging: `AXXCXXBXXDXX` where `X` is a 0-9 integer
   - e.g. `A02C56B09D88`
   - invalidated: if any position is `00` (e.g. `A91C00B42D57`)

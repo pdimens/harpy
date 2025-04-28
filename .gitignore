@@ -17,7 +17,7 @@ SNP/
 SV/
 Simulate/
 Impute/
-Preflight/
+Validate/
 Phase/
 Assembly/
 Metassembly/
@@ -37,8 +37,4 @@ _Inline
 .pixi
 pixi*
 .gitattributes
-*.egg-info
-
-# pixi environments
-.pixi
 *.egg-info
