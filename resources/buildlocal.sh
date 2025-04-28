@@ -8,9 +8,6 @@ fi
 
 mkdir -p ${CONDA_PREFIX}/bin
 
-# compilation
-g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
-
 # install harpy proper
 pip install --no-deps --disable-pip-version-check -e . && \
     rm -rf build

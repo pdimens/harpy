@@ -21,9 +21,6 @@ pixi shell
 
 mkdir -p ${ENV_PREFIX}/bin
 
-# compilation
-g++ harpy/bin/extractReads.cpp -O3 -o ${ENV_PREFIX}/bin/extractReads
-
 # associated scripts
 chmod +x harpy/bin/* 
 cp -f harpy/bin/* ${ENV_PREFIX}/bin/

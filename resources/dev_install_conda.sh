@@ -17,10 +17,6 @@ if ! pip install --no-deps --disable-pip-version-check -e .; then
     exit 1
 fi
 
-# Clean up build directory if it exists
-[ -d build ] && rm -rf build
-g++ harpy/bin/extractReads.cpp -O3 -o ${CONDA_PREFIX}/bin/extractReads
-
 # install harpy proper
 pip install --no-deps --disable-pip-version-check -e . && \
     rm -rf build
