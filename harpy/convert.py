@@ -323,13 +323,13 @@ def bam(to_,sam, standardize, quiet):
             for record in alnfile.fetch(until_eof = True):
                 try:
                     bx = record.get_tag("BX")
-                    if re.search(r"[ATCGN]+", bx):
+                    if re.search(r"^[ATCGN]+$", bx):
                         # tellseq
                         from_ = "tellseq"
-                    elif re.search(r"\d+_\d+_\d+", bx):
+                    elif re.search(r"^\d+_\d+_\d+$", bx):
                         # stlfr
                         from_ = "stlfr"
-                    elif re.search(r"A\d{2}C\d{2}B\d{2}D\d{2}", bx):
+                    elif re.search(r"^A\d{2}C\d{2}B\d{2}D\d{2}$", bx):
                         from_ = "haplotagging"
                     else:
                         continue

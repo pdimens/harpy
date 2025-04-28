@@ -997,7 +997,7 @@ jobs:
       - name: convert 10x to standard
         shell: micromamba-shell {0}
         run: |
-          cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes
+          cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes && \
           harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
       - name: convert 10x to haplotagging
         shell: micromamba-shell {0}
@@ -1014,22 +1014,30 @@ jobs:
       - name: convert BAM haplotagging to tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert bam --quiet 2 tellseq test/bam/sample1.bam > tellseq.bam
+          harpy convert bam --quiet 2 tellseq test/bam/sample1.bam > tellseq.bam && \
           samtools view tellseq.bam | head -3
       - name: convert BAM haplotagging to stlfr
         shell: micromamba-shell {0}
         run: |
-          harpy convert bam --quiet 2 stlfr test/bam/sample1.bam > stlfr.bam
+          harpy convert bam --quiet 2 stlfr test/bam/sample1.bam > stlfr.bam && \
           samtools view stlfr.bam | head -3
       - name: convert BAM stlfr to haplotagging
         shell: micromamba-shell {0}
-        run: harpy convert bam --quiet 2 haplotagging stlfr.bam | samtools view | head -3
+        run: |
+          harpy convert bam --quiet 2 haplotagging stlfr.bam > test.bam && \
+          samtools view test.bam | head -3
       - name: convert BAM stlfr to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert bam --quiet 2 tellseq stlfr.bam | samtools view | head -3
+        run: |
+          harpy convert bam --quiet 2 tellseq stlfr.bam > test.bam && \
+          samtools view test.bam | head -3
       - name: convert BAM tellseq to haplotagging
         shell: micromamba-shell {0}
-        run: harpy convert bam --quiet 2 haplotagging tellseq.bam | samtools view | head -3
+        run: |
+          harpy convert bam --quiet 2 haplotagging tellseq.bam > test.bam && \
+          samtools view test.bam | head -3
       - name: convert BAM tellseq to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert bam --quiet 2 stlfr tellseq.bam | samtools view | head -3
+        run: |
+          harpy convert bam --quiet 2 stlfr tellseq.bam > test.bam && \
+          samtools view test.bam | head -3
