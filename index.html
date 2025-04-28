@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799181914328">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799182517251">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -12,7 +12,7 @@
     <!-- Primary Meta Tags -->
     <title> Home | Harpy haplotag</title>
     <meta name="title" content=" Home | Harpy haplotag">
-    <meta name="description" content="Using Harpy to process your haplotagged data">
+    <meta name="description" content="Using Harpy to process your linked-read data">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://pdimens.github.io/harpy/">
@@ -21,24 +21,24 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pdimens.github.io/harpy/">
     <meta property="og:title" content=" Home | Harpy haplotag">
-    <meta property="og:description" content="Using Harpy to process your haplotagged data">
+    <meta property="og:description" content="Using Harpy to process your linked-read data">
     <meta property="og:image" content="https://pdimens.github.io/harpy/static/logo_trans.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://pdimens.github.io/harpy/">
     <meta property="twitter:title" content=" Home | Harpy haplotag">
-    <meta property="twitter:description" content="Using Harpy to process your haplotagged data">
+    <meta property="twitter:description" content="Using Harpy to process your linked-read data">
     <meta property="twitter:image" content="https://pdimens.github.io/harpy/static/logo_trans.png">
 
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="static/favicon.png" rel="icon">
-    <link href="resources/css/retype.css?v=3.7.0.799181914328" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.7.0.799182517251" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.7.0.799181914328" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.7.0.799181914328" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -296,12 +296,16 @@
     <figcaption class="caption"></figcaption>
 </figure>
 </p>
-<p>Harpy is a <a href="haplotagdata/">haplotagging data</a> processing pipeline for Linux-based systems. It uses all the
-magic of <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a> under the hood to handle
-the worklfow decision-making, but as a user, you just interact with it like a normal command-line
-program. Harpy uses both well known and niche programs to take raw haplotagging sequences and process
+<p>Harpy is a <a href="haplotagdata/">haplotagging data</a> processing pipeline for Linux-based systems-- at least it
+was prior to the release of version 2. Now, it can process linked-read data from haplotagging, TELLseq, stLFR, and
+even regular non-linked WGS data. It uses all the magic of <a href="https://snakemake.readthedocs.io/en/stable/">Snakemake</a>
+under the hood to handle  the worklfow decision-making, but as a user, you just interact with it like a normal command-line
+program. Harpy employs both well known and niche programs to take raw linked-read sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
-Most of the settings are pre-configured and the settings you can modify are done at the command line.</p>
+Most of the settings are pre-configured and the settings you can modify are done at the command line. Some parts of this documentation
+will refer to haplotagging specifically as we either forgot to update parts of the documentation or require you (the user)
+to do a data conversion for some parts of Harpy to work with non-haplotagging linked-read data. As always, feel free to drop
+an <a href="https://github.com/pdimens/harpy/issues/new/choose">Issue</a> or open a <a href="https://github.com/pdimens/harpy/discussions">Discussion</a> on GitHub.</p>
 <doc-anchor-target id="harpy-modules">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpy-modules">#</doc-anchor-trigger>
@@ -398,39 +402,39 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">harpy --help</div>
 <pre class="language-none"><code v-pre class="language-none"> Usage: harpy COMMAND [ARGS]...                                            
-                                                                           
- An automated workflow for haplotagging linked-read data to go from raw    
- data to genotypes (or phased haplotypes). Batteries included.             
- demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv                
-                                                                           
- Documentation: https://pdimens.github.io/harpy/                           
-                                                                           
-╭─ Options ─────────────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                             │
-│ --help     -h  Show this message and exit.                            │
-╰───────────────────────────────────────────────────────────────────────╯
-╭─ workflows ───────────────────────────────────────────────────────────╮
-│ align        Align sample sequences to a reference genome             │
-│ assembly     Create an assembly from linked-reads                     │
-│ demultiplex  Demultiplex haplotagged FASTQ files                      │
-│ impute       Impute genotypes using variants and alignments           │
-│ metassembly  Create a metassembly from linked-reads                   │
-│ phase        Phase SNPs into haplotypes                               │
-│ qc           Remove adapters and quality-control sequences            │
-│ simulate     Simulate variants or linked-reads from a genome          │
-│ snp          Call SNPs and small indels on alignments                 │
-│ sv           Call large structural variants on alignments             │
-╰───────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ──────────────────────────────────────────────────────╮
-│ deconvolve    Resolve clashing barcodes from different molecules      │
-│ downsample    Downsample data by barcode                              │
-│ hpc           Profile templates for cluster job submissions           │
-│ imputeparams  Create a template imputation parameter file             │
-│ popgroup      Create a template grouping file for samples             │
-│ preflight     File format checks for haplotag data                    │
-│ resume        Resume a workflow from an existing Harpy directory      │
-│ view          View a workflow log, config, or snakefile               │
-╰───────────────────────────────────────────────────────────────────────╯</code></pre>
+                                                                
+ An automated workflow for linked-read data to go  
+ from raw data to genotypes (or phased haplotypes). Batteries   
+ included.                                                      
+ demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv     
+                                                                
+ Documentation: https://pdimens.github.io/harpy/                
+                                                                
+╭─ Data Processing ────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome    │
+│ assembly     Create an assembly from linked-reads            │
+│ demultiplex  Demultiplex haplotagged FASTQ files             │
+│ impute       Impute genotypes using variants and alignments  │
+│ metassembly  Create a metassembly from linked-reads          │
+│ phase        Phase SNPs into haplotypes                      │
+│ qc           Remove adapters and quality-control sequences   │
+│ simulate     Simulate variants or linked-reads from a genome │
+│ snp          Call SNPs and small indels on alignments        │
+│ sv           Call large structural variants on alignments    │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Other Commands ─────────────────────────────────────────────╮
+│ convert     Convert data between linked-read types           │
+│ deconvolve  Resolve barcode sharing in unrelated molecules   │
+│ downsample  Downsample data by barcode                       │
+│ template    Create template files and HPC configs for        │
+│             workflows                                        │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Troubleshoot ───────────────────────────────────────────────╮
+│ diagnose  Run the Snakemake debugger to identify hang-ups    │
+│ resume    Resume a Harpy workflow from an existing directory │
+│ validate  File format checks for linked-read data            │
+│ view      View a workflow's components                       │
+╰──────────────────────────────────────────────────────────────╯</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="typical-linked-read-workflows">
     <h2>
