@@ -1,6 +1,6 @@
 ---
 label: Home
-description: Using Harpy to process your haplotagged data
+description: Using Harpy to process your linked-read data
 icon: home
 ---
 
@@ -8,12 +8,16 @@ icon: home
 
 ![](static/logo_trans.png)
 
-Harpy is a [haplotagging data](haplotagdata.md) processing pipeline for Linux-based systems. It uses all the 
-magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/) under the hood to handle 
-the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
-program. Harpy uses both well known and niche programs to take raw haplotagging sequences and process
+Harpy is a [haplotagging data](haplotagdata.md) processing pipeline for Linux-based systems-- at least it
+was prior to the release of version 2. Now, it can process linked-read data from haplotagging, TELLseq, stLFR, and
+even regular non-linked WGS data. It uses all the magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+under the hood to handle  the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
+program. Harpy employs both well known and niche programs to take raw linked-read sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
-Most of the settings are pre-configured and the settings you can modify are done at the command line. 
+Most of the settings are pre-configured and the settings you can modify are done at the command line. Some parts of this documentation
+will refer to haplotagging specifically as we either forgot to update parts of the documentation or require you (the user)
+to do a data conversion for some parts of Harpy to work with non-haplotagging linked-read data. As always, feel free to drop
+an [Issue](https://github.com/pdimens/harpy/issues/new/choose) or open a [Discussion](https://github.com/pdimens/harpy/discussions) on GitHub.
 
 ## Harpy Modules
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
