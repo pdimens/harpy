@@ -5,7 +5,11 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 [![haplotagging badge](https://custom-icon-badges.demolab.com/badge/-Haplotagging-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
 
-[Haplotagging](https://doi.org/10.1073/pnas.2015005118) Data Processing Pipeline. Getting you from raw linked-reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋.
+[Linked-read](https://doi.org/10.1073/pnas.2015005118) data processing pipeline. Getting you from raw linked-reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋
+
+<p align="center">
+✨ Now works with TELLseq, stLFR, and non-linked read data! ✨
+</p>
 
 ## 📥 Install 
 ### 🐍 Conda
@@ -123,6 +127,6 @@ harpy
 
 ## 🌈 Getting Started
 No data? No problem! Harpy lets you [simulate genomic variants](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants/)
-from an existing genome and can also [create haplotag data](https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads/)
-from an existing genome! You can see what haplotag data (and Harpy) are like without paying a cent! A simple tutorial on simulating
+from an existing genome and can also [create linked-read data](https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads/)
+from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without paying a cent! A simple tutorial on simulating
 both of these can be found [here](https://pdimens.github.io/harpy/blog/simulate_diploid/).
