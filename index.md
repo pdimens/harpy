@@ -42,39 +42,39 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
  Usage: harpy COMMAND [ARGS]...                                            
-                                                                           
- An automated workflow for haplotagging linked-read data to go from raw    
- data to genotypes (or phased haplotypes). Batteries included.             
- demultiplex >> qc >> align >> snp >> impute >> phase >> sv                
-                                                                           
- Documentation: https://pdimens.github.io/harpy/                           
-                                                                           
-╭─ Options ─────────────────────────────────────────────────────────────╮
-│ --version      Show the version and exit.                             │
-│ --help     -h  Show this message and exit.                            │
-╰───────────────────────────────────────────────────────────────────────╯
-╭─ workflows ───────────────────────────────────────────────────────────╮
-│ align        Align sample sequences to a reference genome             │
-│ assembly     Create an assembly from linked-reads                     │
-│ demultiplex  Demultiplex haplotagged FASTQ files                      │
-│ impute       Impute genotypes using variants and alignments           │
-│ metassembly  Create a metassembly from linked-reads                   │
-│ phase        Phase SNPs into haplotypes                               │
-│ qc           Remove adapters and quality-control sequences            │
-│ simulate     Simulate variants or linked-reads from a genome          │
-│ snp          Call SNPs and small indels on alignments                 │
-│ sv           Call large structural variants on alignments             │
-╰───────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ──────────────────────────────────────────────────────╮
-│ deconvolve    Resolve clashing barcodes from different molecules      │
-│ downsample    Downsample data by barcode                              │
-│ hpc           Profile templates for cluster job submissions           │
-│ imputeparams  Create a template imputation parameter file             │
-│ popgroup      Create a template grouping file for samples             │
-│ preflight     File format checks for haplotag data                    │
-│ resume        Resume a workflow from an existing Harpy directory      │
-│ view          View a workflow log, config, or snakefile               │
-╰───────────────────────────────────────────────────────────────────────╯
+                                                                
+ An automated workflow for linked-read data to go  
+ from raw data to genotypes (or phased haplotypes). Batteries   
+ included.                                                      
+ demultiplex >> qc >> align >> snp >> impute >> phase >> sv     
+                                                                
+ Documentation: https://pdimens.github.io/harpy/                
+                                                                
+╭─ Data Processing ────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome    │
+│ assembly     Create an assembly from linked-reads            │
+│ demultiplex  Demultiplex haplotagged FASTQ files             │
+│ impute       Impute genotypes using variants and alignments  │
+│ metassembly  Create a metassembly from linked-reads          │
+│ phase        Phase SNPs into haplotypes                      │
+│ qc           Remove adapters and quality-control sequences   │
+│ simulate     Simulate variants or linked-reads from a genome │
+│ snp          Call SNPs and small indels on alignments        │
+│ sv           Call large structural variants on alignments    │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Other Commands ─────────────────────────────────────────────╮
+│ convert     Convert data between linked-read types           │
+│ deconvolve  Resolve barcode sharing in unrelated molecules   │
+│ downsample  Downsample data by barcode                       │
+│ template    Create template files and HPC configs for        │
+│             workflows                                        │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Troubleshoot ───────────────────────────────────────────────╮
+│ diagnose  Run the Snakemake debugger to identify hang-ups    │
+│ resume    Resume a Harpy workflow from an existing directory │
+│ validate  File format checks for linked-read data            │
+│ view      View a workflow's components                       │
+╰──────────────────────────────────────────────────────────────╯
 ```
 
 ## Typical Linked-Read Workflows
