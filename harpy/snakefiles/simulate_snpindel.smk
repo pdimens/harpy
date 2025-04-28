@@ -5,10 +5,9 @@ import random
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
 genome = config["inputs"]["genome"]
 snp_vcf = config["snp"].get("vcf", None)
 indel_vcf = config["indel"].get("vcf", None)
@@ -100,7 +99,7 @@ rule simulate_haploid:
         prefix = f"{outprefix}",
         parameters = variant_params
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -170,7 +169,7 @@ rule simulate_diploid:
         snp = f"-snp_vcf haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.snp.vcf" if snp else "",
         indel = f"-indel_vcf haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.indel.vcf" if indel else ""
     conda:
-        f"{envdir}/simulations.yaml"
+        "envs/simulations.yaml"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.snp} {params.indel} > {log}"
 
@@ -214,7 +213,7 @@ rule workflow_summary:
             diploid += f"\tsimuG -refseq {genome} -prefix hapX {params.snp} {params.indel}"
             summary.append(diploid)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open(f"workflow/simulate.snpindel.summary", "w") as f:
             f.write("\n\n".join(summary))

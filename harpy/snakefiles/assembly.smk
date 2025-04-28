@@ -4,12 +4,11 @@ import os
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {
@@ -50,7 +49,7 @@ rule cloudspades:
     log:
         "logs/assembly.log"
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     threads:
         workflow.cores
     resources:
@@ -107,7 +106,7 @@ rule scaffolding:
         prefix = "base_name=scaffolds",
         extra = arcs_extra
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     shell:
         """
         arcs-make arcs-tigmint -C {params} 2> {log}
@@ -131,7 +130,7 @@ rule QUAST_assessment:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     shell:
         "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -151,7 +150,7 @@ rule BUSCO_analysis:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     shell:
         "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
@@ -165,7 +164,7 @@ rule build_report:
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Assembly Metrics\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc {input} {params} --filename {output}"
 
@@ -202,7 +201,7 @@ rule workflow_summary:
         arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/assembly.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -33,6 +33,26 @@ bam_input = args.input
 if not os.path.exists(bam_input):
     parser.error(f"{bam_input} was not found")
 
+# Do a quick scan of the file until the first barcode
+# to assess what kind of linked read tech it is and set
+# the appropriate kind of MISSING barcode
+with pysam.AlignmentFile(bam_input) as alnfile:
+    for record in alnfile.fetch(until_eof = True):
+        try:
+            bx = record.get_tag("BX")
+            if re.search(r"[ATCGN]+", bx):
+                # tellseq
+                MISSING = "N" * len(bx)
+            elif re.search(r"\d+_\d+_\d+", bx):
+                # stlfr
+                MISSING = "0_0_0"
+            else:
+                MISSING = "A00C00B00D00"
+            break
+        except KeyError:
+            continue
+
+
 def write_validbx(bam, alnrecord, mol_id):
     '''
     bam: the output bam
@@ -78,7 +98,7 @@ def write_invalidbx(bam, alnrecord):
     # write record to output file
     bam.write(alnrecord)
 
-def write_missingbx(bam, alnrecord):
+def write_missingbx(bam, alnrecord, missing):
     '''
     bam: the output bam
     alnrecord: the pysam alignment record
@@ -86,9 +106,9 @@ def write_missingbx(bam, alnrecord):
     at the end and writes it to the output
     bam file. Removes existing MI tag, if exists.
     '''
-     # removes MI and DI tags, writes new BX tag
+    # removes MI and DI tags, writes new BX tag
     tags = [j for j in alnrecord.get_tags() if j[0] not in ['MI', 'DI', 'BX']]
-    tags.append(("BX", "A00C00B00D00"))
+    tags.append(("BX", missing))
     alnrecord.set_tags(tags)
     # write record to output file
     bam.write(alnrecord)
@@ -98,7 +118,7 @@ d = {}
 # LAST_CONTIG keeps track of the last contig so we can
 # clear the dict when it's a new contig/chromosome
 LAST_CONTIG = False
-# MI is the name of the current molecule, starting a 1 (0+1)
+# MI is the name of the current molecule, starting at 1 (0+1)
 MI = 0
 
 # iniitalize input/output files
@@ -120,15 +140,14 @@ with (
 
         try:
             bx = record.get_tag("BX")
-            # do a regex search to find X00 pattern in the BX
-            if re.search("[ABCD]0{2,4}", bx):
-                # if found, invalid
+            if record.get_tag("VX") == 0:
+                # VX:i:0 is invalid
                 write_invalidbx(outfile, record)
                 LAST_CONTIG = chrm
                 continue
-        except:
+        except KeyError:
             # There is no bx tag
-            write_missingbx(outfile, record)
+            write_missingbx(outfile, record, MISSING)
             LAST_CONTIG = chrm
             continue
 

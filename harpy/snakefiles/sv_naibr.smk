@@ -6,12 +6,11 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
@@ -98,7 +97,7 @@ rule call_variants:
     threads:
         min(10, workflow.cores -1)
     conda:
-        f"{envdir}/variants.yaml"     
+        "envs/variants.yaml"     
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -153,43 +152,29 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
     container:
         None
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno} 2> {log}
         else
             # if BZgipped or isn't compressed, just copied
-            cp -f {input} {output}
+            cp -f {input} {output.geno} 2> {log}
         fi
-        """
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
-        fi
+        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2>> {log}
         """
 
 rule report_config:
@@ -220,7 +205,7 @@ rule sample_reports:
         sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -246,7 +231,7 @@ rule workflow_summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/sv.naibr.summary", "w") as f:
             f.write("\n\n".join(summary))

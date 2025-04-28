@@ -4,7 +4,7 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
@@ -16,7 +16,6 @@ bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
 region       = config.get("region", None)
-envdir        = os.path.join(os.getcwd(), "workflow", "envs")
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
@@ -121,9 +120,9 @@ rule impute:
         tmpdir  = lambda wc: "--tempdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig, "tmp"),
         extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
-        workflow.cores - 1
+        1
     conda:
-        f"{envdir}/stitch.yaml"
+        "envs/stitch.yaml"
     shell:
         """
         mkdir -p {output.tmp}
@@ -180,7 +179,7 @@ rule contig_report:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -304,7 +303,7 @@ rule impute_reports:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -354,7 +353,7 @@ rule workflow_summary:
         stitchextra += "\t" + config.get("stitch_extra", "None")
         summary.append(stitchextra)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/impute.summary", "w") as f:
             f.write("\n\n".join(summary))

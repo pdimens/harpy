@@ -104,10 +104,10 @@ def config(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    target_file = f"{directory}/workflow/config.harpy.yaml"
-    err_dir = f"{directory}/workflow/"
+    err_dir = os.path.join(directory, "workflow")
+    target_file = os.path.join(err_dir, "config.harpy.yaml")
     err_file = "There is no [blue]config.harpy.yaml[/] file"
-    if not os.path.exists(f"{directory}/workflow"):
+    if not os.path.exists(err_dir):
         print_error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
@@ -150,9 +150,9 @@ def log(directory):
     """
     files = [i for i in glob.iglob(f"{directory}/logs/snakemake/*.log*")]
     target_file = sorted(files, key = os.path.getmtime)[-1]
-    err_dir = f"{directory}/logs/snakemake/"
+    err_dir = os.path.join(directory, "logs", "snakemake")
     err_file = "There are no log files"
-    if not os.path.exists(f"{directory}/logs/snakemake"):
+    if not os.path.exists(err_dir):
         print_error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
@@ -184,7 +184,7 @@ def snakefile(directory):
     
     The snakefile contains all the instructions for a workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/<workflow>.smk`. Navigate with the typical `less` keyboard bindings, e.g.:
+    `workflow/workflow.smk`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -193,20 +193,19 @@ def snakefile(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    files = [i for i in glob.iglob(f"{directory}/workflow/*.smk")]
-    target_file = files[0]
-    err_dir = f"{directory}/workflow/"
-    err_file = "There are no snakefiles"
-    if not os.path.exists(f"{directory}/workflow"):
+    workdir = os.path.join(directory, "workflow")
+    if not os.path.exists(workdir):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{workdir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
         sys.exit(1)
-    elif not files:
+
+    target_file = os.path.join(workdir, "workflow.smk")
+    if not os.path.exists(target_file):
         print_error(
-            "file not found", 
-            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
+            "snakefile not found", 
+            f"[blue]{target_file}[/] was not found. Please check that you are looking in the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)
@@ -238,19 +237,19 @@ def snakeparams(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    target_file = f"{directory}/workflow/config.yaml"
-    err_dir = f"{directory}/workflow/"
+    err_dir = os.path.join(directory, "workflow")
+    target_file = os.path.join(err_dir, "config.yaml")
     err_file = "There is no [blue]config.yaml[/] file"
-    if not os.path.exists(f"{directory}/workflow"):
+    if not os.path.exists(err_dir):
         print_error(
             "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
         sys.exit(1)
     elif not os.path.exists(target_file):
         print_error(
             "file not found", 
-            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
+            f"{err_file} in [blue]{err_dir}[/]. Please check that you are looking in the the correct folder."
         )
         sys.exit(1)
     parse_file(target_file)

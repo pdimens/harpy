@@ -5,12 +5,11 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 extra 	    = config.get("extra", "") 
 regions_input = config["inputs"]["regions"]
@@ -40,7 +39,7 @@ else:
     intervals = [regions_input]
     regions = {f"{regions_input}" : f"{regions_input}"}
 
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupings
     output:
@@ -49,27 +48,21 @@ rule preproc_groups:
         with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai"
+    log:
+        f"{workflow_geno}.preprocess.log"
     container:
         None
     shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai"
-    log:
-        f"{workflow_geno}.faidx.log"
-    container:
-        None
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        """
+        seqtk seq {input} > {output}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule index_alignments:
     input:
@@ -108,12 +101,13 @@ rule call_variants:
     params:
         region = lambda wc: "-r " + regions[wc.part],
         ploidy = f"-p {ploidy}",
+        static = "--strict-vcf",
         populations = "--populations workflow/sample.groups" if groupings else "",
         extra = extra
     threads:
         2
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         """
         freebayes -f {input.ref} -L {input.samples} {params} 2> {log} |
@@ -214,7 +208,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -246,7 +240,7 @@ rule workflow_summary:
         normalize += "\tbcftools norm -m -both -d both"
         summary.append(normalize)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/snp.freebayes.summary", "w") as f:
             f.write("\n\n".join(summary))

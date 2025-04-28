@@ -33,10 +33,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::tigmint"
         ],
         "demultiplex": [
-            "bioconda::pheniqs",
-            "bioconda::pysam=0.22",
-            "bioconda::seqkit",
-            "conda-forge::python-levenshtein"
+            "bioconda::dmox>=0.2"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
@@ -68,20 +65,14 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "r::r-biocircos"
         ],
         "simulations" : [
-            "alienzj::msort",
-            "bioconda::dwgsim=1.1.14",
-            "bioconda::perl-math-random",
-            "bioconda::perl-inline-c",
-            "bioconda::perl-parse-recdescent",
             "bioconda::simug>1.0.0",
-            "conda-forge::numpy",
-            "conda-forge::perl"
+            "bioconda::mimick>=1.1",
         ],
         "spades" : [
             "conda-forge::python=3"
         ],
         "stitch" : [
-            "bioconda::r-stitch=1.6.10"
+            "bioconda::r-stitch>=1.7"
         ],
         "variants" : [
             "bioconda::bcftools=1.20",
@@ -90,8 +81,8 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::naibr-plus"
         ]
     }
-
-    os.makedirs(f"{outdir}/workflow/envs", exist_ok = True)
+    _out = os.path.join(outdir, "workflow", "envs")
+    os.makedirs(_out, exist_ok = True)
     # if none provided, use all
     if not envs:
         envs = environ.keys()
@@ -106,16 +97,16 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
         except KeyError:
             sys.stderr.write(f"Key '{i}' is not an available conda environment name. The options are: " + ", ".join(environ.keys()))
             sys.exit(1)
-        with open(f"{outdir}/workflow/envs/{i}.yaml", "w", encoding="utf-8") as recipe:
+        with open(os.path.join(_out, f"{i}.yaml"), "w", encoding="utf-8") as recipe:
             yaml.dump(env_dict, recipe, default_flow_style= False, sort_keys=False, width=float('inf'), indent=2)
 
     if "spades" in envs:
         # post-deployment script
-        with open(f"{outdir}/workflow/envs/spades.post-deploy.sh", "w", encoding="utf-8") as shellscript:
-            shellscript.write("wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.0.0/SPAdes-4.0.0-Linux.tar.gz\n")
+        with open(os.path.join(_out, "spades.post-deploy.sh"), "w", encoding="utf-8") as shellscript:
+            shellscript.write("wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.1.0/SPAdes-4.1.0-Linux.tar.gz\n")
             shellscript.write("tar -xvzf .spades.tar.gz && rm .spades.tar.gz\n")
-            shellscript.write("mv SPAdes-4.0.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.0.0-Linux/share/* ${CONDA_PREFIX}/share\n")
-            shellscript.write("rm -r SPAdes-4.0.0-Linux\n")
+            shellscript.write("mv SPAdes-4.1.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.1.0-Linux/share/* ${CONDA_PREFIX}/share\n")
+            shellscript.write("rm -r SPAdes-4.1.0-Linux\n")
 
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""

@@ -5,15 +5,15 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 fqlist       = config["inputs"]["fastq"]
-molecule_distance = config["molecule_distance"]
-ignore_bx = config["ignore_bx"]
+molecule_distance = config["barcodes"]["distance_threshold"]
+ignore_bx = config["barcodes"]["ignore"]
+is_standardized = config["barcodes"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]
@@ -33,42 +33,36 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
+        geno = workflow_geno,
+        bwa_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        genome_zip
+    conda:
+        "envs/align.yaml"
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno}
         else
-            cp -f {input} {output}
+            cp -f {input} {output.geno}
         fi
-        """
 
-rule samtools_faidx:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
         if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno} 2>> {log}
         else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
+            samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
         fi
+
+        bwa index {output.geno} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -89,52 +83,52 @@ rule make_depth_intervals:
                 for start,end in zip(starts,ends):
                     bed.write(f"{contig}\t{start}\t{end}\n")
 
-rule bwa_index:
-    input: 
-        workflow_geno
-    output: 
-        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
-    log:
-        f"{workflow_geno}.bwa.idx.log"
-    conda:
-        f"{envdir}/align.yaml"
-    shell: 
-        "bwa index {input} 2> {log}"
-
 rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
     output:
-        temp("samples/{sample}/{sample}.bwa.sam")
+        pipe("samples/{sample}/{sample}.bwa.sam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
-        RG_tag = lambda wc: "\"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
+        RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",
+        static = "-C -v 2" if is_standardized else "-v 2",
         extra = extra
     threads:
-        4
+        min(6, workflow.cores - 1)
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
-        bwa mem -C -v 2 -t {threads} {params.extra} -R {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
-            samtools view -h {params.unmapped} -q {params.quality} > {output} 
+        bwa mem {params.static} -t {threads} {params.extra} {params.RG_tag} {input.genome} {input.fastq} 2> {log} |
+            samtools view -h {params.unmapped} -q {params.quality} > {output}
         """
+
+rule standardize_barcodes:
+    input:
+        "samples/{sample}/{sample}.bwa.sam"
+    output:
+        temp("samples/{sample}/{sample}.standard.sam")
+    container:
+        None
+    shell:
+        "standardize_barcodes_sam.py > {output} < {input}"
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.bwa.sam",
+        sam    = "samples/{sample}/{sample}.standard.sam",
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
         temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam") 
     log:
-        "logs/markdup/{sample}.markdup.log"
+        debug = "logs/markdup/{sample}.markdup.log",
+        stats = "logs/markdup/{sample}.markdup.stats"
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -151,10 +145,10 @@ rule mark_duplicates:
         else
             OPTICAL_BUFFER=100
         fi
-        samtools collate -O -u {input.sam} |
-            samtools fixmate -m -u - - |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
+        samtools collate -O -u {input.sam} 2> {log.debug} |
+            samtools fixmate -m -u - - 2>> {log.debug} |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
         rm -rf {params.tmpdir}
         """
 
@@ -244,7 +238,7 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.alignstats.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -295,7 +289,7 @@ rule samtools_report:
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc {params} --filename {output} 2> /dev/null"
 
@@ -313,7 +307,7 @@ rule barcode_report:
     log:
         f"logs/reports/bxstats.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -327,19 +321,23 @@ rule workflow_summary:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
+        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
     params:
         quality = config["alignment_quality"],
         unmapped = "" if keep_unmapped else "-F 4",\
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        bwa_static = "-C -v 2" if is_standardized else "-v 2",
         extra   = extra
     run:
         summary = ["The harpy align bwa workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with BWA using:\n"
-        align += f'\tbwa mem -C -v 2 {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
+        align += f'\tbwa mem {params.bwa_static} {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
+        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
@@ -347,7 +345,7 @@ rule workflow_summary:
         duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open(f"workflow/align.bwa.summary", "w") as f:
             f.write("\n\n".join(summary))

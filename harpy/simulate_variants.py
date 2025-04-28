@@ -173,7 +173,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     check_fasta(genome)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -187,7 +187,6 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -207,7 +206,11 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : genome,
@@ -235,7 +238,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.snpindel.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
@@ -279,7 +282,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     check_fasta(genome)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -293,7 +296,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -306,7 +308,11 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {})
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : genome,
@@ -331,7 +337,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.inversion.summary")
 
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
@@ -386,7 +392,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     check_fasta(genome)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -400,7 +406,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -416,7 +421,11 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"max_copy" : max_copy} if not vcf else {}),
             **({"gain_ratio" : gain_ratio} if not vcf else {})
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : genome,
@@ -441,7 +450,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.cnv.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
@@ -483,7 +492,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     check_fasta(genome)
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -497,7 +506,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "prefix" : prefix,
         **({"random_seed" : random_seed} if random_seed else {}),
         "heterozygosity" : {
@@ -508,7 +516,11 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
             **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {})
         },
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs" : {
             "genome" : genome,
@@ -533,5 +545,5 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.translocation.summary")
 

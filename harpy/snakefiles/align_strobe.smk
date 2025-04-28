@@ -5,12 +5,11 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 fqlist      = config["inputs"]["fastq"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]
@@ -19,11 +18,10 @@ if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
 windowsize  = config["depth_windowsize"]
-molecule_distance = config["molecule_distance"]
-ignore_bx = config["ignore_bx"]
+molecule_distance = config["barcodes"]["distance_threshold"]
+ignore_bx = config["barcodes"]["ignore"]
+is_standardized = config["barcodes"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
-readlen = config["average_read_length"]
-autolen = isinstance(readlen, str)
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
@@ -35,27 +33,21 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
-    shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai",
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai"
     log:
-        f"{workflow_geno}.faidx.log"
+        f"{workflow_geno}.preprocess.log"
     container:
         None
     shell: 
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
+        """
+        seqtk seq {input} > {output.geno}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule make_depth_intervals:
     input:
@@ -75,57 +67,51 @@ rule make_depth_intervals:
                 for start,end in zip(starts,ends):
                     bed.write(f"{contig}\t{start}\t{end}\n")
 
-rule strobe_index:
-    input: 
-        workflow_geno
-    output:
-        f"{workflow_geno}.r{readlen}.sti"
-    log:
-        f"{workflow_geno}.r{readlen}.sti.log"
-    params:
-        readlen
-    conda:
-        f"{envdir}/align.yaml"
-    threads:
-        2
-    shell: 
-        "strobealign --create-index -t {threads} -r {params} {input} 2> {log}"
-
 rule align:
     input:
         fastq = get_fq,
-        genome   = workflow_geno,
-        genome_index   = f"{workflow_geno}.r{readlen}.sti" if not autolen else []
+        genome   = workflow_geno
     output:  
-        temp("samples/{sample}/{sample}.strobe.sam")
+        pipe("samples/{sample}/{sample}.strobe.sam")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
         samps = lambda wc: d[wc.get("sample")],
-        readlen = "" if autolen else f"--use-index -r {readlen}",
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
+        static = "-N 2 -C" if is_standardized else "-N 2",
         extra = extra
     threads:
-        4
+        min(4, workflow.cores - 1)
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         """
-        strobealign {params.readlen} -N 2 -t {threads} {params.unmapped_strobe} -C --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
+        strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
             samtools view -h {params.unmapped} -q {params.quality} > {output} 
         """
 
+rule standardize_barcodes:
+    input:
+        "samples/{sample}/{sample}.strobe.sam"
+    output:
+        temp("samples/{sample}/{sample}.standard.sam")
+    container:
+        None
+    shell:
+        "standardize_barcodes_sam.py > {output} < {input}"
+
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.strobe.sam",
+        sam    = "samples/{sample}/{sample}.standard.sam",
         genome = workflow_geno,
         faidx  = f"{workflow_geno}.fai"
     output:
         temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam")
     log:
-        "logs/markdup/{sample}.markdup.log"
+        debug = "logs/markdup/{sample}.markdup.log",
+        stats = "logs/markdup/{sample}.markdup.stats"
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -142,10 +128,10 @@ rule mark_duplicates:
         else
             OPTICAL_BUFFER=100
         fi
-        samtools collate -O -u {input.sam} |
-            samtools fixmate -m -u - - |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log} - {output}
+        samtools collate -O -u {input.sam} 2> {log.debug} |
+            samtools fixmate -m -u - - 2>> {log.debug} |
+            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
+            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
         rm -rf {params.tmpdir}
         """
 
@@ -235,7 +221,7 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.alignstats.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -286,7 +272,7 @@ rule samtools_report:
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc  {params} --filename {output} 2> /dev/null"
 
@@ -304,7 +290,7 @@ rule barcode_report:
     log:
         "logs/reports/bxstats.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -318,27 +304,24 @@ rule workflow_summary:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
         samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if ((not skip_reports and not ignore_bx) or len(samplenames) == 1) else []
+        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
     params:
-        readlen = readlen,
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        static = "-C" if is_standardized else "",
         extra   = extra
     run:
         summary = ["The harpy align strobe workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
         align = "Sequences were aligned with strobealign using:\n"
-        if autolen:
-            align += f"\tstrobealign -U -C --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
-        else:
-            align = "The genome index was created using:\n"
-            align += f"\tstrobealign --create-index -r {params.readlen} genome\n\n"
-            align += "Sequences were aligned with strobealign using:\n"
-            align += f"\tstrobealign --use-index {params.unmapped_strobe} -N 2 -C --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
+        align += f"\tstrobealign -U {params.static} --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
         align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
+        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
@@ -346,7 +329,7 @@ rule workflow_summary:
         duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/align.strobealign.summary", "w") as f:
             f.write("\n\n".join(summary))

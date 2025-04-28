@@ -1,7 +1,6 @@
 """Command to regenerate Dockerfile for container building"""
 
 import os
-import sys
 import shutil
 import subprocess
 from pathlib import Path
@@ -19,11 +18,11 @@ def containerize():
     by the workflows and build a dockerfile from that.
     """
     create_conda_recipes("container")
-    fetch_rule(os.getcwd(), "environments.smk")
+    fetch_rule("container/workflow", "environments.smk")
 
     with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
-            'snakemake -s environments.smk --containerize'.split(),
+            'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
             stdout = dockerraw
         )
 
@@ -32,7 +31,6 @@ def containerize():
             dockerfile.write(dockerraw.readline())
             dockerfile.write(dockerraw.readline())
             dockerfile.write(dockerraw.readline())
-            #dockerfile.write("\nRUN mkdir -p /conda-envs/\n")
             dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
             env_hash = {}
             for line in dockerraw:
@@ -52,7 +50,6 @@ def containerize():
                 "\n\t".join(runcmds)
             )
     os.remove("Dockerfile.raw")
-    os.remove("environments.smk")
 
 @click.command(hidden = True)
 @click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
@@ -81,6 +78,6 @@ def localenv(workflows):
     else:
         create_conda_recipes(output_dir)
     fetch_rule(os.path.join(output_dir, 'workflow'), "environments.smk")
-    command = f'snakemake -s {output_dir}/workflow/environments.smk --sdm conda --cores 2 --conda-prefix .environments --conda-cleanup-pkgs cache --directory . --config spades=True'
+    command = " ".join(["snakemake", "-s", os.path.join(output_dir, "workflow", "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix .environments", "--conda-cleanup-pkgs cache", "--directory .", "--config spades=True"])
     launch_snakemake(command, "localenv", "", output_dir, sm_log, 1, "workflow/localenv.summary")
     shutil.rmtree(output_dir, ignore_errors = True)

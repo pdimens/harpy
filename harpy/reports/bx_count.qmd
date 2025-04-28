@@ -1,5 +1,5 @@
 ---
-title: "Haplotag QC Bardcode Summary"
+title: "Haplotagging QC Bardcode Summary"
 params:
   indir: 'logs/bxcount'
 ---
@@ -19,10 +19,10 @@ using("dplyr","tidyr","DT","highcharter","scales")
 ```
 # Overview
 ##
-<h2> General Per-Sample Haplotag Barcode Statistics </h2>
+<h2> General Per-Sample Haplotagging Barcode Statistics </h2>
 
-This report details the counts of valid and invalid haplotag barcodes in the 
-sample read headers. The correct haplotag format is `BX:Z:AXXCXXBXXDXX`, where 
+This report details the counts of valid and invalid haplotagging barcodes in the 
+sample read headers. The correct haplotagging format is `BX:Z:AXXCXXBXXDXX`, where 
 there is a tab before (and possible after) `BX:Z` and `XX` are 2-digit numbers
 between `00` and `96`. A valid FASTQ read header would then look like:
 
@@ -164,10 +164,10 @@ list(
 ## persamp
 ###
 ::: {.card}
-<h3> General Per-Sample Haplotag Barcode Statistics </h3>
+<h3> General Per-Sample haplotagging Barcode Statistics </h3>
 
 Below is a table listing all the samples Harpy processed and their associated
-haplotag barcode statistics as determined by the reads in the **forward read only**.
+haplotagging barcode statistics as determined by the reads in the **forward read only**.
 If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
 the format of your FASTQ headers.
 
@@ -186,10 +186,10 @@ column_description <- c(
   "name of the sample",
   "total number of reads",
   "total number of barcodes present",
-  "number of valid haplotag barcodes",
-  "percent of haplotag barcodes that are valid",
-  "number of invalid haplotag barcodes, i.e. with a 00 segment",
-  "percent of haplotag barcodes that are invalid"
+  "number of valid haplotagging barcodes",
+  "percent of haplotagging barcodes that are valid",
+  "number of invalid haplotagging barcodes, i.e. with a 00 segment",
+  "percent of haplotagging barcodes that are invalid"
   )
 
 headerCallback <- c(
@@ -223,7 +223,7 @@ DT::datatable(
 <h2> Percent Beadtag Segment Invalidations </h2>
 Below is information describing segment invalidations across all **forward reads**
 within samples. The term "segments" refers to the combinatorial `Axx`, `Bxx`, 
-`Cxx`, `Dxx` segments that make up a complete `AxxCxxBxxDxx` haplotag barcode.
+`Cxx`, `Dxx` segments that make up a complete `AxxCxxBxxDxx` haplotagging barcode.
 
 ##
 ###
@@ -317,11 +317,11 @@ DT::datatable(
 # Per-Sample Invalidations
 ## Segment viz description
 <h2> Per-Sample Barcode and Segment Invalidations </h2>
-These three visualizations show the occurrence of invalid haplotag barcodes.
+These three visualizations show the occurrence of invalid haplotagging barcodes.
 The plot on the left shows this as the count of valid vs. invalid barcodes 
 per individual, whereas the plot in the middle shows this in finer detail as
 the percent invalid beadtag segments per individual. The plot on the right shows
-the proportion of invalid haplotag barcode segments (A, C, B, or D) per individual.
+the proportion of invalid haplotagging barcode segments (A, C, B, or D) per individual.
 Together, these three graphs should help you assess if any individuals have an unusually
 high amount of barcode invalidations and if any particular beadtag segments appear to be more prone to
 failure than others.

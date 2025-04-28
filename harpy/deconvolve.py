@@ -56,7 +56,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     fqlist, sample_count = parse_fastq_inputs(inputs)
     
     ## setup workflow ##
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -70,12 +70,15 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     conda_envs = ["qc"]
     configs = {
         "workflow": workflow,
-        "snakemake_log" : sm_log,
         "kmer_length" : kmer_length,       
         "window_size" : window_size,
         "density" :  density,
         "dropout" :  dropout,
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "inputs": fqlist
     }
@@ -90,4 +93,4 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")

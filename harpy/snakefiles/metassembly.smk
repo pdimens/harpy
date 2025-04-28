@@ -4,13 +4,12 @@ import os
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
 BX_TAG = config["barcode_tag"].upper()
-envdir = os.path.join(os.getcwd(), "workflow", "envs")
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
@@ -78,7 +77,7 @@ rule error_correction:
     resources:
         mem_mb=max_mem
     conda:
-        f"{envdir}/spades.yaml"
+        "envs/spades.yaml"
     container:
         None
     shell:
@@ -103,7 +102,7 @@ rule spades_assembly:
     resources:
         mem_mb=max_mem
     conda:
-        f"{envdir}/spades.yaml"
+        "envs/spades.yaml"
     container:
         None
     shell:
@@ -124,7 +123,7 @@ rule cloudspades_metassembly:
     log:
         "logs/assembly.log"
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     threads:
         workflow.cores
     resources:
@@ -140,7 +139,7 @@ rule index_contigs:
     log:
         "logs/bwa.index.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         "bwa index {input}"
 
@@ -157,7 +156,7 @@ rule align_to_contigs:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell:
         "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
@@ -226,7 +225,7 @@ rule athena_metassembly:
         final_asm = "athena/results/olc/athena.asm.fa",
         result_dir = "athena"
     conda:
-        f"{envdir}/metassembly.yaml"
+        "envs/metassembly.yaml"
     shell:
         """
         athena-meta --config {input.config} 2> {log} &&\\
@@ -250,7 +249,7 @@ rule QUAST_assessment:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     shell:
         "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -271,7 +270,7 @@ rule BUSCO_analysis:
     threads:
         workflow.cores
     conda:
-        f"{envdir}/assembly.yaml"
+        "envs/assembly.yaml"
     shell:
         """
         ( busco -f -i {input} -c {threads} {params} > {log} 2>&1 ) || touch {output}
@@ -287,7 +286,7 @@ rule build_report:
         options = "--no-version-check --force --quiet --no-data-dir",
         title = "--title \"Metassembly Metrics\""
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "multiqc {input} {params} --filename {output}"
 
@@ -326,7 +325,7 @@ rule workflow_summary:
         athena += "\tathena-meta --config athena.config"
         summary.append(athena)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/metassembly.summary", "w") as f:  
             f.write("\n\n".join(summary))

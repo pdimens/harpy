@@ -5,13 +5,12 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 genomefile 	= config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
 groupfile 	= config["inputs"]["groupings"]
@@ -51,7 +50,7 @@ def pop_manifest(groupingfile, filelist):
 popdict = pop_manifest(groupfile, bamlist)
 populations = popdict.keys()
 
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupfile
     output:
@@ -111,43 +110,27 @@ rule index_barcode:
     threads:
         min(5, workflow.cores)
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
-    container:
-        None
-    shell: 
-        "seqtk seq {input} > {output}"
-
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        f"{workflow_geno}.fai"
+        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        geno = workflow_geno,
+        fai  = f"{workflow_geno}.fai"
     log:
-        f"{workflow_geno}.faidx.log"
-    container:
-        None
-    shell:
-        "samtools faidx --fai-idx {output} {input} 2> {log}"
-
-rule bwa_index_genome:
-    input: 
-        workflow_geno
-    output: 
-        multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
-    log:
-        f"{workflow_geno}.bwa.idx.log"
+        f"{workflow_geno}.preprocess.log"
     conda:
-        f"{envdir}/align.yaml"
+        "envs/align.yaml"
     shell: 
-        "bwa index {input} 2> {log}"
+        """
+        seqtk seq {input} > {output.geno}
+        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        bwa index {output.geno} 2>> {log}
+        """
 
 rule call_variants:
     input:
@@ -173,7 +156,7 @@ rule call_variants:
     threads:
         workflow.cores - 1
     conda:
-        f"{envdir}/variants.yaml"
+        "envs/variants.yaml"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -264,7 +247,7 @@ rule group_reports:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -289,7 +272,7 @@ rule aggregate_report:
         statsdir = "reports/data/",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -323,7 +306,7 @@ rule workflow_summary:
         svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
         summary.append(svcall)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/sv.leviathan.summary", "w") as f:
             f.write("\n\n".join(summary))

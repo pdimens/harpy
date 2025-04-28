@@ -34,8 +34,8 @@ docstring = {
 @click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), nargs=4, help = "`k` `w` `d` `a` QuickDeconvolution parameters")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
-@click.option('-m', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
-@click.option('-n', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
+@click.option('-M', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
+@click.option('-m', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
@@ -83,7 +83,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         trim_adapters = False
 
     ## setup workflow ##
-    command = setup_snakemake(
+    command, command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -98,7 +98,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     conda_envs = ["qc", "r"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "ignore_bx" : ignore_bx,
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
@@ -111,7 +110,11 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             "density" : deconvolve[2],
             "dropout" : deconvolve[3]
         }} if deconvolve else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {"skip": skip_reports},
         "inputs" : fqlist
@@ -129,4 +132,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

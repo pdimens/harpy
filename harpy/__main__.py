@@ -12,11 +12,11 @@ from . import environments
 from . import impute
 from . import qc
 from . import phase
-from . import preflight
 from . import simulate
 from . import snp
 from . import sv
 from . import template
+from . import validate
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -27,8 +27,8 @@ click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
 click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
-@click.version_option("0.0.0", prog_name="harpy")
+@click.group(options_metavar='', context_settings={"help_option_names" : []} )
+@click.version_option("0.0.0", prog_name="harpy", hidden = True)
 def cli():
     """
     An automated workflow for haplotagging linked-read data
@@ -53,12 +53,12 @@ cli.add_command(environments.localenv)
 cli.add_command(impute.impute)
 cli.add_command(metassembly.metassembly)
 cli.add_command(phase.phase)
-cli.add_command(preflight.preflight)
 cli.add_command(qc.qc)
 cli.add_command(resume.resume)
 cli.add_command(simulate.simulate)
 cli.add_command(snp.snp)
 cli.add_command(sv.sv)
+cli.add_command(validate.validate)
 cli.add_command(view.view)
 cli.add_command(template.template)
 
@@ -77,12 +77,12 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Troubleshoot",
-                "commands": sorted(["view", "resume", "diagnose", "preflight"]),
+                "commands": sorted(["view", "resume", "diagnose", "validate"]),
                 "panel_styles": {"border_style": "dim"}
             }
         ],
- } | align.module_docstring | snp.module_docstring | sv.module_docstring | simulate.docstring | template.docstring
+ } | align.module_docstring | convert.module_docstring | snp.module_docstring | sv.module_docstring | simulate.docstring | template.docstring
 
 click.rich_click.OPTIONS_PANEL_TITLE = None
-for i in [align, deconvolve, downsample, demultiplex, impute, phase, preflight, qc, simulate, snp, sv, assembly, metassembly]:
+for i in [align, deconvolve, downsample, demultiplex, impute, phase, validate, qc, simulate, snp, sv, assembly, metassembly]:
     click.rich_click.OPTION_GROUPS |= i.docstring

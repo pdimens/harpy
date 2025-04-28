@@ -5,13 +5,12 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist      = config["inputs"]
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 kmer_length = config["kmer_length"]
 window_size = config["window_size"]
 density 	= config["density"] 
@@ -55,7 +54,7 @@ rule deconvolve:
     threads:
         2
     conda:
-        f"{envdir}/qc.yaml"
+        "envs/qc.yaml"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -94,7 +93,7 @@ rule workflow_summary:
         recover += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
         summary.append(recover)
         sm = "Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/deconvolve.summary", "w") as f:  
             f.write("\n\n".join(summary))

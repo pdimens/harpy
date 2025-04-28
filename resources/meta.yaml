@@ -11,7 +11,7 @@ source:
 
 build:
   number: 0
-  skip: True  # [osx or py < 39]
+  skip: True  # [osx or py < 311]
   script_env:
     - SETUPTOOLS_SCM_PRETEND_VERSION={{ version }}
   run_exports:
@@ -29,21 +29,21 @@ requirements:
   build:
     - {{ compiler('cxx') }}
   host:
-    - python
+    - python >=3.11
     - pip
     - setuptools-scm >=3.4
   run:
     - apptainer
-    - bcftools =1.20
+    - bcftools =1.21
     - click =8
     - conda >24.7
-    - pysam
-    - python
-    - rich-click
-    - snakemake-minimal >7
-    - samtools =1.20
+    - htslib =1.21
+    - pysam =0.23
+    - python >=3.11
+    - rich-click =1.8
+    - snakemake-minimal =9
+    - samtools =1.21
     - seqtk
-    - tabix
 
 test:
   commands:

@@ -156,7 +156,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         break
                     # add new progress bar track if the rule doesn't have one yet
                     #rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
-                    if output.startswith("rule ") or output.startswith("localrule "):
+                    if output.lstrip().startswith("rule ") or output.lstrip().startswith("localrule "):
                         # catch the 2nd word and remove the colon
                         rule = output.split()[-1].replace(":", "")
                         # add progress bar if it doesn't exist

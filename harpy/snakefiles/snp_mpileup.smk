@@ -5,12 +5,11 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-envdir      = os.path.join(os.getcwd(), "workflow", "envs")
 ploidy 		= config["ploidy"]
 mp_extra 	= config.get("extra", "")
 skip_reports = config["reports"]["skip"]
@@ -36,45 +35,31 @@ else:
     intervals = [region_input]
     regions = {f"{region_input}" : f"{region_input}"}
 
-rule process_genome:
+rule preprocess_reference:
     input:
         genomefile
     output: 
-        workflow_geno
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
     container:
         None
     shell: 
         """
         if (file {input} | grep -q compressed ) ;then
             # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output}
+            seqtk seq {input} | bgzip -c > {output.geno}
         else
-            cp -f {input} {output}
+            cp -f {input} {output.geno}
         fi
+        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2> {log}
         """
 
-rule index_genome:
-    input: 
-        workflow_geno
-    output: 
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.faidx.log"
-    params:
-        genome_zip
-    container:
-        None
-    shell: 
-        """
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {input} 2> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {input} 2> {log}
-        fi
-        """
-
-rule preproc_groups:
+rule preprocess_groups:
     input:
         grp = groupings
     output:
@@ -116,11 +101,12 @@ rule mpileup:
         logfile = temp("logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
+        annotations = "-a AD,INFO/FS",
         extra = mp_extra
     container:
         None
     shell:
-        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --annotate AD --output-type b {params} > {output.bcf} 2> {output.logfile}"
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --output-type b {params} > {output.bcf} 2> {output.logfile}"
 
 rule call_genotypes:
     input:
@@ -131,14 +117,17 @@ rule call_genotypes:
         idx = temp("call/{part}.bcf.csi")
     params: 
         f"--ploidy {ploidy}",
+        "-a GQ,GP",
         "--group-samples" if groupings else "--group-samples -"
+    log:
+        "logs/{part}.call.log"
     threads:
         2
     container:
         None
     shell:
         """
-        bcftools call --multiallelic-caller --variants-only --output-type b {params} {input} |
+        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} 2> {log}|
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
@@ -249,7 +238,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -284,7 +273,7 @@ rule workflow_summary:
         normalize += "\tbcftools norm -m -both -d both"
         summary.append(normalize)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake_command']}"
+        sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/snp.mpileup.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -110,7 +110,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
     ## setup workflow ##
     vcaller = workflow if not populations else f"{workflow}_pop"
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         vcaller,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -126,7 +126,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     conda_envs = ["align", "r", "variants"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "min_barcodes" : min_barcodes,
         "min_size" : min_size,
         "iterations" : iterations,
@@ -137,7 +136,11 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             "duplicates": duplicates
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -162,7 +165,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.leviathan.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.leviathan.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
@@ -214,7 +217,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     ## setup workflow ##
     vcaller = workflow if not populations else f"{workflow}_pop"
     vcaller += "_phase" if vcf else ""
-    command = setup_snakemake(
+    command,command_rel = setup_snakemake(
         vcaller,
         "conda" if not container else "conda apptainer",
         output_dir,
@@ -230,13 +233,16 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     conda_envs = ["phase", "r", "variants"]
     configs = {
         "workflow" : workflow,
-        "snakemake_log" : sm_log,
         "min_barcodes" : min_barcodes,
         "min_quality" : min_quality,
         "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake_command" : command.rstrip(),
+        "snakemake" : {
+            "log" : sm_log,
+            "absolute": command,
+            "relative": command_rel
+        },
         "conda_environments" : conda_envs,
         "reports" : {
             "skip": skip_reports,
@@ -263,7 +269,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.naibr.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.naibr.summary")
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

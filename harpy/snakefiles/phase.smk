@@ -6,22 +6,21 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake_log"])
+    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 pruning           = config["prune"]
-molecule_distance = config["molecule_distance"]
+molecule_distance = config["barcodes"]["distance_threshold"]
 extra             = config.get("extra", "") 
-envdir            = os.path.join(os.getcwd(), "workflow", "envs")
 samples_from_vcf  = config["samples_from_vcf"]
 variantfile       = config["inputs"]["variantfile"]
 skip_reports      = config["reports"]["skip"]
 plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-if config["ignore_bx"]:
+if config["barcodes"]["ignore"]:
     fragfile = "extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
@@ -97,27 +96,21 @@ rule index_alignments:
         "samtools index {input}"
 
 if indels:
-    rule process_genome:
+    rule preprocess_reference:
         input:
             genomefile
         output: 
-            geno
-        container:
-            None
-        shell: 
-            "seqtk seq {input} > {output}"
-
-    rule index_genome:
-        input: 
-            geno
-        output: 
-            genofai
+            fasta = geno,
+            fai = genofai
         log:
-            f"workflow/reference/{bn}.faidx.log"
+            f"workflow/reference/{bn}.preprocess.log"
         container:
             None
         shell: 
-            "samtools faidx --fai-idx {output} {input} 2> {log}"
+            """
+            seqtk seq {input} > {output.fasta}
+            samtools faidx --fai-idx {output.fai} {output.fasta} 2> {log}
+            """
 
 rule extract_hairs:
     input:
@@ -134,7 +127,7 @@ rule extract_hairs:
         indels = indelarg,
         bx = linkarg
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
 
@@ -150,7 +143,7 @@ rule link_fragments:
     params:
         d = molecule_distance
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
 
@@ -168,7 +161,7 @@ rule phase:
         fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
         extra = extra
     conda:
-        f"{envdir}/phase.yaml"
+        "envs/phase.yaml"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
@@ -272,7 +265,7 @@ rule phase_report:
     params:
         f"-P contigs:{plot_contigs}"
     conda:
-        f"{envdir}/r.yaml"
+        "envs/r.yaml"
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -304,7 +297,7 @@ rule workflow_summary:
         annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
         sm = "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config['snakemake_command']}"
+        sm = f"\t{config['snakemake']['relative']}"
         summary.append(sm)
         with open("workflow/phase.summary", "w") as f:
             f.write("\n\n".join(summary))

@@ -26,7 +26,7 @@ jobs:
       pull-requests: read
     # Set job outputs to values from filter step
     outputs:
-      preflight: ${{ steps.filter.outputs.preflight }}
+      validate: ${{ steps.filter.outputs.validate }}
       deconvolve: ${{ steps.filter.outputs.deconvolve }}
       demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
@@ -66,7 +66,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           init-shell: bash
           generate-run-shell: true
@@ -130,7 +130,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         with:
           init-shell: bash
           generate-run-shell: true
@@ -153,13 +153,13 @@ jobs:
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: |
-          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I*
+          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
           ls -lh Demultiplex
 
-  preflight:
+  validate:
     needs: [changes]
-    if: ${{ needs.changes.outputs.preflight == 'true' }}
-    name: preflight
+    if: ${{ needs.changes.outputs.validate == 'true' }}
+    name: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -167,7 +167,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -190,17 +190,17 @@ jobs:
 #        with:
 #          name: deps-image
 #          path: .snakemake/singularity
-      - name: test preflight fastq
+      - name: test validate fastq
         shell: micromamba-shell {0}
         run: |
-          harpy preflight fastq test/fastq
-          ls -lh Preflight/fastq
-      - name: test preflight bam
+          harpy validate fastq test/fastq
+          ls -lh Validate/fastq
+      - name: test validate bam
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy preflight bam --quiet 2 test/bam
-          ls -lh Preflight/bam
+          harpy validate bam --quiet 2 test/bam && \
+          ls -lh Validate/bam
 
   qc:
     needs: [changes]
@@ -213,7 +213,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -239,12 +239,12 @@ jobs:
       - name: harpy qc
         shell: micromamba-shell {0}
         run: |
-          harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq
+          harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
           ls -lh  QC
       - name: harpy qc all options
         shell: micromamba-shell {0}
         run: |
-          harpy qc -o QC/auto -a auto -d -c 21 40 3 0 --quiet 2 test/fastq
+          harpy qc -o QC/auto -a auto -d -c 21 40 3 0 --quiet 2 test/fastq && \
           ls -lh QC/auto
 
   deconvolve:
@@ -258,7 +258,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -284,7 +284,7 @@ jobs:
       - name: harpy deconvolve
         shell: micromamba-shell {0}
         run: |
-          harpy deconvolve --quiet 2 test/fastq
+          harpy deconvolve --quiet 2 test/fastq && \
           ls -lh Deconvolve
   
   bwa:
@@ -298,7 +298,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -324,7 +324,7 @@ jobs:
       - name: test bwa
         shell: micromamba-shell {0}
         run: |
-          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq
+          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/bwa
 
   ema:
@@ -338,7 +338,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -364,7 +364,7 @@ jobs:
       - name: test ema
         shell: micromamba-shell {0}
         run: |
-          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq
+          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/ema
 
   strobe:
@@ -378,7 +378,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -404,7 +404,7 @@ jobs:
       - name: test strobealign
         shell: micromamba-shell {0}
         run: |
-          harpy align strobe --quiet 2 -l 125 test/genome/genome.fasta.gz test/fastq
+          harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/strobealign
 
   mpileup:
@@ -418,7 +418,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -444,12 +444,12 @@ jobs:
       - name: snp mpileup
         shell: micromamba-shell {0}
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam
+          harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
         shell: micromamba-shell {0}
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   freebayes:
@@ -463,7 +463,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -489,12 +489,12 @@ jobs:
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam
+          harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         shell: micromamba-shell {0}
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   impute:
@@ -508,7 +508,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -540,13 +540,13 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam
+          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute
       - name: impute one region
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam
+          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute
 
   phase:
@@ -560,7 +560,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -586,13 +586,13 @@ jobs:
       - name: phase
         shell: micromamba-shell {0}
         run: |
-          harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam
+          harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
           ls -lh Phase
       - name: phase with indels
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam
+          harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phaseindel
       - name: phase from vcf
         shell: micromamba-shell {0}
@@ -613,7 +613,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -639,13 +639,13 @@ jobs:
       - name: leviathan
         shell: micromamba-shell {0}
         run: |
-          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathan
       - name: leviathan-pop
         if: always()
         shell: micromamba-shell {0}
         run: | 
-          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy sv leviathan --quiet 2 -m 100 -s 80 80 80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathanpop
 
   naibr:
@@ -659,7 +659,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -685,25 +685,25 @@ jobs:
       - name: naibr
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased
+          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased
+          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
       - name: naibr with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam
+          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phase
       - name: naibr pop with phasing
         if: always()
         shell: micromamba-shell {0}
         run: |
-          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam
+          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phasepop
 
   simulate_variants:
@@ -717,7 +717,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -745,7 +745,7 @@ jobs:
         run: |
           harpy simulate snpindel --quiet 2 --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
           ls -lh Simulate/snpindel
-          harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf  test/genome/genome.fasta.gz
+          harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate inversions
         shell: micromamba-shell {0}
@@ -753,7 +753,7 @@ jobs:
         run: |
           harpy simulate inversion --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/inversion
-          harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf  test/genome/genome.fasta.gz
+          harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate cnv
         shell: micromamba-shell {0}
@@ -761,7 +761,7 @@ jobs:
         run: |
           harpy simulate cnv --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/cnv
-          harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf  test/genome/genome.fasta.gz
+          harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate translocations
         shell: micromamba-shell {0}
@@ -769,7 +769,7 @@ jobs:
         run: |
           harpy simulate translocation --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
           ls -lh Simulate/translocation
-          harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf  test/genome/genome.fasta.gz
+          harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
   simulate_linkedreads:
     needs: [changes]
@@ -782,7 +782,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -805,11 +805,17 @@ jobs:
 #        with:
 #          name: deps-image
 #          path: .snakemake/singularity
-      - name: simulate linked reads
+      - name: simulate linked reads (random barcodes)
         shell: micromamba-shell {0}
         run: |
-          haplotag_barcodes.py -n 14000000 > test/haplotag.bc
-          harpy simulate linkedreads --quiet 2 -t 4 -n 2 -b test/haplotag.bc -l 100 -p 50 test/genome/genome.fasta.gz test/genome/genome2.fasta.gz
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 18,96 test/genome/genome*.fasta.gz && \
+          ls -lh Simulate/linkedreads
+      - name: simulate linked reads (known barcodes)
+        shell: micromamba-shell {0}
+        run: |
+          haplotag_acbd.py .
+          cut -f2 segment_A.bc > hap.bc
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 hap.bc test/genome/genome*.fasta.gz && \
           ls -lh Simulate/linkedreads
 
   assembly:
@@ -823,7 +829,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -849,17 +855,17 @@ jobs:
       - name: test assembly
         shell: micromamba-shell {0}
         run: |
-          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy assembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Assembly
       - name: test metassembly
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.*
+          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
 
   other:
@@ -873,7 +879,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -922,7 +928,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v1
+        uses: mamba-org/setup-micromamba@v2
         env:
           ACTIONS_STEP_DEBUG: true
         with:
@@ -940,65 +946,88 @@ jobs:
           resources/buildforCI.sh
       - name: convert haplotag to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/stlfr haplotagging stlfr test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/stlfr haplotagging stlfr test/fastq/sample1.*gz
       - name: convert haplotag to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/tellseq haplotagging tellseq test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/tellseq haplotagging tellseq test/fastq/sample1.*gz
       - name: convert haplotag to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert/10x haplotagging 10x test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert/10x haplotagging 10x test/fastq/sample1.*gz
       - name: convert stlfr to haplotag
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/haptag stlfr haplotagging convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/haptag stlfr haplotagging convert/stlfr.*gz
       - name: convert stlfr to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/tellseq stlfr tellseq convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/tellseq stlfr tellseq convert/stlfr.*gz
       - name: convert stlfr to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_stlfr/10x stlfr 10x convert/stlfr.*gz
+        run: harpy convert fastq --quiet 2 -o convert_stlfr/10x stlfr 10x convert/stlfr.*gz
       - name: convert stlfr to standard
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_stlfr/standard stlfr standard convert/stlfr.*gz
+          harpy convert fastq --quiet 2 -o convert_stlfr/standard stlfr standard convert/stlfr.*gz
           rm -rf convert_stlfr
       - name: convert tellseq to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/10x tellseq 10x convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/10x tellseq 10x convert/tellseq.*gz
       - name: convert tellseq to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/stlfr tellseq stlfr convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/stlfr tellseq stlfr convert/tellseq.*gz
       - name: convert tellseq to haplotag
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_tellseq/haptag tellseq haplotagging convert/tellseq.*gz
+        run: harpy convert fastq --quiet 2 -o convert_tellseq/haptag tellseq haplotagging convert/tellseq.*gz
       - name: convert tellseq to standard
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_tellseq/standard tellseq standard convert/tellseq.*gz
+          harpy convert fastq --quiet 2 -o convert_tellseq/standard tellseq standard convert/tellseq.*gz
           rm -rf convert_tellseq
       - name: convert standard to 10x
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_standard/10x standard 10x test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert_standard/10x standard 10x test/fastq/sample1.*gz
       - name: convert standard to stlfr
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_standard/stlfr standard stlfr test/fastq/sample1.*gz
+        run: harpy convert fastq --quiet 2 -o convert_standard/stlfr standard stlfr test/fastq/sample1.*gz
       - name: convert standard to tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_standard/haptag standard tellseq test/fastq/sample1.*gz
+          harpy convert fastq --quiet 2 -o convert_standard/haptag standard tellseq test/fastq/sample1.*gz
           rm -rf convert_standard
       - name: convert 10x to standard
         shell: micromamba-shell {0}
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes
-          harpy convert --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
+          harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes 10x standard convert/10x*gz
       - name: convert 10x to haplotagging
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
+        run: harpy convert fastq --quiet 2 -o convert_10x/haptag -b 10x.barcodes 10x haplotagging convert/10x*gz
       - name: convert 10x to tellseq
         shell: micromamba-shell {0}
-        run: harpy convert --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
+        run: harpy convert fastq --quiet 2 -o convert_10x/tellseq -b 10x.barcodes 10x tellseq convert/10x*gz
       - name: convert 10x to stlfr
         shell: micromamba-shell {0}
         run: |
-          harpy convert --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
+          harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes 10x stlfr convert/10x*gz
           rm -rf convert_10x
+
+      - name: convert BAM haplotagging to tellseq
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert bam --quiet 2 tellseq test/bam/sample1.bam > tellseq.bam
+          samtools view tellseq.bam | head -3
+      - name: convert BAM haplotagging to stlfr
+        shell: micromamba-shell {0}
+        run: |
+          harpy convert bam --quiet 2 stlfr test/bam/sample1.bam > stlfr.bam
+          samtools view stlfr.bam | head -3
+      - name: convert BAM stlfr to haplotagging
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 haplotagging stlfr.bam | samtools view | head -3
+      - name: convert BAM stlfr to tellseq
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 tellseq stlfr.bam | samtools view | head -3
+      - name: convert BAM tellseq to haplotagging
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 haplotagging tellseq.bam | samtools view | head -3
+      - name: convert BAM tellseq to stlfr
+        shell: micromamba-shell {0}
+        run: harpy convert bam --quiet 2 stlfr tellseq.bam | samtools view | head -3
