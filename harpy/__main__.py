@@ -31,7 +31,7 @@ click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.
 @click.version_option("0.0.0", prog_name="harpy", hidden = True)
 def cli():
     """
-    An automated workflow for haplotagging linked-read data
+    An automated workflow for linked-read data
     to go from raw data to genotypes (or phased haplotypes).
     Batteries included.
     
