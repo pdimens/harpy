@@ -8,19 +8,15 @@ order: 1
 # :icon-sliders: Call Structural Variants using LEVIATHAN
 [!badge variant="secondary" text="linked reads"]
 
-(like indels, insertions, duplications, breakends)
-
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+  - the `BX` tag must be the last tag in the alignment record
+  - the barcode must be haplotagging ACBD or 10x/TELLseq nucleotide format (stLFR isn't recognized)
+  - **NOT** aligned with EMA because LEVIATHAN relies on split read information and EMA does not report split reads
 - genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 
-!!!warning EMA-mapped reads
-Leviathan relies on split-read information in the sequence alignments to call variants. The EMA aligner
-does not report split read alignments, instead it reports secondary alignments. It is recommended to use
-BWA- or strobealign-generated alignments if intending to call variants with leviathan. 
-!!!
 ==- :icon-file: sample grouping file  [!badge variant="ghost" text="optional"]
 This file is optional and only useful if you want variant calling to happen on a per-population level.
 - takes the format of sample[!badge variant="ghost" text="tab"]group
@@ -175,10 +171,6 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
   -n, --maxLinks:           Remove from candidates list all candidates which have a region involved in that much candidates (default: 1000)
   -M, --mediumSize:         Minimum size of medium variants (default: 2000)
   -L, --largeSize:          Minimum size of large variants (default: 10000)
-  -s, --smallRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for small variants (default: 99)
-  -m, --mediumRate:         Percentile to chose as a threshold in the distribution of the number of shared barcodes for medium variants (default: 99)
-  -l, --largeRate:          Percentile to chose as a threshold in the distribution of the number of shared barcodes for large variants (default: 99)
-  -d, --duplicates:         Consider SV as duplicates if they have the same type and if their breakpoints are within this distance (default: 10)
   -s, --skipTranslocations: Skip SVs that are translocations (default: false)
   -p, --poolSize:           Size of the thread pool (default: 100000)
 ```

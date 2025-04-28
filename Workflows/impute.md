@@ -259,7 +259,6 @@ also runs STITCH with a few fixed parameters:
 ```r
 STITCH(
     ..., 
-    bxTagUpperLimit      = 50000,
     niterations          = 40,
     switchModelIteration = 39,
     splitReadIterations  = NA

@@ -49,17 +49,17 @@ requires a path to the **directory** with the HPC configuration yaml (rather tha
 look like:
 
 ```bash
-harpy qc -a auto --hpc hpc/slurm data/porcupine
+harpy qc -a auto --hpc hpc/slurm.yaml data/porcupine
 ```
 
-Notice that `--hpc` points to the directory `hpc/slurm` and not `hpc/slurm/config.yaml`. This was done to mimic the Snakemake command line
-interface, however this behavior will change starting with Harpy 2.0 and you will instead just use `--hpc path/to/whatever.yaml`.
-In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
+Notice that `--hpc` points to a specific file and not a directory. This was done to avoid the confusing-but-I'm-sure-they-have-their-reasons
+design that Snakemake uses. In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
 e.g. `conda install bioconda::snakemake-executor-plugin-slurm` and ` conda install bioconda::snakemake-storage-plugin-fs ` or their
 Pixi equivalents with e.g. `pixi add snakemake-executor-plugin-slurm`.
 
 ### Configuration templates
-This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use  [!badge corners="pill" text="harpy hpc"](/Workflows/other/#hpc)
+This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use
+[!badge corners="pill" text="harpy hpc"](/Workflows/other.md/#hpc-)
 to create skeleton configurations for various supported cluster managers and fill in the information you need. Depending on your
 system, it may be necessary to read the [documentation](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) 
 for a particular executor plugin and understand what configuration options their API exposes. The configurations can start to become
