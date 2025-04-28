@@ -56,9 +56,9 @@ jobs:
           base: 'main'
           filters: .github/filters.yml
 
-  containerize:
+  build:
     needs: changes
-    name: Rebuild Container
+    name: Build Harpy and Container
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -74,6 +74,7 @@ jobs:
           cache-environment: true
           post-cleanup: 'all'
       - name: Install Harpy
+        id: harpybuild
         shell: micromamba-shell {0}
         run: |
           python3 -m pip install --upgrade build && python3 -m build
@@ -83,7 +84,7 @@ jobs:
         uses: jlumbroso/free-disk-space@main
       - name: Rebuild Dockerfile
         id: rebuild
-        if: ${{ needs.changes.outputs.environments == 'true' }}
+        if: ${{ needs.changes.outputs.environments == 'true' && steps.harpybuild.outcome == 'success' }}
         shell: micromamba-shell {0}
         run: harpy containerize
       - name: Set up Docker Buildx
@@ -120,8 +121,8 @@ jobs:
 #          retention-days: 1
 
   dmux_gen1:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.demux == 'true' }}
+    needs: [changes, build]
+    if: ${{ needs.changes.outputs.demux == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: demux gen1
     runs-on: ubuntu-latest
     steps:
@@ -157,8 +158,8 @@ jobs:
           ls -lh Demultiplex
 
   validate:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.validate == 'true' }}
+    needs: [changes, build]
+    if: ${{ needs.changes.outputs.validate == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: validate
     runs-on: ubuntu-latest
     steps:
@@ -203,8 +204,8 @@ jobs:
           ls -lh Validate/bam
 
   qc:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.qc == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.qc == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: qc
     runs-on: ubuntu-latest
     steps:
@@ -248,8 +249,8 @@ jobs:
           ls -lh QC/auto
 
   deconvolve:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.deconvolve == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.deconvolve == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: deconvolve
     runs-on: ubuntu-latest
     steps:
@@ -288,8 +289,8 @@ jobs:
           ls -lh Deconvolve
   
   bwa:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.bwa == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.bwa == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: align BWA
     runs-on: ubuntu-latest
     steps:
@@ -328,8 +329,8 @@ jobs:
           ls -lh Align/bwa
 
   ema:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.ema == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.ema == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: align EMA
     runs-on: ubuntu-latest
     steps:
@@ -368,8 +369,8 @@ jobs:
           ls -lh Align/ema
 
   strobe:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.strobealign == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.strobealign == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: align strobe
     runs-on: ubuntu-latest
     steps:
@@ -408,8 +409,8 @@ jobs:
           ls -lh Align/strobealign
 
   mpileup:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.mpileup == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.mpileup == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: mpileup
     runs-on: ubuntu-latest
     steps:
@@ -453,8 +454,8 @@ jobs:
           ls -lh SNP/poptest
 
   freebayes:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.freebayes == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.freebayes == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: freebayes
     runs-on: ubuntu-latest
     steps:
@@ -498,8 +499,8 @@ jobs:
           ls -lh SNP/poptest
 
   impute:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.impute == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.impute == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: impute
     runs-on: ubuntu-latest
     steps:
@@ -550,8 +551,8 @@ jobs:
           ls -lh regionImpute
 
   phase:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.phase == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.phase == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: phase
     runs-on: ubuntu-latest
     steps:
@@ -603,8 +604,8 @@ jobs:
           ls -lh phasevcf
 
   leviathan:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.leviathan == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.leviathan == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
@@ -649,8 +650,8 @@ jobs:
           ls -lh SV/leviathanpop
 
   naibr:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.naibr == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.naibr == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
@@ -707,8 +708,8 @@ jobs:
           ls -lh SV/phasepop
 
   simulate_variants:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.simvars == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.simvars == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: simulate variants
     runs-on: ubuntu-latest
     steps:
@@ -772,8 +773,8 @@ jobs:
           harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
   simulate_linkedreads:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.simreads == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.simreads == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: simulate linkedreads
     runs-on: ubuntu-latest
     steps:
@@ -819,8 +820,8 @@ jobs:
           ls -lh Simulate/linkedreads
 
   assembly:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.assembly == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.assembly == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: assembly
     runs-on: ubuntu-latest
     steps:
@@ -869,8 +870,8 @@ jobs:
           ls -lh Metassembly
 
   other:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.other == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.other == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: harpy other
     runs-on: ubuntu-latest
     steps:
@@ -918,8 +919,8 @@ jobs:
           harpy template hpc-generic
 
   convert:
-    needs: [changes]
-    if: ${{ needs.changes.outputs.convert == 'true' }}
+    needs: [changes,build]
+    if: ${{ needs.changes.outputs.convert == 'true' && needs.build.steps.harpybuild == 'success' }}
     name: harpy convert
     runs-on: ubuntu-latest
     steps:
