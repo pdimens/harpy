@@ -1,9 +1,9 @@
 ---
-label: Haplotag Data
+label: Haplotagging Data
 icon: file-binary
 order: 5
 ---
-# :icon-file-binary: Haplotag data
+# :icon-file-binary: Haplotagging data
 
 ## What is haplotagging?
 Linked-read sequencing exists to combine the throughput and accuracy of short-read
