@@ -50,13 +50,12 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "bioconda::quickdeconvolution"
         ],
         "r" : [
-            "conda-forge::pandoc",
+            "conda-forge::quarto",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
             "conda-forge::r-highcharter",
             "conda-forge::r-magrittr",
             "conda-forge::r-plotly",
-            "conda-forge::r-quarto",
             "conda-forge::r-scales",
             "conda-forge::r-stringi",
             "conda-forge::r-tidyr",
