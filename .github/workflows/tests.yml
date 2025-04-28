@@ -193,7 +193,7 @@ jobs:
       - name: test validate fastq
         shell: micromamba-shell {0}
         run: |
-          harpy validate fastq test/fastq
+          harpy validate fastq test/fastq && \
           ls -lh Validate/fastq
       - name: test validate bam
         if: always()
