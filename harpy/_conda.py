@@ -64,8 +64,9 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "r::r-biocircos"
         ],
         "simulations" : [
-            "bioconda::simug>1.0.0",
             "bioconda::mimick>=1.1",
+            "bioconda::seqkit",
+            "bioconda::simug>1.0.0",
         ],
         "spades" : [
             "conda-forge::python=3"

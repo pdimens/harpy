@@ -121,7 +121,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         "mutation" : mutation,
         "indels" :  indels,
         "extindels" : extindels,
-        "output-prefix" : output_prefix,
+        "output-prefix" : os.path.basename(output_prefix),
         "output-type" : output_type if output_type else lr_type,
         **({"regions":  regions} if regions else {}),
         "snakemake" : {

@@ -41,3 +41,65 @@ rule simulate_reads:
         "envs/simulations.yaml"
     shell:
         "mimick -q 1 {params} {input} 2> {log}"
+
+rule concatenate_haplotypes:
+    input:
+        collect(output_pref + ".hap_{hap}.R{{FR}}.fq.gz", hap = haps)
+    output:
+        temp("tmp/" + output_pref + ".R{FR}.fq.gz")
+    container:
+        None
+    shell:
+        "cat {input} > {output}"
+
+rule proper_pairing:
+    input:
+        R1 = f"tmp/{output_pref}.R1.fq.gz",
+        R2 = f"tmp/{output_pref}.R2.fq.gz"
+    output:
+        collect(output_pref + ".R{FR}.fq.gz", FR = [1,2])
+    log:
+        "logs/proper_pair.log"
+    params:
+        "--id-regexp '^(\S+)\/[12]'",
+        "--force",
+        "-O .",
+        "-u"
+    conda:
+        "envs/simulations.yaml"
+    shell:
+        "seqkit pair {params} -1 {input.R1} -2 {input.R2} 2> {log}"
+
+rule workflow_summary:
+    default_target: True
+    input:
+        collect(output_pref + ".R{FR}.fq.gz", FR = [1,2]),
+    params:
+        f'--coverage {config["read_coverage"]}',
+        f'--distance {config["outer_distance"]}',
+        f'--error {config["error_rate"]}',
+        f'--length {config["length"]}',
+        f'--stdev {config["stdev"]}',
+        f'-l {config["lr-type"]}',
+        f'-c {config["molecule-coverage"]}',
+        f'-m {config["molecule-length"]}',
+        f'-n {config ["molecule-number"]}',
+        f'--mutation {config["mutation"]}',
+        f'--indels {config["indels"]}',
+        f'--extindels {config["extindels"]}',
+        f'-o {config["output-prefix"]}',
+        f'-O {config["output-type"]}',
+        bc = in_bc
+    run:
+        summary = ["The harpy simulate linkedreads workflow ran using these parameters:"]
+        mimick = "Mimick ran using:\n"
+        mimick += f"\tmimick -q1 {params} inputs.fasta"
+        summary.append(mimick)
+        pairing = "Haplotypes were concatenated and proper pairing was enforced with seqkit:"
+        pairing += "\tseqkit pair -u --id-regexp '^(\S+)\/[12]' --force -1 reads.R1.fq -2 reads.R2.fq"
+        summary.append(pairing)
+        sm = "The Snakemake workflow was called via command line:\n"
+        sm += f"\t{config['snakemake']['relative']}"
+        summary.append(sm)
+        with open("workflow/simulate.linkedreads.summary", "w") as f:
+            f.write("\n\n".join(summary))
