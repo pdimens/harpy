@@ -153,7 +153,6 @@ simreads: &simreads
   - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
-  - 'harpy/bin/inline_to_haplotag.py'
   - 'harpy/bin/haplotag_barcodes.py'
   - 'harpy/scripts/HaploSim.pl'
 assembly: &assembly
