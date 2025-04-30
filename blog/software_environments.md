@@ -89,14 +89,9 @@ To manually troubleshoot many of the tasks within Harpy workflows, you
 may need to jump into one of the local conda environments in `.environments`. 
 That itself isn't terrible, but it's an extra step because you will
 need to identify which environment is the correct one since Snakemake renames
-them by their hash. An easy way to do this is to do
-```bash idenify the contents of the local conda environments
-cat .environments/hashname.yaml
-```
-because Snakemake also saves the YAML recipe too. While a little annoying, 
-this would be the sensible way to manually troubleshoot a step from a 
-workflow because troubleshooting it with the container method is much, much 
-more involved and not recommended.
+them by their hash. There are two ways to get that information quickly:
+1. check the Snakemake output log, as it lists the conda environment of the failing rule/job
+2. use `harpy view environments` to list the main software in every environment available in `.environments` 
 
 ## Container Caveats
 #### 🚥 Container Caveat 1: Speed

@@ -19,7 +19,7 @@ edit:
   base: /
   branch: "docs"
 links:
-- text: Source Code
+- text: Source
   link: https://github.com/pdimens/harpy
   icon: mark-github
   target: blank
@@ -27,14 +27,14 @@ links:
   link: https://www.therkildsenlab.org/
   icon: beaker
   target: blank
-- text: Haplotag Home
+- text: Haplotagging
   link: https://www.fml.tuebingen.mpg.de/9418/haplotagging
   icon: ruby
   target: blank
-- text: Guides & Tutorials
+- text: Guides
   link: /blog
   icon: code-of-conduct
-- text: Submit an Issue
+- text: Submit Issue
   link: https://github.com/pdimens/harpy/issues/new/choose
   icon: bug
   target: blank
