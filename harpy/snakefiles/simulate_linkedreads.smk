@@ -16,7 +16,7 @@ rule simulate_reads:
     input:
         in_fasta
     output:
-        collect(output_pref + ".hap_{hap}.R{FR}.fq.gz", hap = haps, FR = [1,2])
+        temp(collect(f"mimick/{output_pref}" + ".hap_{hap}.R{FR}.fq.gz", hap = haps, FR = [1,2]))
     log:
         "logs/mimick.simulation.log"        
     params:
@@ -32,7 +32,7 @@ rule simulate_reads:
         f'--mutation {config["mutation"]}',
         f'--indels {config["indels"]}',
         f'--extindels {config["extindels"]}',
-        f'-o {config["output-prefix"]}',
+        f'-o mimick/{config["output-prefix"]}',
         f'-O {config["output-type"]}',
         bc = in_bc
     threads:
@@ -42,33 +42,33 @@ rule simulate_reads:
     shell:
         "mimick -q 1 {params} {input} 2> {log}"
 
-rule concatenate_haplotypes:
-    input:
-        collect(output_pref + ".hap_{hap}.R{{FR}}.fq.gz", hap = haps)
-    output:
-        temp("tmp/" + output_pref + ".R{FR}.fq.gz")
-    container:
-        None
-    shell:
-        "cat {input} > {output}"
-
 rule proper_pairing:
     input:
-        R1 = f"tmp/{output_pref}.R1.fq.gz",
-        R2 = f"tmp/{output_pref}.R2.fq.gz"
+        R1 = f"mimick/{output_pref}" + ".hap_{hap}.R1.fq.gz",
+        R2 = f"mimick/{output_pref}" + ".hap_{hap}.R2.fq.gz"
     output:
-        collect(output_pref + ".R{FR}.fq.gz", FR = [1,2])
+        R1 = output_pref + ".hap_{hap}.R1.fq.gz",
+        R2 = output_pref + ".hap_{hap}.R2.fq.gz"
     log:
-        "logs/proper_pair.log"
+        "logs/proper_pair.hap_{hap}.log"
     params:
         "--id-regexp '^(\S+)\/[12]'",
         "--force",
-        "-O .",
-        "-u"
+        "-O ."
     conda:
         "envs/simulations.yaml"
     shell:
         "seqkit pair {params} -1 {input.R1} -2 {input.R2} 2> {log}"
+
+rule concatenate_haplotypes:
+    input:
+        collect(output_pref + ".hap_{hap}.R{{FR}}.fq.gz", hap = haps)
+    output:
+        output_pref + ".R{FR}.fq.gz"
+    container:
+        None
+    shell:
+        "cat {input} > {output}"
 
 rule workflow_summary:
     default_target: True
