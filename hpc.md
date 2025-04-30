@@ -39,31 +39,34 @@ shared-fs-usage:
   - software-deployment
   - sources
   - source-cache
-remote-job-local-storage-prefix: "/home2/accountname/SCATCH"
+remote-job-local-storage-prefix: "/home2/accountname/SCRATCH"
 local-storage-prefix: "/home/accountname/DATA"
 ```
 
 ## HPC features in Harpy
-Harpy provides this Snakemake-driven HPC support with the `--hpc` option available to most workflows. This option
-requires a path to the **directory** with the HPC configuration yaml (rather than the file itself). In practice, that would
-look like:
+Harpy provides this Snakemake-driven HPC support with the `--hpc` option available to
+most workflows. This option requires a path to the configuration file with the HPC
+configuration yaml. In practice, that would look something like:
 
 ```bash
 harpy qc -a auto --hpc hpc/slurm.yaml data/porcupine
 ```
 
-Notice that `--hpc` points to a specific file and not a directory. This was done to avoid the confusing-but-I'm-sure-they-have-their-reasons
-design that Snakemake uses. In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
+In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
 e.g. `conda install bioconda::snakemake-executor-plugin-slurm` and ` conda install bioconda::snakemake-storage-plugin-fs ` or their
 Pixi equivalents with e.g. `pixi add snakemake-executor-plugin-slurm`.
 
 ### Configuration templates
 This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use
-[!badge corners="pill" text="harpy hpc"](/Workflows/other.md/#hpc-)
-to create skeleton configurations for various supported cluster managers and fill in the information you need. Depending on your
-system, it may be necessary to read the [documentation](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) 
+[!badge corners="pill" text="harpy template hpc-"](/Workflows/other.md/#hpc-)
+to create skeleton configurations for various supported cluster managers and fill in the information you need:
+```bash
+harpy template hpc-lsf > lsf.config.yml
+```
+
+Depending on your system, it may be necessary to read the [documentation](https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html) 
 for a particular executor plugin and understand what configuration options their API exposes. The configurations can start to become
 very technical, so we recommend starting with a simple configuration and getting more complex if issues arise. The Snakemake
 executor plugins are admittedly not consistent in their documentation quality and it's sometimes a rapidly
-changing landscape (for example, the `HTCondor` plugin was deperacated recently). If an executor plugin exists
-that you would like Harpy template support for, please [open an Issue](https://github.com/pdimens/harpy/issues/new?template=feature_request.yml) and we'll get it added!
+changing landscape (for example, the `HTCondor` plugin was recently and quietly deperacated). If an executor plugin exists
+that you would like `harpy template` support for, please [open an Issue](https://github.com/pdimens/harpy/issues/new?template=feature_request.yml) and we'll get it added!
