@@ -12,10 +12,8 @@ order: 10
 - One of either:
   - one alignment file [!badge variant="success" text=".bam"] [!badge variant="success" text=".sam"] [!badge variant="secondary" text="case insensitive"]
   - one set of paired-end reads in FASTQ format [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="gzip recommended"] [!badge variant="secondary" text="case insensitive"]
-- Barcodes in the `BX:Z` SAM tag for both BAM and FASTQ inputs
+- Barcodes in a SAM tag (e.g. `BX:Z:`) for both BAM and FASTQ inputs
   - See [Section 1 of the SAM Spec here](https://samtools.github.io/hts-specs/SAMtags.pdf) for details
-  - `BX:Z` tags **must be the last tag** in the FASTQ/BAM record
-    - use [bx_to_end.py](/utilities.md#bx_to_endpy) to move the BX tags to the ends, if needed
 ===
 
 While downsampling (subsampling) FASTQ and BAM files is relatively simple with tools such as `awk`, `samtools`, `seqtk`, `seqkit`, etc.,
@@ -23,14 +21,18 @@ While downsampling (subsampling) FASTQ and BAM files is relatively simple with t
 keep all the reads associated with `d` number of barcodes.
 
 ```bash usage
-harpy downsample OPTIONS... INPUT(S)...
+# BAM file
+harpy downsample OPTIONS... BAM
+
+# FASTQ files
+harpy downsample OPTIONS... FASTQ1 FASTQ2
 ```
 
 ```bash example
 # BAM file
-harpy downsample -d 1000 -i 0.3 -p sample1.sub1000 sample1.bam
+harpy downsample -d 1000 -b BC -i 0.3 -p sample1.sub1000 sample1.bam
 
-# FASTQ file
+# FASTQ files
 harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz
 ```
 
@@ -39,20 +41,20 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 module is configured using the command-line arguments below.
 
 {.compact}
-| argument        | short name |    default    | description                                                                                                                       |
-| :-------------- | :--------: | :-----------: | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `INPUT(S)`      |            |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair                              |
-| `--downsample`  |    `-d`    |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                                                       |
-| `--invalid`     |    `-i`    |      `1`      | Proportion of barcodes to sample                                                                                                  |
-| `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                                                           |
-| `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                                             |
+| argument        | short name |    default    | description                                                                                          |
+|:----------------|:----------:|:-------------:|:-----------------------------------------------------------------------------------------------------|
+| `INPUT`         |            |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair |
+| `--barcode-tag` |    `-b`    |     `BX`      | SAM tag that contains the barcode                                                                    |
+| `--downsample`  |    `-d`    |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                          |
+| `--invalid`     |    `-i`    |      `1`      | Proportion of invalid barcodes to potentially sample                                                                     |
+| `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                              |
+| `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                |
 
 ## invalid barcodes
 The `--invalid` options determines what proportion of invalid barcodes appear in the barcode
-pool. Bear in mind that the barcode pool still gets subsampled, so the `--invalid` proportion
-doesn't necessarily reflect how many end up getting sampled, rather what proportion will be
-considered for sampling. The proportions equate to:
-- `0`: invalid barcodes are skipped
+pool that gets subsampled. The `--invalid` proportion doesn't necessarily reflect how many
+end up getting sampled, rather what proportion will be considered for sampling. The proportions equate to:
+- `0`: invalid barcodes are skipped altogether
 - `1`: all invalid barcodes appear in the barcode pool that gets subsampled
 - `0`<`i`<`1`: that proportion of barcodes appear in the barcode pool that gets subsampled
 

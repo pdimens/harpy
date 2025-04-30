@@ -45,11 +45,11 @@ harpy impute OPTIONS... PARAMETERS VCF INPUTS...
 ```
 
 ```bash example
-# create the parameter file 'stitch.params'
+# create a STITCH parameter file
 harpy template impute > stitch.params
 
 # run imputation
-harpy impute --threads 20  --parameters stitch.params Variants/mpileup/variants.raw.bcf Align/ema
+harpy impute --threads 20 stitch.params data/variants.bcf data/*.bam
 ```
 
 ## :icon-terminal: Running Options

@@ -12,7 +12,7 @@ image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
 As of version `2.0`, Harpy can be used for the early stages of regular whole genome
 sequencing (WGS) bioinformatics. Specifically, you can quality checks and trim samples,
-align sequences, and call SNPs and small indels. All of that is done with the flick of
+align sequences, call SNPs and small indels, phase, and impute genotypes. All of that is done with the flick of
 the `--ignore-bx` switch. RADseq data may also work, however the SNP calling workflows
 probably won't be very computationally efficient for a highly fragmented RAD assembly. 
 There is also another consideration for RADseq regarding marking duplicates (described below).
@@ -33,7 +33,7 @@ specific aligner, it is not available for WGS/RADseq data, nor would you get any
 from trying to use it for such.
 
 ```bash
-harpy align bwa --ignore-bx --genome genome.fasta --min-quality 25 data/WGS/trimmed 
+harpy align bwa --ignore-bx --min-quality 25 genome.fasta data/WGS/trimmed 
 ```
 
 !!!warning RADseq data
@@ -49,5 +49,5 @@ The SNP-calling workflows in Harpy don't use linked-read information at all, so 
 would use [!badge corners="pill" text="harpy snp mpileup"](/Workflows/snp.md) or [!badge corners="pill" text="harpy snp freebayes"](/Workflows/snp.md) without any modifications.
 
 ```bash
-harpy snp mpileup --regions 100000 --populations data.groups --genome genome.fasta Align/strobe
+harpy snp mpileup --regions 100000 --populations data.groups genome.fasta Align/strobe
 ```
