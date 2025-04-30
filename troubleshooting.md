@@ -44,8 +44,8 @@ the Snakefile. Harpy may print the error to the terminal, but it's
 possible you won't see any Snakemake error text (let us know!). If no
 helpful error text is printed, then you should run the Snakemake command
 directly and explore the output. You can copy and paste the Snakemake
-command from the `config.yaml` file created by Harpy, specifically listed
-with `workflow_call:`. If it seems like something on our end, please
+command from the `config.harpy.yaml` file created by Harpy, specifically listed
+under `snakemake` (either `absolute` or `relative`). If it seems like something on our end, please
 [open an issue](https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml)
 and include the error text Snakemake provides.
 ![copy and paste this command directly to see Snakemake error text](/static/workflow_call.png)
