@@ -70,37 +70,6 @@ def parse_file(infile):
     click.echo_via_pager(_read_file(infile), color = n_colors > 0)
     return infile
 
-def parse_conda_yaml(infile):
-    '''
-    Given a yaml file with a conda environment recipe in it, returns a pygmentized simplification of the software inside 
-    '''
-    if not os.access(infile, os.R_OK):
-        print_error(
-            "incorrect permissions",
-            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
-        )
-        sys.exit(1)
-    n_colors = check_terminal_colors()
-    if n_colors <= 8:
-        from pygments.formatters import TerminalFormatter
-        formatter = TerminalFormatter
-    elif n_colors == 256:
-        from pygments.formatters import Terminal256Formatter
-        formatter = Terminal256Formatter
-    else:
-        from pygments.formatters import TerminalTrueColorFormatter
-        formatter = TerminalTrueColorFormatter
-
-    def _read_file(x):
-        with open(infile, "r") as f:
-            skip = True
-            for line in f:
-                if line.startswith("dependencies"):
-                    skip = False
-                if not skip:
-                    yield highlight(line, YamlLexer(),formatter())
-    return _read_file(infile)
-
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def view():
     """
