@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799182517251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799341471992">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -37,12 +37,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799182517251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799341471992" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799182517251" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799341471992" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -312,7 +312,7 @@
 
 <p>As of version <code v-pre>2.0</code>, Harpy can be used for the early stages of regular whole genome
 sequencing (WGS) bioinformatics. Specifically, you can quality checks and trim samples,
-align sequences, and call SNPs and small indels. All of that is done with the flick of
+align sequences, call SNPs and small indels, phase, and impute genotypes. All of that is done with the flick of
 the <code v-pre>--ignore-bx</code> switch. RADseq data may also work, however the SNP calling workflows
 probably won&#x27;t be very computationally efficient for a highly fragmented RAD assembly.
 There is also another consideration for RADseq regarding marking duplicates (described below).</p>
@@ -346,7 +346,7 @@ options are irrelevant and ignored when using <code v-pre>--ignore-bx</code>. Si
 specific aligner, it is not available for WGS/RADseq data, nor would you get any value
 from trying to use it for such.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy align bwa --ignore-bx --genome genome.fasta --min-quality 25 data/WGS/trimmed </code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy align bwa --ignore-bx --min-quality 25 genome.fasta data/WGS/trimmed </code></pre>
 </doc-codeblock></div>
 <div class="flex mb-6">
     <div class="shrink-0 w-1 rounded-tl rounded-bl bg-yellow-500"></div>
@@ -382,7 +382,7 @@ would use <a href="../../workflows/snp/" class="no-link inline-flex align-middle
     <span>harpy snp freebayes</span>
 </a> without any modifications.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy snp mpileup --regions 100000 --populations data.groups --genome genome.fasta Align/strobe</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy snp mpileup --regions 100000 --populations data.groups genome.fasta Align/strobe</code></pre>
 </doc-codeblock></div>
 
                             

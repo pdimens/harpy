@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799182517251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799341471992">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -37,12 +37,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799182517251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799341471992" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799182517251" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799341471992" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -311,8 +311,8 @@
 </div>
 
 <p>There are two ways you can run Harpy, using a container with the necessary
-software environments in it (the default), or with local conda environments
-(with the <code v-pre>--conda</code> option). If software development and containerization
+software environments in it (<code v-pre>--container</code>), or with local conda environments
+(the default). If software development and containerization
 isn&#x27;t your jam, that&#x27;s great, you&#x27;re in the right place! Below is a quick
 explanation of what/why and the tradeoffs between either approach so you
 can decide for yourself which makes more sense to use.</p>
@@ -333,8 +333,10 @@ can decide for yourself which makes more sense to use.</p>
     </h2>
 </doc-anchor-target>
 <p>An conda-based installation of Harpy provides only the minimal set of
-programs Harpy needs to begin a workflow. These include: python 3.12, snakemake-minimal, pandas, and the htslib programs (htslib, samtools, bcftools, tabix). Noticeably, there aren&#x27;t sequence aligners, quality-assessment tools, phasers, etc. This is because some of the software
-dependencies themselves have clashing dependencies and cannot be installed alongside each other, but more importantly, it keeps the Harpy installation quite small and quick.</p>
+programs Harpy needs to begin a workflow. These include: <code v-pre>python</code>, <code v-pre>snakemake-minimal</code>, the <code v-pre>htslib</code> programs (e.g. <code v-pre>samtools</code>), along
+with a few other smaller packages. Noticeably, there aren&#x27;t sequence aligners, quality-assessment tools, phasers, etc. This is because
+some of the software dependencies themselves have clashing dependencies and cannot be installed alongside each other, but more
+importantly, it keeps the Harpy installation quite small and quick.</p>
 <doc-anchor-target id="how-harpy-provides-the-other-stuff">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#how-harpy-provides-the-other-stuff">#</doc-anchor-trigger>
@@ -342,20 +344,23 @@ dependencies themselves have clashing dependencies and cannot be installed along
     </h2>
 </doc-anchor-target>
 <p>Instead of a monolithic Harpy environment, which would be impossible with
-the current software dependencies, there are a handful of defined conda environment recipes that Harpy workflows generate. Snakemake will make
-environments of those recipes, then jump in and out of those local conda
+the current software dependencies, there are a handful of defined conda environment recipes that Harpy
+workflows generate. Snakemake will make environments of those recipes, then jump in and out of those local conda
 environments as dictated by the software needs of any given job (given in
 the <code v-pre>conda:</code> directive  within a rule). Those local environments live inside
-<code v-pre>.snakemake/conda/wildhashnumber</code>, with auto-generated names reflecting the
-hash of the environment (e.g. <code v-pre>.snakemake/conda/21ceb8c2fe7dd21206ab90c2af8f847f_</code>).</p>
+<code v-pre>.environments/wildhashnumber</code>, with auto-generated names reflecting the
+hash of the environment (e.g. <code v-pre>.environments/21ceb8c2fe7dd21206ab90c2af8f847f_</code>).</p>
 <p><strong>But</strong>, those environments need to be created at runtime if they don&#x27;t
-already exist in <code v-pre>.snakemake/</code>, so Harpy (technically Snakemake) will install
+already exist in <code v-pre>.environments/</code>, so Harpy (technically Snakemake) will install
 them before running the jobs within a workflow. On some HPC systems, this
 process can move glacially slow (it might be a RAID or NAS thing) and this
 might make you think a Harpy workflow is hanging at the environment
 installation step before it even begins its first job. That isn&#x27;t ideal.
 Additionally, sysadmins aren&#x27;t particularly fond of how many files are
-created with conda-based installations, which leads us to containerization.</p>
+created with conda-based installations, which leads us to containerization.
+<strong>Note</strong>: Pixi tends to be significantly faster for this kind of thing and when
+Snakemake officially integrates Pixi into workflow management, Harpy will make the
+shift shortly after.</p>
 <doc-anchor-target id="harpy-and-containers">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpy-and-containers">#</doc-anchor-trigger>
@@ -406,20 +411,22 @@ conda environment within the container!</p>
 correctly on some systems due to unexpected system (or conda) configurations.
 This results in frustrating errors where jobs fail because software that is
 absolutely installed isn&#x27;t being recognized (false negative), or software that wasn&#x27;t
-successfully installed is being recognized (false positive).</p>
+successfully installed is being recognized (false positive). We keep trying to squash this
+when it appears by using more careful dependency versioning, so improvements are being made constantly!</p>
 <doc-anchor-target id="conda-caveat-2-troubleshooting">
     <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#conda-caveat-2-troubleshooting">#</doc-anchor-trigger>
         <span><span class="docs-emoji">&#x1F4A3;</span> Conda Caveat 2: Troubleshooting</span>
     </h4>
 </doc-anchor-target>
-<p>To manually troubleshoot many of the tasks Harpy workflows perform, you
-may need to jump into one of the local conda environments in <code v-pre>.snakemake/conda</code>. That itself isn&#x27;t terrible, but it&#x27;s an extra step because you will
+<p>To manually troubleshoot many of the tasks within Harpy workflows, you
+may need to jump into one of the local conda environments in <code v-pre>.environments</code>.
+That itself isn&#x27;t terrible, but it&#x27;s an extra step because you will
 need to identify which environment is the correct one since Snakemake renames
 them by their hash. An easy way to do this is to do</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">idenify the contents of the local conda environments</div>
-<pre class="language-bash"><code v-pre class="language-bash">cat .snakemake/cconda/hashname.yaml</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">cat .environments/hashname.yaml</code></pre>
 </doc-codeblock></div>
 <p>because Snakemake also saves the YAML recipe too. While a little annoying,
 this would be the sensible way to manually troubleshoot a step from a

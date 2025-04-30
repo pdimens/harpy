@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799182517251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799341471992">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -37,13 +37,15 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799182517251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799341471992" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799182517251" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799341471992" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
+    <link href="../../resources/css/katex.css?v=3.7.0" rel="stylesheet">
+    <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.7.0" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -388,7 +390,7 @@ If you wanted to manually create inversions in specific areas or with specific l
 you could manually modify the resulting VCF to create the specific inversions you want (although use <code v-pre>--only-vcf</code>). We won&#x27;t be covering
 that here, but you should hopefully be able to intuit how to do that by the end of this tutorial.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy simulate inversion --conda -n 20 -z 0.5 --min-size 30000 dmel.fa</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy simulate inversion -n 20 -z 0.5 --min-size 30000 dmel.fa</code></pre>
 </doc-codeblock></div>
 <doc-panels>
    <doc-panel id="code-explation" collapsed>
@@ -402,7 +404,6 @@ that here, but you should hopefully be able to intuit how to do that by the end 
 </li>
 <li><code v-pre>-z</code> is the level of heterozygosity (<code v-pre>0.5</code> = 50%)</li>
 <li><code v-pre>-o</code> is the name of the output directory</li>
-<li><code v-pre>--conda</code> is optional and a matter of runtime preference</li>
 <li><code v-pre>GENOME.fa</code> is your genome file</li>
 </ul>
    </doc-panel>
@@ -443,7 +444,7 @@ the homo/heterozygotes. We can then use the VCFs of hom/het variants to simulate
 the resulting diploid genome from <doc-anchor-trigger to="#1-add-random-inversions">Step 1</doc-anchor-trigger>.</p>
 <p>The Harpy command to accomplish this is:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf --conda -o sim_snpindel GENOME.fa</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf -o sim_snpindel GENOME.fa</code></pre>
 </doc-codeblock></div>
 <doc-panels>
    <doc-panel id="code-explation" collapsed>
@@ -458,7 +459,6 @@ the resulting diploid genome from <doc-anchor-trigger to="#1-add-random-inversio
 </ul>
 </li>
 <li><code v-pre>--only-vcf</code> is to skip the diploid genome simulation</li>
-<li><code v-pre>--conda</code> is optional and a matter of runtime preference</li>
 <li><code v-pre>GENOME.fa</code> is your genome file</li>
 </ul>
    </doc-panel>
@@ -493,10 +493,10 @@ on if you simulated one, the other, or both (up to a total of 4 VCF files).</p>
 <p>The Harpy command to accomplish this is:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash"># haplotype 1
-harpy simulate snpindel --conda --snp-vcf SNP.hap1.vcf --indel-vcf indel.hap1.vcf -o sim_snp_hap1 haplotype1.fa
+harpy simulate snpindel --snp-vcf SNP.hap1.vcf --indel-vcf indel.hap1.vcf -o sim_snp_hap1 haplotype1.fa
 
 # haplotype 2
-harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vcf -o sim_snp_hap2 haplotype2.fa</code></pre>
+harpy simulate snpindel --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vcf -o sim_snp_hap2 haplotype2.fa</code></pre>
 </doc-codeblock></div>
 <doc-panels>
    <doc-panel id="code-explation" collapsed>
@@ -505,7 +505,6 @@ harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vc
 <li><code v-pre>--snp-vcf</code> is the vcf of snps for haplotype 1 (or 2) from <doc-anchor-trigger to="#2-add-snps-and-indels"><strong>Step 2</strong></doc-anchor-trigger></li>
 <li><code v-pre>--indel-vcf</code> is the vcf of indels for haplotype 1 (or 2) from <doc-anchor-trigger to="#2-add-snps-and-indels"><strong>Step 2</strong></doc-anchor-trigger></li>
 <li><code v-pre>-o</code> is the name of the output directory</li>
-<li><code v-pre>--conda</code> is optional and a matter of runtime preference</li>
 <li><code v-pre>haplotypeX.fa</code> is the two haploype genomes from  <doc-anchor-trigger to="#1-add-random-inversions"><strong>Step 1</strong></doc-anchor-trigger></li>
 </ul>
    </doc-panel>
@@ -552,13 +551,17 @@ harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vc
 <p>Now that you have heterozygous haplotypes created from your starting genome, you can simulate linked-reads from it using
 <code v-pre>harpy simulate linkedreads</code>. A simple implementation of that could look like:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre class="language-bash"><code v-pre class="language-bash">harpy simulate linkedreads --conda -t 4 HAP1.fa HAP2.fa</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy simulate linkedreads -t 4 6,96 HAP1.fa HAP2.fa</code></pre>
 </doc-codeblock></div>
 <doc-panel id="code-explation" collapsed>
     <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53Zm2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5h-5Z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> code explation</template>
 <ul>
-<li><code v-pre>--conda</code> is optional and a matter of runtime preference</li>
 <li><code v-pre>-t</code> is the number of threads to use (<code v-pre>4</code>)</li>
+<li><code v-pre>6,96</code> is the specification of generating 96 random barcodes that are 6bp each
+<ul>
+<li>the workflow defaults to the haplotagging design, meaning the barcodes will be 4-combinatorial (i.e. <span class="math">96^4</span> combinations)</li>
+</ul>
+</li>
 <li><code v-pre>HAP1.fa</code> is the resulting genome from <doc-anchor-trigger to="#3-simulate-known-snps-and-indels-onto-the-diploid-genome-with-inversions"><strong>Step 3: haplotype 1</strong></doc-anchor-trigger></li>
 <li>i.e. haplotype 1 with the simulated snps, indels, and inversions</li>
 <li><code v-pre>HAP2.fa</code> is the resulting genome from <doc-anchor-trigger to="#3-simulate-known-snps-and-indels-onto-the-diploid-genome-with-inversions"><strong>Step 3: haplotype 2</strong></doc-anchor-trigger></li>
@@ -634,6 +637,6 @@ harpy simulate snpindel --conda --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vc
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": " Simulating variants", level: 2, icon: "file", hasPrism: true, hasMermaid: true, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": " Simulating variants", level: 2, icon: "file", hasPrism: true, hasMermaid: true, hasMath: true, tocDepth: 23 }</script>
 </body>
 </html>

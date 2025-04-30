@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799182517251">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799341471992">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799182517251" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799341471992" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799182517251" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799182517251" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799341471992" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799341471992" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -316,14 +316,9 @@
 </span></li>
 </ul>
 </li>
-<li>Barcodes in the <code v-pre>BX:Z</code> SAM tag for both BAM and FASTQ inputs
+<li>Barcodes in a SAM tag (e.g. <code v-pre>BX:Z:</code>) for both BAM and FASTQ inputs
 <ul>
 <li>See <a href="https://samtools.github.io/hts-specs/SAMtags.pdf">Section 1 of the SAM Spec here</a> for details</li>
-<li><code v-pre>BX:Z</code> tags <strong>must be the last tag</strong> in the FASTQ/BAM record
-<ul>
-<li>use <a href="../../utilities/#bx_to_endpy">bx_to_end.py</a> to move the BX tags to the ends, if needed</li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -335,14 +330,18 @@
 keep all the reads associated with <code v-pre>d</code> number of barcodes.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
-<pre class="language-bash"><code v-pre class="language-bash">harpy downsample OPTIONS... INPUT(S)...</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash"># BAM file
+harpy downsample OPTIONS... BAM
+
+# FASTQ files
+harpy downsample OPTIONS... FASTQ1 FASTQ2</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example</div>
 <pre class="language-bash"><code v-pre class="language-bash"># BAM file
-harpy downsample -d 1000 -i 0.3 -p sample1.sub1000 sample1.bam
+harpy downsample -d 1000 -b BC -i 0.3 -p sample1.sub1000 sample1.bam
 
-# FASTQ file
+# FASTQ files
 harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options">
@@ -369,12 +368,18 @@ module is configured using the command-line arguments below.</p>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>INPUT(S)</code></td>
+<td style="text-align: left;"><code v-pre>INPUT</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> One BAM file or both read files from a paired-end FASTQ pair</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--barcode-tag</code></td>
+<td style="text-align: center;"><code v-pre>-b</code></td>
+<td style="text-align: center;"><code v-pre>BX</code></td>
+<td style="text-align: left;">SAM tag that contains the barcode</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--downsample</code></td>
@@ -388,7 +393,7 @@ module is configured using the command-line arguments below.</p>
 <td style="text-align: left;"><code v-pre>--invalid</code></td>
 <td style="text-align: center;"><code v-pre>-i</code></td>
 <td style="text-align: center;"><code v-pre>1</code></td>
-<td style="text-align: left;">Proportion of barcodes to sample</td>
+<td style="text-align: left;">Proportion of invalid barcodes to potentially sample</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--prefix</code></td>
@@ -414,11 +419,10 @@ module is configured using the command-line arguments below.</p>
     </h2>
 </doc-anchor-target>
 <p>The <code v-pre>--invalid</code> options determines what proportion of invalid barcodes appear in the barcode
-pool. Bear in mind that the barcode pool still gets subsampled, so the <code v-pre>--invalid</code> proportion
-doesn&#x27;t necessarily reflect how many end up getting sampled, rather what proportion will be
-considered for sampling. The proportions equate to:</p>
+pool that gets subsampled. The <code v-pre>--invalid</code> proportion doesn&#x27;t necessarily reflect how many
+end up getting sampled, rather what proportion will be considered for sampling. The proportions equate to:</p>
 <ul>
-<li><code v-pre>0</code>: invalid barcodes are skipped</li>
+<li><code v-pre>0</code>: invalid barcodes are skipped altogether</li>
 <li><code v-pre>1</code>: all invalid barcodes appear in the barcode pool that gets subsampled</li>
 <li><code v-pre>0</code>&lt;<code v-pre>i</code>&lt;<code v-pre>1</code>: that proportion of barcodes appear in the barcode pool that gets subsampled</li>
 </ul>
