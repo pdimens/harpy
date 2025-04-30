@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799345942835">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.7.0.799345942835" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.7.0.799345942835" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.7.0.799345942835" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.7.0.799345942835" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -325,7 +325,7 @@ shared-fs-usage:
   - software-deployment
   - sources
   - source-cache
-remote-job-local-storage-prefix: &quot;/home2/accountname/SCATCH&quot;
+remote-job-local-storage-prefix: &quot;/home2/accountname/SCRATCH&quot;
 local-storage-prefix: &quot;/home/accountname/DATA&quot;</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="hpc-features-in-harpy">
@@ -334,14 +334,13 @@ local-storage-prefix: &quot;/home/accountname/DATA&quot;</code></pre>
         <span>HPC features in Harpy</span>
     </h2>
 </doc-anchor-target>
-<p>Harpy provides this Snakemake-driven HPC support with the <code v-pre>--hpc</code> option available to most workflows. This option
-requires a path to the <strong>directory</strong> with the HPC configuration yaml (rather than the file itself). In practice, that would
-look like:</p>
+<p>Harpy provides this Snakemake-driven HPC support with the <code v-pre>--hpc</code> option available to
+most workflows. This option requires a path to the configuration file with the HPC
+configuration yaml. In practice, that would look something like:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre class="language-bash"><code v-pre class="language-bash">harpy qc -a auto --hpc hpc/slurm.yaml data/porcupine</code></pre>
 </doc-codeblock></div>
-<p>Notice that <code v-pre>--hpc</code> points to a specific file and not a directory. This was done to avoid the confusing-but-I&#x27;m-sure-they-have-their-reasons
-design that Snakemake uses. In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
+<p>In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
 e.g. <code v-pre>conda install bioconda::snakemake-executor-plugin-slurm</code> and <code v-pre>conda install bioconda::snakemake-storage-plugin-fs</code> or their
 Pixi equivalents with e.g. <code v-pre>pixi add snakemake-executor-plugin-slurm</code>.</p>
 <doc-anchor-target id="configuration-templates">
@@ -352,15 +351,18 @@ Pixi equivalents with e.g. <code v-pre>pixi add snakemake-executor-plugin-slurm<
 </doc-anchor-target>
 <p>This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use
 <a href="../workflows/other/#hpc-" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>harpy hpc</span>
+    <span>harpy template hpc-</span>
 </a>
-to create skeleton configurations for various supported cluster managers and fill in the information you need. Depending on your
-system, it may be necessary to read the <a href="https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html">documentation</a>
+to create skeleton configurations for various supported cluster managers and fill in the information you need:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre class="language-bash"><code v-pre class="language-bash">harpy template hpc-lsf &gt; lsf.config.yml</code></pre>
+</doc-codeblock></div>
+<p>Depending on your system, it may be necessary to read the <a href="https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html">documentation</a>
 for a particular executor plugin and understand what configuration options their API exposes. The configurations can start to become
 very technical, so we recommend starting with a simple configuration and getting more complex if issues arise. The Snakemake
 executor plugins are admittedly not consistent in their documentation quality and it&#x27;s sometimes a rapidly
-changing landscape (for example, the <code v-pre>HTCondor</code> plugin was deperacated recently). If an executor plugin exists
-that you would like Harpy template support for, please <a href="https://github.com/pdimens/harpy/issues/new?template=feature_request.yml">open an Issue</a> and we&#x27;ll get it added!</p>
+changing landscape (for example, the <code v-pre>HTCondor</code> plugin was recently and quietly deperacated). If an executor plugin exists
+that you would like <code v-pre>harpy template</code> support for, please <a href="https://github.com/pdimens/harpy/issues/new?template=feature_request.yml">open an Issue</a> and we&#x27;ll get it added!</p>
 
                                 
                                 <!-- Required only on API pages -->
