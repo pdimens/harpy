@@ -154,7 +154,7 @@ def environments():
         )
         sys.exit(1)
     for i in files:
-        rprint(f"\n[blue bold]{i}[/]")
+        rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
         with open(i, "r") as file:
             skip = True
             for line in file:
