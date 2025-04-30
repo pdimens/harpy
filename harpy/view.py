@@ -70,6 +70,37 @@ def parse_file(infile):
     click.echo_via_pager(_read_file(infile), color = n_colors > 0)
     return infile
 
+def parse_conda_yaml(infile):
+    '''
+    Given a yaml file with a conda environment recipe in it, returns a pygmentized simplification of the software inside 
+    '''
+    if not os.access(infile, os.R_OK):
+        print_error(
+            "incorrect permissions",
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
+        )
+        sys.exit(1)
+    n_colors = check_terminal_colors()
+    if n_colors <= 8:
+        from pygments.formatters import TerminalFormatter
+        formatter = TerminalFormatter
+    elif n_colors == 256:
+        from pygments.formatters import Terminal256Formatter
+        formatter = Terminal256Formatter
+    else:
+        from pygments.formatters import TerminalTrueColorFormatter
+        formatter = TerminalTrueColorFormatter
+
+    def _read_file(x):
+        with open(infile, "r") as f:
+            skip = True
+            for line in f:
+                if line.startswith("dependencies"):
+                    skip = False
+                if not skip:
+                    yield highlight(line, YamlLexer(),formatter())
+    return _read_file(infile)
+
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def view():
     """
@@ -130,6 +161,41 @@ def config(directory):
             ),
         file = sys.stderr
     )
+
+@click.command()
+def environments():
+    """
+    View the Snakemake-managed conda environments
+
+    This convenience command will print the main information of the conda environment recipes within
+    `.environments/`. This is usually useful for situations when troubleshooting requires you to enter
+    a specific conda environment, but you aren't sure which because Snakemake renames them with hashes.
+    """
+    if not os.path.exists(".environments"):
+        print_error(
+            "directory not found", 
+            f"No [blue].environments/[/] folder found in the current directory."
+        )
+        sys.exit(1)
+    files = [i for i in glob.iglob(".environments/*.yaml")]
+    if not files:
+        print_error(
+            "files not found", 
+            f"No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
+        )
+        sys.exit(1)
+    for i in files:
+        rprint(f"\n[blue bold]{i}[/]")
+        with open(i, "r") as file:
+            skip = True
+            for line in file:
+                if line.startswith("dependencies"):
+                    skip = False
+                    continue
+                if not skip:
+                    dep = line.split("::")[-1]
+                    rprint(f"  - {dep.rstrip()}")
+    return
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
@@ -265,6 +331,7 @@ def snakeparams(directory):
     )
 
 view.add_command(config)
+view.add_command(environments)
 view.add_command(log)
 view.add_command(snakefile)
 view.add_command(snakeparams)
