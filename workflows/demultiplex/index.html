@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -308,7 +308,7 @@
 files in return. These files contain sequences for all of your samples and need to be demultiplexed using barcodes to
 separate the sequences for each sample into their own files (a forward and reverse file for each sample). These barcodes
 should have been added during the sample DNA preparation in a laboratory. The demultiplexing strategy will vary based on the
-haplotag technology you are using (read <doc-anchor-trigger to="#haplotagging-types">Haplotag Types</doc-anchor-trigger>).</p>
+haplotagging technology you are using (read <doc-anchor-trigger to="#haplotagging-types">Haplotagging Types</doc-anchor-trigger>).</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre class="language-bash"><code v-pre class="language-bash">harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ</code></pre>
@@ -333,52 +333,48 @@ haplotag technology you are using (read <doc-anchor-trigger to="#haplotagging-ty
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code v-pre>R1_FQ</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The forward multiplexed FASTQ file</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>R2_FQ</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The reverse multiplexed FASTQ file</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>I1_FQ</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The forward FASTQ index file provided by the sequencing facility</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>I2_FQ</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The reverse FASTQ index file provided by the sequencing facility</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--keep-unknown</code></td>
-<td style="text-align: center;"><code v-pre>-u</code></td>
-<td style="text-align: left;">Keep reads that could not be demultiplexed</td>
+<td style="text-align: left;"><code v-pre>--keep-unknown-samples</code> <code v-pre>-u</code></td>
+<td style="text-align: left;">Keep a separate file of reads with recognized barcodes but don&#x27;t match any sample in the schema</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--qxrx</code></td>
-<td style="text-align: center;"><code v-pre>-q</code></td>
+<td style="text-align: left;"><code v-pre>--keep-unknown-barcodes</code> <code v-pre>-b</code></td>
+<td style="text-align: left;">Keep a separate file of reads with unrecognized barcodes</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--qxrx</code> <code v-pre>-q</code></td>
 <td style="text-align: left;">Include the <code v-pre>QX:Z</code> and <code v-pre>RX:Z</code> tags in the read header</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--schema</code></td>
-<td style="text-align: center;"><code v-pre>-s</code></td>
+<td style="text-align: left;"><code v-pre>--schema</code> <code v-pre>-s</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Tab-delimited file of sample&lt;tab&gt;barcode</td>

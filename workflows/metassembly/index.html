@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -339,7 +339,6 @@ assemble the most contiguous sequences for multi-sample (or multi-species) data.
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
@@ -348,7 +347,6 @@ assemble the most contiguous sequences for multi-sample (or multi-species) data.
 <tr>
 <td style="text-align: left;"><code v-pre>FASTQ_R1</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> deconvolved FASTQ file of forward reads</td>
@@ -356,46 +354,39 @@ assemble the most contiguous sequences for multi-sample (or multi-species) data.
 <tr>
 <td style="text-align: left;"><code v-pre>FASTQ_R2</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> deconvolved FASTQ file of reverse reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--bx-tag</code></td>
-<td style="text-align: center;"><code v-pre>-b</code></td>
+<td style="text-align: left;"><code v-pre>--bx-tag</code> <code v-pre>-b</code></td>
 <td style="text-align: center;"><code v-pre>BX</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Which sequence header tag encodes the linked-read barcode (<code v-pre>BX</code> for <code v-pre>BX:Z</code> or <code v-pre>BC</code> for <code v-pre>BC:Z</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--extra-params</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;"><code v-pre>--extra-params</code> <code v-pre>-x</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Additional spades parameters, in quotes</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--ignore-bx</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;">Ignore linked-read info for initial spades assembly</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--kmer-length</code></td>
-<td style="text-align: center;"><code v-pre>-k</code></td>
+<td style="text-align: left;"><code v-pre>--kmer-length</code> <code v-pre>-k</code></td>
 <td style="text-align: center;"><code v-pre>auto</code></td>
 <td style="text-align: left;">Kmer lengths to use for initial spades assembly. They must be <strong>odd</strong> and <strong>&lt;128</strong>, separated by commas, and without spaces. (e.g. <code v-pre>13,23,51</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--max-memory</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;"><code v-pre>--max-memory</code> <code v-pre>-r</code></td>
 <td style="text-align: center;"><code v-pre>10000</code></td>
 <td style="text-align: left;">Maximum memory for spades to use, given in megabytes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--organism-type</code></td>
-<td style="text-align: center;"><code v-pre>-u</code></td>
+<td style="text-align: left;"><code v-pre>--organism-type</code> <code v-pre>-u</code></td>
 <td style="text-align: center;"><code v-pre>eukaryote</code></td>
 <td style="text-align: left;">Organism type for assembly report. Options: <code v-pre>eukaryote</code>,<code v-pre>prokaryote</code>,<code v-pre>fungus</code></td>
 </tr>

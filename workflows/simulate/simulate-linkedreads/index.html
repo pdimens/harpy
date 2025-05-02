@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -326,8 +326,8 @@ linked-read sequences. In Harpy <code v-pre>v1.x</code> this was done using a mo
 to keep the familiarity of <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
     <span>simulate linkedreads</span>
 </span> in Harpy, we just expose a very thinly
-veiled wrapper for Mimick. The only addition here is that Harpy automatically installs Mimick and can dispatch the job to
-an HPC using <code v-pre>--hpc</code> like other workflows, otherwise it really just runs Mimick exactly as you would. All of Mimick&#x27;s
+veiled wrapper for Mimick. The only additions here are that Harpy automatically installs Mimick and can dispatch the job to
+an HPC using <code v-pre>--hpc</code> like other workflows and ensures proper pairing and haplotype concatenation, otherwise it really just runs Mimick exactly as you would. All of Mimick&#x27;s
 command line arguments are exposed to Harpy, except <code v-pre>--mutations</code>, <code v-pre>-indels</code>, and <code v-pre>-extindels</code>, which are set to <code v-pre>0</code>
 to make sure you are only simulating linked-reads exactly.</p>
 <p>Rather than having to maintain two copies of the same documentation, please
@@ -350,7 +350,6 @@ head over to <a href="https://pdimens.github.io/mimick/#/usage">the Mimick docum
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: center;">short name</th>
 <th style="text-align: left;">long name</th>
 <th style="text-align: left;">default</th>
 <th style="text-align: left;">type</th>
@@ -359,7 +358,6 @@ head over to <a href="https://pdimens.github.io/mimick/#/usage">the Mimick docum
 </thead>
 <tbody>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>BARCODES</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
@@ -368,7 +366,6 @@ head over to <a href="https://pdimens.github.io/mimick/#/usage">the Mimick docum
 </span> input barcode file or length,count</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>FASTA</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
@@ -377,126 +374,109 @@ head over to <a href="https://pdimens.github.io/mimick/#/usage">the Mimick docum
 </span> input fasta file(s)</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-o</code></td>
-<td style="text-align: left;"><code v-pre>--output-prefix</code></td>
+<td style="text-align: left;"><code v-pre>--output-prefix</code> <code v-pre>-o</code></td>
 <td style="text-align: left;"><code v-pre>simulated/SIM</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">output file prefix</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-O</code></td>
-<td style="text-align: left;"><code v-pre>--output-type</code></td>
+<td style="text-align: left;"><code v-pre>--output-type</code> <code v-pre>-O</code></td>
 <td style="text-align: left;"><code v-pre>standard</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">output format of FASTQ files</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-q</code></td>
-<td style="text-align: left;"><code v-pre>--quiet</code></td>
+<td style="text-align: left;"><code v-pre>--quiet</code> <code v-pre>-q</code></td>
 <td style="text-align: left;"><code v-pre>0</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;"><code v-pre>0</code> all output, <code v-pre>1</code> single progress bar, <code v-pre>2</code> no output</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-r</code></td>
-<td style="text-align: left;"><code v-pre>--regions</code></td>
+<td style="text-align: left;"><code v-pre>--regions</code> <code v-pre>-r</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">one or more regions to simulate, in BED format</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-t</code></td>
-<td style="text-align: left;"><code v-pre>--threads</code></td>
+<td style="text-align: left;"><code v-pre>--threads</code> <code v-pre>-t</code></td>
 <td style="text-align: left;"><code v-pre>2</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">number of threads to use for simulation</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--coverage</code></td>
 <td style="text-align: left;"><code v-pre>30</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">mean coverage target for simulated data</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--distance</code></td>
 <td style="text-align: left;"><code v-pre>500</code></td>
-<td style="text-align: left;">&gt;=<code v-pre>--length</code></td>
+<td style="text-align: left;">integer</td>
 <td style="text-align: left;">outer distance between the two ends in bp</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--error</code></td>
 <td style="text-align: left;"><code v-pre>0.02</code></td>
-<td style="text-align: left;">between <code v-pre>0</code>-<code v-pre>1</code>, will be fixed for this value</td>
-<td style="text-align: left;">base error rate</td>
+<td style="text-align: left;"><code v-pre>0</code>-<code v-pre>1</code></td>
+<td style="text-align: left;">base error rate, fixed at this number</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--extindels</code></td>
 <td style="text-align: left;"><code v-pre>0</code></td>
-<td style="text-align: left;">between <code v-pre>0</code>-<code v-pre>1</code></td>
+<td style="text-align: left;"><code v-pre>0</code>-<code v-pre>1</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>hidden</span>
-</span> indels extension rate</td>
+</span> indel extension rate</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--indels</code></td>
 <td style="text-align: left;"><code v-pre>0</code></td>
-<td style="text-align: left;">between <code v-pre>0</code>-<code v-pre>1</code></td>
+<td style="text-align: left;"><code v-pre>0</code>-<code v-pre>1</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>hidden</span>
-</span> indels creation rate</td>
+</span> indel creation rate</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--length</code></td>
 <td style="text-align: left;"><code v-pre>150</code></td>
-<td style="text-align: left;">&gt;<code v-pre>30</code></td>
-<td style="text-align: left;">length of reads in bp</td>
+<td style="text-align: left;"><code v-pre>30</code></td>
+<td style="text-align: left;">length of reads in bp, must be &gt;<code v-pre>30</code></td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--mutation</code></td>
 <td style="text-align: left;"><code v-pre>0</code></td>
-<td style="text-align: left;">between <code v-pre>0</code>-<code v-pre>1</code></td>
+<td style="text-align: left;"><code v-pre>0</code>-<code v-pre>1</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>hidden</span>
 </span> mutation rate</td>
 </tr>
 <tr>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><code v-pre>--stdev</code></td>
 <td style="text-align: left;"><code v-pre>50</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">standard deviation of <code v-pre>--distance</code></td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-l</code></td>
-<td style="text-align: left;"><code v-pre>--lr-type</code></td>
+<td style="text-align: left;"><code v-pre>--lr-type</code> <code v-pre>-l</code></td>
 <td style="text-align: left;"><code v-pre>haplotagging</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">type of linked-read experiment</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-c</code></td>
-<td style="text-align: left;"><code v-pre>--molecule-coverage</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-coverage</code> <code v-pre>-c</code></td>
 <td style="text-align: left;"><code v-pre>0.2</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">mean percent coverage per molecule if &lt;1, else mean number of reads per molecule</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-m</code></td>
-<td style="text-align: left;"><code v-pre>--molecule-length</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-length</code> <code v-pre>-m</code></td>
 <td style="text-align: left;"><code v-pre>80000</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">mean length of molecules in bp</td>
 </tr>
 <tr>
-<td style="text-align: center;"><code v-pre>-n</code></td>
-<td style="text-align: left;"><code v-pre>--molecule-number</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-number</code> <code v-pre>-n</code></td>
 <td style="text-align: left;"><code v-pre>3</code></td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">mean number of unrelated molecules per barcode, where a negative number (e.g. <code v-pre>-2</code>) will use a fixed number of unrelated molecules and a positive one will draw from a Poisson distribution</td>

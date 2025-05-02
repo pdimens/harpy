@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -386,7 +386,6 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
@@ -395,14 +394,12 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <tr>
 <td style="text-align: left;"><code v-pre>VCF</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Path to BCF/VCF file</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>INPUTS</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
@@ -411,42 +408,35 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <tr>
 <td style="text-align: left;"><code v-pre>--contigs</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><a href="../../common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--extra-params</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;"><code v-pre>--extra-params</code> <code v-pre>-x</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Additional Hapcut2 arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--reference</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;"><code v-pre>--reference</code> <code v-pre>-r</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Path to reference genome if wanting to also use reads spanning indels</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--ignore-bx</code></td>
-<td style="text-align: center;"><code v-pre>-b</code></td>
+<td style="text-align: left;"><code v-pre>--ignore-bx</code> <code v-pre>-b</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Ignore linked-read barcodes for phasing</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--molecule-distance</code></td>
-<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-distance</code> <code v-pre>-d</code></td>
 <td style="text-align: center;"><code v-pre>100000</code></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--prune-threshold</code></td>
-<td style="text-align: center;"><code v-pre>-p</code></td>
+<td style="text-align: left;"><code v-pre>--prune-threshold</code> <code v-pre>-p</code></td>
 <td style="text-align: center;"><code v-pre>7</code></td>
 <td style="text-align: left;">PHRED-scale (%) threshold for pruning low-confidence SNPs</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--vcf-samples</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><doc-anchor-trigger to="#prioritize-the-vcf-file">Use samples present in vcf file</doc-anchor-trigger> for imputation rather than those found the directory</td>
 </tr>

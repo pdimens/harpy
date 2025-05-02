@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -59,7 +59,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -384,51 +384,42 @@ to randomly simulate, or a <code v-pre>--vcf</code> of specific variants to simu
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td style="text-align: left;"><code v-pre>INPUT_GENOME</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The haploid genome to simulate variants onto</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--centromeres</code></td>
-<td style="text-align: center;"><code v-pre>-c</code></td>
+<td style="text-align: left;"><code v-pre>--centromeres</code> <code v-pre>-c</code></td>
 <td style="text-align: left;">GFF3 file of centromeres to avoid</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--exclude-chr</code></td>
-<td style="text-align: center;"><code v-pre>-e</code></td>
+<td style="text-align: left;"><code v-pre>--exclude-chr</code> <code v-pre>-e</code></td>
 <td style="text-align: left;">Text file of chromosomes to avoid, one per line</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--genes</code></td>
-<td style="text-align: center;"><code v-pre>-g</code></td>
+<td style="text-align: left;"><code v-pre>--genes</code> <code v-pre>-g</code></td>
 <td style="text-align: left;">GFF3 file of genes to avoid simulating over (see <code v-pre>snpindel</code> for caveat)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--heterozygosity</code></td>
-<td style="text-align: center;"><code v-pre>-z</code></td>
+<td style="text-align: left;"><code v-pre>--heterozygosity</code> <code v-pre>-z</code></td>
 <td style="text-align: left;"><doc-anchor-trigger to="#heterozygosity">proportion of simulated variants to make heterozygous   </doc-anchor-trigger> (default: <code v-pre>0</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--only-vcf</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;">When used with <code v-pre>--heterozygosity</code>, will create the diploid VCFs but will not simulate a diploid genome</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--prefix</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;">Naming prefix for output files (default: <code v-pre>sim.{module_name}</code>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--randomseed</code></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;">Random seed for simulation</td>
 </tr>
 </tbody>
@@ -469,63 +460,53 @@ The snp and indel variants are combined in this module because <code v-pre>simuG
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>--indel-count</code></td>
-<td style="text-align: center;"><code v-pre>-m</code></td>
+<td style="text-align: left;"><code v-pre>--indel-count</code> <code v-pre>-m</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;">Number of random indels to simluate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--indel-vcf</code></td>
-<td style="text-align: center;"><code v-pre>-i</code></td>
+<td style="text-align: left;"><code v-pre>--indel-vcf</code> <code v-pre>-i</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">VCF file of known indels to simulate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--indel-ratio</code></td>
-<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: left;"><code v-pre>--indel-ratio</code> <code v-pre>-d</code></td>
 <td style="text-align: center;"><code v-pre>1</code></td>
 <td style="text-align: left;">Insertion/Deletion ratio for indels</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--indel-size-alpha</code></td>
-<td style="text-align: center;"><code v-pre>-a</code></td>
+<td style="text-align: left;"><code v-pre>--indel-size-alpha</code> <code v-pre>-a</code></td>
 <td style="text-align: center;"><code v-pre>2.0</code></td>
 <td style="text-align: left;">Exponent Alpha for power-law-fitted indel size distribution</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--indel-size-constant</code></td>
-<td style="text-align: center;"><code v-pre>-l</code></td>
+<td style="text-align: left;"><code v-pre>--indel-size-constant</code> <code v-pre>-l</code></td>
 <td style="text-align: center;"><code v-pre>0.5</code></td>
 <td style="text-align: left;">Exponent constant for power-law-fitted indel size distribution</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--snp-count</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;"><code v-pre>--snp-count</code> <code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;">Number of random snps to simluate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--snp-gene-constraints</code></td>
-<td style="text-align: center;"><code v-pre>-y</code></td>
+<td style="text-align: left;"><code v-pre>--snp-gene-constraints</code> <code v-pre>-y</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">How to constrain randomly simulated SNPs {<code v-pre>noncoding</code>,<code v-pre>coding</code>,<code v-pre>2d</code>,<code v-pre>4d</code>} when using <code v-pre>--genes</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--snp-vcf</code></td>
-<td style="text-align: center;"><code v-pre>-s</code></td>
+<td style="text-align: left;"><code v-pre>--snp-vcf</code> <code v-pre>-s</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">VCF file of known snps to simulate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--titv-ratio</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;"><code v-pre>--titv-ratio</code> <code v-pre>-r</code></td>
 <td style="text-align: center;"><code v-pre>0.5</code></td>
 <td style="text-align: left;">Transition/Transversion ratio for snps</td>
 </tr>
@@ -572,33 +553,28 @@ the value to either <code v-pre>0</code> or <code v-pre>9999</code> :</p>
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>--count</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;"><code v-pre>--count</code> <code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;">Number of random inversions to simluate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--max-size</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;"><code v-pre>--max-size</code> <code v-pre>-x</code></td>
 <td style="text-align: center;"><code v-pre>100000</code></td>
 <td style="text-align: left;">Maximum inversion size (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-size</code></td>
-<td style="text-align: center;"><code v-pre>-m</code></td>
+<td style="text-align: left;"><code v-pre>--min-size</code> <code v-pre>-m</code></td>
 <td style="text-align: center;"><code v-pre>1000</code></td>
 <td style="text-align: left;">Minimum inversion size (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--vcf</code></td>
-<td style="text-align: center;"><code v-pre>-v</code></td>
+<td style="text-align: left;"><code v-pre>--vcf</code> <code v-pre>-v</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">VCF file of known inversions to simulate</td>
 </tr>
@@ -621,51 +597,43 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>--vcf</code></td>
-<td style="text-align: center;"><code v-pre>-v</code></td>
+<td style="text-align: left;"><code v-pre>--vcf</code> <code v-pre>-v</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">VCF file of known copy number variants to simulate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--count</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;"><code v-pre>--count</code> <code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;">Number of random cnv to simluate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--dup-ratio</code></td>
-<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: left;"><code v-pre>--dup-ratio</code> <code v-pre>-d</code></td>
 <td style="text-align: center;"><code v-pre>1</code></td>
 <td style="text-align: left;">Tandem/Dispersed duplication ratio</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--gain-ratio</code></td>
-<td style="text-align: center;"><code v-pre>-l</code></td>
+<td style="text-align: left;"><code v-pre>--gain-ratio</code> <code v-pre>-l</code></td>
 <td style="text-align: center;"><code v-pre>1</code></td>
 <td style="text-align: left;">Relative ratio of DNA gain over DNA loss</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--max-size</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;"><code v-pre>--max-size</code> <code v-pre>-x</code></td>
 <td style="text-align: center;"><code v-pre>100000</code></td>
 <td style="text-align: left;">Maximum cnv size (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--max-copy</code></td>
-<td style="text-align: center;"><code v-pre>-y</code></td>
+<td style="text-align: left;"><code v-pre>--max-copy</code> <code v-pre>-y</code></td>
 <td style="text-align: center;"><code v-pre>10</code></td>
 <td style="text-align: left;">Maximum number of copies</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-size</code></td>
-<td style="text-align: center;"><code v-pre>-m</code></td>
+<td style="text-align: left;"><code v-pre>--min-size</code> <code v-pre>-m</code></td>
 <td style="text-align: center;"><code v-pre>1000</code></td>
 <td style="text-align: left;">Minimum cnv size (bp)</td>
 </tr>
@@ -711,21 +679,18 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>--count</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;"><code v-pre>--count</code> <code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;">Number of random inversions to simluate</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--vcf</code></td>
-<td style="text-align: center;"><code v-pre>-v</code></td>
+<td style="text-align: left;"><code v-pre>--vcf</code> <code v-pre>-v</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">VCF file of known inversions to simulate</td>
 </tr>

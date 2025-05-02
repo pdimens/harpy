@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799347064960">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.7.0.799513180328">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.7.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.7.0.799347064960" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.7.0.799513180328" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.7.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799347064960" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799347064960" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.7.0.799513180328" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.7.0.799513180328" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.7.0" defer></script>
 </head>
 <body>
@@ -61,7 +61,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-semibold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2.0</span>
+                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -341,7 +341,6 @@ the descriptions are provided with an extra badge to reflect which part of the a
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
-<th style="text-align: center;">short name</th>
 <th style="text-align: center;">default</th>
 <th style="text-align: left;">description</th>
 </tr>
@@ -350,7 +349,6 @@ the descriptions are provided with an extra badge to reflect which part of the a
 <tr>
 <td style="text-align: left;"><code v-pre>FASTQ_R1</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> FASTQ file of forward reads</td>
@@ -358,118 +356,103 @@ the descriptions are provided with an extra badge to reflect which part of the a
 <tr>
 <td style="text-align: left;"><code v-pre>FASTQ_R2</code></td>
 <td style="text-align: center;"></td>
-<td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> FASTQ file of reverse reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--extra-params</code></td>
-<td style="text-align: center;"><code v-pre>-x</code></td>
+<td style="text-align: left;"><code v-pre>--extra-params</code> <code v-pre>-x</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Additional spades parameters, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--kmer-length</code></td>
-<td style="text-align: center;"><code v-pre>-k</code></td>
+<td style="text-align: left;"><code v-pre>--kmer-length</code> <code v-pre>-k</code></td>
 <td style="text-align: center;"><code v-pre>auto</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Kmer lengths to use for initial spades assembly. They must be <strong>odd</strong> and <strong>&lt;128</strong>, separated by commas, and without spaces. (e.g. <code v-pre>13,23,51</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--max-memory</code></td>
-<td style="text-align: center;"><code v-pre>-r</code></td>
+<td style="text-align: left;"><code v-pre>--max-memory</code> <code v-pre>-r</code></td>
 <td style="text-align: center;"><code v-pre>10000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Maximum memory for spades to use, given in megabytes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--arcs-extra</code></td>
-<td style="text-align: center;"><code v-pre>-y</code></td>
+<td style="text-align: left;"><code v-pre>--arcs-extra</code> <code v-pre>-y</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Additional ARCS parameters, in quotes and <code v-pre>option=arg</code> format</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--contig-length</code></td>
-<td style="text-align: center;"><code v-pre>-c</code></td>
+<td style="text-align: left;"><code v-pre>--contig-length</code> <code v-pre>-c</code></td>
 <td style="text-align: center;"><code v-pre>500</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum contig length</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--links</code></td>
-<td style="text-align: center;"><code v-pre>-n</code></td>
+<td style="text-align: left;"><code v-pre>--links</code> <code v-pre>-n</code></td>
 <td style="text-align: center;"><code v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum number of links to compute scaffold</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-aligned</code></td>
-<td style="text-align: center;"><code v-pre>-a</code></td>
+<td style="text-align: left;"><code v-pre>--min-aligned</code> <code v-pre>-a</code></td>
 <td style="text-align: center;"><code v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum aligned read pairs per barcode</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--min-quality</code></td>
-<td style="text-align: center;"><code v-pre>-q</code></td>
+<td style="text-align: left;"><code v-pre>--min-quality</code> <code v-pre>-q</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum mapping quality</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--mismatch</code></td>
-<td style="text-align: center;"><code v-pre>-m</code></td>
+<td style="text-align: left;"><code v-pre>--mismatch</code> <code v-pre>-m</code></td>
 <td style="text-align: center;"><code v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Maximum number of mismatches</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--molecule-distance</code></td>
-<td style="text-align: center;"><code v-pre>-d</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-distance</code> <code v-pre>-d</code></td>
 <td style="text-align: center;"><code v-pre>50000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Distance cutoff to split molecules (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--molecule-length</code></td>
-<td style="text-align: center;"><code v-pre>-l</code></td>
+<td style="text-align: left;"><code v-pre>--molecule-length</code> <code v-pre>-l</code></td>
 <td style="text-align: center;"><code v-pre>2000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum molecule length (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--seq-identity</code></td>
-<td style="text-align: center;"><code v-pre>-i</code></td>
+<td style="text-align: left;"><code v-pre>--seq-identity</code> <code v-pre>-i</code></td>
 <td style="text-align: center;"><code v-pre>98</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum sequence identity</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--span</code></td>
-<td style="text-align: center;"><code v-pre>-s</code></td>
+<td style="text-align: left;"><code v-pre>--span</code> <code v-pre>-s</code></td>
 <td style="text-align: center;"><code v-pre>20</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum number of spanning molecules to be considered assembled</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--organism-type</code></td>
-<td style="text-align: center;"><code v-pre>-u</code></td>
+<td style="text-align: left;"><code v-pre>--organism-type</code> <code v-pre>-u</code></td>
 <td style="text-align: center;"><code v-pre>eukaryote</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-gray-600 dark:text-dark-600 bg-gray-200 h-6 px-2 text-xs rounded-md">
     <span>report</span>
