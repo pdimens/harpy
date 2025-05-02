@@ -25,16 +25,19 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 
 {.compact}
 | Workflow                                                                | Description                                                          |
-| :---------------------------------------------------------------------- | :------------------------------------------------------------------- |
+|:------------------------------------------------------------------------|:---------------------------------------------------------------------|
 | [!badge corners="pill" text="align"](Workflows/Align/Align.md)          | Align sample sequences to a reference genome                         |
 | [!badge corners="pill" text="assembly"](Workflows/assembly.md)          | Create a genome assembly from linked-reads                           |
+| [!badge corners="pill" text="convert"](Workflows/convert.md)            | Convert data between linked-read types                               |
+| [!badge corners="pill" text="deconvolve"](Workflows/deconvolve.md)      | Resolve barcode sharing in unrelated molecules                       |
+| [!badge corners="pill" text="downsample"](Workflows/downsample.md)      | Downsample data by barcode                                           |
 | [!badge corners="pill" text="demultiplex"](Workflows/demultiplex.md)    | Demultiplex haplotagged FASTQ files                                  |
 | [!badge corners="pill" text="impute"](Workflows/impute.md)              | Impute genotypes using variants and sequences                        |
 | [!badge corners="pill" text="metassembly"](Workflows/metassembly.md)    | Create a metagenome assembly from linked-reads                       |
 | [!badge corners="pill" text="phase"](Workflows/phase.md)                | Phase SNPs into haplotypes                                           |
-| [!badge corners="pill" text="preflight"](Workflows/validate.md)         | Run various format checks for FASTQ and BAM files                    |
+| [!badge corners="pill" text="validate"](Workflows/validate.md)          | Run various format checks for FASTQ and BAM files                    |
 | [!badge corners="pill" text="qc"](Workflows/qc.md)                      | Remove adapters, deduplicate, and quality trim sequences             |
-| [!badge corners="pill" text="simulate"](Workflows/Simulate/Simulate.md) | Simulate haplotag linked reads or genomic variants                   |
+| [!badge corners="pill" text="simulate"](Workflows/Simulate/Simulate.md) | Simulate linked reads or genomic variants                            |
 | [!badge corners="pill" text="snp"](Workflows/snp.md)                    | Call SNPs and small indels                                           |
 | [!badge corners="pill" text="sv"](Workflows/SV/SV.md)                   | Call large structural variants (inversions, deletions, duplications) |
 

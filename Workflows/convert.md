@@ -51,15 +51,15 @@ the barcode conversion map. Requires 2 threads.
 
 ### :icon-terminal: Running Options
 {.compact}
-| argument     | short name | default | description                                                                     |
-|:-------------|:----------:|:-------:|:--------------------------------------------------------------------------------|
-| `FROM`       |            |         | [!badge variant="info" text="required"] current format of the input FASTQ files |
-| `TO`         |            |         | [!badge variant="info" text="required"] target format for output FASTQ files:   |
-| `FQ1`        |            |         | [!badge variant="info" text="required"] forward reads of FASTQ pair             |
-| `FQ2`        |            |         | [!badge variant="info" text="required"] reverse reads of FASTQ pair             |
-| `--barcodes` |    `-b`    |         | file of nucleotide barcodes (only necessary when `FROM` is `10x`)               |
-| `--output`   |    `-o`    |         | [!badge variant="info" text="required"] file prefix for output fastq files      |
-| `--quiet`    |            |   `0`   | `0` and `1` (all) or `2` (no) output                                            |
+| argument           | default | description                                                                     |
+|:-------------------|:-------:|:--------------------------------------------------------------------------------|
+| `FROM`             |         | [!badge variant="info" text="required"] current format of the input FASTQ files |
+| `TO`               |         | [!badge variant="info" text="required"] target format for output FASTQ files:   |
+| `FQ1`              |         | [!badge variant="info" text="required"] forward reads of FASTQ pair             |
+| `FQ2`              |         | [!badge variant="info" text="required"] reverse reads of FASTQ pair             |
+| `--barcodes` `-b` |         | file of nucleotide barcodes (only necessary when `FROM` is `10x`)               |
+| `--output` `-o`   |         | [!badge variant="info" text="required"] file prefix for output fastq files      |
+| `--quiet`          |   `0`   | `0` and `1` (all) or `2` (no) output                                            |
 
 
 ## Convert BAM formats
@@ -88,12 +88,12 @@ harpy convert bam --standardize haplotagging pomegranate.tellseq.bam > pomegrana
 
 ### :icon-terminal: Running Options
 {.compact}
-| argument        | short name | default | description                                                                                                            |
-|:----------------|:----------:|:-------:|:-----------------------------------------------------------------------------------------------------------------------|
-| `TO`            |            |         | [!badge variant="info" text="required"] barcode format for output BAM file: [`10x`,`haplotagging`, `stlfr`, `tellseq`] |
-| `SAM`           |            |         | [!badge variant="info" text="required"] input SAM/BAM alignment file                                                   |
-| `--standardize` |            | `False` | whether to standardize the output BAM with a `VX:i` validation tag                                                     |
-| `--quiet`       |            |   `0`   | `0` and `1` (all) or `2` (no) output                                                                                   |
+| argument        | default | description                                                                                                            |
+|:----------------|:-------:|:-----------------------------------------------------------------------------------------------------------------------|
+| `TO`            |         | [!badge variant="info" text="required"] barcode format for output BAM file: [`10x`,`haplotagging`, `stlfr`, `tellseq`] |
+| `SAM`           |         | [!badge variant="info" text="required"] input SAM/BAM alignment file                                                   |
+| `--standardize` | `False` | whether to standardize the output BAM with a `VX:i` validation tag                                                     |
+| `--quiet`       |   `0`   | `0` and `1` (all) or `2` (no) output                                                                                   |
 
 ## Standardize barcodes
 This conversion moves the barcode from the sequence name into the `BX:Z` tag of the alignment,
@@ -111,10 +111,10 @@ harpy convert standardize yucca.bam > yucca.std.bam
 
 ### :icon-terminal: Running Options
 {.compact}
-| argument        | short name | default | description                                                                                                            |
-|:----------------|:----------:|:-------:|:-----------------------------------------------------------------------------------------------------------------------|
-| `SAM`           |            |         | [!badge variant="info" text="required"] input SAM/BAM alignment file                                                   |
-| `--quiet`       |            |   `0`   | `0` and `1` (all) or `2` (no) output                                                                                   |
+| argument        | default | description                                                                                                            |
+|:----------------|:-------:|:-----------------------------------------------------------------------------------------------------------------------|
+| `SAM`           |         | [!badge variant="info" text="required"] input SAM/BAM alignment file                                                   |
+| `--quiet`       |   `0`   | `0` and `1` (all) or `2` (no) output                                                                                   |
 
 
 :::info Useless trivia

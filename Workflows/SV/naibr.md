@@ -63,18 +63,18 @@ harpy sv naibr --threads 20 --vcf Variants/data.vcf.gz genome.fasta Align/bwa
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 {.compact}
-| argument              | short name | default  | description                                                                                                                   |
-| :-------------------- | :--------: | :------: | :---------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments)  |
-| `REFERENCE`           |            |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
-| `--contigs`           |            |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                  |
-| `--extra-params`      |    `-x`    |          | Additional naibr arguments, in quotes                                                                                         |
-| `--min-barcodes`      |    `-b`    |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
-| `--min-quality`       |    `-q`    |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
-| `--min-size`          |    `-m`    |  `1000`  | Minimum size of SV to detect                                                                                                  |
-| `--molecule-distance` |    `-d`    | `100000` | Base-pair distance threshold to separate molecules                                                                            |
-| `--populations`       |    `-p`    |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
-| `--vcf`               |    `-v`    |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
+| argument                   | default  | description                                                                                                                   |
+|:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `REFERENCE`                |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
+| `--contigs`                |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                 |
+| `--extra-params` `-x`      |          | Additional naibr arguments, in quotes                                                                                         |
+| `--min-barcodes` `-b`      |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
+| `--min-quality` `-q`       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
+| `--min-size` `-m`          |  `1000`  | Minimum size of SV to detect                                                                                                  |
+| `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
+| `--populations` `-p`       |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
+| `--vcf` `-v`               |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same

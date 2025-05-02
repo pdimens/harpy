@@ -37,17 +37,17 @@ harpy phase --threads 20 Variants/variants.raw.bcf Align/ema
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
-| argument              | short name | default  | description                                                                                                                  |
-| :-------------------- | :--------: | :------: | :--------------------------------------------------------------------------------------------------------------------------- |
-| `VCF`                 |            |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                 |
-| `INPUTS`              |            |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
-| `--contigs`           |            |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                 |
-| `--extra-params`      |    `-x`    |          | Additional Hapcut2 arguments, in quotes                                                                                      |
-| `--reference`         |    `-r`    |          | Path to reference genome if wanting to also use reads spanning indels                                                                  |
-| `--ignore-bx`         |    `-b`    |          | Ignore linked-read barcodes for phasing                                                                                         |
-| `--molecule-distance` |    `-d`    | `100000` | Base-pair distance threshold to separate molecules                                                                           |
-| `--prune-threshold`   |    `-p`    |   `7`    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                    |
-| `--vcf-samples`       |            |          | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory             |
+| argument                   | default  | description                                                                                                                   |
+|:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
+| `VCF`                      |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                  |
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `--contigs`                |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                 |
+| `--extra-params` `-x`      |          | Additional Hapcut2 arguments, in quotes                                                                                       |
+| `--reference` `-r`         |          | Path to reference genome if wanting to also use reads spanning indels                                                         |
+| `--ignore-bx` `-b`         |          | Ignore linked-read barcodes for phasing                                                                                       |
+| `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
+| `--prune-threshold` `-p`   |   `7`    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                     |
+| `--vcf-samples`            |          | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory              |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want

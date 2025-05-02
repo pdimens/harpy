@@ -46,13 +46,13 @@ harpy deconvolve OPTIONS... INPUTS...
 
 ## :icon-terminal: Running Options
 {.compact}
-| argument        | short name | default | description                                                                                                                    |
-| :-------------- | :--------: | :-----: | :----------------------------------------------------------------------------------------------------------------------------- |
-| `INPUTS`        |            |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--density`     |    `-d`    |   `3`   | On average, $\frac{1}{2^d}$ kmers are indexed                                                                                  |
-| `--dropout`     |    `-a`    |   `0`   | Minimum cloud size to deconvolve                                                                                               |
-| `--kmer-length` |    `-k`    |  `21`   | Size of k-mers to search for similarities                                                                                      |
-| `--window-size` |    `-w`    |  `40`   | Size of window guaranteed to contain at least one kmer                                                                         |
+| argument             | default | description                                                                                                                     |
+|:---------------------|:-------:|:--------------------------------------------------------------------------------------------------------------------------------|
+| `INPUTS`             |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--density` `-d`     |   `3`   | On average, $\frac{1}{2^d}$ kmers are indexed                                                                                   |
+| `--dropout` `-a`     |   `0`   | Minimum cloud size to deconvolve                                                                                                |
+| `--kmer-length` `-k` |  `21`   | Size of k-mers to search for similarities                                                                                       |
+| `--window-size` `-w` |  `40`   | Size of window guaranteed to contain at least one kmer                                                                          |
 
 ## Resulting Barcodes
 After deconvolution, some barcodes may have a hyphenated suffix like `-1` or `-2` (e.g. `A01C33B41D93-1`).

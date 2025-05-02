@@ -47,16 +47,16 @@ Each requires and input genome at the end of the command line, and each requires
 to randomly simulate, or a `--vcf` of specific variants to simulate. There are also these unifying options among the different variant types:
 
 {.compact}
-| argument           | short name | description                                                                                            |
-| :----------------- | :--------: | :----------------------------------------------------------------------------------------------------- |
-| `INPUT_GENOME`     |            | [!badge variant="info" text="required"] The haploid genome to simulate variants onto                   |
-| `--centromeres`    | `-c`       | GFF3 file of centromeres to avoid                                                                      |
-| `--exclude-chr`    | `-e`       | Text file of chromosomes to avoid, one per line                                                        |
-| `--genes`          | `-g`       | GFF3 file of genes to avoid simulating over (see `snpindel` for caveat)                                |
-| `--heterozygosity` | `-z`       | [proportion of simulated variants to make heterozygous   ](#heterozygosity) (default: `0`)             |
-| `--only-vcf`       |            | When used with `--heterozygosity`, will create the diploid VCFs but will not simulate a diploid genome |
-| `--prefix`         |            | Naming prefix for output files (default: `sim.{module_name}`)                                          |
-| `--randomseed`     |            | Random seed for simulation                                                                             |
+| argument                | description                                                                                            |
+|:------------------------|:-------------------------------------------------------------------------------------------------------|
+| `INPUT_GENOME`          | [!badge variant="info" text="required"] The haploid genome to simulate variants onto                   |
+| `--centromeres` `-c`    | GFF3 file of centromeres to avoid                                                                      |
+| `--exclude-chr` `-e`    | Text file of chromosomes to avoid, one per line                                                        |
+| `--genes` `-g`          | GFF3 file of genes to avoid simulating over (see `snpindel` for caveat)                                |
+| `--heterozygosity` `-z` | [proportion of simulated variants to make heterozygous   ](#heterozygosity) (default: `0`)             |
+| `--only-vcf`            | When used with `--heterozygosity`, will create the diploid VCFs but will not simulate a diploid genome |
+| `--prefix`              | Naming prefix for output files (default: `sim.{module_name}`)                                          |
+| `--randomseed`          | Random seed for simulation                                                                             |
 
 !!!warning simulations can be slow
 Given software limitations, simulating many variants **relative to the size of the input genome** will be noticeably slow.
@@ -70,17 +70,17 @@ An indel, is a type of mutation that involves the addition/deletion of one or mo
 The snp and indel variants are combined in this module because `simuG` allows simulating them together. 
 
 {.compact}
-| argument                 | short name | default | description                                                                                    |
-| :----------------------- | :--------: | :-----: | :--------------------------------------------------------------------------------------------- |
-| `--indel-count`          |    `-m`    |   `0`   | Number of random indels to simluate                                                            |
-| `--indel-vcf`            |    `-i`    |         | VCF file of known indels to simulate                                                           |
-| `--indel-ratio`          |    `-d`    |   `1`   | Insertion/Deletion ratio for indels                                                            |
-| `--indel-size-alpha`     |    `-a`    |  `2.0`  | Exponent Alpha for power-law-fitted indel size distribution                                    |
-| `--indel-size-constant`  |    `-l`    |  `0.5`  | Exponent constant for power-law-fitted indel size distribution                                 |
-| `--snp-count`            |    `-n`    |   `0`   | Number of random snps to simluate                                                              |
-| `--snp-gene-constraints` |    `-y`    |         | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes` |
-| `--snp-vcf`              |    `-s`    |         | VCF file of known snps to simulate                                                             |
-| `--titv-ratio`           |    `-r`    |  `0.5`  | Transition/Transversion ratio for snps                                                         |
+| argument                      | default | description                                                                                    |
+|:------------------------------|:-------:|:-----------------------------------------------------------------------------------------------|
+| `--indel-count` `-m`          |   `0`   | Number of random indels to simluate                                                            |
+| `--indel-vcf` `-i`            |         | VCF file of known indels to simulate                                                           |
+| `--indel-ratio` `-d`          |   `1`   | Insertion/Deletion ratio for indels                                                            |
+| `--indel-size-alpha` `-a`     |  `2.0`  | Exponent Alpha for power-law-fitted indel size distribution                                    |
+| `--indel-size-constant` `-l`  |  `0.5`  | Exponent constant for power-law-fitted indel size distribution                                 |
+| `--snp-count` `-n`            |   `0`   | Number of random snps to simluate                                                              |
+| `--snp-gene-constraints` `-y` |         | How to constrain randomly simulated SNPs {`noncoding`,`coding`,`2d`,`4d`} when using `--genes` |
+| `--snp-vcf` `-s`              |         | VCF file of known snps to simulate                                                             |
+| `--titv-ratio` `-r`           |  `0.5`  | Transition/Transversion ratio for snps                                                         |
 
 The ratio parameters for snp and indel variants and have special meanings when setting
 the value to either `0` or `9999` :
@@ -96,12 +96,12 @@ the value to either `0` or `9999` :
 Inversions are when a section of a chromosome appears in the reverse orientation ([source](https://www.genome.gov/genetics-glossary/Inversion)).
 
 {.compact}
-| argument     | short name | default  | description                              |
-| :----------- | :--------: | :------: | :--------------------------------------- |
-| `--count`    |    `-n`    |   `0`    | Number of random inversions to simluate  |
-| `--max-size` |    `-x`    | `100000` | Maximum inversion size (bp)              |
-| `--min-size` |    `-m`    |  `1000`  | Minimum inversion size (bp)              |
-| `--vcf`      |    `-v`    |          | VCF file of known inversions to simulate |
+| argument          | default  | description                              |
+|:------------------|:--------:|:-----------------------------------------|
+| `--count` `-n`    |   `0`    | Number of random inversions to simluate  |
+| `--max-size` `-x` | `100000` | Maximum inversion size (bp)              |
+| `--min-size` `-m` |  `1000`  | Minimum inversion size (bp)              |
+| `--vcf` `-v`      |          | VCF file of known inversions to simulate |
 
 +++ 🟢 copy number variants
 ### cnv
@@ -109,15 +109,15 @@ A copy number variation (CNV) is when the number of copies of a particular gene 
 between individuals ([source](https://www.genome.gov/genetics-glossary/Copy-Number-Variation)).
 
 {.compact}
-| argument       | short name | default  | description                                        |
-| :------------- | :--------: | :------: | :------------------------------------------------- |
-| `--vcf`        |    `-v`    |          | VCF file of known copy number variants to simulate |
-| `--count`      |    `-n`    |   `0`    | Number of random cnv to simluate                   |
-| `--dup-ratio`  |    `-d`    |   `1`    | Tandem/Dispersed duplication ratio                 |
-| `--gain-ratio` |    `-l`    |   `1`    | Relative ratio of DNA gain over DNA loss           |
-| `--max-size`   |    `-x`    | `100000` | Maximum cnv size (bp)                              |
-| `--max-copy`   |    `-y`    |   `10`   | Maximum number of copies                           |
-| `--min-size`   |    `-m`    |  `1000`  | Minimum cnv size (bp)                              |
+| argument            | default  | description                                        |
+|:--------------------|:--------:|:---------------------------------------------------|
+| `--vcf` `-v`        |          | VCF file of known copy number variants to simulate |
+| `--count` `-n`      |   `0`    | Number of random cnv to simluate                   |
+| `--dup-ratio` `-d`  |   `1`    | Tandem/Dispersed duplication ratio                 |
+| `--gain-ratio` `-l` |   `1`    | Relative ratio of DNA gain over DNA loss           |
+| `--max-size` `-x`   | `100000` | Maximum cnv size (bp)                              |
+| `--max-copy` `-y`   |   `10`   | Maximum number of copies                           |
+| `--min-size` `-m`   |  `1000`  | Minimum cnv size (bp)                              |
 
 The ratio parameters have special meanings when setting the value to either `0` or `9999` :
 
@@ -132,10 +132,10 @@ The ratio parameters have special meanings when setting the value to either `0` 
 A translocation occurs when a chromosome breaks and the fragmented pieces re-attach to different chromosomes ([source](https://www.genome.gov/genetics-glossary/Translocation)). 
 
 {.compact}
-| argument  | short name | default | description                              |
-| :-------- | :--------: | :-----: | :--------------------------------------- |
-| `--count` |    `-n`    |   `0`   | Number of random inversions to simluate  |
-| `--vcf`   |    `-v`    |         | VCF file of known inversions to simulate |
+| argument       | default | description                              |
+|:---------------|:-------:|:-----------------------------------------|
+| `--count` `-n` |   `0`   | Number of random inversions to simluate  |
+| `--vcf` `-v`   |         | VCF file of known inversions to simulate |
 
 +++
 

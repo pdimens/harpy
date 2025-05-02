@@ -43,18 +43,18 @@ harpy align ema genome.fasta Sequences/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
 
 {.compact}
-| argument             | short name | type                 |    default     | description                                                                                                                     |
-|:---------------------|:----------:|:---------------------|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`          |            | file path            |                | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
-| `INPUTS`             |            | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--contigs`          |            | file path or list    |                | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
-| `--fragment-density` |    `-d`    | toggle               |     false      | Perform read fragment density optimization                                                                                      |
-| `--ema-bins`         |    `-e`    | integer (1-1000)     |     `500`      | Number of barcode bins for EMA                                                                                                  |
-| `--extra-params`     |    `-x`    | string               |                | Additional EMA-align arguments, in quotes                                                                                       |
-| `--keep-unmapped`    |    `-u`    | toggle               |     false      | Output unmapped sequences too                                                                                                   |
-| `--min-quality`      |    `-q`    | integer (0-40)       |      `30`      | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
-| `--platform`         |    `-p`    | string               | `haplotagging` | [!badge variant="info" text="required"] Linked read technology: `haplotagging` or `10x`                                         |
-| `--barcode-list`     |    `-b`    | file path            |                | Path to barcode list (`--platform 10x` only)                                                                                    |
+| argument                  | type                 |    default     | description                                                                                                                     |
+|:--------------------------|:---------------------|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------|
+| `REFERENCE`               | file path            |                | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
+| `INPUTS`                  | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--contigs`               | file path or list    |                | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `--fragment-density` `-d` | toggle               |     false      | Perform read fragment density optimization                                                                                      |
+| `--ema-bins` `-e`         | integer (1-1000)     |     `500`      | Number of barcode bins for EMA                                                                                                  |
+| `--extra-params` `-x`     | string               |                | Additional EMA-align arguments, in quotes                                                                                       |
+| `--keep-unmapped` `-u`    | toggle               |     false      | Output unmapped sequences too                                                                                                   |
+| `--min-quality` `-q`      | integer (0-40)       |      `30`      | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
+| `--platform` `-p`         | string               | `haplotagging` | [!badge variant="info" text="required"] Linked read technology: `haplotagging` or `10x`                                         |
+| `--barcode-list` `-b`     | file path            |                | Path to barcode list (`--platform 10x` only)                                                                                    |
 
 ### Barcode list
 Some linked-read methods (e.g. 10x, Tellseq) require the inclusion of a barcode list (often referred to a "whitelist", unfortunately).

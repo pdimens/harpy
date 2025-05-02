@@ -50,18 +50,19 @@ of calling the module. These runtime parameters are listed in the modules' help 
 configured using these arguments:
 
 {.compact}
-| argument         | short name | type              | default | description                                                                       |
-|:-----------------|:----------:|:------------------|:-------:|:----------------------------------------------------------------------------------|
-| `--container`    |            | toggle            |         | Use preconfigured Singularity container instead of local conda environments       |
-| `--contigs`      |            | file path or list |         | Contigs to plot in the report(s)                                                  |
-| `--help`         |    `-h`    |                   |         | Show the module docstring                                                         |
-| `--hpc`          |            |                   |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                     |
-| `--ignore-bx`    |            | toggle            |         | Ignore parts of the workflow specific to linked-read data                         |
-| `--output-dir`   |    `-o`    | string            | varies  | Name of output directory                                                          |
-| `--quiet`        |            | toggle            |         | Suppress the progress bars and other status text when running                     |
-| `--skip-reports` |            | toggle            |         | Skip the processing and generation of HTML reports in a workflow                  |
-| `--snakemake`    |            | string            |         | Additional [Snakemake](snakemake#adding-snakemake-parameters) options, in quotes |
-| `--threads`      |    `-t`    | integer           |    4    | Number of threads to use                                                          |
+| argument            | type              | default | description                                                                                                                                           |
+|:--------------------|:------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                           |
+| `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                      |
+| `--help` `-h`       |                   |         | Show the module docstring                                                                                                                             |
+| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                                                                                         |
+| `--ignore-bx`       | toggle            |         | Ignore parts of the workflow specific to linked-read data                                                                                             |
+| `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                              |
+| `--quiet`           | toggle            |         | Suppress the progress bars and other status text when running                                                                                         |
+| `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
+| `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                      |
+| `--snakemake`       | string            |         | Additional [Snakemake](snakemake#adding-snakemake-parameters) options, in quotes                                                                      |
+| `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                              |
 
 ### --contigs
 Some of the workflows (like [!badge corners="pill" text="align"](Workflows/Align/Align.md)) plot per-contig information in their reports.

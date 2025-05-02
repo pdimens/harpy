@@ -17,7 +17,7 @@ When pooling samples and sequencing them in parallel on an Illumina sequencer, y
 files in return. These files contain sequences for all of your samples and need to be demultiplexed using barcodes to 
 separate the sequences for each sample into their own files (a forward and reverse file for each sample). These barcodes
 should have been added during the sample DNA preparation in a laboratory. The demultiplexing strategy will vary based on the
-haplotag technology you are using (read [Haplotag Types](#haplotagging-types)).
+haplotagging technology you are using (read [Haplotagging Types](#haplotagging-types)).
 
 ```bash usage
 harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
@@ -29,15 +29,16 @@ harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="demultiplex gen1"] module is configured using these command-line arguments:
 
 {.compact}
-| argument   | short name | description                                                      |
-| :--------- | :--------: | :--------------------------------------------------------------- |
-| `R1_FQ`    |            | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
-| `R2_FQ`    |            | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
-| `I1_FQ`    |            | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
-| `I2_FQ`    |            | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
-| `--keep-unknown`   |     `-u`    | Keep reads that could not be demultiplexed                                                   |
-| `--qxrx`   |     `-q`    | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
-| `--schema` |    `-s`    | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
+| argument                       | description                                                                                              |
+|:-------------------------------|:---------------------------------------------------------------------------------------------------------|
+| `R1_FQ`                        | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
+| `R2_FQ`                        | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
+| `I1_FQ`                        | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
+| `I2_FQ`                        | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
+| `--keep-unknown-samples` `-u`  | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
+| `--keep-unknown-barcodes` `-b` | Keep a separate file of reads with unrecognized barcodes                                                 |
+| `--qxrx` `-q`                  | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
+| `--schema` `-s`                | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
 
 ### Keeping Unknown Samples
 It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown` to

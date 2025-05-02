@@ -41,14 +41,14 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 module is configured using the command-line arguments below.
 
 {.compact}
-| argument        | short name |    default    | description                                                                                          |
-|:----------------|:----------:|:-------------:|:-----------------------------------------------------------------------------------------------------|
-| `INPUT`         |            |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair |
-| `--barcode-tag` |    `-b`    |     `BX`      | SAM tag that contains the barcode                                                                    |
-| `--downsample`  |    `-d`    |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                          |
-| `--invalid`     |    `-i`    |      `1`      | Proportion of invalid barcodes to potentially sample                                                                     |
-| `--prefix`      |    `-p`    | `downsampled` | Prefix for output files                                                                              |
-| `--random-seed` |            |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                |
+| argument             |    default    | description                                                                                          |
+|:---------------------|:-------------:|:-----------------------------------------------------------------------------------------------------|
+| `INPUT`              |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair |
+| `--barcode-tag` `-b` |     `BX`      | SAM tag that contains the barcode                                                                    |
+| `--downsample` `-d`  |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                          |
+| `--invalid` `-i`     |      `1`      | Proportion of invalid barcodes to potentially sample                                                 |
+| `--prefix` `-p`      | `downsampled` | Prefix for output files                                                                              |
+| `--random-seed`      |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                |
 
 ## invalid barcodes
 The `--invalid` options determines what proportion of invalid barcodes appear in the barcode
