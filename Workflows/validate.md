@@ -1,12 +1,13 @@
 ---
 label: Validate
 description: Run file format checks on haplotagged FASTQ/BAM files
+category: [linked-read]
+tags: [linked-read]
 icon: rocket
 order: 5
 ---
 
 # :icon-rocket: Validation checks for input files
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

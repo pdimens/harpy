@@ -1,12 +1,13 @@
 ---
 label: Downsample
 description: Downsample data by barcode
+category: [linked-read]
+tags: [linked-read]
 icon: fold-down
 order: 10
 ---
 
 # :icon-fold-down: Downsample data by barcode
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - One of either:

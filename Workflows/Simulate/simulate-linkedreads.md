@@ -1,8 +1,9 @@
 ---
 label: Linked Reads
 description: Simulate linked reads from a genome
+categories: [linked-read]
+tags: [linked-read]
 icon: dot
-#visibility: hidden
 order: 6
 ---
 

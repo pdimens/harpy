@@ -1,15 +1,11 @@
 ---
-author: 
-  - name: Pavel Dimens
-    avatar: https://cals.cornell.edu/sites/default/files/styles/faculty/public/2024-09/afs-headshot-high-res-2cropped_0.jpg
-date: 2025-03-18
-category: guides
+label: Linked-Read Data
 description: What you ought to know about linked reads
+order: 5
 icon: git-merge-queue
-image: /static/linked_reads.svg
 ---
 
-# :icon-git-compare: An introduction to linked-read data
+# :icon-git-compare: Intro to linked-read data
 Harpy was originally tailor-made for haplotagging linked read data, but now it works for most linked-read technologies
 along with non-linked read data. BRL/LRTK/LongRanger are similar pieces of software for Tellseq, stLFR, and 10X linked-read
 data. But, what if you don't use linked reads (yet) and want to understand what it actually is? This post walks you through what 
@@ -51,7 +47,7 @@ do so with varying degrees of success and computational resource requirements. S
 flexibility towards accepting the deconvolved-barcode format.
 
 ### Linked-read varieties
-There are a handful of linked-read sample preparation methods ([read below](#linked-read-fastq-types)), but that's largely an implementation detail. All of those methods are
+There are a handful of linked-read sample preparation methods ([read below](#linked-read-data-types)), but that's largely an implementation detail. All of those methods are
 laboratory procedures to take genomic DNA and do the necessary modifications to fragment long DNA molecules, tag the resulting fragments with the same
 DNA barcode, then add the necessary Illumina adapters. It's not unlike the different RAD flavors (e.g. EZrad, ddRAD, 2B-rad)-- they all give you RAD data in the end,
 but vary in how you get there in terms of cost and bench time. We obviously subscribe to haplotagging :grin:.
@@ -119,7 +115,7 @@ is the **linked depth** of those same data in those same 50kbp intervals. It has
 is due to the lower likelihood of reads linking at the edges of chromosomes.
 ![linked depth in real data](/static/linked_depth_example.png)
 
-## Linked-Read FASTQ types
+## Linked-read data types
 This isn't really the place to go into the nitty-gritty of the different linked-read chemistries
 (i.e. I don't actually know the nuanced details), but it's worth describing the obvious differences
 of the raw (FASTQ) data. Knowing these details might help you make sense of compatibilties/incompatibilities

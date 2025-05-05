@@ -15,7 +15,7 @@ Harpy consistent and pain-free, Harpy outputs the progress bar to `stdout`, whil
 What that means in practice is that if you run harpy with a `stderr` redirect to a log file, only the progress bar appears
 in your console, keeping the log file clean. We do **not** recommend redirecting `stdout` (the progress bar) to a file. Here's an example:
 ```bash
-harpy align bwa data/sample_*.fq.gz 2> bwa.log
+harpy align bwa genome.fasta data/sample_*.fq.gz 2> bwa.log
 ```
 
 ## Troubleshooting Harpy

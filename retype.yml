@@ -38,9 +38,6 @@ links:
   link: https://github.com/pdimens/harpy/issues/new/choose
   icon: bug
   target: blank
-- text: Development
-  link: /development.md
-  icon: tools
 exclude:
   - "src/"
   - "test/"

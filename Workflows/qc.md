@@ -1,12 +1,13 @@
 ---
 label: QC
 description: Quality trim haplotagged sequences with Harpy
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: codescan-checkmark
 order: 4
 ---
 
 # :icon-codescan-checkmark: Quality Trim Sequences
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

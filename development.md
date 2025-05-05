@@ -1,13 +1,12 @@
 ---
 label: Development
 icon: tools
-order: 1
-hidden: true
+order: 5
 ---
 
 # :icon-tools: Developing Harpy
 Harpy is an open source program written using a combination of BASH, R, 
-RMarkdown, Python, and Snakemake. This page provides information on Harpy's
+RMarkdown/Quarto, Python, and Snakemake. This page provides information on Harpy's
 development and how to contribute to it, if you were inclined to do so.
 
 === Design Philosophy

@@ -1,12 +1,13 @@
 ---
 label: SNP
 description: Call SNPs and small indels
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: sliders
 order: 2
 ---
 
 # :icon-sliders: Call SNPs and small indels
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

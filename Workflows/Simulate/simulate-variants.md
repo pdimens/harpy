@@ -1,8 +1,9 @@
 ---
 label: Variants
 description: Simulate snps, indels, inversions, cnv, translocations
+categories: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: dot
-#visibility: hidden
 order: 6
 ---
 

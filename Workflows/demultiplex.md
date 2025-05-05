@@ -1,12 +1,13 @@
 ---
 label: Demultiplex
 description: Demultiplex raw sequences into haplotag barcoded samples
+category: [linked-read]
+tags: [linked-read]
 icon: versions
 order: 9
 ---
 
 # :icon-versions: Demultiplex Raw Sequences
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

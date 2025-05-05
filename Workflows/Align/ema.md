@@ -1,12 +1,13 @@
 ---
 label: EMA
 description: Align haplotagged sequences with EMA
+category: [linked-read]
+tags: [linked-read]
 icon: dot
 order: 5
 ---
 
 # :icon-quote: Map Reads onto a genome with EMA
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

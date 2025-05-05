@@ -1,12 +1,13 @@
 ---
 label: Strobe
 description: Align haplotagged sequences with strobealign
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: dot
 order: 5
 ---
 
 # :icon-quote: Map Reads onto a genome with strobealign
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

@@ -1,12 +1,13 @@
 ---
 label: Convert
 description: Convert between linked-read data formats
+category: [linked-read]
+tags: [linked-read]
 icon: arrow-switch
 order: 10
 ---
 
 # :icon-arrow-switch: Convert between data formats
-[!badge variant="secondary" text="linked reads"]
 
 Regrettably, the bright minds who developed various linked-read technologies cannot seem to agree on a unified data format.
 That's annoying at best and hinders the field of linked-read analysis at worst, as there are pieces of very clever software

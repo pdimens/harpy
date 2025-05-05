@@ -1,12 +1,13 @@
 ---
 label: Impute
 description: Impute genotypes for haplotagged data with Harpy
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: project
 order: 8
 ---
 
 # :icon-project: Impute Genotypes using Sequences
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

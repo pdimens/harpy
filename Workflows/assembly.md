@@ -1,12 +1,13 @@
 ---
 label: Assembly
 description: Create a genome assembly from linked reads
+category: [linked-read]
+tags: [linked-read]
 icon: commit
 order: 11
 ---
 
 # :icon-commit: Create a Genome Assembly
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

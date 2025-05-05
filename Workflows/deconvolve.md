@@ -1,12 +1,13 @@
 ---
 label: Deconvolve
 description: Resolve barcodes shared by different molecules
+category: [linked-read]
+tags: [linked-read]
 icon: tag
 order: 10
 ---
 
 # :icon-tag: Resolve barcodes shared by different molecules
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]

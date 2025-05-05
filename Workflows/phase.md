@@ -1,12 +1,13 @@
 ---
 label: Phase
 description: Phase haplotypes for haplotagged data with Harpy
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: stack
 order: 6
 ---
 
 # :icon-stack: Phase SNPs into Haplotypes
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

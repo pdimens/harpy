@@ -1,12 +1,13 @@
 ---
 label: Naibr
 description: Call structural variants using NAIBR (plus)
+category: [linked-read]
+tags: [linked-read]
 icon: dot
 order: 1
 ---
 
 # :icon-sliders: Call Structural Variants using NAIBR
-[!badge variant="secondary" text="linked reads"]
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

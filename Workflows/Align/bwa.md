@@ -1,12 +1,14 @@
 ---
 label: BWA
 description: Align haplotagged sequences with BWA MEM
+category: [linked-read, wgs]
+tags: [linked-read, wgs]
 icon: dot
 order: 5
 ---
 
 # :icon-quote: Map Reads onto a genome with BWA MEM
-[!badge variant="secondary" text="linked reads"] [!badge variant="secondary" text="non-linked reads"]
+
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
