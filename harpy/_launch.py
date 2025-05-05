@@ -196,17 +196,33 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 print_setup_error(exitcode)
             elif exitcode == 3:
                 print_onerror(sm_logfile)
+            console = Console(stderr = True, tab_size = 4, highlight=False)
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
-                console = Console(stderr = True, tab_size = 4, highlight=False)
                 if "Exception" in output or "Error" in output:
-                    console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
+                    if output.startswith("CalledProcessError in file"):
+                        console.print("[yellow bold]" + output.rstrip().rstrip(":"), overflow = "ignore", crop = False)
+                        # skip the Command source part
+                        while not output.startswith("["):
+                            output = process.stderr.readline()
+                        console.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
+                        output = process.stderr.readline()
+                        continue
+                    else:
+                        console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
-                if output.startswith("Logfile") or output.startswith("======"):
-                    console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
+                if output.startswith("Logfile"):
+                    _log = output.rstrip().split()[-1]
+                    console.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
+                    output = process.stderr.readline()
+                    continue
+                if output.startswith("======"):
                     output = process.stderr.readline()
                     continue
                 if output:
+                    if output.lstrip().startswith("message:"):
+                        output = process.stderr.readline()
+                        continue
                     if not output.startswith("Complete log"):
                         console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
