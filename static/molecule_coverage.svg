@@ -7,7 +7,7 @@
    viewBox="0 0 212.27901 34.238998"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
    sodipodi:docname="molecule_coverage.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,11 +23,11 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="0.32471591"
-     inkscape:cx="169.37883"
-     inkscape:cy="-571.26859"
+     inkscape:zoom="2.5977273"
+     inkscape:cx="228.27647"
+     inkscape:cy="-23.482065"
      inkscape:window-width="1600"
-     inkscape:window-height="840"
+     inkscape:window-height="845"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -46,6 +46,10 @@
      inkscape:groupmode="layer"
      id="layer1"
      transform="translate(49.047325,-312.50759)">
+    <path
+       style="font-variation-settings:'wght' 600;fill:none;stroke:#d6d6d6;stroke-width:0.455;stroke-linecap:round;stroke-dasharray:0.455, 1.365;stroke-dashoffset:0;stroke-opacity:1;paint-order:markers fill stroke"
+       d="M 22.622304,317.08898 H 159.96275"
+       id="path1" />
     <text
        xml:space="preserve"
        transform="scale(0.26458333)"
@@ -53,9 +57,9 @@
        style="font-size:37.8932px;font-family:'Montserrat Alternates';-inkscape-font-specification:'Montserrat Alternates, Normal';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect10);display:inline;fill:none;stroke:#000000;stroke-width:14.9594;stroke-linecap:square;stroke-linejoin:bevel;stroke-opacity:1;paint-order:fill markers stroke"><tspan
          x="229.73828"
          y="814.41333"
-         id="tspan4"><tspan
+         id="tspan2"><tspan
            dx="0 16.862463 25.653696 13.982643 22.887497 15.763512 19.969734 25.691566 11.709 9.9279938"
-           id="tspan3">Interval 1</tspan></tspan></text>
+           id="tspan1">Interval 1</tspan></tspan></text>
     <path
        style="fill:none;stroke:#d6d6d6;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
        d="M 22.663418,329.28044 H 159.36891"

@@ -133,9 +133,9 @@ Because of this segment design, there are $96^4$ (~84 million) possible barcode 
 The barcodes are stored in the sequence header under the `BX:Z` SAM tag, recoded in their "`ACBD`" format.
 - 4 barcode segments
   - `A` segment is the first 6bp of the I1 read
-  - `C` segment is the next 6bp of the I1 read
+  - `C` segment is the next 6bp of the I1 read (7-12)
   - `B` segment is the first 6bp of the I2 read
-  - `D` segment is the next 6bp of the I2 read
+  - `D` segment is the next 6bp of the I2 read (7-12)
 - barcode stored as `BX:Z` tag in the read header in `ACBD` format
   - e.g. `@A003432423434:1:324 BX:Z:A45C01B84D21`
 
@@ -167,3 +167,40 @@ the barcode **must** stay in the read. Moving the first 16bp into the read heade
 - barcode is the first 16bp of the R1 read
 - barcode stays in the sequence data for LongRanger compatibility
 - limited to ~4.7 million barcodes
+
+### Standard
+We here at Harpy would like to _plead_ for linked-read practitioners to adopt a standardized representation of linked-read barcodes.
+We don't really care what linked-read technology you use (although we obviously prefer haplotagging), but we do care about
+the data formats being consistent. The classic joke in population genetics is that before you write a new piece of software,
+you need to first write a new file format. We really don't want that here-- inconsistent linked-read data formats make it harder
+for developers to write great software that is compatible with all linked-read data types when they need to account for every possible
+location a barcode could be in, what a valid vs invalid barcode looks like for that technology, etc. So, we are humbly asking 
+(nay, begging) for there to be a standard data format (FASTQ and SAM/BAM) that uses two SAM tags to encode barcodes:
+- `BX:Z` tag to record the barcode, the format of which is irrelevant
+  - it could be haplotagging `ACBD`, stLFR `1_2_3`, nucleotides, _whatever_
+- `VX:i` tag to record if the corresponding barcode is valid
+  - `0` is invalid
+  - `1` is valid
+
+This format makes it the responsibility of the early data processing software 
+(as early as demultiplexing) to encode the data in this format for downstream
+processing. Our hope is that this htslib-compliant format is adopted to reduce
+the fragmentation in the software ecosystem and reduce the need for file format
+conversions. It also creates a blueprint for a generic file encoding for any new
+linked-read methods that are being developed or can be developed in the future.
+
+#### FASTQ
+``` stLFR style valid FASTQ header
+@A00470:481:HNYFWDRX2:1:2101:29532:1063/1 BX:Z:45_11_361 VX:i:1
+```
+``` haplotagging style invalid FASTQ header
+@A00470:481:HNYFWDRX2:1:2101:29532:1063/1 BX:Z:A78C00B14D96 VX:i:0
+```
+#### SAM/BAM
+``` haplotagging style valid SAM record
+A00470:481:HNYFWDRX2:1:2229:29912:29778 99      2R      1222    40      19S80M  =   1500     428     AGATGTGTATAAGAGACAGAGTTATGTCATTTTAAGCGGTCAAAATGGGTGAATTTCCGATTTCAAGTAATAGGCGAACTCAAGATACCTTCTACAGAT  FFFFFFFFFFFFFFFFF:FFFFF:FFFFF:FFFF:FFFFFFFFFFFFFFFFF:FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:,FFFFFFF:FFFFF  NM:i:0  MD:Z:80 MC:Z:150M       AS:i:80      XS:i:80 RG:Z:sample1    MI:i:1  VX:i:1  BX:Z:A55C67B91D96
+```
+
+``` nucleotide (TELLseq/10X) style invalid SAM record
+A00470:481:HNYFWDRX2:1:2229:29912:29778 99      2R      1222    40      19S80M  =   1500     428     AGATGTGTATAAGAGACAGAGTTATGTCATTTTAAGCGGTCAAAATGGGTGAATTTCCGATTTCAAGTAATAGGCGAACTCAAGATACCTTCTACAGAT  FFFFFFFFFFFFFFFFF:FFFFF:FFFFF:FFFF:FFFFFFFFFFFFFFFFF:FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:,FFFFFFF:FFFFF  NM:i:0  MD:Z:80 MC:Z:150M       AS:i:80      XS:i:80 RG:Z:sample1    MI:i:1  VX:i:0  BX:Z:TACANNNCACAGAG
+```

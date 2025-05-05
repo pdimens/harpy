@@ -7,7 +7,7 @@
    viewBox="0 0 233.499 67.933998"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
    sodipodi:docname="linked_depth.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,11 +23,11 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="1.4101819"
-     inkscape:cx="698.49144"
-     inkscape:cy="162.74496"
+     inkscape:zoom="1.9942984"
+     inkscape:cx="281.80337"
+     inkscape:cy="50.142948"
      inkscape:window-width="1600"
-     inkscape:window-height="840"
+     inkscape:window-height="845"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -53,9 +53,9 @@
        style="font-size:37.8932px;font-family:'Montserrat Alternates';-inkscape-font-specification:'Montserrat Alternates, Normal';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect10);display:inline;fill:none;stroke:#000000;stroke-width:14.9594;stroke-linecap:square;stroke-linejoin:bevel;stroke-opacity:1;paint-order:fill markers stroke"><tspan
          x="229.73828"
          y="814.41333"
-         id="tspan2"><tspan
+         id="tspan4"><tspan
            dx="0 16.862463 25.653696 13.982643 22.887497 15.763512 19.969734 25.691566 11.709 9.9279938"
-           id="tspan1">Interval 1</tspan></tspan></text>
+           id="tspan3">Interval 1</tspan></tspan></text>
     <path
        style="fill:none;stroke:#d6d6d6;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
        d="M 20.54675,327.16374 H 157.25223"
@@ -65,6 +65,10 @@
        style="fill:none;stroke:#717171;stroke-width:3.958;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
        d="M 8.3844908,339.91529 H 175.01413"
        id="path4-1" />
+    <path
+       style="font-variation-settings:'wght' 600;fill:none;stroke:#d6d6d6;stroke-width:0.455;paint-order:markers fill stroke;stroke-dasharray:0.45500001, 1.36500004;stroke-dashoffset:0;stroke-linecap:round;stroke-opacity:1"
+       d="M 20.287723,315.07426 H 157.62816"
+       id="path1" />
     <path
        style="fill:none;stroke:#a77cc8;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
        d="M 20.54675,315.07426 H 30.75221"
