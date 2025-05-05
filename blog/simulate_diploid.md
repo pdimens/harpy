@@ -46,7 +46,7 @@ that here, but you should hopefully be able to intuit how to do that by the end 
 ```bash
 harpy simulate inversion -n 20 -z 0.5 --min-size 30000 dmel.fa
 ```
-==- :icon-terminal: code explation
+==- :icon-terminal: code explanation
 - `-n` is the number of random inversions (`20`)
 - `--min-size` is the minimum inversion size (`30000`)
     - default is 1000 bp, which was arbitrarily made bigger in this example
@@ -83,7 +83,7 @@ The Harpy command to accomplish this is:
 ```bash
 harpy simulate snpindel -m 500 -n 75000 -z 0.1 --only-vcf -o sim_snpindel GENOME.fa
 ```
-==- :icon-terminal: code explation
+==- :icon-terminal: code explanation
 - `-m` is the number of ranbom indels (`500`)
 - `-n` is the number of random snps (`500`)
 - `-z` is the level of heterozygosity (`0.1` = 10%)
@@ -122,7 +122,7 @@ harpy simulate snpindel --snp-vcf SNP.hap1.vcf --indel-vcf indel.hap1.vcf -o sim
 # haplotype 2
 harpy simulate snpindel --snp-vcf SNP.hap2.vcf --indel-vcf indel.hap2.vcf -o sim_snp_hap2 haplotype2.fa
 ```
-==- :icon-terminal: code explation
+==- :icon-terminal: code explanation
 - `--snp-vcf` is the vcf of snps for haplotype 1 (or 2) from [**Step 2**](#2-add-snps-and-indels)
 - `--indel-vcf` is the vcf of indels for haplotype 1 (or 2) from [**Step 2**](#2-add-snps-and-indels)
 - `-o` is the name of the output directory
@@ -166,7 +166,7 @@ Now that you have heterozygous haplotypes created from your starting genome, you
 ```bash
 harpy simulate linkedreads -t 4 6,96 HAP1.fa HAP2.fa
 ```
-==- :icon-terminal: code explation
+==- :icon-terminal: code explanation
 - `-t` is the number of threads to use (`4`)
 - `6,96` is the specification of generating 96 random barcodes that are 6bp each
   - the workflow defaults to the haplotagging design, meaning the barcodes will be 4-combinatorial (i.e. $96^4$ combinations)
