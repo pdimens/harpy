@@ -95,10 +95,22 @@ def print_onsuccess(outdir: str, summary = None, time = None) -> None:
     console.rule("[bold]Workflow Finished!", style="green")
     console.print(datatable)
 
-def print_onerror(logfile: str) -> None:
+def print_onerror(logfile: str, time = None) -> None:
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
+    days = time.days
+    seconds = time.seconds
+    hours = seconds // 3600
+    minutes = (seconds % 3600) // 60
+    seconds = seconds % 60
+    time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+    datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    datatable.add_column("detail", justify="left", style="red", no_wrap=True)
+    datatable.add_column("value", justify="left")
+    datatable.add_row("Runtime:", time_text)
+    datatable.add_row("Full log: ", logfile)
     console.rule("[bold]Workflow Error", style = "red")
-    console.print(f"The workflow stopped because of an error. Full workflow log:\n[bold]{logfile}[/]")
+    console.print(f"The workflow stopped because of an error. See the error information below.")
+    console.print(datatable)
     console.rule("[bold]Where Error Occurred", style = "red")
 
 def workflow_info(*arg: tuple[str, str | int | float]) -> Table:

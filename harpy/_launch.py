@@ -183,19 +183,16 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                                 break
 
         process.wait()
+        end_time = datetime.now()
+        elapsed_time = end_time - start_time
         if process.returncode < 1:
-            gzip_file(sm_logfile)
-            purge_empty_logs(outdir)
             if quiet < 2:
-                end_time = datetime.now()
-                elapsed_time = end_time - start_time
                 print_onsuccess(outdir, summaryfile, elapsed_time)
-            sys.exit(0)
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)
             elif exitcode == 3:
-                print_onerror(sm_logfile)
+                print_onerror(os.path.join(os.path.basename(outdir), sm_logfile), elapsed_time)
             console = Console(stderr = True, tab_size = 4, highlight=False)
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
                 if "Exception" in output or "Error" in output:
@@ -211,32 +208,48 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
+                if output.rstrip() == "Traceback (most recent call last):" :
+                    while output.rstrip() != "snakemake.exceptions.SpawnedJobError":
+                        output = process.stderr.readline()
+                    output = process.stderr.readline()
                 if output.startswith("Logfile"):
-                    _log = output.rstrip().split()[-1]
+                    _log = output.rstrip().split()[1]
                     console.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
                     output = process.stderr.readline()
                     continue
                 if output.startswith("======"):
                     output = process.stderr.readline()
                     continue
-                if output:
-                    if output.lstrip().startswith("message:"):
+                if output.rstrip():
+                    if output.lstrip().startswith("message:") or output.startswith("Finished jobid:") or output.rstrip().endswith(") done") or output.startswith("Removing output files of failed job"):
+                        output = process.stderr.readline()
+                        continue
+                    # handle errors in the python run blocks
+                    if output.startswith("Exiting because a job execution failed. Look below for"):
+                        while not output.startswith("[") and not output.rstrip().endswith("]"):
+                            output = process.stderr.readline()
+                        console.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
                         output = process.stderr.readline()
                         continue
                     if not output.startswith("Complete log"):
+                        if output.startswith("[") and output.rstrip().endswith("]"):
+                            output = process.stderr.readline()
+                            continue
                         console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break
+                if not output:
+                    break
                 output = process.stderr.readline()
-            gzip_file(sm_logfile)
-            purge_empty_logs(outdir)
-            sys.exit(1)
+        purge_empty_logs(outdir)
+        gzip_file(os.path.join(outdir, sm_logfile))
+        sys.exit(process.returncode)
     except KeyboardInterrupt:
         console = Console(stderr=True)
         console.print("")
         console.rule("[bold]Terminating Harpy", style = "yellow")
         process.terminate()
         process.wait()
-        gzip_file(sm_logfile)
+        gzip_file(os.path.join(outdir,sm_logfile))
         purge_empty_logs(outdir)
         sys.exit(1)
