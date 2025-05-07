@@ -148,3 +148,11 @@ the image and open it in a new tab if you wish to see the example in better deta
 |||
 +++
 
+## Now using dmox!
+Harpy v2 introduced a new demultiplexer under the hood called [dmox](https://gitlab.mbb.cnrs.fr/ibonnici/dmox), which is singificantly faster,
+lighter on memory, and has better maintenance than the previous solution. [Iago Bonnici](https://isem-evolution.fr/en/membre/bonnici/) of 
+[Montpellier Bioinformatics Biodiversity](https://isem-evolution.fr/en/plateau/montpellier-bioinformatics-biodiversity-facility/) 
+(MBB) saw the need for better demultiplexing performance and took it upon themselves to donate their time to write a brand-new
+purpose-built demultiplexer for the Meier/Chan haplotagging bead design. Beyond just being way more performant, this new
+demultiplexer has more features, has more output options, and is flexible for haplotagging bead designs where the sample
+ID is not the C-segment. If you're happy with the performance of the new demultiplexing workflow, please let Iago/MBB know!
