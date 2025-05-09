@@ -3,12 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-schemafile = config["inputs"]["demultiplex_schema"]
-skip_reports = config["reports"]["skip"]
-qxrx = config["retain"]["qx_rx"]
-unknown_samples = config["retain"]["samples"]
-unknown_barcodes = config["retain"]["barcodes"]
-
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
@@ -16,6 +10,12 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     FR = r"[12]",
     part = r"\d{3}"
+
+schemafile = config["inputs"]["demultiplex_schema"]
+skip_reports = config["reports"]["skip"]
+qxrx = config["retain"]["qx_rx"]
+unknown_samples = config["retain"]["samples"]
+unknown_barcodes = config["retain"]["barcodes"]
 
 samplenames = set()
 duplicates = False
@@ -124,7 +124,7 @@ rule report_config:
             "report_comment": "Generated as part of the Harpy demultiplex workflow",
             "report_header_info": [
                 {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-                {"Read the Docs": "https://pdimens.github.io/harpy/"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/demultiplex/"},
                 {"Project Homepage": "https://github.com/pdimens/harpy"}
             ]
         }
