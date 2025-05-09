@@ -42,10 +42,14 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--schema` `-s`                | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
 
 ### Keeping Unknown Samples
-It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown` to
+It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown-samples`/`-u` to
 have Harpy still separate those reads from the original multiplex. Those reads will be labelled `_unknown_sample.R*.fq.gz` 
 
-### Keep QX and RX tags
+### Keeping Unknown Barcodes
+It's likewise not uncommon that sequencing errors make it so that the sequences don't match the list of known barcode segments. Use
+`--keep-unknown-barcodes`/`-b` to have Harpy separate those reads out from the original multiplex as `_unknown_barcodes.R*.fq.gz`.
+
+### Keep QX and RX Tags
 Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode)
 tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
 
