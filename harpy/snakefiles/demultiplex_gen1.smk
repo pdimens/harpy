@@ -18,12 +18,16 @@ wildcard_constraints:
     part = r"\d{3}"
 
 samplenames = set()
+duplicates = False
 with open(schemafile, "r") as f:
     for i in f:
         line = i.strip()
         if not i or i.startswith("#"):
             continue
-        samplenames.add(line.split()[0])
+        _sample = line.split()[0] 
+        if _sample in samplenames:
+            duplicates = True
+        samplenames.add(_sample)
 
 if unknown_samples:
     samplenames.add("_unknown_samples")
@@ -59,6 +63,7 @@ rule demultiplex:
         qxrx = "--rx --qx" if qxrx else "",
         unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
         unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else "",
+        duplicate_samples = "--multiple-samples-per-barcode" if duplicates else ""
         #bc_per_segment = "--n-modules {bc_per_segment}"
         #bc_len = "--module-size {bc_len}",
     threads:
