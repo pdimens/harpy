@@ -17,15 +17,16 @@ def demultiplex():
     """
     Demultiplex haplotagged FASTQ files
 
-    Check that you are using the correct haplotag method/technology, since the different
+    Check that you are using the correct haplotagging method/technology, since the different
     barcoding approaches have very different demultiplexing strategies.
 
-    **Haplotag Technologies**
-    - `gen1`: the original haplotagging barcode strategy developed by Meier _et al._ (2021)
+    **Haplotagging Technologies**
+    - `meier2021`: the original haplotagging barcode strategy
+      - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
     """
 
 docstring = {
-    "harpy demultiplex gen1": [
+    "harpy demultiplex meier2021": [
         {
             "name": "Parameters",
             "options": ["--keep-unknown-barcodes", "--keep-unknown-samples", "--qx-rx","--schema"],
@@ -38,6 +39,11 @@ docstring = {
         },
     ]
 }
+
+@click.command(deprecated = True)
+def gen1():
+    print("This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
+    sys.exit(1)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-u', '--keep-unknown-samples',  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
@@ -56,9 +62,9 @@ docstring = {
 @click.argument('R2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.argument('I1_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
 @click.argument('I2_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
-def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def meier2021(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Demultiplex Generation I haplotagged FASTQ files
+    Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs (in that exact order) provided after the options. 
     The `--schema` must be **tab** (or space) delimited, have **no header** (i.e. no column names), and be in the format of `sample`\\<TAB\\>`barcode`,
@@ -66,7 +72,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = "demultiplex_gen1"
+    workflow = "demultiplex_meier2021"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
     validate_demuxschema(schema, return_len = False)
@@ -81,7 +87,7 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "demultiplex_gen1.smk")
+    fetch_rule(workflowdir, "demultiplex_meier2021.smk")
 
     conda_envs = ["demultiplex", "qc"]
     configs = {
@@ -115,13 +121,13 @@ def gen1(r1_fq, r2_fq, i1_fq, i2_fq, output_dir, schema, qx_rx, keep_unknown_sam
         sys.exit(0)
     
     start_text = workflow_info(
-        ("Barcode Design:", "Generation I"),
+        ("Barcode Design:", "Meier _et al._ 2021"),
         ("Demultiplex Schema:", os.path.basename(schema)),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
         ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.gen1.summary")
+    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.meier2021.summary")
 
+demultiplex.add_command(meier2021)
 demultiplex.add_command(gen1)
-

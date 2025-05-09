@@ -3,12 +3,6 @@ containerized: "docker://pdimens/harpy:latest"
 import os
 import logging
 
-schemafile = config["inputs"]["demultiplex_schema"]
-skip_reports = config["reports"]["skip"]
-qxrx = config["retain"]["qx_rx"]
-unknown_samples = config["retain"]["samples"]
-unknown_barcodes = config["retain"]["barcodes"]
-
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
@@ -17,13 +11,23 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
+schemafile = config["inputs"]["demultiplex_schema"]
+skip_reports = config["reports"]["skip"]
+qxrx = config["retain"]["qx_rx"]
+unknown_samples = config["retain"]["samples"]
+unknown_barcodes = config["retain"]["barcodes"]
+
 samplenames = set()
+duplicates = False
 with open(schemafile, "r") as f:
     for i in f:
         line = i.strip()
         if not i or i.startswith("#"):
             continue
-        samplenames.add(line.split()[0])
+        _sample = line.split()[0] 
+        if _sample in samplenames:
+            duplicates = True
+        samplenames.add(_sample)
 
 if unknown_samples:
     samplenames.add("_unknown_samples")
@@ -59,6 +63,7 @@ rule demultiplex:
         qxrx = "--rx --qx" if qxrx else "",
         unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
         unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else "",
+        duplicate_samples = "--multiple-samples-per-barcode" if duplicates else ""
         #bc_per_segment = "--n-modules {bc_per_segment}"
         #bc_len = "--module-size {bc_len}",
     threads:
@@ -119,7 +124,7 @@ rule report_config:
             "report_comment": "Generated as part of the Harpy demultiplex workflow",
             "report_header_info": [
                 {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-                {"Read the Docs": "https://pdimens.github.io/harpy/"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/demultiplex/"},
                 {"Project Homepage": "https://github.com/pdimens/harpy"}
             ]
         }
@@ -160,7 +165,7 @@ rule workflow_summary:
         unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
     run:
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
-        summary.append("Linked Read Barcode Design: Generation I")
+        summary.append("Linked Read Barcode Design: Meier et al. 2021")
         inputs = "The multiplexed input files:\n"
         inputs += f"\tread 1: {params.R1}\n"
         inputs += f"\tread 2: {params.R2}\n"
@@ -177,5 +182,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
-        with open("workflow/demux.gen1.summary", "w") as f:
+        with open("workflow/demux.meier2021.summary", "w") as f:
             f.write("\n\n".join(summary))
