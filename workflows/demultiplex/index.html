@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.799961271130">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800118618741">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.8.1">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.8.1.799961271130" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.8.1.800118618741" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.8.1.799961271130" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.8.1.800118618741" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.8.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.8.1.799961271130" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.8.1.799961271130" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.8.1.800118618741" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.8.1.800118618741" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.8.1" defer></script>
 </head>
 <body>
@@ -370,12 +370,20 @@ haplotagging technology you are using (read <doc-anchor-trigger to="#haplotaggin
         <span>Keeping Unknown Samples</span>
     </h3>
 </doc-anchor-target>
-<p>It&#x27;s not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use <code v-pre>--keep-unknown</code> to
+<p>It&#x27;s not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use <code v-pre>--keep-unknown-samples</code>/<code v-pre>-u</code> to
 have Harpy still separate those reads from the original multiplex. Those reads will be labelled <code v-pre>_unknown_sample.R*.fq.gz</code></p>
+<doc-anchor-target id="keeping-unknown-barcodes">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#keeping-unknown-barcodes">#</doc-anchor-trigger>
+        <span>Keeping Unknown Barcodes</span>
+    </h3>
+</doc-anchor-target>
+<p>It&#x27;s likewise not uncommon that sequencing errors make it so that the sequences don&#x27;t match the list of known barcode segments. Use
+<code v-pre>--keep-unknown-barcodes</code>/<code v-pre>-b</code> to have Harpy separate those reads out from the original multiplex as <code v-pre>_unknown_barcodes.R*.fq.gz</code>.</p>
 <doc-anchor-target id="keep-qx-and-rx-tags">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#keep-qx-and-rx-tags">#</doc-anchor-trigger>
-        <span>Keep QX and RX tags</span>
+        <span>Keep QX and RX Tags</span>
     </h3>
 </doc-anchor-target>
 <p>Using <code v-pre>--qx-rx</code>, you can opt-in to retain the <code v-pre>QX:Z</code> (barcode PHRED scores) and <code v-pre>RX:Z</code> (nucleotide barcode)
