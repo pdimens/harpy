@@ -182,5 +182,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
-        with open("workflow/demux.gen1.summary", "w") as f:
+        with open("workflow/demux.meier2021.summary", "w") as f:
             f.write("\n\n".join(summary))

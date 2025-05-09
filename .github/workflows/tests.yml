@@ -121,10 +121,10 @@ jobs:
 #          path: .snakemake/singularity/*.simg
 #          retention-days: 1
 
-  dmux_gen1:
+  dmux_meier2021:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.demux == 'true' }}
-    name: demux gen1
+    name: demux meier2021
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -155,7 +155,7 @@ jobs:
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: |
-          harpy demultiplex gen1 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
+          harpy demultiplex meier2021 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
           ls -lh Demultiplex
 
   validate:

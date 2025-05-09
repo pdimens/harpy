@@ -37,7 +37,6 @@ demux: &demux
   - *environments
   - 'harpy/demultiplex.py'
   - 'harpy/snakefiles/demultiplex**.smk'
-  - '**demuxGen1'
   - 'haplotag_acbd.py'
   - 'test/data/demux/**'
 qc: &qc
