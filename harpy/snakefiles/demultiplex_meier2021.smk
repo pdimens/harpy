@@ -165,7 +165,7 @@ rule workflow_summary:
         unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
     run:
         summary = ["The harpy demultiplex workflow ran using these parameters:"]
-        summary.append("Linked Read Barcode Design: Generation I")
+        summary.append("Linked Read Barcode Design: Meier et al. 2021")
         inputs = "The multiplexed input files:\n"
         inputs += f"\tread 1: {params.R1}\n"
         inputs += f"\tread 2: {params.R2}\n"
