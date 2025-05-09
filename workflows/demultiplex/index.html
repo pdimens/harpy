@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800118618741">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800137236356">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.8.1">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.8.1.800118618741" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.8.1.800137236356" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.8.1.800118618741" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.8.1.800137236356" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.8.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.8.1.800118618741" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.8.1.800118618741" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.8.1.800137236356" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.8.1.800137236356" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.8.1" defer></script>
 </head>
 <body>
@@ -297,7 +297,7 @@ haplotagging technology you are using (read <doc-anchor-trigger to="#haplotaggin
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example using wildcards</div>
-<pre class="language-bash"><code v-pre class="language-bash">harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz</code></pre>
+<pre class="language-bash"><code v-pre class="language-bash">harpy demultiplex meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options">
     <h2>
@@ -308,7 +308,7 @@ haplotagging technology you are using (read <doc-anchor-trigger to="#haplotaggin
 <p>In addition to the <a href="../../common_options/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-500 dark:text-blue-400 border border-blue-500 dark:border-blue-400 hover:bg-blue-100 dark:hover:bg-transparent dark:hover:border-blue-200 dark:hover:text-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>common runtime options</span>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 h-6 px-2 text-xs rounded-full">
-    <span>demultiplex gen1</span>
+    <span>demultiplex meier2021</span>
 </span> module is configured using these command-line arguments:</p>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -394,8 +394,24 @@ tags in the sequence headers. These tags aren&#x27;t used by any subsequent anal
         <span>Haplotagging Types</span>
     </h2>
 </doc-anchor-target>
-<doc-panel id="generation-1-gen1" collapsed>
-    <template #title>Generation 1 - <code v-pre>gen1</code></template>
+<doc-panel id="meier-et-al-2021-meier2021" collapsed>
+    <template #title>Meier <em>et al.</em> 2021 - <code v-pre>meier2021</code></template>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1 rounded-tl rounded-bl bg-yellow-500"></div>
+    <div class="flex w-full py-4 border border-l-0 border-gray-300 rounded-tr rounded-br doc-alert bg-white dark:bg-dark-700 dark:border-dark-700" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mb-px text-yellow-500" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+<p>This was formerly known as <code v-pre>gen1</code>, which is being deprecated in the next minor release-- explicit is always better than implicit!</p>
+        </div>
+    </div>
+</div>
 <ul>
 <li>Barcode configuration: <code v-pre>13 + 13</code></li>
 <li>sequencing mask: <code v-pre>151+13+13+151</code></li>
@@ -460,18 +476,15 @@ Sample03    C03</code></pre>
 </doc-tabs>
 </doc-panel>
 <hr>
-<doc-anchor-target id="gen-i-demultiplex-workflow">
+<doc-anchor-target id="meier2021-demultiplex-workflow">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#gen-i-demultiplex-workflow">#</doc-anchor-trigger>
-        <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M16 19.25a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm-14.5 0a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm0-14.5a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0ZM4.75 3a1.75 1.75 0 1 0 .001 3.501A1.75 1.75 0 0 0 4.75 3Zm0 14.5a1.75 1.75 0 1 0 .001 3.501A1.75 1.75 0 0 0 4.75 17.5Zm14.5 0a1.75 1.75 0 1 0 .001 3.501 1.75 1.75 0 0 0-.001-3.501Z"/><path d="M13.405 1.72a.75.75 0 0 1 0 1.06L12.185 4h4.065A3.75 3.75 0 0 1 20 7.75v8.75a.75.75 0 0 1-1.5 0V7.75a2.25 2.25 0 0 0-2.25-2.25h-4.064l1.22 1.22a.75.75 0 0 1-1.061 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06l2.5-2.5a.75.75 0 0 1 1.06 0ZM4.75 7.25A.75.75 0 0 1 5.5 8v8A.75.75 0 0 1 4 16V8a.75.75 0 0 1 .75-.75Z"/></g></g></svg> Gen I Demultiplex Workflow</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#meier2021-demultiplex-workflow">#</doc-anchor-trigger>
+        <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M16 19.25a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm-14.5 0a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm0-14.5a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0ZM4.75 3a1.75 1.75 0 1 0 .001 3.501A1.75 1.75 0 0 0 4.75 3Zm0 14.5a1.75 1.75 0 1 0 .001 3.501A1.75 1.75 0 0 0 4.75 17.5Zm14.5 0a1.75 1.75 0 1 0 .001 3.501 1.75 1.75 0 0 0-.001-3.501Z"/><path d="M13.405 1.72a.75.75 0 0 1 0 1.06L12.185 4h4.065A3.75 3.75 0 0 1 20 7.75v8.75a.75.75 0 0 1-1.5 0V7.75a2.25 2.25 0 0 0-2.25-2.25h-4.064l1.22 1.22a.75.75 0 0 1-1.061 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06l2.5-2.5a.75.75 0 0 1 1.06 0ZM4.75 7.25A.75.75 0 0 1 5.5 8v8A.75.75 0 0 1 4 16V8a.75.75 0 0 1 .75-.75Z"/></g></g></svg> Meier2021 Demultiplex Workflow</span>
     </h2>
 </doc-anchor-target>
 <doc-tabs>
 <doc-tab v-cloak id="details">
 <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M15 13.25a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm-12.5 6a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0Zm0-14.5a3.25 3.25 0 1 1 6.5 0 3.25 3.25 0 0 1-6.5 0ZM5.75 6.5a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 5.75 6.5Zm0 14.5a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 5.75 21Zm12.5-6a1.75 1.75 0 1 0-.001-3.501A1.75 1.75 0 0 0 18.25 15Z"/><path d="M6.5 7.25c0 2.9 2.35 5.25 5.25 5.25h4.5V14h-4.5A6.75 6.75 0 0 1 5 7.25Z"/><path d="M5.75 16.75A.75.75 0 0 1 5 16V8a.75.75 0 0 1 1.5 0v8a.75.75 0 0 1-.75.75Z"/></g></g></svg> details</template>
-<p>Barcode correction and migration into the read headers is performed using <a href="https://github.com/evolgenomics/haplotagging/blob/master/demult_fastq.cpp">demult_fastq</a>
-(Harpy renames it to <code v-pre>demuxGen1</code>), which is distributed by the team behind haplotagging. Demultiplexing the pooled FASTQ files into
-individual samples is performed in parallel and using the beloved workhorse <code v-pre>grep</code>.</p>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre class="mermaid w-full">graph LR
     subgraph Inputs
         direction TB
@@ -481,7 +494,7 @@ individual samples is performed in parallel and using the beloved workhorse <cod
     end
     Inputs--&gt;B([demultiplex samples]):::clean
     B--&gt;D([quality metrics]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
 </doc-tab>
 <doc-tab v-cloak id="demultiplexing-output">
