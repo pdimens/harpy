@@ -121,8 +121,8 @@ graph LR
     id1 & id2-->A
     A([index barcodes]):::clean --> B([leviathan]):::clean
     B-->C([convert to BCF]):::clean
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: leviathan output

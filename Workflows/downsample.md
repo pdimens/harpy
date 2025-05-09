@@ -74,7 +74,7 @@ graph LR
     sub-->exreads([extract reads]):::clean
     bam-->exreads
     fastq-->exreads
-    style fastq fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style bam fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style fastq fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style bam fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```

@@ -104,7 +104,7 @@ graph LR
     A-->G
     D-->G
     G-->I([merge phased samples]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 

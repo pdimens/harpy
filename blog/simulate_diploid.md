@@ -144,8 +144,8 @@ graph LR
     id1-->|simulate snpindel -s -i|genohap1(haplotype1.fasta final)
     id2-->|simulate snpindel -s -i|genohap2(haplotype2.fasta final)
 
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     style geno1 fill:#90c8be,stroke:#6fb6a9,stroke-width:2px
     style geno2 fill:#bd8fcb,stroke:#a460b7,stroke-width:2px
     style snphap2 fill:#f5f6f9,stroke:#bd8fcb,stroke-width:2px

@@ -232,7 +232,7 @@ graph LR
         haplo2
     end
    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-   style diploid fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+   style diploid fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
    style haplo1 stroke:#90c8be,fill:#f0f0f0,stroke-width:2px
    style haplo2 stroke:#bd8fcb,fill:#f0f0f0,stroke-width:2px
 ```

@@ -83,9 +83,9 @@ graph LR
         B-->C([arcs]):::clean
         C-->D([links]):::clean
     end
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style init fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style Scaffolding fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style init fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style Scaffolding fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 

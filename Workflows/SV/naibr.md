@@ -130,8 +130,8 @@ graph LR
         phase2([phased haplotypes]):::phase-->|whatshap haplotag|aln2:::clean
         aln2([phased alignments])-->|NAIBR|results((structural variants)):::clean
     end
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style id2 fill:#dfe3ee,stroke:#c8ccd6,stroke-width:2px
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style id2 fill:#dfe3ee,stroke:#c8ccd6,stroke-width:2px,rx:10px,ry:10px
     classDef phase fill:#b7c9ef,stroke:#dfe3ee,stroke-width:2px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
@@ -163,8 +163,8 @@ graph LR
     popsplit --> Z
     phased --> Z
     
-    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
+    style id2 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style id1 fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 +++ :icon-file-directory: naibr output

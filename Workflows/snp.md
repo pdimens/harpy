@@ -156,9 +156,9 @@ graph LR
     z --> D
     C-->E
     E-->F([realign indels]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px
-    style mpileup fill:#b0c1b3,stroke:#9eada1,stroke-width:2px
-    style freebayes fill:#bcb7cd,stroke:#a9a4b8,stroke-width:2px
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    style mpileup fill:#b0c1b3,stroke:#9eada1,stroke-width:2px,rx:10px,ry:10px
+    style freebayes fill:#bcb7cd,stroke:#a9a4b8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```
 
