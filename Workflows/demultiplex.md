@@ -24,10 +24,10 @@ haplotagging technology you are using (read [Haplotagging Types](#haplotagging-t
 harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 ```
 ```bash example using wildcards
-harpy demultiplex gen1 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
+harpy demultiplex meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="demultiplex gen1"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="demultiplex meier2021"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                       | description                                                                                              |
@@ -54,7 +54,11 @@ Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and 
 tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
 
 ## Haplotagging Types
-==- Generation 1 - `gen1`
+==- Meier _et al._ 2021 - `meier2021`
+!!!warning
+This was formerly known as `gen1`, which is being deprecated in the next minor release-- explicit is always better than implicit!
+!!!
+
 - Barcode configuration: `13 + 13`
 - sequencing mask: `151+13+13+151`
 - Sample identifier: `Cxx` barcode
@@ -104,11 +108,8 @@ Sample03    C03
 
 
 ---
-## :icon-git-pull-request: Gen I Demultiplex Workflow
+## :icon-git-pull-request: Meier2021 Demultiplex Workflow
 +++ :icon-git-merge: details
-Barcode correction and migration into the read headers is performed using [demult_fastq](https://github.com/evolgenomics/haplotagging/blob/master/demult_fastq.cpp)
-(Harpy renames it to `demuxGen1`), which is distributed by the team behind haplotagging. Demultiplexing the pooled FASTQ files into
-individual samples is performed in parallel and using the beloved workhorse `grep`.
 
 ```mermaid
 graph LR
