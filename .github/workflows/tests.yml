@@ -155,7 +155,7 @@ jobs:
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: |
-          harpy demultiplex meier2021 --quiet 2 --schema test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
+          harpy demultiplex meier2021 --quiet 2 test/demux/samples.schema test/demux/Undetermined_S0_L004_R* test/demux/Undetermined_S0_L004_I* && \
           ls -lh Demultiplex
 
   validate:

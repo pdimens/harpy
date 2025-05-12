@@ -42,6 +42,9 @@ docstring = {
 
 @click.command(deprecated = True)
 def gen1():
+    """
+    Use `meier2021` instead
+    """
     print("This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
     sys.exit(1)
 
