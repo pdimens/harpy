@@ -123,22 +123,24 @@ for software, or how you can convert between styles.
 
 ### Haplotagging
 Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
-are made up of four 6bp segments. Two of these segments ("A" and "C") are the first 12bp of the I1 read and
-the other two ("B" and "D") are the first 12bp of the I2 read, both of which are provided by Illumina for standard sequencing runs.
+are made up of four 6bp segments. Two of these segments ("A" and "C") are the first 12bp of the $I1$ read and
+the other two ("B" and "D") are the first 12bp of the $I2$ read, both of which are provided by Illumina for standard sequencing runs.
 Because of this segment design, there are $96^4$ (~84 million) possible barcode combinations (~900,000 per sample). 
 The barcodes are stored in the sequence header under the `BX:Z` SAM tag, recoded in their "`ACBD`" format.
+![Haplotagging data format](/static/lr_haplotagging.svg)
 - 4 barcode segments
-  - `A` segment is the first 6bp of the I1 read
-  - `C` segment is the next 6bp of the I1 read (7-12)
-  - `B` segment is the first 6bp of the I2 read
-  - `D` segment is the next 6bp of the I2 read (7-12)
+  - `A` segment is the first 6bp of the $I1$ read
+  - `C` segment is the next 6bp of the $I1$ read (7-12)
+  - `B` segment is the first 6bp of the $I2$ read
+  - `D` segment is the next 6bp of the $I2$ read (7-12)
 - barcode stored as `BX:Z` tag in the read header in `ACBD` format
   - e.g. `@A003432423434:1:324 BX:Z:A45C01B84D21`
 
 ### TELLseq
 One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
-barcode is 18bp long and contained in the I1 read that Illumina provides with the standard R1 and R2 reads. The
+barcode is 18bp long and contained in the $I1$ read that Illumina provides with the standard $R1$ and $R2$ reads. The
 barcode gets appended in the read header using a colon (`:`).
+![Haplotagging FASTQ data format](/static/lr_tellseq.svg)
 - barcode is the first 18bp of the I1 read 
 - barcode is appended to sequence header
   - e.g. `@A00234534562:1:544:AATTATACCACAGCGGTA`
@@ -146,10 +148,11 @@ barcode gets appended in the read header using a colon (`:`).
 
 ### stLFR
 Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
-made up for three 10bp segments which are at the end of the R2 read. Demultiplexing these data results
+made up for three 10bp segments which are at the end of the $R2$ read. Demultiplexing these data results
 in the barcode being moved to the sequence ID using a pound (`#`) sign between the sequence ID and barcode, with
 the barcode recoded in the `1_2_3` format, where each segment is an integer.
-- depending on the link sequence between segments, will be either the last 54bp or 42bp of the R2 read
+![stLFR FASTQ data format](/static/lr_stlfr.svg)
+- depending on the link sequence between segments, will be either the last 54bp or 42bp of the $R2$ read
   - 54 base barcode: 10+6+10+18+10
   - 42 base barcode: 10+6+10+6+10
 - barcode appended to sequence header with `#` sign
@@ -157,10 +160,11 @@ the barcode recoded in the `1_2_3` format, where each segment is an integer.
 - advertised to have a capacity over 3.6 **billion**, with up to 50 **million** per sample (actual results may vary)
 
 ### 10X
-The elder and thus least advanced of the bunch, and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
-as the first 16bp of the forward (R1) read. For these data to be compatible with the 10X Longranger suite,
-the barcode **must** stay in the read. Moving the first 16bp into the read header breaks Longranger compatibility.
-- barcode is the first 16bp of the R1 read
+The elder of the bunch and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
+as the first 16bp of the forward ($R1$) read. For these data to be compatible with the 10X LongRanger suite,
+the barcode **must** stay in the read. Moving the first 16bp into the read header breaks LongRanger compatibility.
+![10X FASTQ data format](/static/lr_10x.svg)
+- barcode is the first 16bp of the $R1$ read
 - barcode stays in the sequence data for LongRanger compatibility
 - limited to ~4.7 million barcodes
 
@@ -172,6 +176,7 @@ you need to first write a new file format. We really don't want that here-- inco
 for developers to write great software that is compatible with all linked-read data types when they need to account for every possible
 location a barcode could be in, what a valid vs invalid barcode looks like for that technology, etc. So, we are humbly asking 
 (nay, begging) for there to be a standard data format (FASTQ and SAM/BAM) that uses two SAM tags to encode barcodes:
+!["Standard" linked-read FASTQ format](/static/lr_standard.svg)
 - `BX:Z` tag to record the barcode, the format of which is irrelevant
   - it could be haplotagging `ACBD`, stLFR `1_2_3`, nucleotides, _whatever_
 - `VX:i` tag to record if the corresponding barcode is valid
