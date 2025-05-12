@@ -70,7 +70,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     workflow = "qc"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs)
+    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     if trim_adapters:
         if trim_adapters != "auto":
             if not os.path.exists(trim_adapters):

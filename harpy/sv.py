@@ -100,7 +100,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow = "sv_leviathan"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
@@ -204,7 +204,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflow = "sv_naibr"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)

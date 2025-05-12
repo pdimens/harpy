@@ -62,7 +62,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     workflow = "phase"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
     validate_bam_RG(bamlist, threads, quiet)
     if reference:

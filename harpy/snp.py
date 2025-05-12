@@ -97,7 +97,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow = "snp_freebayes"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
     validate_regions(regions, reference)
@@ -194,7 +194,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     workflow = "snp_mpileup"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
     validate_regions(regions, reference)

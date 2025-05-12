@@ -111,7 +111,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     workflow = "align_bwa"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs)
+    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
@@ -222,7 +222,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         sys.exit(1)
     if platform == "haplotagging" and barcode_list and not quiet:
         print_notice("Haplotagging data does not require a barcode list and the file provided to [green]--barcode-list[/] will be ignored.")
-    fqlist, sample_count = parse_fastq_inputs(inputs)
+    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)
@@ -316,7 +316,7 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
     workflow = "align_strobe"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs)
+    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     check_fasta(reference)
     if contigs:
         fasta_contig_match(contigs, reference)

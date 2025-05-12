@@ -53,7 +53,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     workflow = "deconvolve"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs)
+    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     
     ## setup workflow ##
     command,command_rel = setup_snakemake(

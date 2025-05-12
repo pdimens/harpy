@@ -74,7 +74,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     workflow = "validate_bam"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs)
+    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
@@ -140,7 +140,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     workflow = "validate_fastq"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
     ## checks and validations ##
-    fqlist, n = parse_fastq_inputs(inputs)
+    fqlist, n = parse_fastq_inputs(inputs, "INPUTS")
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
