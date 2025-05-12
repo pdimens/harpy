@@ -269,11 +269,12 @@ def validate_popsamples(infiles: list[str], popfile: str, quiet: int) -> None:
         click.echo(", ".join(sorted(missing_samples)), file = sys.stderr)
         sys.exit(1)
 
-def validate_demuxschema(infile:str, return_len: bool = False) -> None | int:
+def validate_demuxschema(infile:str) -> None | int:
     """Validate the file format of the demultiplex schema. Set return_len to True to return the number of samples"""
     code_letters = set() #codes can be Axx, Bxx, Cxx, Dxx
     segment_ids = set()
     samples = set()
+    duplicates = False
     segment_pattern = re.compile(r'^[A-D]\d{2}$')
     with open(infile, 'r') as file:
         for line in file:
@@ -284,6 +285,8 @@ def validate_demuxschema(infile:str, return_len: bool = False) -> None | int:
                     print_solution("This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design.")
                     sys.exit(1)
                 code_letters.add(segment_id[0])
+                if sample in samples:
+                    duplicates = True
                 samples.add(sample)
                 if segment_id in segment_ids:
                     print_error("ambiguous segment ID", "An ID segment must only be associated with a single sample.")
@@ -309,8 +312,7 @@ def validate_demuxschema(infile:str, return_len: bool = False) -> None | int:
         )
         click.echo(", ".join(code_letters))
         sys.exit(1)
-    if return_len:
-        return len(samples)
+    return duplicates
 
 def validate_regions(regioninput: int | str, genome: str) -> None:
     """validates the --regions input of harpy snp to infer whether it's an integer, region, or file"""
