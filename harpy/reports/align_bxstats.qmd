@@ -117,7 +117,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Avg % Nonsingletons"
+#| title: "Avg % Linked"
 list(
   color = "light",
   value = avg_percent_of(aggregate_df$nonsingletons, aggregate_df$singletons)
@@ -185,7 +185,7 @@ column_description <- c(
   "name of the sample",
   "total number of alignments",
   "the unique DNA molecules as inferred from linked-read barcodes",
-  "molecules composed of more than two single-end or paired-end sequences, in other words, molecules with linked-read information",
+  "molecules composed of two or more single/paired-end sequences, in other words, molecules with linked-read information",
   "number of unique barcodes, which may differ from unique molecules after deconvolution",
   "molecule-to-barcode ratio, which helps benchmark deconvolution performance, if performed",
   "percent of valid barcoded alignments",
@@ -374,7 +374,7 @@ hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
   hc_caption(text = "Percentage represents the percent of molecules composed of more than 2 single-end or paired-end sequences, shown in dark blue. Light blue represents the singletons.") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#8dc6f5") |>
-  hc_title(text = "Percent Non-Singleton Molecules") |>
+  hc_title(text = "Percent Linked Molecules") |>
   hc_exporting(enabled = T, filename = "BX.nonsingletons",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
