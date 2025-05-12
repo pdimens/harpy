@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800137236356">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800392950660">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.8.1">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.8.1.800137236356" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.8.1.800392950660" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.8.1.800137236356" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.8.1.800392950660" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.8.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.8.1.800137236356" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.8.1.800392950660" data-turbo-eval="false" defer></script>
     <link href="../resources/css/katex.css?v=3.8.1" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../resources/js/katex.js?v=3.8.1" defer></script>
 </head>
@@ -467,17 +467,22 @@ for software, or how you can convert between styles.</p>
     </h3>
 </doc-anchor-target>
 <p>Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
-are made up of four 6bp segments. Two of these segments (&quot;A&quot; and &quot;C&quot;) are the first 12bp of the I1 read and
-the other two (&quot;B&quot; and &quot;D&quot;) are the first 12bp of the I2 read, both of which are provided by Illumina for standard sequencing runs.
+are made up of four 6bp segments. Two of these segments (&quot;A&quot; and &quot;C&quot;) are the first 12bp of the <span class="math">I1</span> read and
+the other two (&quot;B&quot; and &quot;D&quot;) are the first 12bp of the <span class="math">I2</span> read, both of which are provided by Illumina for standard sequencing runs.
 Because of this segment design, there are <span class="math">96^4</span> (~84 million) possible barcode combinations (~900,000 per sample).
-The barcodes are stored in the sequence header under the <code v-pre>BX:Z</code> SAM tag, recoded in their &quot;<code v-pre>ACBD</code>&quot; format.</p>
+The barcodes are stored in the sequence header under the <code v-pre>BX:Z</code> SAM tag, recoded in their &quot;<code v-pre>ACBD</code>&quot; format.
+<figure class="content-center">
+    <img src="../static/lr_haplotagging.svg" alt="Haplotagging data format">
+    <figcaption class="caption">Haplotagging data format</figcaption>
+</figure>
+</p>
 <ul>
 <li>4 barcode segments
 <ul>
-<li><code v-pre>A</code> segment is the first 6bp of the I1 read</li>
-<li><code v-pre>C</code> segment is the next 6bp of the I1 read (7-12)</li>
-<li><code v-pre>B</code> segment is the first 6bp of the I2 read</li>
-<li><code v-pre>D</code> segment is the next 6bp of the I2 read (7-12)</li>
+<li><code v-pre>A</code> segment is the first 6bp of the <span class="math">I1</span> read</li>
+<li><code v-pre>C</code> segment is the next 6bp of the <span class="math">I1</span> read (7-12)</li>
+<li><code v-pre>B</code> segment is the first 6bp of the <span class="math">I2</span> read</li>
+<li><code v-pre>D</code> segment is the next 6bp of the <span class="math">I2</span> read (7-12)</li>
 </ul>
 </li>
 <li>barcode stored as <code v-pre>BX:Z</code> tag in the read header in <code v-pre>ACBD</code> format
@@ -493,8 +498,13 @@ The barcodes are stored in the sequence header under the <code v-pre>BX:Z</code>
     </h3>
 </doc-anchor-target>
 <p>One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
-barcode is 18bp long and contained in the I1 read that Illumina provides with the standard R1 and R2 reads. The
-barcode gets appended in the read header using a colon (<code v-pre>:</code>).</p>
+barcode is 18bp long and contained in the <span class="math">I1</span> read that Illumina provides with the standard <span class="math">R1</span> and <span class="math">R2</span> reads. The
+barcode gets appended in the read header using a colon (<code v-pre>:</code>).
+<figure class="content-center">
+    <img src="../static/lr_tellseq.svg" alt="Haplotagging FASTQ data format">
+    <figcaption class="caption">Haplotagging FASTQ data format</figcaption>
+</figure>
+</p>
 <ul>
 <li>barcode is the first 18bp of the I1 read</li>
 <li>barcode is appended to sequence header
@@ -511,11 +521,16 @@ barcode gets appended in the read header using a colon (<code v-pre>:</code>).</
     </h3>
 </doc-anchor-target>
 <p>Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
-made up for three 10bp segments which are at the end of the R2 read. Demultiplexing these data results
+made up for three 10bp segments which are at the end of the <span class="math">R2</span> read. Demultiplexing these data results
 in the barcode being moved to the sequence ID using a pound (<code v-pre>#</code>) sign between the sequence ID and barcode, with
-the barcode recoded in the <code v-pre>1_2_3</code> format, where each segment is an integer.</p>
+the barcode recoded in the <code v-pre>1_2_3</code> format, where each segment is an integer.
+<figure class="content-center">
+    <img src="../static/lr_stlfr.svg" alt="stLFR FASTQ data format">
+    <figcaption class="caption">stLFR FASTQ data format</figcaption>
+</figure>
+</p>
 <ul>
-<li>depending on the link sequence between segments, will be either the last 54bp or 42bp of the R2 read
+<li>depending on the link sequence between segments, will be either the last 54bp or 42bp of the <span class="math">R2</span> read
 <ul>
 <li>54 base barcode: 10+6+10+18+10</li>
 <li>42 base barcode: 10+6+10+6+10</li>
@@ -534,11 +549,16 @@ the barcode recoded in the <code v-pre>1_2_3</code> format, where each segment i
         <span>10X</span>
     </h3>
 </doc-anchor-target>
-<p>The elder and thus least advanced of the bunch, and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
-as the first 16bp of the forward (R1) read. For these data to be compatible with the 10X Longranger suite,
-the barcode <strong>must</strong> stay in the read. Moving the first 16bp into the read header breaks Longranger compatibility.</p>
+<p>The elder of the bunch and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
+as the first 16bp of the forward (<span class="math">R1</span>) read. For these data to be compatible with the 10X LongRanger suite,
+the barcode <strong>must</strong> stay in the read. Moving the first 16bp into the read header breaks LongRanger compatibility.
+<figure class="content-center">
+    <img src="../static/lr_10x.svg" alt="10X FASTQ data format">
+    <figcaption class="caption">10X FASTQ data format</figcaption>
+</figure>
+</p>
 <ul>
-<li>barcode is the first 16bp of the R1 read</li>
+<li>barcode is the first 16bp of the <span class="math">R1</span> read</li>
 <li>barcode stays in the sequence data for LongRanger compatibility</li>
 <li>limited to ~4.7 million barcodes</li>
 </ul>
@@ -554,7 +574,12 @@ the data formats being consistent. The classic joke in population genetics is th
 you need to first write a new file format. We really don&#x27;t want that here-- inconsistent linked-read data formats make it harder
 for developers to write great software that is compatible with all linked-read data types when they need to account for every possible
 location a barcode could be in, what a valid vs invalid barcode looks like for that technology, etc. So, we are humbly asking
-(nay, begging) for there to be a standard data format (FASTQ and SAM/BAM) that uses two SAM tags to encode barcodes:</p>
+(nay, begging) for there to be a standard data format (FASTQ and SAM/BAM) that uses two SAM tags to encode barcodes:
+<figure class="content-center">
+    <img src="../static/lr_standard.svg" alt="&quot;Standard&quot; linked-read FASTQ format">
+    <figcaption class="caption">&quot;Standard&quot; linked-read FASTQ format</figcaption>
+</figure>
+</p>
 <ul>
 <li><code v-pre>BX:Z</code> tag to record the barcode, the format of which is irrelevant
 <ul>
