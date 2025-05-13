@@ -147,13 +147,13 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
     determine which barcodes are valid/invalid. In all cases, a file will be created with
     the barcode conversion map. Requires 2 threads.
     
-    | from/to | barcode format | example |
-    |:------|:-------|:--------|
-    |10x    |the first N base pairs of R1, given `--barcodes` | |
-    |haplotagging | a `BX:Z:ACBD` SAM tag in the sequence header | `@SEQID BX:Z:A01C93B56D11` |
-    | standard | a `BX:Z` SAM tag in the sequence header, any style | `@SEQID BX:Z:ATAGCAC_AGGA` |
-    | stlfr | `#1_2_3` format appended to the sequence ID | `@SEQID#1_2_3` |
-    | tellseq | `:ATCG` format appended to the sequence ID | `@SEQID:GGCAAATATCGAGAAGTC` |
+    | from/to      | barcode format                                     | example                     |
+    |:-------------|:---------------------------------------------------|:----------------------------|
+    | 10x          | the first N base pairs of R1, given `--barcodes`   |                             |
+    | haplotagging | a `BX:Z:ACBD` SAM tag in the sequence header       | `@SEQID BX:Z:A01C93B56D11`  |
+    | standard     | a `BX:Z` SAM tag in the sequence header, any style | `@SEQID BX:Z:ATAGCAC_AGGA`  |
+    | stlfr        | `#1_2_3` format appended to the sequence ID        | `@SEQID#1_2_3`              |
+    | tellseq      | `:ATCG` format appended to the sequence ID         | `@SEQID:GGCAAATATCGAGAAGTC` |
     """
     if from_ == to_:
         print_error("invalid to/from", "The file formats between [green]TO[/] and [green]FROM[/] must be different from each other.")
