@@ -36,18 +36,15 @@ if not os.path.exists(args.input):
 
 def writestats(x, writechrom, destination):
     """write to file the bx stats dictionary as a table"""
-    for _mi in x:
+    for _mi in list(x.keys()):
         x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"]
-        if x[_mi]["inferred"] > 0:
-            x[_mi]["covered_bp"] = round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4)
-        else:
-            x[_mi]["covered_bp"] = 0
-        if x[_mi]["inferred"] > 0:
-            x[_mi]["covered_inserts"] = round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 4)
-        else:
-            x[_mi]["covered_inserts"] = 0
+        cov_bp = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4))
+        x[_mi]["covered_bp"] = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4))
+        x[_mi]["covered_inserts"] = max(0, round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 4))
         outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
         destination.stdin.write(f"{outtext}\n".encode("utf-8"))
+        # delete the entry after processing to ease up system memory
+        del x[_mi]
 
 with pysam.AlignmentFile(args.input) as alnfile:
     gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout)
@@ -75,7 +72,7 @@ with pysam.AlignmentFile(args.input) as alnfile:
             continue
 
         # numer of bases aligned
-        bp = read.reference_length
+        bp = read.query_alignment_length
 
         try:
             mi = read.get_tag("MI")
@@ -119,15 +116,12 @@ with pysam.AlignmentFile(args.input) as alnfile:
         # end position of last alignment
         pos_end   = max(ref_positions)
         if read.is_paired:
-            # by using max(), will either add 0 or positive TLEN to avoid double-counting
-            isize = max(0, read.template_length)
-            #isize = min(bp, abs(read.template_length))
-            # only count the bp of the first read of paired end reads
-            #bp = bp if read.is_read1 else 0
-            bp = min(abs(read.template_length), read.infer_query_length())
-        elif read.is_supplementary:
-            # if it's a supplementary alignment, just use the alignment length
-            isize = bp
+            if read.is_supplementary:
+                # if it's a supplementary alignment, just use the alignment length
+                isize = bp
+            else:
+                # by using max(), will either add 0 or positive TLEN to avoid double-counting
+                isize = max(0, read.template_length)
         else:
             # if it's unpaired, use the TLEN or query length, whichever is bigger
             isize = max(abs(read.template_length), read.infer_query_length())
