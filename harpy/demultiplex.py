@@ -2,15 +2,19 @@
 
 from itertools import product
 import os
+from random import sample
+import re
 import sys
 import yaml
+import pysam
 import shutil
+import subprocess
 import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_rule, instantiate_dir, safe_read, setup_snakemake, write_workflow_config
-from ._printing import workflow_info
+from ._printing import print_error, print_solution_with_culprits, workflow_info
 from ._validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -158,7 +162,8 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
     | `stlfr`                      | 1_2_3                 | `BX:Z:154_211_934`  |
     """
     if barcode_map and barcode_style:
-        click.UsageError("--barcode-map and --barcode-style cannot be used together.")
+        print_error("invalid options", "[blue]--barcode-map[/] and [blue]--barcode-style[/] cannot be used together.")
+        sys.exit(1)
     conv_dict = {}
     if barcode_map:
         with safe_read(barcode_map) as bcmap:
@@ -166,9 +171,15 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                 try:
                     nuc,bx = j.split()
                     if not re.search(r"^[ATCGN]+$", nuc):
-                        click.BadParameter(f"The file provided requires nucleotide barcodes in the first column, but characters other than ATCGN were found in row {i}: {j}", param = "--barcode-map")
+                        print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]")
+                        print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
+                        click.echo(j.strip())
+                        sys.exit(1)
                 except ValueError:
-                    click.BadParameter(f"The file provided has more than two entries in row {i}: {j}", param = "--barcode-map")
+                    print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]")
+                    print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
+                    click.echo(j.strip())
+                    sys.exit(1)
                 conv_dict[nuc] = bx
 
     if barcode_style == "stlfr":
@@ -197,11 +208,11 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
         else:
             return _bx.end()
 
-    for i,fq in enumerate([args.r1_fq, args.r2_fq],1):
+    for i,fq in enumerate([r1_fq, r2_fq],1):
         with (
             pysam.FastqFile(fq, "r") as in_fq,
-            open(f"{args.prefix}.R{i}.fq.gz", "wb") as out_fq,
-            open(f"{args.prefix}.ambiguous.R{i}.fq.gz", "wb") as ambig_fq
+            open(f"{prefix}.R{i}.fq.gz", "wb") as out_fq,
+            open(f"{prefix}.ambiguous.R{i}.fq.gz", "wb") as ambig_fq
         ):
             gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
             gzip_ambig = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = ambig_fq)
@@ -209,7 +220,7 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             for record in in_fq:
                 _bx_idx = bx_position(record)
                 AMBIGUOUS = False
-                if _bx:
+                if _bx_idx:
                     _bx = record.sequence[:_bx_idx]
                     _qual = record.quality[:_bx_idx]
                     #TODO CHECK NCBI QUAL SCORES
