@@ -159,9 +159,6 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
     """
     if barcode_map and barcode_style:
         click.UsageError("--barcode-map and --barcode-style cannot be used together.")
-    INVALID_10x = "N" * 16
-    INVALID_HAPLOTAGGING = "A00C00B00D00"
-    INVALID_TELLSEQ = "N" * 18
     conv_dict = {}
     if barcode_map:
         with safe_read(barcode_map) as bcmap:
@@ -176,7 +173,7 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
 
     if barcode_style == "stlfr":
         bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
-        invalid = "0_0_0"
+        INVALID = "0_0_0"
         def format_bc(bc):
             return "_".join(str(i) for i in bc)
     elif barcode_style == "haplotagging":
@@ -186,11 +183,11 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
             ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
         )
-        invalid = "A00C00B00D00"
+        INVALID = "A00C00B00D00"
         def format_bc(bc):
             return "".join(str(i) for i in bc)
     else:
-        invalid = "N"*18
+        INVALID = "N"*18
 
     def bx_position(rec):
         # search first 30 bases and return the INDEX of where the NNNN spacer ends
@@ -201,30 +198,56 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             return _bx.end()
 
     for i,fq in enumerate([args.r1_fq, args.r2_fq],1):
-        with pysam.FastqFile(fq, "r") as in_fq, open(f"{args.prefix}.R{i}.fq.gz", "wb") as out_fq:
+        with (
+            pysam.FastqFile(fq, "r") as in_fq,
+            open(f"{args.prefix}.R{i}.fq.gz", "wb") as out_fq,
+            open(f"{args.prefix}.ambiguous.R{i}.fq.gz", "wb") as ambig_fq
+        ):
             gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
+            gzip_ambig = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = ambig_fq)
+
             for record in in_fq:
                 _bx_idx = bx_position(record)
+                AMBIGUOUS = False
                 if _bx:
                     _bx = record.sequence[:_bx_idx]
                     _qual = record.quality[:_bx_idx]
+                    #TODO CHECK NCBI QUAL SCORES
                     if not _qual.endswith("!!!!"):
-                        DO SOMETHING
+                        # the spacer wasn't found, so we can't reliably say this was a barcode
+                        AMBIGUOUS = True
                     else:
                         _bx = _bx.removesuffix("NNNN")
-                        _qual = _qual.removesuffix("!!!!")
+                        _qual = _qual[:bx_idx-4]
                         record.sequence = record.sequence[bx_idx:]
                         record.quality = record.quality[bx_idx:]
                         invalid = "N" in _bx
-                        if barcode_map:
-                            #TODO ERROR HANDLING HERE
-                            _bx = conv_dict.get(_bx, None)
-                        elif barcode_style:
-                            #TODO HANDLE INVALID
-                            _bx = format_bc(next(bc_generator))
+                        if _bx in conv_dict:
+                            new_bx = conv_dict[_bx]
+                        elif not barcode_map:
+                            # only create a new barcode if a map wasn't provided
+                            if barcode_style not in ["stlfr", "haplotagging"]:
+                                new_bx = _bx
+                            else:
+                                new_bx = format_bc(next(bc_generator)) if not invalid else INVALID
+                            conv_dict[_bx] = new_bx
+                        elif barcode_map and invalid:
+                            new_bx = INVALID
+                        else:
+                            # the barcode wasn't in the provided map nor was it invalid, retain the barcode as-is
+                            AMBIGUOUS = True
+                            new_bx = _bx
+
                         record.comment = "VX:i:0" if invalid else "VX:i:1"
-                        record.comment += f"\tBX:Z:{_bx}"
-    
+                        record.comment += f"\tBX:Z:{new_bx}"
+                else:
+                    AMBIGUOUS = True
+
+                if AMBIGUOUS:
+                    gzip_ambig.stdin.write(str(record).encode("utf-8") + b"\n")
+                else:
+                    gzip.stdin.write(str(record).encode("utf-8") + b"\n")
+
 
 demultiplex.add_command(meier2021)
 demultiplex.add_command(ncbi)
