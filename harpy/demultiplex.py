@@ -1,5 +1,6 @@
 """Harpy demultiplex workflows"""
 
+from itertools import product
 import os
 import sys
 import yaml
@@ -8,7 +9,7 @@ import rich_click as click
 from ._cli_types_generic import convert_to_int, HPCProfile, SnakemakeParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
+from ._misc import fetch_rule, instantiate_dir, safe_read, setup_snakemake, write_workflow_config
 from ._printing import workflow_info
 from ._validations import validate_demuxschema
 
@@ -23,6 +24,9 @@ def demultiplex():
     **Haplotagging Technologies**
     - `meier2021`: the original haplotagging barcode strategy
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
+    
+    **Other**
+    - `ncbi`: restore barcodes from NCBI-downloaded sequences
     """
 
 docstring = {
@@ -131,5 +135,97 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.meier2021.summary")
 
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
+@click.option('-m', '--barcode-map', type=click.Path(exists=True, readable=True, resolve_path=True), help = 'Map of nucleotide-to-barcode conversion')
+@click.option('-s', '--barcode-style', type=click.Choice(["haplotagging","nucleotide","tellseq","10x", "stlfr"], case_sensitive = False), help = 'Style format for barcodes in output')
+@click.argument('prefix', required=True, type = str)
+@click.argument('r1_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('r2_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
+    """
+    Restore linked-read barcodes to the sequence header
+
+    This demultiplexing strategy is the complement to `harpy convert ncbi`, restoring barcodes to the
+    sequence headers and removing barcodes and spacers from the sequences. By default, it will keep
+    barcodes in nucleotide format unless a `--barcode-map`/`-m` is provided with specific conversions or a `--barcode-style`/`-s`
+    is given. The output files will have barcodes encoded in the Standard configuration, i.e. as a `BX:Z` tag along
+    with a `VX:i` tag indicating barcode validation. Requires a `PREFIX` to name the output files.
+
+    | --barcode-style              | format                | example             |
+    |:-----------------------------|:----------------------|:--------------------|
+    | `nucleotide`/`tellseq`/`10x` | nucleotides (default) | `BX:Z:ATAGGACGAAGA` |
+    | `haplotagging`               | AxxCxxBxxDxx          | `BX:Z:A01C93B56D11` |
+    | `stlfr`                      | 1_2_3                 | `BX:Z:154_211_934`  |
+    """
+    if barcode_map and barcode_style:
+        click.UsageError("--barcode-map and --barcode-style cannot be used together.")
+    INVALID_10x = "N" * 16
+    INVALID_HAPLOTAGGING = "A00C00B00D00"
+    INVALID_TELLSEQ = "N" * 18
+    conv_dict = {}
+    if barcode_map:
+        with safe_read(barcode_map) as bcmap:
+            for i,j in enumerate(bcmap,1):
+                try:
+                    nuc,bx = j.split()
+                    if not re.search(r"^[ATCGN]+$", nuc):
+                        click.BadParameter(f"The file provided requires nucleotide barcodes in the first column, but characters other than ATCGN were found in row {i}: {j}", param = "--barcode-map")
+                except ValueError:
+                    click.BadParameter(f"The file provided has more than two entries in row {i}: {j}", param = "--barcode-map")
+                conv_dict[nuc] = bx
+
+    if barcode_style == "stlfr":
+        bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
+        invalid = "0_0_0"
+        def format_bc(bc):
+            return "_".join(str(i) for i in bc)
+    elif barcode_style == "haplotagging":
+        bc_generator = product(
+            ["A" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["C" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+            ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
+        )
+        invalid = "A00C00B00D00"
+        def format_bc(bc):
+            return "".join(str(i) for i in bc)
+    else:
+        invalid = "N"*18
+
+    def bx_position(rec):
+        # search first 30 bases and return the INDEX of where the NNNN spacer ends
+        _bx = re.search(r"[ATCGN]*NNNN$", rec.sequence[:30])
+        if not _bx:
+            return None
+        else:
+            return _bx.end()
+
+    for i,fq in enumerate([args.r1_fq, args.r2_fq],1):
+        with pysam.FastqFile(fq, "r") as in_fq, open(f"{args.prefix}.R{i}.fq.gz", "wb") as out_fq:
+            gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
+            for record in in_fq:
+                _bx_idx = bx_position(record)
+                if _bx:
+                    _bx = record.sequence[:_bx_idx]
+                    _qual = record.quality[:_bx_idx]
+                    if not _qual.endswith("!!!!"):
+                        DO SOMETHING
+                    else:
+                        _bx = _bx.removesuffix("NNNN")
+                        _qual = _qual.removesuffix("!!!!")
+                        record.sequence = record.sequence[bx_idx:]
+                        record.quality = record.quality[bx_idx:]
+                        invalid = "N" in _bx
+                        if barcode_map:
+                            #TODO ERROR HANDLING HERE
+                            _bx = conv_dict.get(_bx, None)
+                        elif barcode_style:
+                            #TODO HANDLE INVALID
+                            _bx = format_bc(next(bc_generator))
+                        record.comment = "VX:i:0" if invalid else "VX:i:1"
+                        record.comment += f"\tBX:Z:{_bx}"
+    
+
 demultiplex.add_command(meier2021)
+demultiplex.add_command(ncbi)
 demultiplex.add_command(gen1)

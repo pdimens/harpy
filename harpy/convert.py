@@ -6,6 +6,7 @@ from itertools import product, zip_longest
 import os
 from random import sample
 import re
+import subprocess
 import sys
 import rich_click as click
 import pysam
@@ -24,7 +25,7 @@ module_docstring = {
     "harpy convert": [
         {
             "name": "Commands",
-            "commands": ["bam", "fastq", "standardize"],
+            "commands": ["bam", "fastq", "ncbi", "standardize"],
             "panel_styles": {"border_style" : "blue"}
         }
     ]
@@ -454,6 +455,97 @@ def standardize(sam, quiet):
         print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
         sys.exit(1)
 
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
+@click.option('-s', '--scan', show_default = True, default = 100, type = click.IntRange(min=1), help = 'Number of reads to scan to identify barcode location and format')
+@click.option('-p', '--preserve-invalid',  is_flag = True, default = False, help = 'Retain the uniqueness of invalid barcodes')
+@click.option('-m', '--barcode-map',  is_flag = True, default = False, help = 'Write a map of the barcode-to-nucleotide conversion')
+@click.argument('prefix', required=True, type = str)
+@click.argument('r1_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('r2_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
+    """
+    Convert FASTQ files for NCBI submission
+
+    Converts the linked-read barcodes into nucleotide format (if necessary) and adds it to the beginning
+    of the sequence, retaining the linked-read barcodes after NCBI/SRA reformats the FASTQ after submission.
+    The barcode will be stored as the first 18 bases in both R1 and R2 reads, followed by a 4bp spacer of "NNNN",
+    then the actual sequence. Requires a `PREFIX` to name the output files. Use `--barcode-map`/`-m` to write a file with
+    the barcode conversion map if you intend to keep the same barcodes after downloading sequences from NCBI and
+    demultiplexing with `harpy demultiplex ncbi`. Invalid barcodes will be generalized to 18bp of `N`, but you can
+    use `--preserve-invalid`/`-p` to keep invalid barcodes unique (likely not useful for most applications).
+    """
+    def bx_barcode(rec):
+        bx = [i for i in rec.comment.split() if i.startswith("BX:Z:")]
+        #bx = re.search(r"BX:Z:[^\s]*(?=\s)", rec.comment)
+        if bx:
+            return bx[0].removeprefix("BX:Z:")
+        else:
+            return None
+
+    def inline_barcode(rec):
+        bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", rec.name)
+        if bx:
+            return bx[0][1:]
+        else:
+            return None
+
+    def is_invalid(bx):
+        return "0" in bx.split("_") or bool(re.search(r"(?:N|[ABCD]00)", bx))
+
+    NUCLEOTIDE_FMT = False
+    ## find the barcode format
+    with pysam.FastqFile(r1_fq, "r") as in_fq:
+        for n,record in enumerate(in_fq, 1):
+            if bx_barcode(record):
+                bx_search = bx_barcode
+                _bx = bx_search(record)
+                if re.search(r"^[ATCGN]+$", _bx):
+                    NUCLEOTIDE_FMT = True
+                break
+            elif inline_barcode(record):
+                bx_search = inline_barcode
+                _bx = bx_search(record)
+                if re.search(r"^[ATCGN]+$", _bx):
+                    NUCLEOTIDE_FMT = True
+                break
+            if n > scan:
+                print(f"Scanned the first {scan} reads of {os.path.basename(r1_fq)} and was unable to locate barcodes in the BX:Z field nor as a TELLseq or stLFR suffix in the read ID.")
+                sys.exit(1)
+
+    bc_inventory = {}
+    bc_iter = product(*["ATCG" for i in range(18)])
+    bc_iter_inv = product(*(["N"] + ["ATCGN" for i in range(17)]))
+
+    for i,fq in enumerate([r1_fq, r2_fq],1):
+        with pysam.FastqFile(fq, "r") as in_fq, open(f"{prefix}.R{i}.fq.gz", "wb") as out_fq:
+            gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
+            for record in in_fq:
+                _bx = bx_search(record)
+                if not _bx:
+                    record.sequence = "N"*18 + "NNNN" + record.sequence
+                    record.quality  = "!"*16 + "!!!!" + record.quality
+                else:
+                    if NUCLEOTIDE_FMT:
+                        record.sequence = _bx + "NNNN" + record.sequence
+                        record.quality =  "I"*len(_bx) + "!!!!" + record.quality
+                    else:
+                        nuc_bx = bc_inventory.get(_bx, None)
+                        if not nuc_bx:
+                            if is_invalid(_bx):
+                                nuc_bx = "".join(next(bc_iter_inv)) if preserve_invalid else "N"*18
+                            else:
+                                nuc_bx = "".join(next(bc_iter))
+                            bc_inventory[_bx] = nuc_bx
+                        record.sequence = nuc_bx + "NNNN" + record.sequence
+                        record.quality =  "I"*18 + "!!!!" + record.quality
+                gzip.stdin.write(str(record).encode("utf-8") + b"\n")
+
+    if barcode_map:
+        with open(f"{prefix}.barcode.map", "w") as bc_out:
+            for bx,nuc in bc_inventory.items():
+                bc_out.write(f"{nuc}\t{bx}\n")
+
 convert.add_command(fastq)
 convert.add_command(bam)
+convert.add_command(ncbi)
 convert.add_command(standardize)
