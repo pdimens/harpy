@@ -268,13 +268,13 @@ rule samtools_report:
         "reports/strobealign.stats.html"
     params:
         outdir = "reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai  --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc  {params} --filename {output} 2> /dev/null"
+        "multiqc {params} --filename {output} 2> /dev/null"
 
 rule barcode_report:
     input: 

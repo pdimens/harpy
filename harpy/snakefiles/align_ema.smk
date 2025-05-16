@@ -365,7 +365,7 @@ rule samtools_report:
         "reports/ema.stats.html"
     params:
         outdir = f"reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:

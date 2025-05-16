@@ -140,7 +140,7 @@ rule quality_report:
     log:
         "logs/multiqc.log"
     params:
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         module = " --module fastqc",
         logdir = "reports/data/"
     conda:

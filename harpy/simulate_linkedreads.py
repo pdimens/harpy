@@ -21,7 +21,7 @@ docstring = {
         },
         {
             "name": "Linked Read Parameters",
-            "options": ["--lr-type", "--molecule-coverage", "--molecule-length", "--molecule-number"],
+            "options": ["--lr-type", "--molecule-coverage", "--molecule-length", "--molecules-per"],
             "panel_styles": {"border_style": "dim magenta"}
         },
         {
@@ -47,7 +47,7 @@ docstring = {
 @click.option('-l', '--lr-type', help='type of linked-read experiment', default = "haplotagging", show_default=True, show_choices=True, type= click.Choice(["10x", "stlfr", "haplotagging", "tellseq"], case_sensitive=False))
 @click.option('-c','--molecule-coverage', help='mean percent coverage per molecule if <1, else mean number of reads per molecule', default=0.2, show_default=True, type=click.FloatRange(min=0.00001))
 @click.option('-m','--molecule-length', help='mean length of molecules in bp', show_default=True, default=80000, type=click.IntRange(min=50))
-@click.option('-n','--molecule-number', help='mean number of unrelated molecules per barcode, where a negative number (e.g. `-2`) will use a fixed number of unrelated molecules and a positive one will draw from a Poisson distribution', default=3, show_default=True, type=int)
+@click.option('-n','--molecules-per', help='mean number of unrelated molecules per barcode, where a negative number (e.g. `-2`) will use a fixed number of unrelated molecules and a positive one will draw from a Normal distribution', default=2, show_default=True, type=int)
 # general
 @click.option('-o','--output-prefix', help='output file prefix', type = click.Path(exists = False, writable=True, resolve_path=True), default = "Simulate/linkedreads/SIM", show_default=True)
 @click.option('-O','--output-type', help='output format of FASTQ files', type = click.Choice(["10x", "stlfr", "standard", "haplotagging", "tellseq"], case_sensitive=False))
@@ -59,7 +59,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('barcodes', type = Barcodes())
 @click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
-def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecule_number, snakemake, quiet, hpc, container, setup_only):
+def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecules_per, snakemake, quiet, hpc, container, setup_only):
     """
     Create linked reads using genome haplotypes
 
@@ -119,7 +119,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         "output-type" : output_type if output_type else lr_type,
         "molecule-coverage" : molecule_coverage,  
         "molecule-length" : molecule_length,
-        "molecule-number" : molecule_number,   
+        "molecules-per" : molecules_per,   
         "mutation" : mutation,
         "indels" :  indels,
         "extindels" : extindels,

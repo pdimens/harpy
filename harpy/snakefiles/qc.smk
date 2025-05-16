@@ -184,7 +184,7 @@ rule qc_report:
     params:
         logdir = "reports/data/fastp/",
         module = "-m fastp",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
     conda:

@@ -161,7 +161,7 @@ rule build_report:
     output:
         "reports/assembly.metrics.html"
     params:
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Assembly Metrics\""
     conda:
         "envs/qc.yaml"
