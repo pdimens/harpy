@@ -493,6 +493,8 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
         return "0" in bx.split("_") or bool(re.search(r"(?:N|[ABCD]00)", bx))
 
     NUCLEOTIDE_FMT = False
+    SPACER_NUC = "N"*5
+    SPACER_QUAL = "!"*5
     ## find the barcode format
     with pysam.FastqFile(r1_fq, "r") as in_fq:
         for n,record in enumerate(in_fq, 1):
@@ -522,12 +524,12 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
             for record in in_fq:
                 _bx = bx_search(record)
                 if not _bx:
-                    record.sequence = "N"*18 + "NNNN" + record.sequence
-                    record.quality  = "!"*16 + "!!!!" + record.quality
+                    inline_bc = "N"*18
+                    inline_qual = "I"*18
                 else:
                     if NUCLEOTIDE_FMT:
-                        record.sequence = _bx + "NNNN" + record.sequence
-                        record.quality =  "I"*len(_bx) + "!!!!" + record.quality
+                        inline_bc = _bx
+                        inline_qual = "I"*len(_bx)
                     else:
                         nuc_bx = bc_inventory.get(_bx, None)
                         if not nuc_bx:
@@ -536,8 +538,10 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
                             else:
                                 nuc_bx = "".join(next(bc_iter))
                             bc_inventory[_bx] = nuc_bx
-                        record.sequence = nuc_bx + "NNNN" + record.sequence
-                        record.quality =  "I"*18 + "!!!!" + record.quality
+                        inline_bc = nuc_bx
+                        inline_qual = "I"*18
+                record.sequence = inline_bc + SPACER_NUC + record.sequence
+                record.quality  = "I"*len(inline_bc) + SPACER_QUAL + record.quality
                 gzip.stdin.write(str(record).encode("utf-8") + b"\n")
 
     if barcode_map:

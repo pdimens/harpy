@@ -201,12 +201,25 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
         INVALID = "N"*18
 
     def bx_position(rec):
-        # search first 30 bases and return the INDEX of where the NNNN spacer ends
-        _bx = re.search(r"[ATCGN]*NNNN$", rec.sequence[:30])
+        # search first 30 bases and return the INDEX of where the NNNNN spacer ends
+        _bx = re.search(r"[ATCGN]*NNNNN$", rec.sequence[:30])
         if not _bx:
             return None
         else:
             return _bx.end()
+
+    def is_barcode(string):
+        '''
+        Returns True if the quality string is all I and ends with !!!!!, which is the expected encoding
+        Also considers just !!!!! without any prefix as valid, i.e. it's just a spacer with no barcode
+        '''
+        if len(string) < 5:
+            return False
+        if not string.endswith("!"*5):
+            return False
+        if string == "!"*5:
+            return True
+        return all(c == "I" for c in string[:-5])
 
     for i,fq in enumerate([r1_fq, r2_fq],1):
         with (
@@ -218,30 +231,30 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             gzip_ambig = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = ambig_fq)
 
             for record in in_fq:
-                _bx_idx = bx_position(record)
                 AMBIGUOUS = False
+                _bx_idx = bx_position(record)
                 if _bx_idx:
                     _bx = record.sequence[:_bx_idx]
                     _qual = record.quality[:_bx_idx]
-                    #TODO CHECK NCBI QUAL SCORES
-                    if not _qual.endswith("!!!!"):
-                        # the spacer wasn't found, so we can't reliably say this was a barcode
+                    if not is_barcode(_qual):
+                        # the format is different that all I followed by 5 !
                         AMBIGUOUS = True
                     else:
-                        _bx = _bx.removesuffix("NNNN")
-                        _qual = _qual[:bx_idx-4]
                         record.sequence = record.sequence[bx_idx:]
                         record.quality = record.quality[bx_idx:]
-                        invalid = "N" in _bx
+                        _bx = _bx.removesuffix("N"*5)
+                        # or not _bx safeguards against just a spacer
+                        invalid = "N" in _bx or not _bx
                         if _bx in conv_dict:
                             new_bx = conv_dict[_bx]
                         elif not barcode_map:
                             # only create a new barcode if a map wasn't provided
                             if barcode_style not in ["stlfr", "haplotagging"]:
-                                new_bx = _bx
+                                new_bx = _bx if _bx else INVALID
                             else:
                                 new_bx = format_bc(next(bc_generator)) if not invalid else INVALID
-                            conv_dict[_bx] = new_bx
+                            if _bx:
+                                conv_dict[_bx] = new_bx
                         elif barcode_map and invalid:
                             new_bx = INVALID
                         else:
