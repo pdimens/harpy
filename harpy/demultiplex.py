@@ -30,7 +30,7 @@ def demultiplex():
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
     
     **Other**
-    - `ncbi`: restore barcodes from NCBI-downloaded sequences
+    - `ncbi`: restore barcodes from NCBI-downloaded linked-read sequences
     """
 
 docstring = {
@@ -142,7 +142,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map', type=click.Path(exists=True, readable=True, resolve_path=True), help = 'Map of nucleotide-to-barcode conversion')
 @click.option('-s', '--barcode-style', type=click.Choice(["haplotagging","nucleotide","tellseq","10x", "stlfr"], case_sensitive = False), help = 'Style format for barcodes in output')
-@click.argument('prefix', required=True, type = str)
+@click.option('-p', '--prefix', required=True, type = str, help = "Output file name prefix")
 @click.argument('r1_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 @click.argument('r2_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
@@ -151,9 +151,10 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
 
     This demultiplexing strategy is the complement to `harpy convert ncbi`, restoring barcodes to the
     sequence headers and removing barcodes and spacers from the sequences. By default, it will keep
-    barcodes in nucleotide format unless a `--barcode-map`/`-m` is provided with specific conversions or a `--barcode-style`/`-s`
-    is given. The output files will have barcodes encoded in the Standard configuration, i.e. as a `BX:Z` tag along
-    with a `VX:i` tag indicating barcode validation. Requires a `PREFIX` to name the output files.
+    barcodes in nucleotide format unless a `--barcode-map`/`-m` is provided with specific conversions in `nucleotide<tab>barcode` format
+    or a `--barcode-style`/`-s` is given. The output files will have barcodes encoded in the Standard
+    configuration, i.e. as a `BX:Z` tag along with a `VX:i` tag indicating barcode validation. Requires
+    a `PREFIX` to name the output files.
 
     | --barcode-style              | format                | example             |
     |:-----------------------------|:----------------------|:--------------------|
@@ -185,8 +186,7 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
     if barcode_style == "stlfr":
         bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
         INVALID = "0_0_0"
-        def format_bc(bc):
-            return "_".join(str(i) for i in bc)
+        SEP = "_"
     elif barcode_style == "haplotagging":
         bc_generator = product(
             ["A" + str(i).zfill(2) for i in sample(range(1,97), 96)],
@@ -195,14 +195,17 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
         )
         INVALID = "A00C00B00D00"
-        def format_bc(bc):
-            return "".join(str(i) for i in bc)
+        SEP = ""
     else:
         INVALID = "N"*18
+        SEP = ""
+
+    def format_bc(bc):
+        return SEP.join(str(i) for i in bc)
 
     def bx_position(rec):
         # search first 30 bases and return the INDEX of where the NNNNN spacer ends
-        _bx = re.search(r"[ATCGN]*NNNNN$", rec.sequence[:30])
+        _bx = re.search(r"[ATCGN]*NNNNN", rec.sequence[:30])
         if not _bx:
             return None
         else:
@@ -221,7 +224,9 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
             return True
         return all(c == "I" for c in string[:-5])
 
+    sys.stderr.write("\t".join(["File", "Reads_Demultiplexed", "Reads_Ambiguous"]) + "\n")
     for i,fq in enumerate([r1_fq, r2_fq],1):
+        sys.stderr.write(os.path.basename(fq))
         with (
             pysam.FastqFile(fq, "r") as in_fq,
             open(f"{prefix}.R{i}.fq.gz", "wb") as out_fq,
@@ -229,6 +234,9 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
         ):
             gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
             gzip_ambig = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = ambig_fq)
+            
+            AMBIG_TOTAL = 0
+            DEMUX_TOTAL = 0
 
             for record in in_fq:
                 AMBIGUOUS = False
@@ -240,8 +248,8 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                         # the format is different that all I followed by 5 !
                         AMBIGUOUS = True
                     else:
-                        record.sequence = record.sequence[bx_idx:]
-                        record.quality = record.quality[bx_idx:]
+                        record.sequence = record.sequence[_bx_idx:]
+                        record.quality = record.quality[_bx_idx:]
                         _bx = _bx.removesuffix("N"*5)
                         # or not _bx safeguards against just a spacer
                         invalid = "N" in _bx or not _bx
@@ -252,7 +260,10 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                             if barcode_style not in ["stlfr", "haplotagging"]:
                                 new_bx = _bx if _bx else INVALID
                             else:
-                                new_bx = format_bc(next(bc_generator)) if not invalid else INVALID
+                                try:
+                                    new_bx = format_bc(next(bc_generator)) if not invalid else INVALID
+                                except StopIteration:
+                                    print_error("no more barcodes", f"There are more unique barcodes in the input files than {barcode_style} can support. Consider using [blue bold]tellseq[/] format to retain barcodes as nucleotides.")
                             if _bx:
                                 conv_dict[_bx] = new_bx
                         elif barcode_map and invalid:
@@ -268,9 +279,13 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                     AMBIGUOUS = True
 
                 if AMBIGUOUS:
+                    AMBIG_TOTAL += 1
                     gzip_ambig.stdin.write(str(record).encode("utf-8") + b"\n")
                 else:
+                    DEMUX_TOTAL += 1
                     gzip.stdin.write(str(record).encode("utf-8") + b"\n")
+            sys.stderr.write(f"\t{DEMUX_TOTAL}\t{AMBIG_TOTAL}\n")
+        
 
 
 demultiplex.add_command(meier2021)

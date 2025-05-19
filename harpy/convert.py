@@ -456,10 +456,10 @@ def standardize(sam, quiet):
         sys.exit(1)
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
-@click.option('-s', '--scan', show_default = True, default = 100, type = click.IntRange(min=1), help = 'Number of reads to scan to identify barcode location and format')
-@click.option('-p', '--preserve-invalid',  is_flag = True, default = False, help = 'Retain the uniqueness of invalid barcodes')
 @click.option('-m', '--barcode-map',  is_flag = True, default = False, help = 'Write a map of the barcode-to-nucleotide conversion')
-@click.argument('prefix', required=True, type = str)
+@click.option('-p', '--prefix', required=True, type = str, help = "Output file name prefix")
+@click.option('-i', '--preserve-invalid',  is_flag = True, default = False, help = 'Retain the uniqueness of invalid barcodes')
+@click.option('-s', '--scan', show_default = True, default = 100, type = click.IntRange(min=1), help = 'Number of reads to scan to identify barcode location and format')
 @click.argument('r1_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 @click.argument('r2_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
@@ -468,8 +468,8 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
 
     Converts the linked-read barcodes into nucleotide format (if necessary) and adds it to the beginning
     of the sequence, retaining the linked-read barcodes after NCBI/SRA reformats the FASTQ after submission.
-    The barcode will be stored as the first 18 bases in both R1 and R2 reads, followed by a 4bp spacer of "NNNN",
-    then the actual sequence. Requires a `PREFIX` to name the output files. Use `--barcode-map`/`-m` to write a file with
+    The barcode will be stored as the first 18 bases in both R1 and R2 reads, followed by a 5bp spacer of "NNNNN",
+    then the actual sequence. Requires a `--prefix` to name the output files. Use `--barcode-map`/`-m` to write a file with
     the barcode conversion map if you intend to keep the same barcodes after downloading sequences from NCBI and
     demultiplexing with `harpy demultiplex ncbi`. Invalid barcodes will be generalized to 18bp of `N`, but you can
     use `--preserve-invalid`/`-p` to keep invalid barcodes unique (likely not useful for most applications).
