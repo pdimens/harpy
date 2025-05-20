@@ -324,9 +324,9 @@ highchart() |>
 :::
 
 ##
-:::{.card title="Read Coverage"}
+:::{.card title="Molecule Read Coverage"}
 
-This chart shows molecule coverage as computed by the number of bases aligned
+This chart shows molecule coverage breadth as computed by the number of bases aligned
 to that molecule. In other words, "_how much of each unique long molecule is actually sequenced/aligned?_"
 Keep in mind there is a distinction between sequences and alignments, since
 some sequences belonging to a particular molecule may not align well and wouldn't
@@ -344,21 +344,21 @@ highchart() |>
   hc_chart(type = "area", animation = F) |>
   hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
   hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
-  hc_title(text = "Percent Molecule Coverage by Aligned Bases") |>
+  hc_title(text = "Percent Molecule Coverage Breadth by Aligned Bases") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
   hc_yAxis(max = 100, title = list(text = "% of molecules")) |>
   hc_caption(
     text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
   ) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+  hc_exporting(enabled = T, filename = paste0(samplename, ".bp.molcov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
 :::
 
-::: {.card title="Molecular Coverage"}
-This chart shows *molecule coverage* as computed by the _inferred fragment_ from which the aligned sequences originate.
+::: {.card title="Molecular Inferred Coverage"}
+This chart shows *molecule coverage breadth* as computed by the _inferred fragment_ from which the aligned sequences originate.
 Unlike read coverage, this calculation takes into account the total insert size, including unsequenced gaps between
 the forward and reverse reads.
 
@@ -374,14 +374,14 @@ highchart() |>
   hc_chart(type = "area", animation = F) |>
   hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#eeaf61", name = "all", marker = list(enabled = FALSE)) |>
   hc_add_series(data = hs_mult, type = "areaspline", hcaes(x = val, y = freq), color = "#84bd9e", name = "non-singletons", marker = list(enabled = FALSE)) |>
-  hc_title(text = "Percent Molecule Coverage by Inferred Insert Size") |>
+  hc_title(text = "Percent Molecule Coverage Breadth by Inferred Insert Size") |>
   hc_xAxis(title = list(text = "% molecule covered")) |>
   hc_yAxis(max = 100, title = list(text = "% of molecules")) |>
   hc_caption(
     text = paste0("unique molecules: ", totuniqBX, " (", n_non_singleton_mol, " non-singletons)")
   ) |>
   hc_tooltip(crosshairs = TRUE) |>
-  hc_exporting(enabled = T, filename = paste0(samplename, ".molcov"),
+  hc_exporting(enabled = T, filename = paste0(samplename, ".inferred.molcov"),
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
