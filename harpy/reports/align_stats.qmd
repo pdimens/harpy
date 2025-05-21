@@ -143,9 +143,9 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Singletons (%)"
+#| title: "% Linked"
 if (VALID_PRESENT){
-  boxval <- round(sum(valids$reads < 2)/nrow(valids) * 100, 2)
+  boxval <- 100 - round(sum(valids$reads < 2)/nrow(valids) * 100, 2)
 } else {
   boxval <- "NA"
 }
