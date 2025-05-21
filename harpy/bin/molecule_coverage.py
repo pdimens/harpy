@@ -18,9 +18,9 @@ parser = argparse.ArgumentParser(
     one contiguous alignment, even though the reads that make
     up that molecule don't cover its entire length. Requires a
     FASTA fai index (like the kind created using samtools faidx)
-    to know the actual sizes of the contigs. Prints binary to stdout.
+    to know the actual sizes of the contigs. Prints to stdout.
     """,
-    usage = "molecule_coverage.py -f genome.fasta.fai statsfile > output.cov",
+    usage = "molecule_coverage.py -w 50000 -f genome.fasta.fai statsfile > output.cov",
     exit_on_error = False
     )
 
@@ -43,7 +43,7 @@ if args.window == 0:
     parser.error("--window must be greater than 0")
 
 contigs = {}
-LASTCONTIG = None
+
 # read the fasta index file as a dict of contig lengths
 with open(args.fai, "r", encoding= "utf-8") as fai:
     for line in fai:
@@ -54,34 +54,49 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
 
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))
-    ends = [i - 1 for i in starts[1:]]
+    ends = [i for i in starts[1:]]
     if not ends or ends[-1] != contig_len:
         ends.append(contig_len)
     return [range(i,j) for i,j in zip(starts,ends)]
 
-def which_overlap(start: int, end: int, binlist: list):
-    """return a list of which genomic intervals the molecule spans"""
-    startstop = [idx for idx, val in enumerate(binlist) if start in val or end in val]
-    if startstop:
-        startstop = range(startstop[0], startstop[-1] + 1)
-    return startstop
+def quantify_overlaps(start: int, end: int, binlist: list):
+    """return a list of tuples of of (interval_idx, bp) for which genomic intervals the molecule spans"""
+    result = []
+    counting_started = False
+    for idx, val in enumerate(binlist):
+        if start in val:
+            if start == val.start:
+                result.append((idx, len(val)))
+            else:
+                result.append((idx, val.stop - start - 1))
+            counting_started = True
+        elif end in val:
+            if end == val.start:
+                result.append((idx, 1))
+            else:
+                result.append((idx, end + 1 - val.start))
+            break
+        elif counting_started:
+            result.append((idx, len(val)))
+    return result
 
 def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
     for idx,int_bin in enumerate(intervals):
-        if int_bin.stop - int_bin.start != 0:
-            sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/(int_bin.stop - int_bin.start)}\n")
+        if len(int_bin) > 0:
+            sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/len(int_bin)}\n")
 
 with gzip.open(args.statsfile, "rt") as statsfile:
+    LASTCONTIG = None
+    IDX_CONTIG = None
+    IDX_START = None
+    IDX_END = None
     aln_ranges = []
     # read in the header
     line = statsfile.readline()
     # for safety, find out which columns are the contig, start, and end positions
     # just in case this order changes at some point for some reason
     header = line.rstrip().split()
-    IDX_CONTIG = None
-    IDX_START = None
-    IDX_END = None
     for idx,val in enumerate(header):
         if val.strip() == "contig":
             IDX_CONTIG = idx
@@ -91,6 +106,8 @@ with gzip.open(args.statsfile, "rt") as statsfile:
             IDX_END = idx
     if IDX_CONTIG is None or IDX_START is None or IDX_END is None:
         parser.error("Required columns 'contig', 'start', or 'end' not found in header\n")
+    counter = Counter()
+    geno_intervals = []
     for line in statsfile:
         if line.startswith("#"):
             continue
@@ -105,7 +122,8 @@ with gzip.open(args.statsfile, "rt") as statsfile:
             counter = Counter({key: 0 for key in range(len(geno_intervals))})
         aln_start = int(splitline[IDX_START])
         aln_end = int(splitline[IDX_END])
-        counter.update(which_overlap(aln_start, aln_end, geno_intervals))
+        for idx,bp in quantify_overlaps(aln_start, aln_end, geno_intervals):
+            counter[idx] += bp
         LASTCONTIG = contig
     # print last contig
     print_depth_counts(LASTCONTIG, counter, geno_intervals)

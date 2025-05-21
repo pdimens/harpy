@@ -38,10 +38,16 @@ def writestats(x, writechrom, destination):
     """write to file the bx stats dictionary as a table"""
     for _mi in list(x.keys()):
         x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"]
-        cov_bp = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4))
-        x[_mi]["covered_bp"] = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),4))
-        x[_mi]["covered_inserts"] = max(0, round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 4))
-        outtext = f"{writechrom}\t{_mi}\t" + "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
+        try:
+            cov_bp = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),5))
+            cov_ins = max(0, round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 5))
+        except ZeroDivisionError:
+            cov_bp = 0
+            cov_ins = 0
+        x[_mi]["covered_bp"] = cov_bp
+        x[_mi]["covered_inserts"] = cov_ins
+        outtext = f"{writechrom}\t{_mi}\t"
+        outtext += "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
         destination.stdin.write(f"{outtext}\n".encode("utf-8"))
         # delete the entry after processing to ease up system memory
         del x[_mi]

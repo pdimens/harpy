@@ -437,6 +437,7 @@ mol_global_sd <- sd(tb$mol_depth)
 tb$outlier <- tb$depth > q99
 outliers <- tb[tb$outlier, -6]
 nonoutliers <- tb[!(tb$outlier), -6]
+outliers[,5] <- round(outliers[,5], 4)
 
 contig_avg <- group_by(tb, contig) %>%
   summarize(average = mean(depth), mol_average = mean(mol_depth), sdv = sd(depth), mol_sdv = sd(mol_depth))
