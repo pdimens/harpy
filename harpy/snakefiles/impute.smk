@@ -145,7 +145,7 @@ rule index_vcf:
         bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"

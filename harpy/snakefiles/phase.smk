@@ -239,7 +239,7 @@ rule summarize_blocks:
         gzip {params}
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"

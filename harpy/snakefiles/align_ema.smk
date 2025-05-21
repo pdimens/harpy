@@ -302,7 +302,7 @@ rule molecule_coverage:
     shell:
         "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"

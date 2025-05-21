@@ -64,7 +64,7 @@ rule concat_results:
         cat {input} | sort -k1 >> {output}
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"

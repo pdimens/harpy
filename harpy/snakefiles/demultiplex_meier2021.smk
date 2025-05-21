@@ -108,7 +108,7 @@ Sequence length	0
 EOF      
         """
 
-rule report_config:
+rule configure_report:
     output:
         "workflow/multiqc.yaml"
     run:

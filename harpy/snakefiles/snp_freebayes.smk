@@ -76,10 +76,10 @@ rule index_alignments:
 
 rule bam_list:
     input: 
-        bam = bamlist,
-        bai = collect("{bam}.bai", bam = bamlist)
+        collect("{bam}.bai", bam = bamlist),
+        bam = bamlist
     output:
-        smp = "workflow/samples.files"
+        smp = "workflow/freebayes.input"
     run:
         with open(output.smp, "w") as fout:
             for bamfile in input.bam:
@@ -87,12 +87,12 @@ rule bam_list:
 
 rule call_variants:
     input:
-        bam = bamlist,
-        bai = collect("{bam}.bai", bam = bamlist),
-        groupfile = "workflow/sample.groups" if groupings else [],
-        ref     = workflow_geno,
-        ref_idx = f"{workflow_geno}.fai",
-        samples = "workflow/samples.files"
+        bamlist,
+        collect("{bam}.bai", bam = bamlist),
+        "workflow/sample.groups" if groupings else [],
+        f"{workflow_geno}.fai",
+        reference = workflow_geno,
+        bamlist  = "workflow/freebayes.input"
     output:
         bcf = temp("regions/{part}.bcf"),
         idx = temp("regions/{part}.bcf.csi")
@@ -104,13 +104,11 @@ rule call_variants:
         static = "--strict-vcf",
         populations = "--populations workflow/sample.groups" if groupings else "",
         extra = extra
-    threads:
-        2
     conda:
         "envs/variants.yaml"
     shell:
         """
-        freebayes -f {input.ref} -L {input.samples} {params} 2> {log} |
+        freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
@@ -126,7 +124,7 @@ rule concat_list:
 
 rule concat_variants:
     input:
-        bcfs = collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = "logs/bcf.files"
     output:
         temp("variants.raw.unsort.bcf")
@@ -182,7 +180,7 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"

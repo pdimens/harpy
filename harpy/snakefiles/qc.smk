@@ -142,7 +142,7 @@ rule barcode_stats:
     shell:
         "count_bx.py {input} > {output}"
 
-rule report_config:
+rule configure_report:
     input:
         yaml = f"workflow/report/_quarto.yml",
         scss = f"workflow/report/_harpy.scss"

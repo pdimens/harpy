@@ -80,61 +80,60 @@ rule index_alignments:
 
 rule bam_list:
     input: 
-        collect("{bam}.bai", bam = bamlist),
-        bam = bamlist
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
-        temp("workflow/mpileup.input")
+        temp("logs/samples.files")
     run:
         with open(output[0], "w") as fout:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-rule call_genotypes:
+rule mpileup:
     input:
-        bamlist,
-        collect("{bam}.bai", bam = bamlist),
-        f"{workflow_geno}.fai",
-        "workflow/sample.groups" if groupings else [],
-        bamlist = "workflow/mpileup.input",
+        bamlist = "logs/samples.files",
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist),
         genome  = workflow_geno,
+        genome_fai = f"{workflow_geno}.fai"
     output: 
-        bcf = temp("call/{part}.bcf"),
-        logfile = temp("logs/mpileup/{part}.mpileup.log")
-    log:
-        "logs/call/{part}.call.log"
+        bcf = pipe("mpileup/{part}.mp.bcf"),
+        logfile = temp("logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
-        annot_mp = "-a AD,INFO/FS",
-        extra = mp_extra,
-        ploidy = f"--ploidy {ploidy}",
-        annot_call = "-a GQ,GP",
-        groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
+        annotations = "-a AD,INFO/FS",
+        extra = mp_extra
+    container:
+        None
+    shell:
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --output-type b {params} > {output.bcf} 2> {output.logfile}"
+
+rule call_genotypes:
+    input:
+        groupfile = "workflow/sample.groups" if groupings else [],
+        bcf = "mpileup/{part}.mp.bcf"
+    output:
+        bcf = temp("call/{part}.bcf"),
+        idx = temp("call/{part}.bcf.csi")
+    params: 
+        f"--ploidy {ploidy}",
+        "-a GQ,GP",
+        "--group-samples" if groupings else "--group-samples -"
+    log:
+        "logs/{part}.call.log"
     threads:
         2
     container:
         None
     shell:
         """
-        bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
-            bcftools call --threads {threads} -o {output.bcf} --multiallelic-caller --variants-only --output-type b {params.ploidy} {params.annot_call} {params.groups} 2> {log}
+        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} 2> {log}|
+            bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
-
-rule sort_genotypes:
-    input:
-        bcf = temp("call/{part}.bcf")
-    output:
-        bcf = temp("sort/{part}.bcf"),
-        idx = temp("sort/{part}.bcf.csi")
-    log:
-        "logs/sort/{part}.sort.log"
-    container:
-        None
-    shell:
-        "bcftools sort --output {output.bcf} --write-index {input.bcf} 2> {log}"
 
 rule concat_list:
     input:
-        bcfs = collect("sort/{part}.bcf", part = intervals),
+        bcfs = collect("call/{part}.bcf", part = intervals),
     output:
         "logs/bcf.files"
     run:
@@ -144,20 +143,21 @@ rule concat_list:
 
 rule concat_logs:
     input:
-        collect("logs/mpileup/{part}.mpileup.log", part = intervals)
+        collect("logs/{part}.mpileup.log", part = intervals)
     output:
         "logs/mpileup.log"
     run:
         with open(output[0], "w") as fout:
             for file in input:
+                fin = open(file, "r")
                 interval = os.path.basename(file).replace(".mpileup.log", "")
-                with open(file, "r") as fin:
-                    for line in fin:
-                        fout.write(f"{interval}\t{line}")
+                for line in fin.readlines():
+                    fout.write(f"{interval}\t{line}")
+                fin.close()
 
 rule concat_variants:
     input:
-        collect("sort/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        vcfs     = collect("call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = "logs/bcf.files"
     output:
         temp("variants.raw.unsort.bcf")
