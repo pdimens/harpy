@@ -9,3 +9,4 @@
 - "Runtime" changed to "Duration" in onstart/onerror/onsuccess console printing
 - "Workflow Log" line removed from onstart and added to onsuccess/onerror
 - stripped markup from `harpy view environments`
+- added `harpy view environments program_name`

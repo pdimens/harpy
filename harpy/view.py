@@ -124,13 +124,16 @@ def config(directory):
     )
 
 @click.command()
-def environments():
+@click.argument('program', required=False, type=str, nargs=1)
+def environments(program):
     """
     View the Snakemake-managed conda environments
 
     This convenience command will print the main information of the conda environment recipes within
-    `.environments/`. This is usually useful for situations when troubleshooting requires you to enter
+    `.environments/`. This is useful in situations when troubleshooting requires you to enter
     a specific conda environment, but you aren't sure which because Snakemake renames them with hashes.
+    Optionally provide the name of a `PROGRAM` (or partial name, case insensitive) to only return the environments that
+    contain that program (e.g. `leviath` would match `leviathan`).
     """
     if not os.path.exists(".environments"):
         print_error(
@@ -146,7 +149,7 @@ def environments():
         )
         sys.exit(1)
     for i in files:
-        rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
+        deps = ""
         with open(i, "r") as file:
             skip = True
             for line in file:
@@ -154,8 +157,16 @@ def environments():
                     skip = False
                     continue
                 if not skip:
-                    dep = line.split("::")[-1]
-                    rprint(f"  - [default]{dep.rstrip()}")
+                    dep = line.split("::")[-1].rstrip()
+                    deps += f" {dep.rstrip()}"
+                    #rprint(f"  - [default]{dep.rstrip()}")
+        if (program and program.lower() in deps) or not program:
+            rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
+            for d in deps.split():
+                if program and program.lower() in d:
+                    rprint(f"[bold green]  →  {d}")
+                else:
+                    rprint(f"[default]  -  {d}")
     return
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
