@@ -107,9 +107,8 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         sys.exit(0)
 
     start_text = workflow_info(
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
         ("Downsample barcodes:" if downsample >= 1 else "Downsample fraction:", f"{int(downsample) if downsample >= 1 else downsample}"),
         ("Invalid Proportion:", invalid),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")

@@ -1,5 +1,7 @@
 """Module of pretty-printing for errors and prompts"""
 
+from datetime import datetime
+import os
 import sys
 from rich import print as rprint
 from rich.console import Console
@@ -78,7 +80,7 @@ def print_setup_error(exitcode: int) -> None:
     console.print(errortext)
     console.rule("[bold]Error Reported by Snakemake", style = "red")
 
-def print_onsuccess(outdir: str, summary = None, time = None) -> None:
+def print_onsuccess(outdir: str, summary:str|None = None, logfile:str|None = None, time = None) -> None:
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
     days = time.days
     seconds = time.seconds
@@ -89,9 +91,10 @@ def print_onsuccess(outdir: str, summary = None, time = None) -> None:
     datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     datatable.add_column("detail", justify="left", style="green", no_wrap=True)
     datatable.add_column("value", justify="left")
-    datatable.add_row("Runtime:", time_text)
+    datatable.add_row("Duration:", time_text)
     if summary:
-        datatable.add_row("Summary: ", f"{outdir}/{summary}")
+        datatable.add_row("Summary: ", f"{os.path.basename(outdir)}/{summary}")
+    datatable.add_row("Workflow Log:", f"{os.path.basename(outdir)}/{logfile}.gz")
     console.rule("[bold]Workflow Finished!", style="green")
     console.print(datatable)
 
@@ -106,10 +109,10 @@ def print_onerror(logfile: str, time = None) -> None:
     datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
     datatable.add_column("detail", justify="left", style="red", no_wrap=True)
     datatable.add_column("value", justify="left")
-    datatable.add_row("Runtime:", time_text)
-    datatable.add_row("Full log: ", logfile)
+    datatable.add_row("Duration:", time_text)
+    datatable.add_row("Workflow Log: ", logfile + ".gz")
     console.rule("[bold]Workflow Error", style = "red")
-    console.print(f"The workflow stopped because of an error. See the error information below.")
+    console.print(f"The workflow stopped because of an error. See the information Snakemake reported below.")
     console.print(datatable)
     console.rule("[bold]Where Error Occurred", style = "red")
 

@@ -187,7 +187,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
         elapsed_time = end_time - start_time
         if process.returncode < 1:
             if quiet < 2:
-                print_onsuccess(outdir, summaryfile, elapsed_time)
+                print_onsuccess(outdir, summaryfile, sm_logfile, elapsed_time)
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)

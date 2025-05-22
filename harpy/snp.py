@@ -155,8 +155,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         ("Samples:", n),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.freebayes.summary")
 
@@ -254,8 +253,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         ("Samples:", n),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/snp.mpileup.summary")
 

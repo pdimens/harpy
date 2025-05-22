@@ -144,7 +144,6 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     start_text = workflow_info(
         ("Haplotypes:", len(fasta)),
         ("Barcodes:", os.path.basename(barcodes) if os.path.exists(barcodes) else "randomly generated"),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")

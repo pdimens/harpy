@@ -134,8 +134,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         ("Demultiplex Schema:", os.path.basename(schema)),
         ("Multi-ID Samples:", "[bold yellow]Yes[/] [dim](assuming this was intentional)[/]" if multi_id else "No"),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.meier2021.summary")
 
