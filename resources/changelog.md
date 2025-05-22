@@ -6,3 +6,5 @@
 - `harpy demultiplex ncbi` to undo the conversion when downloading from NCBI
 - standardize "haplotag" to "haplotagging"
 - add fractional downsampling to `harpy downsample`
+- "Runtime" changed to "Duration" in onstart/onerror/onsuccess console printing
+- "Workflow Log" line removed from onstart and added to onsuccess/onerror
