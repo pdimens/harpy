@@ -8,3 +8,4 @@
 - add fractional downsampling to `harpy downsample`
 - "Runtime" changed to "Duration" in onstart/onerror/onsuccess console printing
 - "Workflow Log" line removed from onstart and added to onsuccess/onerror
+- stripped markup from `harpy view environments`

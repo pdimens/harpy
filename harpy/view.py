@@ -76,15 +76,7 @@ def view():
     View a workflow's components
 
     These convenient commands let you view the latest workflow log file, snakefile, snakemake parameter
-    file, or workflow config file in a directory that was used for the output of a Harpy run.
-    Use the typical `less` keyboard bindings to navigate the output, e.g.:
-    
-    | key                     | function                   |
-    | :---------------------- | :------------------------- |
-    | `Up/Down` arrow         | scroll up/down             |
-    | `Page Up/Down`          | faster up/down scrolling   |
-    | `/` + `pattern`         | search for `pattern`       |
-    | `q`                     | exit                       |
+    file, workflow config file in a directory that was used for the output of a Harpy run.
     """
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
@@ -163,7 +155,7 @@ def environments():
                     continue
                 if not skip:
                     dep = line.split("::")[-1]
-                    rprint(f"  - {dep.rstrip()}")
+                    rprint(f"  - [default]{dep.rstrip()}")
     return
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
