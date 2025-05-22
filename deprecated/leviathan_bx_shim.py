@@ -44,7 +44,7 @@ with pysam.AlignmentFile(args.input) as bam_in, pysam.AlignmentFile(sys.stdout.b
                 try:
                     BX_NEW = "".join(next(bc_generator))          
                 except StopIteration:
-                    sys.stderr.write(f"Error:\nNumber of unique molecules exceeds the number of possible unique haplotag barcodes ({96**4}).")
+                    sys.stderr.write(f"Error:\nNumber of unique molecules exceeds the number of possible unique haplotagging barcodes ({96**4}).")
                     sys.exit(1)
                 MI_BX[mi] = BX_NEW
             record.set_tag("BX", MI_BX[mi])

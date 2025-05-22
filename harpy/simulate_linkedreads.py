@@ -1,4 +1,4 @@
-"""Harpy workflows to simulate genomic variants and linked-reads"""
+"""Harpy workflows to simulate genomic variants and linked reads"""
 import os
 import sys
 import yaml

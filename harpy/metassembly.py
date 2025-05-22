@@ -50,7 +50,7 @@ docstring = {
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
-    Create a metassembly from linked-reads
+    Create a metassembly from linked reads
 
     The linked-read barcodes must be in `BX:Z` or `BC:Z` FASTQ header tags. If provided, values for `-k` must be
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve

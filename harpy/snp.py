@@ -18,7 +18,7 @@ from ._validations import check_fasta, validate_bam_RG, validate_popfile, valida
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
     """
-    Call SNPs and small indels on alignments
+    Call SNPs and small indels from alignments
     
     Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
     those variant callers. They are both robust variant callers, but `freebayes` is recommended when ploidy

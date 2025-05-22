@@ -18,7 +18,7 @@ from ._validations import validate_popfile, validate_popsamples, fasta_contig_ma
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
     """
-    Call large structural variants on alignments
+    Call large structural variants from alignments
  
     | caller | inversions | duplications | deletions | breakends |
     |:-------|:----------:|:------------:|:---------:|:---------:|

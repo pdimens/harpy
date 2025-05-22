@@ -17,7 +17,7 @@ from ._validations import check_fasta, fasta_contig_match, fastq_has_bx, validat
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
     """
-    Align sample sequences to a reference genome
+    Align sequences to a reference genome
 
     | aligner | linked-read aware | speed | best for | 
     |:-------|:----------:|:------------:|:---------:|

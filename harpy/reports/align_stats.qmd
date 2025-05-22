@@ -541,8 +541,8 @@ column_description <- c(
   "name of the contig",
   "average alignment depth",
   "standard deviation of alignment depth",
-  "average depth including gaps between linked-reads",
-  "standard deviation of the depth including gaps between linked-reads"
+  "average depth including gaps between linked reads",
+  "standard deviation of the depth including gaps between linked reads"
   )
 
 headerCallback <- c(
@@ -581,7 +581,7 @@ column_description <- c(
   "name of the contig",
   "the genomic interval on the contig",
   "number of alignments at the interval",
-  "number of alignments at the interval, including gaps between linked-reads"
+  "number of alignments at the interval, including gaps between linked reads"
   )
 
 headerCallback <- c(

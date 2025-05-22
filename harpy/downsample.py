@@ -3,8 +3,7 @@
 import os
 import re
 import sys
-import yaml
-import shutil
+from turtle import down
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake
@@ -25,9 +24,10 @@ docstring = {
         },
     ]
 }
+
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/downsample")
 @click.option('-b', '--barcode-tag', type = str, default = "BX", show_default = True, help = 'Tag that contains the barcode')
-@click.option('-d', '--downsample', type = click.IntRange(min = 1), help = 'Number of barcodes to retain')
+@click.option('-d', '--downsample', type = click.FloatRange(min = 0.0000001), help = 'Number/fraction of barcodes to retain')
 @click.option('-i', '--invalid', default = 1, show_default = True, type=click.FloatRange(min=0,max=1), help = "Proportion of invalid barcodes to sample")
 @click.option('-p', '--prefix', type = click.Path(exists = False), default = "downsampled", show_default = True, help = 'Prefix for output file(s)')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for sampling")
@@ -43,9 +43,10 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     Downsample data by barcode
     
     Downsamples FASTQ or BAM file(s) by barcode in the `BX` (default) tag to keep all reads
-    containing `-d` randomly sampled barcodes. The SAM tag TYPE is expected to be `Z`, i.e.
-    --barcode-type `BX` will search through the `BX:Z:` tags. Use `--invalid/-i` to specify the
-    proportion of invalid barcodes to consider for sampling. Input can be:
+    containing `-d` randomly sampled barcodes. Downsamples by keeping `-d` random barcodes if `d >= 1`,
+    otherwise, samples a fraction of the total barcodes if `0 < d < 1` (e.g. `-d 0.5` retains 50% of all barcodes).
+     The SAM tag TYPE is expected to be `Z`, i.e. `--barcode-type BX` will search through the `BX:Z:` tags. 
+    Use `--invalid/-i` to specify the proportion of invalid barcodes to consider for sampling. Input can be:
     - one BAM file
     - two FASTQ files (R1 and R2 of a paired-end read set)
     
@@ -53,7 +54,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     |:---:|:---------------------------------------------------|
     | `0` | removes all invalid barcodes from the sampling pool |
     | `1` | adds all invalid barcodes to the sampling pool |
-    | 0<`i`<1| keeps that proprotion of invalids in the sampling pool |
+    | 0<`i`<1| keeps `i` proprotion of invalids in the sampling pool |
     """
     workflow = "downsample"
     workflowdir,sm_log = instantiate_dir(output_dir, workflow)
@@ -89,7 +90,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     configs = {
         "workflow": workflow,
         "prefix" :  prefix,
-        "downsample" :  downsample,
+        "downsample" :  int(downsample) if downsample >= 1 else downsample,
         "barcode-tag" : barcode_tag.upper(),
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
@@ -107,7 +108,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
 
     start_text = workflow_info(
         ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Downsample to:", f"{downsample} barcodes"),
+        ("Downsample barcodes:" if downsample >= 1 else "Downsample fraction:", f"{int(downsample) if downsample >= 1 else downsample}"),
         ("Invalid Proportion:", invalid),
         ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )

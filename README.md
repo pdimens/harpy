@@ -5,7 +5,7 @@
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 [![haplotagging badge](https://custom-icon-badges.demolab.com/badge/-Haplotagging-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
 
-[Linked-read](https://doi.org/10.1073/pnas.2015005118) data processing pipeline. Getting you from raw linked-reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋
+[Linked-read](https://doi.org/10.1073/pnas.2015005118) data processing pipeline. Getting you from raw linked reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋
 
 <p align="center">
 ✨ Now works with TELLseq, stLFR, and non-linked read data! ✨

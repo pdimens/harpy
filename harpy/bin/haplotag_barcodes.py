@@ -6,7 +6,7 @@ from itertools import product
 
 parser = argparse.ArgumentParser(
     prog = 'haplotag_barcodes.py',
-    description ="Prints haplotag linked-read barcodes to stdout",
+    description ="Prints haplotagging linked-read barcodes to stdout",
     usage = "haplotag_barcodes.py [-n] > barcodes.txt"
     )
 parser.add_argument("-n", "--number", default=96**4, type = int, help = "How many barcodes to print (min: 1, max: 84934656)")
