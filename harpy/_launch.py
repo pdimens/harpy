@@ -235,6 +235,10 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         if output.startswith("[") and output.rstrip().endswith("]"):
                             output = process.stderr.readline()
                             continue
+                        if output.startswith("processing file: ") and output.rstrip().endswith(".qmd"):
+                            # make quarto error logs a little nicer by skipping progress
+                            while not output.startswith("Error:"):
+                                output = process.stderr.readline()
                         console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break

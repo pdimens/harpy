@@ -10,3 +10,4 @@
 - "Workflow Log" line removed from onstart and added to onsuccess/onerror
 - stripped markup from `harpy view environments`
 - added `harpy view environments program_name`
+- skip the progress info when printing quarto error log to terminal
