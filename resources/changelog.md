@@ -13,3 +13,5 @@
 - skip the progress info when printing quarto error log to terminal
 - `align` workflows have more logs created for debugging
 - `snp mpileup` workflow augmented slightly to try to make it more efficient, but is functionally identical
+- the progressbars are now contained in live panels for better visual distinctions
+- the animated progressbar spinners become green check marks when a task is finished
