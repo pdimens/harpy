@@ -11,3 +11,4 @@
 - stripped markup from `harpy view environments`
 - added `harpy view environments program_name`
 - skip the progress info when printing quarto error log to terminal
+- `align` workflows have more logs created for debugging

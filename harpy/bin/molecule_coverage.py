@@ -83,8 +83,10 @@ def quantify_overlaps(start: int, end: int, binlist: list):
 def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
     for idx,int_bin in enumerate(intervals):
-        if len(int_bin) > 0:
+        try:
             sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/len(int_bin)}\n")
+        except ZeroDivisionError:
+            continue
 
 with gzip.open(args.statsfile, "rt") as statsfile:
     LASTCONTIG = None
