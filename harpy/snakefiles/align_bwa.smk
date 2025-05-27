@@ -114,10 +114,12 @@ rule standardize_barcodes:
         "samples/{sample}/{sample}.bwa.sam"
     output:
         temp("samples/{sample}/{sample}.standard.sam")
+    log:
+        "logs/{sample}.standardize.log"
     container:
         None
     shell:
-        "standardize_barcodes_sam.py > {output} < {input}"
+        "standardize_barcodes_sam.py > {output} 2> {log} < {input}"
 
 rule mark_duplicates:
     input:
@@ -155,50 +157,56 @@ rule mark_duplicates:
 rule assign_molecules:
     priority: 100
     input:
-        bam = "samples/{sample}/{sample}.markdup.bam",
+        "samples/{sample}/{sample}.markdup.bam"
     output:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
+    log:
+        "logs/assign_mi/{sample}.assign_mi.log"
     params:
         molecule_distance
     container:
         None
     shell:
         """
-        assign_mi.py -c {params} {input.bam} > {output.bam}
+        assign_mi.py -c {params} {input} > {output.bam} 2> {log}
         samtools index {output.bam}
         """
 
 rule barcode_stats:
     input:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         "reports/data/bxstats/{sample}.bxstats.gz"
+    log:
+        "logs/bxstats/{sample}.bxstats.log"
     params:
         sample = lambda wc: d[wc.sample]
     container:
         None
     shell:
-        "bx_stats.py {input.bam} > {output}"
+        "bx_stats.py {input.bam} > {output} 2> {log}"
 
 rule molecule_coverage:
     input:
         stats = "reports/data/bxstats/{sample}.bxstats.gz",
         fai = f"{workflow_geno}.fai"
-    output: 
+    output:
         "reports/data/coverage/{sample}.molcov.gz"
+    log:
+        "logs/{sample}.molcov.log"
     params:
         windowsize
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
+        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
+        "{sample}.bam.bai",
         bam = "{sample}.bam",
-        bai = "{sample}.bam.bai",
         bed = "reports/data/coverage/coverage.bed"
     output: 
         "reports/data/coverage/{sample}.cov.gz"

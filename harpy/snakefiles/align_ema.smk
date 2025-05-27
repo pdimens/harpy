@@ -91,7 +91,7 @@ rule ema_count:
     input:
         get_fq
     output: 
-        counts = temp("ema_count/{sample}.ema-ncnt"),
+        temp("ema_count/{sample}.ema-ncnt"),
         logs   = temp("logs/count/{sample}.count")
     params:
         prefix = lambda wc: "ema_count/" + wc.get("sample"),
@@ -110,8 +110,8 @@ rule ema_preprocess:
         reads = get_fq,
         emacounts  = "ema_count/{sample}.ema-ncnt"
     output: 
-        bins       = temp(collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded = temp("ema_preproc/{sample}/ema-nobc")
+        temp("ema_preproc/{sample}/ema-nobc"),
+        bins = temp(collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange))
     log:
         "logs/ema_preproc/{sample}.preproc.log"
     params:
@@ -166,13 +166,15 @@ rule standardize_barcodes:
     input:
         "ema_align/{sample}.ema.bam"
     output:
-        bam = temp("ema_align/{sample}.bc.bam"),
-        idx = temp("ema_align/{sample}.bc.bam.bai")
+        temp("ema_align/{sample}.bc.bam.bai"),
+        bam = temp("ema_align/{sample}.bc.bam")
+    log:
+        "logs/{sample}.standardize.log"
     container:
         None
     shell:
         """
-        standardize_barcodes_sam.py < {input} | samtools view -h -b > {output.bam}
+        standardize_barcodes_sam.py < {input} 2> {log} | samtools view -h -b > {output.bam}
         samtools index {output.bam}
         """
 
@@ -268,8 +270,8 @@ rule concat_alignments:
 
 rule alignment_coverage:
     input: 
+        "{sample}.bam.bai",
         bam = "{sample}.bam",
-        bai = "{sample}.bam.bai",
         bed = "reports/data/coverage/coverage.bed"
     output: 
         "reports/data/coverage/{sample}.cov.gz"
@@ -280,8 +282,8 @@ rule alignment_coverage:
 
 rule barcode_stats:
     input:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         "reports/data/bxstats/{sample}.bxstats.gz"
     container:
@@ -295,12 +297,14 @@ rule molecule_coverage:
         fai = f"{workflow_geno}.fai"
     output: 
         "reports/data/coverage/{sample}.molcov.gz"
+    log:
+        "logs/molcov/{sample}.molcov.log"
     params:
         windowsize
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
+        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule configure_report:
     input:
