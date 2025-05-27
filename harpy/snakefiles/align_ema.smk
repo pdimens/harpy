@@ -349,8 +349,8 @@ rule sample_reports:
 
 rule general_stats:
     input: 		
-        bam      = "{sample}.bam",
-        bai      = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output:
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")

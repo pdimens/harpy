@@ -98,7 +98,7 @@ rule call_genotypes:
         bamlist = "workflow/mpileup.input",
         genome  = workflow_geno,
     output: 
-        bcf = temp("call/{part}.bcf"),
+        vcf = temp("call/{part}.vcf"),
         logfile = temp("logs/mpileup/{part}.mpileup.log")
     log:
         "logs/call/{part}.call.log"
@@ -110,18 +110,18 @@ rule call_genotypes:
         annot_call = "-a GQ,GP",
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
     threads:
-        2
+        1
     container:
         None
     shell:
         """
         bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
-            bcftools call --threads {threads} -o {output.bcf} --multiallelic-caller --variants-only --output-type b {params.ploidy} {params.annot_call} {params.groups} 2> {log}
+            bcftools call --threads {threads} -o {output.vcf} --multiallelic-caller --variants-only {params.ploidy} {params.annot_call} {params.groups} 2> {log}
         """
 
 rule sort_genotypes:
     input:
-        bcf = temp("call/{part}.bcf")
+        bcf = temp("call/{part}.vcf")
     output:
         bcf = temp("sort/{part}.bcf"),
         idx = temp("sort/{part}.bcf.csi")

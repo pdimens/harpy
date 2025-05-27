@@ -242,22 +242,22 @@ rule sample_reports:
 if ignore_bx:
     rule index_bam:
         input:
-            bam = "markdup/{sample}.markdup.bam"
+            "markdup/{sample}.markdup.bam"
         output:
-            bam = "{sample}.bam",
-            bai = "{sample}.bam.bai"
+            "{sample}.bam.bai",
+            bam = "{sample}.bam"
         container:
             None
         shell:
             """
-            mv {input.bam} {output.bam}
+            mv {input} {output.bam}
             samtools index {output.bam}
             """
 
 rule general_stats:
     input:
-        bam      = "{sample}.bam",
-        bai      = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
