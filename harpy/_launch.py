@@ -109,8 +109,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             if deps:
                 progress = harpy_pulsebar(quiet, "Working...")
                 with harpy_progresspanel(progress, quiet=quiet, title = deploy_text):
-                #with Live(Panel(progress, title = deploy_text, border_style="dim") if quiet != 2 else None, refresh_per_second=8, transient=True):
-                #with harpy_pulsebar(quiet, deploy_text) as progress:
                     progress.add_task("[dim]Working...", total = None)
                     while not output.startswith("Job stats:"):
                         output = process.stderr.readline()
@@ -125,8 +123,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 break
             progress = harpy_progressbar(quiet)
             with harpy_progresspanel(progress, quiet = quiet):
-            #with Live(Panel(progress, border_style = "dim") if quiet != 2 else None, refresh_per_second=8, transient=True):
-            #with harpy_progressbar(quiet) as progress:
                 # process the job summary
                 job_inventory = {}
                 while True:
