@@ -12,3 +12,4 @@
 - added `harpy view environments program_name`
 - skip the progress info when printing quarto error log to terminal
 - `align` workflows have more logs created for debugging
+- `snp mpileup` workflow augmented slightly to try to make it more efficient, but is functionally identical
