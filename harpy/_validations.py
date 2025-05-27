@@ -11,7 +11,7 @@ from rich import print as rprint
 from rich.table import Table
 import rich_click as click
 from ._printing import print_error, print_notice, print_solution, print_solution_with_culprits
-from ._misc import harpy_progressbar, safe_read
+from ._misc import harpy_progressbar, harpy_progresspanel, safe_read
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # logic to properly refresh progress bar for jupyter sessions
@@ -163,9 +163,9 @@ def validate_bam_RG(bamlist: str, threads: int, quiet: int) -> None:
         samview = subprocess.run(f"samtools samples {bamfile}".split(), stdout = subprocess.PIPE).stdout.decode('utf-8').split()
         if samplename != samview[0]:
             return os.path.basename(bamfile), samview[0]
-
-    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
-        task_progress = progress.add_task("[green]Checking RG tags", total=len(bamlist))
+    progress = harpy_progressbar(quiet)
+    with harpy_progresspanel(progress, title = "Checking RG BAM tags", quiet=quiet) as panel, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[dim]Progress", total=len(bamlist))
         futures = [executor.submit(check_RG, i) for i in bamlist]
         for future in as_completed(futures):
             result = future.result()
@@ -483,8 +483,9 @@ def fastq_has_bx(fastq_list: list[str], threads: int, quiet: int, max_records: i
                     return True
                 records += 1
         return False
-    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
-        task_progress = progress.add_task("[green]Parsing FASTQ input", total=len(fastq_list))
+    progress = harpy_progressbar(quiet)
+    with harpy_progresspanel(progress, title = "Parsing FASTQ input", quiet=quiet) as panel, ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[dim]Progress", total=len(fastq_list))
         futures = [executor.submit(has_bx_tag, i, max_records) for i in fastq_list]
         for future in as_completed(futures):
             if future.result():
@@ -517,8 +518,9 @@ def validate_fastq_bx(fastq_list: list[str], threads: int, quiet: int) -> None:
                 sys.exit(1)
 
     # parellelize over the fastq list
-    with harpy_progressbar(quiet) as progress, ThreadPoolExecutor(max_workers=threads) as executor:
-        task_progress = progress.add_task("[green]Validating FASTQ inputs", total=len(fastq_list))
+    progress = harpy_progressbar(quiet)
+    with harpy_progresspanel(progress, title = "Validating FASTQ input", quiet = quiet), ThreadPoolExecutor(max_workers=threads) as executor:
+        task_progress = progress.add_task("[dim]Progress", total=len(fastq_list))
         futures = [executor.submit(validate, i) for i in fastq_list]
         for future in as_completed(futures):
             progress.advance(task_progress)
@@ -539,14 +541,14 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
             print_error("incorrect format", f"Invalid barcode format on [bold]line {line_num }[/]: [yellow]{barcode}[/].\nBarcodes in [blue]{infile}[/] must be captial letters and only contain standard nucleotide characters [green]ATCG[/].")
             sys.exit(1)
         return len(barcode)
-
-    with safe_read(infile) as bc_file, harpy_progressbar(quiet) as progress:
+    progress = harpy_progressbar(quiet)
+    with safe_read(infile) as bc_file, harpy_progresspanel(progress, title= "Validating barcodes", quiet=quiet) as panel:
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         linenum = int(out.partition(b' ')[0])
         if linenum > 96**4 and haplotag_only:
             print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/], but there are [yellow]{linenum}[/] barcodes in [blue]{infile}[/]. Please use fewer barcodes.")
             sys.exit(1)
-        task_progress = progress.add_task("[green]Validating barcodes", total=linenum)
+        task_progress = progress.add_task("[dim]Progress", total=linenum)
         # check for duplicates
         if check_dups:
             sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
