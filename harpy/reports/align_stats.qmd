@@ -477,7 +477,7 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Linked Depth"
+#| title: "Average Linked Depth"
 list(
   color = "#d4d4d4",
   value = round(mol_global_avg,2)
