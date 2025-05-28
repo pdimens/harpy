@@ -17,3 +17,5 @@
 - the animated progressbar spinners become green check marks when a task is finished
 - align `bxstats` report touch-ups with respect to section names, plot titles, etc.
 - add 3 retries to quarto report rendering to hopefully circumvent the annoying occassional "database locked" error that happens
+- add wording to `snp mpileup` and `snp freebayes` speficying 1-indexed regions
+  - add failsafe in snakefiles to set `0` positions to `1` in case a user accidentally uses 0-based regions

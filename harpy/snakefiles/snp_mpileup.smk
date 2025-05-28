@@ -29,7 +29,7 @@ if os.path.isfile(region_input):
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
-            intervals.add(f"{cont}:{startpos}-{endpos}")
+            intervals.add(f"{cont}:{max(startpos,1)}-{endpos}")
     regions = dict(zip(intervals, intervals))
 else:
     intervals = [region_input]

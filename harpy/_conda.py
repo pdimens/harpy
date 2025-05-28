@@ -75,7 +75,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
         ],
         "variants" : [
             "bioconda::bcftools=1.20",
-            "bioconda::freebayes=1.3.6",
+            "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus"
         ]
