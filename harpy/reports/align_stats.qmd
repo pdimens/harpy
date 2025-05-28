@@ -68,6 +68,8 @@ totuniqBX <- gsub("#total unique barcodes: ", "", totuniqBX) |> as.integer()
 
 tot_valid <- sum(valids$reads)
 tot_invalid <- sum(invalids$reads)
+n_reads <- tot_valid + tot_invalid
+perc_valid <- round(tot_valid / n_reads * 100, 2)
 
 non_singletons <- valids[valids$reads >= 2, ]
 n_non_singleton_mol <- nrow(non_singletons)
@@ -128,24 +130,15 @@ list(
 #| title: "Valid BX Records"
 list(
   color = "#d4d4d4",
-  value = scales::comma(tot_valid)
+  value = paste0(perc_valid, "%")
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Invalid BX Records"
-list(
-  color = "#d4d4d4",
-  value = scales::comma(tot_invalid)
-)
-```
-
-```{r}
-#| content: valuebox
-#| title: "% Linked"
+#| title: "Linked Reads"
 if (VALID_PRESENT){
-  boxval <- 100 - round(sum(valids$reads < 2)/nrow(valids) * 100, 2)
+  boxval <- paste0(100 - round(sum(valids$reads < 2)/nrow(valids) * 100, 2),"%")
 } else {
   boxval <- "NA"
 }
@@ -407,7 +400,7 @@ if(nrow(tb) == 0){
   print(paste("Input data file", covfile, "is empty"))
   knitr::knit_exit()
 } else {
-  tb <- tb[, c(1,2,3,5)]
+  tb <- tb[, c(1,2,3,6)]
 }
 tbmol <- read.table(molcovfile, header = F)
 if(nrow(tbmol) == 0){

@@ -117,19 +117,19 @@ list(
 
 ```{r}
 #| content: valuebox
-#| title: "Avg % Linked"
+#| title: "Avg Linked"
 list(
   color = "light",
-  value = avg_percent_of(aggregate_df$nonsingletons, aggregate_df$singletons)
+  value = paste0(avg_percent_of(aggregate_df$nonsingletons, aggregate_df$singletons), "%")
 )
 ```
 
 ```{r}
 #| content: valuebox
-#| title: "Avg % Valid Bx"
+#| title: "Avg Valid BX"
 list(
   color = "light",
-  value = round(mean(aggregate_df$totalvalidpercent[aggregate_df$totalvalidpercent != 0]), 2)
+  value = paste0(round(mean(aggregate_df$totalvalidpercent[aggregate_df$totalvalidpercent != 0]), 2), "%")
 )
 ```
 
