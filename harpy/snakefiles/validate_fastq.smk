@@ -91,6 +91,8 @@ rule create_report:
         lr_platform
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

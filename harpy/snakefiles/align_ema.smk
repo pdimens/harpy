@@ -336,6 +336,8 @@ rule sample_reports:
         samplename = lambda wc: "-P sample:" + wc.get("sample")
     log:
         "logs/reports/{sample}.alignstats.log"
+    retries:
+        3
     conda:
         "envs/r.yaml"
     shell:
@@ -392,6 +394,8 @@ rule barcode_report:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

@@ -16,3 +16,4 @@
 - the progressbars are now contained in live panels for better visual distinctions
 - the animated progressbar spinners become green check marks when a task is finished
 - align `bxstats` report touch-ups with respect to section names, plot titles, etc.
+- add 3 retries to quarto report rendering to hopefully circumvent the annoying occassional "database locked" error that happens

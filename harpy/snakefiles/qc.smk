@@ -169,6 +169,8 @@ rule barcode_report:
         "logs/barcode.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

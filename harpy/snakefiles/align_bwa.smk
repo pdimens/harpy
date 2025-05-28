@@ -247,6 +247,8 @@ rule sample_reports:
         "logs/reports/{sample}.alignstats.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -316,6 +318,8 @@ rule barcode_report:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
