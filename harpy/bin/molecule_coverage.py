@@ -64,19 +64,20 @@ def quantify_overlaps(start: int, end: int, binlist: list):
     result = []
     counting_started = False
     for idx, val in enumerate(binlist):
-        if start in val:
-            if start == val.start:
-                result.append((idx, len(val)))
-            else:
-                result.append((idx, val.stop - start - 1))
-            counting_started = True
-        elif end in val:
-            if end == val.start:
-                result.append((idx, 1))
-            else:
-                result.append((idx, end + 1 - val.start))
+        if start in val and end in val:
+            # capture the end-start within a single interval
+            bp = end - start
+            result.append((idx,bp))
             break
+        if start in val or end in val:
+            counting_started = True
+            # capture the number of bases in the section
+            bp = min(val.stop, end) - max(start, val.start)
+            result.append((idx, bp))
+            if end in val:
+                break
         elif counting_started:
+            # capture the entire length of the interval
             result.append((idx, len(val)))
     return result
 
@@ -85,6 +86,7 @@ def print_depth_counts(contig, counter_obj, intervals):
     for idx,int_bin in enumerate(intervals):
         try:
             sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/len(int_bin)}\n")
+            #sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]}\n")
         except ZeroDivisionError:
             continue
 

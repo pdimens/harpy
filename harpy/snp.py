@@ -87,7 +87,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     (e.g. `data/jellyfish*.bam`), or both.
     
     The `--regions` option specifies what genomic regions to call variants
-    with. If a BED or tab delimited file is provided, variant calling will be parallelized
+    with. If a 1-indexed BED file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire reference genome.
@@ -183,7 +183,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     (e.g. `data/scarab*.bam`), or both.
     
     The `--regions` option specifies what genomic regions to call variants
-    with. If a BED or tab delimited file is provided, variant calling will be parallelized
+    with. If a 1-indexed BED file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only
     that region will be called. If an integer is provided (default), then Harpy will
     call variants in parallel for intervals of that size across the entire reference genome.
