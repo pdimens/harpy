@@ -15,3 +15,4 @@
 - `snp mpileup` workflow augmented slightly to try to make it more efficient, but is functionally identical
 - the progressbars are now contained in live panels for better visual distinctions
 - the animated progressbar spinners become green check marks when a task is finished
+- align `bxstats` report touch-ups with respect to section names, plot titles, etc.
