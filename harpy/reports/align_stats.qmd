@@ -143,7 +143,7 @@ if (VALID_PRESENT){
   boxval <- "NA"
 }
 list(
-  color = "#d4d4d4",
+  color = "#84bd9e",
   value = boxval
 )
 ```
@@ -479,7 +479,7 @@ list(
 #| content: valuebox
 #| title: "Average Linked Depth"
 list(
-  color = "#d4d4d4",
+  color = "#84bd9e",
   value = round(mol_global_avg,2)
 )
 ```
@@ -488,7 +488,7 @@ list(
 #| content: valuebox
 #| title: "Stdev Linked Depth"
 list(
-  color = "#d4d4d4",
+  color = "#84bd9e",
   value = round(mol_global_sd,2)
 )
 ```
