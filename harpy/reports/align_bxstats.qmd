@@ -333,7 +333,7 @@ mean number of reads per molecule for that sample.
 hchart(aggregate_df, "scatter", hcaes(x = totalreads, y = round(nonsingletons / (nonsingletons + singletons), 2), color = averagereadspermol, name = sample, molper = averagereadspermol), name = "Linked-Read Performance", animation = F) |>
   hc_title(text = "Linked Reads vs Total Reads") |>
   hc_xAxis(title = list(text = "total reads")) |>
-  hc_yAxis(title = list(text = "proportion of reads with linked-read information")) |>
+  hc_yAxis(max = 1, title = list(text = "proportion of reads with linked-read information")) |>
   hc_tooltip(
     crosshairs = FALSE,
     pointFormat= '<b>{point.name}</b><br>reads: <b>{point.x}</b><br>proportion linked reads: <b>{point.y}</b><br>reads per molecule: <b>{point.molper}</b></br>'
@@ -359,7 +359,7 @@ hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
   hc_caption(text = "Percentage represents the percent of alignments with a valid BX barcode, shown in dark green. Light green represents invalid BX barcodes.") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#95d8a7") |>
-  hc_title(text = "Percent Alignments with Valid BX Barcode") |>
+  hc_title(text = "% Valid Barcode") |>
   hc_exporting(enabled = T, filename = "BX.valid.alignments",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
@@ -374,7 +374,7 @@ hchart(aggregate_df, "xrange", animation = F, groupPadding = 0.0001,
   hc_caption(text = "Percentage represents the percent of molecules composed of more than 2 single-end or paired-end sequences, shown in dark blue. Light blue represents the singletons.") |>
   hc_tooltip(enabled = FALSE) |>
   hc_colors(color = "#8dc6f5") |>
-  hc_title(text = "Percent Linked Molecules") |>
+  hc_title(text = "% Linked Molecules") |>
   hc_exporting(enabled = T, filename = "BX.nonsingletons",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
@@ -408,7 +408,7 @@ highchart() |>
   hc_add_series(data = aggregate_df, type = "scatter", name = "Aligned Base Pairs", hcaes(x = 0:(nrow(aggregate_df)-1), y = averagemolcovbp), marker = list(radius = 8), color = "#924596", zIndex = 1) |>
   hc_add_series(data = err_df_bp, type = "errorbar", name = "standard error", linkedTo = ":previous", zIndex = 0, stemColor = "#916094", whiskerColor = "#916094") |>
   hc_xAxis(title = FALSE, gridLineWidth = 0, categories = aggregate_df$sample) |>
-  hc_title(text = "Average Molecule Percent Coverage") |>
+  hc_title(text = "Average % Molecule Coverage") |>
   hc_caption(text = "Error bars show the standard error of the mean percent coverage of non-singleton molecules") |>
   hc_tooltip(crosshairs = TRUE, pointFormat= '<b>{point.y}</b>') |>
   hc_exporting(enabled = T, filename = "avg.molecule.coverage",
