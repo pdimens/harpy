@@ -213,7 +213,7 @@ rule alignment_coverage:
     container:
         None
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / ($3 + 1 - $2); print }}' | gzip > {output}"
+        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
 
 rule configure_report:
     input:
