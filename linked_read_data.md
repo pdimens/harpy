@@ -1,7 +1,7 @@
 ---
 label: Linked-Read Data
 description: What you ought to know about linked reads
-order: 5
+order: 100
 icon: git-merge-queue
 ---
 
@@ -121,54 +121,16 @@ This isn't really the place to go into the nitty-gritty of the different linked-
 of the raw (FASTQ) data. Knowing these details might help you make sense of compatibilties/incompatibilities
 for software, or how you can convert between styles.
 
-### Haplotagging
-Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
-are made up of four 6bp segments. Two of these segments ("A" and "C") are the first 12bp of the $I1$ read and
-the other two ("B" and "D") are the first 12bp of the $I2$ read, both of which are provided by Illumina for standard sequencing runs.
-Because of this segment design, there are $96^4$ (~84 million) possible barcode combinations (~900,000 per sample). 
-The barcodes are stored in the sequence header under the `BX:Z` SAM tag, recoded in their "`ACBD`" format.
-![Haplotagging data format](/static/lr_haplotagging.svg)
-- 4 barcode segments
-  - `A` segment is the first 6bp of the $I1$ read
-  - `C` segment is the next 6bp of the $I1$ read (7-12)
-  - `B` segment is the first 6bp of the $I2$ read
-  - `D` segment is the next 6bp of the $I2$ read (7-12)
-- barcode stored as `BX:Z` tag in the read header in `ACBD` format
-  - e.g. `@A003432423434:1:324 BX:Z:A45C01B84D21`
+{.compact}
+| Type         | Location               | Format   | Invalid Encoding | Example                            |
+|:-------------|:-----------------------|:---------|:-----------------|:-----------------------------------|
+| Standard     | `BX:Z` and `VX:i` tags | any      | `VX:i:0`         | `BX:Z:31_442_512 VX:i:1`           |
+| Haplotagging | `BX:Z` tag             | `ACBD`   | `00` segment     | `BX:Z:A04C54B96D11`                |
+| stLFR        | end of sequence ID     | `#1_2_3` | `0` segment      | `@A003432423434:1:324#12_432_1`    |
+| TELLseq      | end of sequence ID     | `:ATCG`  | `N`              | `@A003432423434:1:324:TTACCACGAGG` |
+| 10X          | R1 read                | `ATCG`   | `N`              | `AGGTTGGGTAAGATA...`               |
 
-### TELLseq
-One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
-barcode is 18bp long and contained in the $I1$ read that Illumina provides with the standard $R1$ and $R2$ reads. The
-barcode gets appended in the read header using a colon (`:`).
-![Haplotagging FASTQ data format](/static/lr_tellseq.svg)
-- barcode is the first 18bp of the I1 read 
-- barcode is appended to sequence header
-  - e.g. `@A00234534562:1:544:AATTATACCACAGCGGTA`
-- advertised to have a capacity over 2 **billion** barcodes, but realistically use <24 **million**
-
-### stLFR
-Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
-made up for three 10bp segments which are at the end of the $R2$ read. Demultiplexing these data results
-in the barcode being moved to the sequence ID using a pound (`#`) sign between the sequence ID and barcode, with
-the barcode recoded in the `1_2_3` format, where each segment is an integer.
-![stLFR FASTQ data format](/static/lr_stlfr.svg)
-- depending on the link sequence between segments, will be either the last 54bp or 42bp of the $R2$ read
-  - 54 base barcode: 10+6+10+18+10
-  - 42 base barcode: 10+6+10+6+10
-- barcode appended to sequence header with `#` sign
-  - e.g. `@A003432423434:1:324#12_432_1`
-- advertised to have a capacity over 3.6 **billion**, with up to 50 **million** per sample (actual results may vary)
-
-### 10X
-The elder of the bunch and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
-as the first 16bp of the forward ($R1$) read. For these data to be compatible with the 10X LongRanger suite,
-the barcode **must** stay in the read. Moving the first 16bp into the read header breaks LongRanger compatibility.
-![10X FASTQ data format](/static/lr_10x.svg)
-- barcode is the first 16bp of the $R1$ read
-- barcode stays in the sequence data for LongRanger compatibility
-- limited to ~4.7 million barcodes
-
-### Standard
++++ Standard
 We here at Harpy would like to _plead_ for linked-read practitioners to adopt a standardized representation of linked-read barcodes.
 We don't really care what linked-read technology you use (although we obviously prefer haplotagging), but we do care about
 the data formats being consistent. The classic joke in population genetics is that before you write a new piece of software,
@@ -190,18 +152,95 @@ the fragmentation in the software ecosystem and reduce the need for file format
 conversions. It also creates a blueprint for a generic file encoding for any new
 linked-read methods that are being developed or can be developed in the future.
 
-#### FASTQ
-``` stLFR style valid FASTQ header
+==- FASTQ example
+``` stLFR style FASTQ header (valid barcode)
 @A00470:481:HNYFWDRX2:1:2101:29532:1063/1 BX:Z:45_11_361 VX:i:1
 ```
-``` haplotagging style invalid FASTQ header
+``` haplotagging style FASTQ header (invalid barcode)
 @A00470:481:HNYFWDRX2:1:2101:29532:1063/1 BX:Z:A78C00B14D96 VX:i:0
 ```
-#### SAM/BAM
-``` haplotagging style valid SAM record
+==- SAM/BAM example
+``` haplotagging style SAM record (valid barcode)
 A00470:481:HNYFWDRX2:1:2229:29912:29778 99      2R      1222    40      19S80M  =   1500     428     AGATGTGTATAAGAGACAGAGTTATGTCATTTTAAGCGGTCAAAATGGGTGAATTTCCGATTTCAAGTAATAGGCGAACTCAAGATACCTTCTACAGAT  FFFFFFFFFFFFFFFFF:FFFFF:FFFFF:FFFF:FFFFFFFFFFFFFFFFF:FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:,FFFFFFF:FFFFF  NM:i:0  MD:Z:80 MC:Z:150M       AS:i:80      XS:i:80 RG:Z:sample1    MI:i:1  VX:i:1  BX:Z:A55C67B91D96
 ```
 
-``` nucleotide (TELLseq/10X) style invalid SAM record
+``` nucleotide (TELLseq/10X) style SAM record (invalid barcode)
 A00470:481:HNYFWDRX2:1:2229:29912:29778 99      2R      1222    40      19S80M  =   1500     428     AGATGTGTATAAGAGACAGAGTTATGTCATTTTAAGCGGTCAAAATGGGTGAATTTCCGATTTCAAGTAATAGGCGAACTCAAGATACCTTCTACAGAT  FFFFFFFFFFFFFFFFF:FFFFF:FFFFF:FFFF:FFFFFFFFFFFFFFFFF:FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF:,FFFFFFF:FFFFF  NM:i:0  MD:Z:80 MC:Z:150M       AS:i:80      XS:i:80 RG:Z:sample1    MI:i:1  VX:i:0  BX:Z:TACANNNCACAGAG
 ```
+===
+
++++ Haplotagging
+Unlike the available chemistries, haplotagging is non-commercial (DIY!!). Haplotagging barcodes are combinatorial and
+are made up of four 6bp segments. Two of these segments ("A" and "C") are the first 12bp of the $I1$ read and
+the other two ("B" and "D") are the first 12bp of the $I2$ read, both of which are provided by Illumina for standard sequencing runs.
+Because of this segment design, there are $96^4$ (~84 million) possible barcode combinations (~900,000 per sample). 
+The barcodes are stored in the sequence header under the `BX:Z` SAM tag, recoded in their "`ACBD`" format.
+![Haplotagging data format](/static/lr_haplotagging.svg)
+- 4 barcode segments
+  - `A` segment is the first 6bp of the $I1$ read
+  - `C` segment is the next 6bp of the $I1$ read (7-12)
+  - `B` segment is the first 6bp of the $I2$ read
+  - `D` segment is the next 6bp of the $I2$ read (7-12)
+- barcode stored as `BX:Z` tag in the read header in `ACBD` format
+  - e.g. `@A003432423434:1:324 BX:Z:A45C01B84D21`
+
++++ stLFR
+Another of the presently available commercial linked-read options. stLFR data uses combinatorial barcodes
+made up for three 10bp segments which are at the end of the $R2$ read. Demultiplexing these data results
+in the barcode being moved to the sequence ID using a pound (`#`) sign between the sequence ID and barcode, with
+the barcode recoded in the `1_2_3` format, where each segment is an integer.
+![stLFR FASTQ data format](/static/lr_stlfr.svg)
+- depending on the link sequence between segments, will be either the last 54bp or 42bp of the $R2$ read
+  - 54 base barcode: 10+6+10+18+10
+  - 42 base barcode: 10+6+10+6+10
+- barcode appended to sequence header with `#` sign
+  - e.g. `@A003432423434:1:324#12_432_1`
+- advertised to have a capacity over 3.6 **billion**, with up to 50 **million** per sample (actual results may vary)
+
++++ TELLseq
+One of the presently available commercial linked-read options. TELLseq data is very similar to 10X, except the
+barcode is 18bp long and contained in the $I1$ read that Illumina provides with the standard $R1$ and $R2$ reads. The
+barcode gets appended in the read header using a colon (`:`).
+![Haplotagging FASTQ data format](/static/lr_tellseq.svg)
+- barcode is the first 18bp of the I1 read 
+- barcode is appended to sequence header
+  - e.g. `@A00234534562:1:544:AATTATACCACAGCGGTA`
+- advertised to have a capacity over 2 **billion** barcodes, but realistically use <24 **million**
+
++++ 10X
+The elder of the bunch and also a discontinued commercial product. 10X-style FASTQ files have the linked-read barcode
+as the first 16bp of the forward ($R1$) read. For these data to be compatible with the 10X LongRanger suite,
+the barcode **must** stay in the read. Moving the first 16bp into the read header breaks LongRanger compatibility.
+![10X FASTQ data format](/static/lr_10x.svg)
+- barcode is the first 16bp of the $R1$ read
+- barcode stays in the sequence data for LongRanger compatibility
+- limited to ~4.7 million barcodes
+
++++
+
+## Barcode thresholds
+By the nature of linked read technologies, there will (almost always) be more DNA fragments than unique barcodes for them. As a result,
+it's common for barcodes to reappear in sequences. Rather than incorrectly assume that all sequences/alignments with the same barcode
+originated from the same orignal DNA molecule, linked-read aware programs include a threshold parameter to determine a "cutoff" distance
+between alignments with the same barcode. This parameter can be interpreted as "if a barcode appears more than `X` base pairs away from the
+same barcode (on the same contig), then we'll consider them as originating from different molecules." If this threshold is lower, then
+you are being more strict and indicating that alignments sharing barcodes must be closer together to be considered originating from the same
+DNA molecule. Conversely, a higher threshold indicates you are being more lax and indicating barcodes can be further away from each other
+and still be considered originating from the same DNA molecule. A threshold of 50kb-150kb is considered a decent balance, but you should choose
+larger/smaller values if you have evidence to support them. 
+
+![Molecule origin is determined by the distance between alignments with the same barcode relative to the specified threshold](/static/bc_threshold.png)
+
+| Alignment distance     |    Inferred origin  |
+|:-----------------------|:--------------------|
+| less than threshold    |     same molecule   |
+| greater than threshold | different molecules |
+
+!!!warning Potential SV detection obstruction
+This kind of deconvolving method relies on alignment distances, which may worsen
+performance in finding structural variants larger than this threshold. For example,
+two reads originating from the same DNA molecule may have aligned quite far from each other
+due to mapping along the breakpoint of a very large inversion. If the inversion spans 3Mb,
+a barcode threshold of 100kb will likely incorrectly deconvolve the two reads and assume
+they shared a barcode by chance, which would hurt SV detection performance.
+!!!

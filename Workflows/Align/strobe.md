@@ -49,9 +49,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow
 to assign alignments a unique Molecular Identifier `MI:i` tag based on their
- haplotag barcode and the distance threshold you specify. See 
-[haplotag data](/haplotagdata/#barcode-thresholds) for more information on
-what this value does. Set this value to `0` to skip distance-based deconvolution,
+ haplotag barcode and the [distance threshold](/linked_read_data.md#barcode-thresholds) you specify. Set this value to `0` to skip distance-based deconvolution,
 which may improve detection of very large structural variants.
 
 ## Quality filtering

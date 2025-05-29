@@ -16,9 +16,9 @@ Harpy offers several aligners for this purpose:
 | [strobealign](strobe.md) | no ❌ | super fast ⚡⚡ | [github](https://github.com/ksahlin/strobealign) | [paper](https://doi.org/10.1186/s13059-022-02831-7) |
 
 Despite the fact that EMA is the only barcode-aware aligner offered, when using BWA or strobealign, Harpy retains the barcode information from the sequence headers and will
-assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../haplotagdata.md/#barcode-thresholds).
+assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../inputdata.md/#barcode-thresholds).
 
-## [!badge text="New"] Works with regular WGS data
+## Non linked-read WGS data
 Starting with Harpy `v2.x`, the `--ignore-bx` option lets you skip the workflow
 routines that do things specific to linked reads, meaning you can comfortably use
 [!badge corners="pill" text="harpy align bwa"](bwa.md) and [!badge corners="pill" text="harpy align strobe"](strobe.md) to align your WGS sequence data. 

@@ -80,7 +80,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See 
-[haplotagging data](/haplotagdata/#barcode-thresholds) for more information on what this value does. If you want
+[Barcode Thresholds](/linked_read_data.md#barcode-thresholds) for more information on what this value does. If you want
 NAIBR to not split molecules in this manner (e.g. you might be looking for inversions greater than this threshold),
 then set this number to be unreasonably high, such as the length of your largest chromosome.
 

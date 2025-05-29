@@ -158,7 +158,7 @@ The `bxlimit` parameter is an integer that informs STITCH when alignments with t
 should be considered as originating from different molecules. This is a common consideration for linked-read analyses
 and 50kb (`50000`) is often a reasonable default. A lower value is considered more strict (fewer reads per moleucle)
 and a higher value is considered more generous (more reads per molecule). You can/should change this value if you 
-have evidence that 50kb isn't appropriate. See [haplotagging data](/haplotagdata/#barcode-thresholds) for a more thorough explanation.
+have evidence that 50kb isn't appropriate. See [Barcode Thresholds](/linked_read_data.md#barcode-thresholds) for a more thorough explanation.
 
 +++k
 ##### Number ancestral haplotypes
