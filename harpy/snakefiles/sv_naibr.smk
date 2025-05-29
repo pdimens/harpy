@@ -177,7 +177,7 @@ rule preprocess_reference:
         samtools faidx {params} --fai-idx {output.fai} {output.geno} 2>> {log}
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
@@ -206,6 +206,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

@@ -8,7 +8,7 @@ import subprocess
 from datetime import datetime
 from rich import print as rprint
 from rich.console import Console
-from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar
+from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
 
 EXIT_CODE_SUCCESS = 0
@@ -107,8 +107,9 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 output = process.stderr.readline()
             # if dependency text present, print pulsing progress bar
             if deps:
-                with harpy_pulsebar(quiet, deploy_text) as progress:
-                    progress.add_task("[dim]" + deploy_text, total = None)
+                progress = harpy_pulsebar(quiet, "Working...")
+                with harpy_progresspanel(progress, quiet=quiet, title = deploy_text):
+                    progress.add_task("[dim]Working...", total = None)
                     while not output.startswith("Job stats:"):
                         output = process.stderr.readline()
                         if process.poll() or iserror(output):
@@ -120,7 +121,8 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             if "Nothing to be" in output:
                 exitcode = EXIT_CODE_SUCCESS
                 break
-            with harpy_progressbar(quiet) as progress:
+            progress = harpy_progressbar(quiet)
+            with harpy_progresspanel(progress, quiet = quiet):
                 # process the job summary
                 job_inventory = {}
                 while True:
@@ -155,7 +157,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
-                    #rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
                     if output.lstrip().startswith("rule ") or output.lstrip().startswith("localrule "):
                         # catch the 2nd word and remove the colon
                         rule = output.split()[-1].replace(":", "")
@@ -171,13 +172,15 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                                 break
                         # store the job id in the inventory so we can later look up which rule it's associated with
                     # check which rule the job is associated with and update the corresponding progress bar
-                    #finishmatch = re.search(r"Finished\sjobid:\s\d+", output)
                     if output.startswith("Finished jobid: "):
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
                                 progress.advance(task_ids[job])
                                 progress.advance(task_ids["total_progress"])
+                                if progress.tasks[task_ids[job]].completed == progress.tasks[task_ids[job]].total:
+                                    progress.update(task_ids[job], description=f"[dim]{details[0]}")
+                                    #progress.update(task_ids[job], visible = False)
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break
@@ -187,7 +190,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
         elapsed_time = end_time - start_time
         if process.returncode < 1:
             if quiet < 2:
-                print_onsuccess(outdir, summaryfile, elapsed_time)
+                print_onsuccess(outdir, summaryfile, sm_logfile, elapsed_time)
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)
@@ -235,6 +238,12 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         if output.startswith("[") and output.rstrip().endswith("]"):
                             output = process.stderr.readline()
                             continue
+                        if output.strip().startswith("processing file: ") and output.strip().endswith(".qmd"):
+                            # make quarto error logs a little nicer by skipping progress
+                            while not output.strip().startswith("Error"):
+                                output = process.stderr.readline()
+                        if output.strip().startswith("Trying to restart job"):
+                            break
                         console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break

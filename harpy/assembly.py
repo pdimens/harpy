@@ -64,7 +64,7 @@ docstring = {
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
     """
-    Create an assembly from linked-reads
+    Create an assembly from linked reads
 
     The linked-read barcodes must be in `BX:Z` or `BC:Z` FASTQ header tags. If provided, values for `-k` must be
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
@@ -136,7 +136,6 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     start_text = workflow_info(
         ("Barcode Tag: ", bx_tag.upper()),
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
-        ("Output Folder:", f"{output_dir}/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", f"{output_dir}/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/assembly.summary")

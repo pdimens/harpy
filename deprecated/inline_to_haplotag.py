@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-"""Convert inline barcodes into haplotag style ones. Assumes reads are properly paired."""
+"""Convert inline barcodes into haplotagging style ones. Assumes reads are properly paired."""
 import os
 import sys
 import gzip
@@ -11,7 +11,7 @@ import pysam
 
 parser = argparse.ArgumentParser(
     prog = 'inline_to_haplotag.py',
-    description = 'Moves inline linked read barcodes to read headers (OX:Z) and converts them into haplotag ACBD format (BX:Z). Barcodes must all be the same length.',
+    description = 'Moves inline linked read barcodes to read headers (OX:Z) and converts them into haplotagging ACBD format (BX:Z). Barcodes must all be the same length.',
     usage = f"inline_to_haplotag.py -b <barcodes.txt> -p <prefix> FORWARD.fq.gz REVERSE.fq.gz",
     exit_on_error = False
     )
@@ -51,7 +51,7 @@ def get_value_by_key(conn, key):
         # Return the value (first column of the result)
         return result[0]  
     else:
-        # Return invalid ACBD haplotag if the key does not exist
+        # Return invalid ACBD haplotagging if the key does not exist
         return "A00C00B00D00"  
 
 def process_record(fw_rec, rv_rec, barcode_database, bc_len):

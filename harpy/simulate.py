@@ -7,12 +7,12 @@ from . import simulate_variants
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def simulate():
     """
-    Simulate variants or linked-reads from a genome
+    Simulate genomic variants or linked reads
 
     To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
     to get more information about that workflow. The variant simulator (`simuG`) can only simulate
     one type of variant at a time, so you may need to run it a few times if you want multiple variant types.
-    Use `simulate linkedreads` to simulate haplotag linked-reads from a diploid genome, which you can create by simulating
+    Use `simulate linkedreads` to simulate haplotagging linked reads from a diploid genome, which you can create by simulating
     genomic variants.
     """
 

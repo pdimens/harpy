@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-"""Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes"""
+"""Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes"""
 import os
 import sys
 import argparse
 
 parser = argparse.ArgumentParser(
     prog = 'haplotag_acbd.py',
-    description ="Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotag barcodes",
+    description ="Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes",
     usage = "haplotag_acbd.py output_directory",
     exit_on_error = False
     )

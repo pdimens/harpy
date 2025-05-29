@@ -105,7 +105,7 @@ list(
 #| title: "bxlimit"
 list(
   color = "info",
-  value = scales::comma(params$bxlimit)
+  value = prettyNum(params$bxlimit, big.mark = ",")
 )
 ```
 
@@ -115,7 +115,7 @@ list(
 #| title: "Samples"
 list(
   color = "light",
-  value = scales::comma(sn$samples[1])
+  value = prettyNum(sn$samples[1], big.mark = ",")
 )
 ```
 
@@ -124,7 +124,7 @@ list(
 #| title: "Total Records"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn$records[1])
+  value = prettyNum(sn$records[1], big.mark = ",")
 )
 ```
 
@@ -133,7 +133,7 @@ list(
 #| title: "no-ALTs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn[3,1])
+  value = prettyNum(sn[3,1], big.mark = ",")
 )
 ```
 
@@ -142,7 +142,7 @@ list(
 #| title: "SNPs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn$SNPs[1])
+  value = prettyNum(sn$SNPs[1], big.mark = ",")
 )
 ```
 
@@ -151,7 +151,7 @@ list(
 #| title: "MNPs"
 list(
   color = "#dfdfdf",
-  value = scales::comma(sn$MNPs[1])
+  value = prettyNum(sn$MNPs[1], big.mark = ",")
 )
 ```
 

@@ -91,7 +91,7 @@ rule ema_count:
     input:
         get_fq
     output: 
-        counts = temp("ema_count/{sample}.ema-ncnt"),
+        temp("ema_count/{sample}.ema-ncnt"),
         logs   = temp("logs/count/{sample}.count")
     params:
         prefix = lambda wc: "ema_count/" + wc.get("sample"),
@@ -110,8 +110,8 @@ rule ema_preprocess:
         reads = get_fq,
         emacounts  = "ema_count/{sample}.ema-ncnt"
     output: 
-        bins       = temp(collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange)),
-        unbarcoded = temp("ema_preproc/{sample}/ema-nobc")
+        temp("ema_preproc/{sample}/ema-nobc"),
+        bins = temp(collect("ema_preproc/{{sample}}/ema-bin-{bin}", bin = binrange))
     log:
         "logs/ema_preproc/{sample}.preproc.log"
     params:
@@ -166,13 +166,15 @@ rule standardize_barcodes:
     input:
         "ema_align/{sample}.ema.bam"
     output:
-        bam = temp("ema_align/{sample}.bc.bam"),
-        idx = temp("ema_align/{sample}.bc.bam.bai")
+        temp("ema_align/{sample}.bc.bam.bai"),
+        bam = temp("ema_align/{sample}.bc.bam")
+    log:
+        "logs/{sample}.standardize.log"
     container:
         None
     shell:
         """
-        standardize_barcodes_sam.py < {input} | samtools view -h -b > {output.bam}
+        standardize_barcodes_sam.py < {input} 2> {log} | samtools view -h -b > {output.bam}
         samtools index {output.bam}
         """
 
@@ -268,20 +270,20 @@ rule concat_alignments:
 
 rule alignment_coverage:
     input: 
+        "{sample}.bam.bai",
         bam = "{sample}.bam",
-        bai = "{sample}.bam.bai",
         bed = "reports/data/coverage/coverage.bed"
     output: 
         "reports/data/coverage/{sample}.cov.gz"
     container:
         None
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / ($3 + 1 - $2); print }}' | gzip > {output}"
+        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
 
 rule barcode_stats:
     input:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         "reports/data/bxstats/{sample}.bxstats.gz"
     container:
@@ -295,14 +297,16 @@ rule molecule_coverage:
         fai = f"{workflow_geno}.fai"
     output: 
         "reports/data/coverage/{sample}.molcov.gz"
+    log:
+        "logs/molcov/{sample}.molcov.log"
     params:
         windowsize
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
+        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
@@ -332,6 +336,8 @@ rule sample_reports:
         samplename = lambda wc: "-P sample:" + wc.get("sample")
     log:
         "logs/reports/{sample}.alignstats.log"
+    retries:
+        3
     conda:
         "envs/r.yaml"
     shell:
@@ -345,8 +351,8 @@ rule sample_reports:
 
 rule general_stats:
     input: 		
-        bam      = "{sample}.bam",
-        bai      = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output:
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
@@ -365,7 +371,7 @@ rule samtools_report:
         "reports/ema.stats.html"
     params:
         outdir = f"reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
@@ -388,6 +394,8 @@ rule barcode_report:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

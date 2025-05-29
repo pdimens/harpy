@@ -302,7 +302,7 @@ rule aggregate_variants:
                         elif record[-1] == "duplication":
                             _ = duplications.write(f"{samplename}\t{line}")
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
@@ -331,6 +331,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -356,6 +358,8 @@ rule aggregate_report:
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

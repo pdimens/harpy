@@ -145,7 +145,7 @@ rule index_vcf:
         bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
@@ -180,6 +180,8 @@ rule contig_report:
         extra   = f"-P extra:{stitch_extra}"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -304,6 +306,8 @@ rule impute_reports:
         extra   = f"-P extra:{stitch_extra}"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

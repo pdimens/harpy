@@ -89,7 +89,7 @@ nvar <- sum(sumtable$count)
 #| title: "Variants"
 list(
   color = ifelse(nvar > 0, "success", "warning"),
-  value = scales::comma(nvar)
+  value = prettyNum(nvar, big.mark = ",")
 )
 ```
 
@@ -99,7 +99,7 @@ list(
 ndel <- ifelse("deletion" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "deletion")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndel)
+  value = prettyNum(ndel, big.mark = ",")
 )
 ```
 
@@ -109,7 +109,7 @@ list(
 ndup <- ifelse("duplication" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "duplication")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndup)
+  value = prettyNum(ndup, big.mark = ",")
 )
 ```
 
@@ -119,7 +119,7 @@ list(
 ninv <- ifelse("inversion" %in% sumtable$SV, sumtable$count[which(sumtable$SV == "inversion")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ninv)
+  value = prettyNum(ninv, big.mark = ",")
 )
 ```
 

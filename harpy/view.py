@@ -76,15 +76,7 @@ def view():
     View a workflow's components
 
     These convenient commands let you view the latest workflow log file, snakefile, snakemake parameter
-    file, or workflow config file in a directory that was used for the output of a Harpy run.
-    Use the typical `less` keyboard bindings to navigate the output, e.g.:
-    
-    | key                     | function                   |
-    | :---------------------- | :------------------------- |
-    | `Up/Down` arrow         | scroll up/down             |
-    | `Page Up/Down`          | faster up/down scrolling   |
-    | `/` + `pattern`         | search for `pattern`       |
-    | `q`                     | exit                       |
+    file, workflow config file in a directory that was used for the output of a Harpy run.
     """
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
@@ -132,13 +124,16 @@ def config(directory):
     )
 
 @click.command()
-def environments():
+@click.argument('program', required=False, type=str, nargs=1)
+def environments(program):
     """
     View the Snakemake-managed conda environments
 
     This convenience command will print the main information of the conda environment recipes within
-    `.environments/`. This is usually useful for situations when troubleshooting requires you to enter
+    `.environments/`. This is useful in situations when troubleshooting requires you to enter
     a specific conda environment, but you aren't sure which because Snakemake renames them with hashes.
+    Optionally provide the name of a `PROGRAM` (or partial name, case insensitive) to only return the environments that
+    contain that program (e.g. `leviath` would match `leviathan`).
     """
     if not os.path.exists(".environments"):
         print_error(
@@ -154,7 +149,7 @@ def environments():
         )
         sys.exit(1)
     for i in files:
-        rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
+        deps = ""
         with open(i, "r") as file:
             skip = True
             for line in file:
@@ -162,8 +157,16 @@ def environments():
                     skip = False
                     continue
                 if not skip:
-                    dep = line.split("::")[-1]
-                    rprint(f"  - {dep.rstrip()}")
+                    dep = line.split("::")[-1].rstrip()
+                    deps += f" {dep.rstrip()}"
+                    #rprint(f"  - [default]{dep.rstrip()}")
+        if (program and program.lower() in deps) or not program:
+            rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
+            for d in deps.split():
+                if program and program.lower() in d:
+                    rprint(f"[bold green]  →  {d}")
+                else:
+                    rprint(f"[default]  -  {d}")
     return
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))

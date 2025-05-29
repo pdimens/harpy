@@ -72,7 +72,7 @@ overall <- df %>% summarise(
 #| title: "Phased SNPs"
 list(
   color = "light",
-  value = scales::comma(overall$total_snps[1])
+  value = prettyNum(overall$total_snps[1], big.mark = ",")
 )
 ```
 
@@ -81,7 +81,7 @@ list(
 #| title: "Longest Haplotype"
 list(
   color = "#dfdfdf",
-  value = paste0(scales::comma(overall$max_blocksize[1]), "bp")
+  value = paste0(prettyNum(overall$max_blocksize[1], big.mark = ","), "bp")
 )
 ```
 
@@ -90,7 +90,7 @@ list(
 #| title: "Avg SNPs/Haplotype"
 list(
   color = "#dfdfdf",
-  value = scales::comma(overall$mean_snps[1])
+  value = prettyNum(overall$mean_snps[1], big.mark = ",")
 )
 ```
 
@@ -99,7 +99,7 @@ list(
 #| title: "Median SNPs/Haplotype"
 list(
   color = "#dfdfdf",
-  value = scales::comma(overall$median_snps[1])
+  value = prettyNum(overall$median_snps[1], big.mark = ",")
 )
 ```
 ```{r}
@@ -107,7 +107,7 @@ list(
 #| title: "N50"
 list(
   color = "info",
-  value = paste0(scales::comma(overall$N50[1]), "bp")
+  value = paste0(prettyNum(overall$N50[1], big.mark = ","), "bp")
 )
 ```
 
@@ -116,7 +116,7 @@ list(
 #| title: "N75"
 list(
   color = "info",
-  value = paste0(scales::comma(overall$N75[1]), "bp")
+  value = paste0(prettyNum(overall$N75[1], big.mark = ","), "bp")
 )
 ```
 
@@ -125,7 +125,7 @@ list(
 #| title: "N90"
 list(
   color = "info",
-  value = paste0(scales::comma(overall$N90[1]), "bp")
+  value = paste0(prettyNum(overall$N90[1], big.mark = ","), "bp")
 )
 ```
 

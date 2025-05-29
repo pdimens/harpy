@@ -115,7 +115,7 @@ figheight <- 3 + (0.6 * nrow(BXstats))
 list(
   icon = "files",
   color = "light",
-  value = scales::comma(nrow(BXstats))
+  value = prettyNum(nrow(BXstats), big.mark = ",")
 )
 ```
 

@@ -18,7 +18,7 @@ from ._validations import validate_popfile, validate_popsamples, fasta_contig_ma
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
     """
-    Call large structural variants on alignments
+    Call large structural variants from alignments
  
     | caller | inversions | duplications | deletions | breakends |
     |:-------|:----------:|:------------:|:---------:|:---------:|
@@ -162,8 +162,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         ("Samples:", n),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.leviathan.summary")
 
@@ -266,8 +265,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.naibr.summary")
 

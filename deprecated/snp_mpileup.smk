@@ -11,33 +11,53 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 ploidy 		= config["ploidy"]
-extra 	    = config.get("extra", "") 
-regions_input = config["inputs"]["regions"]
+mp_extra 	= config.get("extra", "")
 skip_reports = config["reports"]["skip"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["inputs"]["reference"]
 bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    genome_zip  = True
-    bn = bn[:-3]
-else:
-    genome_zip  = False
 workflow_geno = f"workflow/reference/{bn}"
+genome_zip  = True if bn.lower().endswith(".gz") else False
+workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 groupings 	= config["inputs"].get("groupings", [])
+region_input = config["inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
-sampldict = dict(zip(bamlist, samplenames))
 
-if os.path.exists(regions_input):
-    with open(regions_input, "r") as reg_in:
+if os.path.isfile(region_input):
+    with open(region_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
-            intervals.add(f"{cont}:{max(int(startpos),1)}-{int(endpos)}")
+            intervals.add(f"{cont}:{startpos}-{endpos}")
     regions = dict(zip(intervals, intervals))
 else:
-    intervals = [regions_input]
-    regions = {f"{regions_input}" : f"{regions_input}"}
+    intervals = [region_input]
+    regions = {f"{region_input}" : f"{region_input}"}
+
+rule preprocess_reference:
+    input:
+        genomefile
+    output: 
+        geno = workflow_geno,
+        fai = f"{workflow_geno}.fai",
+        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    log:
+        f"{workflow_geno}.preprocess.log"
+    params:
+        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
+    container:
+        None
+    shell: 
+        """
+        if (file {input} | grep -q compressed ) ;then
+            # is regular gzipped, needs to be BGzipped
+            seqtk seq {input} | bgzip -c > {output.geno}
+        else
+            cp -f {input} {output.geno}
+        fi
+        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2> {log}
+        """
 
 rule preprocess_groups:
     input:
@@ -47,22 +67,6 @@ rule preprocess_groups:
     run:
         with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
             _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
-
-rule preprocess_reference:
-    input:
-        genomefile
-    output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai"
-    log:
-        f"{workflow_geno}.preprocess.log"
-    container:
-        None
-    shell: 
-        """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
-        """
 
 rule index_alignments:
     input:
@@ -76,55 +80,84 @@ rule index_alignments:
 
 rule bam_list:
     input: 
-        collect("{bam}.bai", bam = bamlist),
-        bam = bamlist
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist)
     output:
-        smp = "workflow/freebayes.input"
+        temp("logs/samples.files")
     run:
-        with open(output.smp, "w") as fout:
+        with open(output[0], "w") as fout:
             for bamfile in input.bam:
                 _ = fout.write(bamfile + "\n")
 
-rule call_variants:
+rule mpileup:
     input:
-        bamlist,
-        collect("{bam}.bai", bam = bamlist),
-        "workflow/sample.groups" if groupings else [],
-        f"{workflow_geno}.fai",
-        reference = workflow_geno,
-        bamlist  = "workflow/freebayes.input"
-    output:
-        bcf = temp("regions/{part}.bcf"),
-        idx = temp("regions/{part}.bcf.csi")
-    log:
-        "logs/{part}.freebayes.log"
+        bamlist = "logs/samples.files",
+        bam = bamlist,
+        bai = collect("{bam}.bai", bam = bamlist),
+        genome  = workflow_geno,
+        genome_fai = f"{workflow_geno}.fai"
+    output: 
+        bcf = pipe("mpileup/{part}.mp.bcf"),
+        logfile = temp("logs/{part}.mpileup.log")
     params:
         region = lambda wc: "-r " + regions[wc.part],
-        ploidy = f"-p {ploidy}",
-        static = "--strict-vcf",
-        populations = "--populations workflow/sample.groups" if groupings else "",
-        extra = extra
-    conda:
-        "envs/variants.yaml"
+        annotations = "-a AD,INFO/FS",
+        extra = mp_extra
+    container:
+        None
+    shell:
+        "bcftools mpileup --fasta-ref {input.genome} --bam-list {input.bamlist} --output-type b {params} > {output.bcf} 2> {output.logfile}"
+
+rule call_genotypes:
+    input:
+        groupfile = "workflow/sample.groups" if groupings else [],
+        bcf = "mpileup/{part}.mp.bcf"
+    output:
+        bcf = temp("call/{part}.bcf"),
+        idx = temp("call/{part}.bcf.csi")
+    params: 
+        f"--ploidy {ploidy}",
+        "-a GQ,GP",
+        "--group-samples" if groupings else "--group-samples -"
+    log:
+        "logs/{part}.call.log"
+    threads:
+        2
+    container:
+        None
     shell:
         """
-        freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
+        bcftools call --threads {threads} --multiallelic-caller --variants-only --output-type b {params} {input} 2> {log}|
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
 rule concat_list:
     input:
-        bcfs = collect("regions/{part}.bcf", part = intervals),
+        bcfs = collect("call/{part}.bcf", part = intervals),
     output:
-        bcf = "logs/bcf.files"
+        "logs/bcf.files"
     run:
-        with open(output.bcf, "w") as fout:
+        with open(output[0], "w") as fout:
             for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")
+                _ = fout.write(f"{bcf}\n")  
+
+rule concat_logs:
+    input:
+        collect("logs/{part}.mpileup.log", part = intervals)
+    output:
+        "logs/mpileup.log"
+    run:
+        with open(output[0], "w") as fout:
+            for file in input:
+                fin = open(file, "r")
+                interval = os.path.basename(file).replace(".mpileup.log", "")
+                for line in fin.readlines():
+                    fout.write(f"{interval}\t{line}")
+                fin.close()
 
 rule concat_variants:
     input:
-        collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
+        vcfs     = collect("call/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
         filelist = "logs/bcf.files"
     output:
         temp("variants.raw.unsort.bcf")
@@ -168,11 +201,10 @@ rule indel_realign:
 rule general_stats:
     input:
         genome  = workflow_geno,
-        ref_idx = f"{workflow_geno}.fai",
         bcf     = "variants.{type}.bcf",
         idx     = "variants.{type}.bcf.csi"
     output:
-        "reports/data/variants.{type}.stats",
+        "reports/data/variants.{type}.stats"
     container:
         None
     shell:
@@ -207,8 +239,6 @@ rule variant_report:
         "logs/variants.{type}.report.log"
     conda:
         "envs/r.yaml"
-    retries:
-        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -219,20 +249,23 @@ rule variant_report:
 rule workflow_summary:
     default_target: True
     input:
-        vcf = collect("variants.{file}.bcf", file = ["raw","normalized"]),
-        reports = collect("reports/variants.{file}.html", file = ["raw","normalized"]) if not skip_reports else []
+        vcf = collect("variants.{file}.bcf", file = ["raw", "normalized"]),
+        agg_log = "logs/mpileup.log",
+        reports = collect("reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
     params:
-        ploidy = f"-p {ploidy}",
-        populations = f"--populations {groupings}" if groupings else '',
-        extra = extra
+        ploidy = f"--ploidy {ploidy}",
+        populations = f"--populations {groupings}" if groupings else "--populations -"
     run:
         summary = ["The harpy snp freebayes workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
-        summary.append(f"Genomic positions for which variants were called: {regions_input}")
-        varcall = "The freebayes parameters:\n"
-        varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
-        varcall += f"\tbcftools sort -"
-        summary.append(varcall)
+        summary.append(f"Genomic positions for which variants were called: {region_input}")
+        mpileup = "The mpileup parameters:\n"
+        mpileup += f"\tbcftools mpileup --fasta-ref REFERENCE --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
+        summary.append(mpileup)
+        bcfcall = "The bcftools call parameters:\n"
+        bcfcall += f"\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
+        bcfcall += "\tbcftools sort -"
+        summary.append(bcfcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"
         merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
         summary.append(merged)
@@ -242,5 +275,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
-        with open("workflow/snp.freebayes.summary", "w") as f:
+        with open("workflow/snp.mpileup.summary", "w") as f:
             f.write("\n\n".join(summary))

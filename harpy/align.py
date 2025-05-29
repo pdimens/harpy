@@ -17,7 +17,7 @@ from ._validations import check_fasta, fasta_contig_match, fastq_has_bx, validat
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
     """
-    Align sample sequences to a reference genome
+    Align sequences to a reference genome
 
     | aligner | linked-read aware | speed | best for | 
     |:-------|:----------:|:------------:|:---------:|
@@ -170,8 +170,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
 
@@ -279,8 +278,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
         ("Platform:", platform),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
 
@@ -375,8 +373,7 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
     start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")
 

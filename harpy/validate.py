@@ -109,8 +109,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
 
     start_text = workflow_info(
         ("Alignment Files:", n),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.bam.summary")
 
@@ -175,8 +174,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
 
     start_text = workflow_info(
         ("FASTQ Files:", n),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.fastq.summary")
 

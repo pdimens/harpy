@@ -8,7 +8,7 @@ from rich.table import Table
 from rich import print as rprint
 from ._printing import print_error, print_solution_with_culprits
 
-def create_conda_recipes(outdir: str, envs: list=None) -> None:
+def create_conda_recipes(outdir: str, envs: list= []) -> None:
     """Create the YAML files of the workflow conda dependencies"""
     environ = {
         "align" : [
@@ -45,7 +45,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
         "qc" : [
             "bioconda::falco=1.2.4",
             "bioconda::fastp",
-            "bioconda::multiqc=1.25",
+            "bioconda::multiqc=1.28",
             "bioconda::pysam=0.22",
             "bioconda::quickdeconvolution"
         ],
@@ -57,14 +57,13 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
             "conda-forge::r-magrittr",
             "conda-forge::r-plotly",
             "conda-forge::r-scales",
-            "conda-forge::r-stringi",
             "conda-forge::r-tidyr",
             "conda-forge::r-viridislite", 
             "conda-forge::r-xml2",
             "r::r-biocircos"
         ],
         "simulations" : [
-            "bioconda::mimick>=1.1",
+            "bioconda::mimick>=1.2",
             "bioconda::seqkit",
             "bioconda::simug>1.0.0",
         ],
@@ -76,7 +75,7 @@ def create_conda_recipes(outdir: str, envs: list=None) -> None:
         ],
         "variants" : [
             "bioconda::bcftools=1.20",
-            "bioconda::freebayes=1.3.6",
+            "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus"
         ]

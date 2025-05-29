@@ -114,10 +114,12 @@ rule standardize_barcodes:
         "samples/{sample}/{sample}.bwa.sam"
     output:
         temp("samples/{sample}/{sample}.standard.sam")
+    log:
+        "logs/{sample}.standardize.log"
     container:
         None
     shell:
-        "standardize_barcodes_sam.py > {output} < {input}"
+        "standardize_barcodes_sam.py > {output} 2> {log} < {input}"
 
 rule mark_duplicates:
     input:
@@ -155,59 +157,65 @@ rule mark_duplicates:
 rule assign_molecules:
     priority: 100
     input:
-        bam = "samples/{sample}/{sample}.markdup.bam",
+        "samples/{sample}/{sample}.markdup.bam"
     output:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
+    log:
+        "logs/assign_mi/{sample}.assign_mi.log"
     params:
         molecule_distance
     container:
         None
     shell:
         """
-        assign_mi.py -c {params} {input.bam} > {output.bam}
+        assign_mi.py -c {params} {input} > {output.bam} 2> {log}
         samtools index {output.bam}
         """
 
 rule barcode_stats:
     input:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         "reports/data/bxstats/{sample}.bxstats.gz"
+    log:
+        "logs/bxstats/{sample}.bxstats.log"
     params:
         sample = lambda wc: d[wc.sample]
     container:
         None
     shell:
-        "bx_stats.py {input.bam} > {output}"
+        "bx_stats.py {input.bam} > {output} 2> {log}"
 
 rule molecule_coverage:
     input:
         stats = "reports/data/bxstats/{sample}.bxstats.gz",
         fai = f"{workflow_geno}.fai"
-    output: 
+    output:
         "reports/data/coverage/{sample}.molcov.gz"
+    log:
+        "logs/{sample}.molcov.log"
     params:
         windowsize
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} | gzip > {output}"
+        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
+        "{sample}.bam.bai",
         bam = "{sample}.bam",
-        bai = "{sample}.bam.bai",
         bed = "reports/data/coverage/coverage.bed"
     output: 
         "reports/data/coverage/{sample}.cov.gz"
     container:
         None
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $5 = $5 / ($3 + 1 - $2); print }}' | gzip > {output}"
+        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
 
-rule report_config:
+rule configure_report:
     input:
         yaml = "workflow/report/_quarto.yml",
         scss = "workflow/report/_harpy.scss"
@@ -239,6 +247,8 @@ rule sample_reports:
         "logs/reports/{sample}.alignstats.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -251,22 +261,22 @@ rule sample_reports:
 if ignore_bx:
     rule index_bam:
         input:
-            bam = "markdup/{sample}.markdup.bam"
+            "markdup/{sample}.markdup.bam"
         output:
-            bam = "{sample}.bam",
-            bai = "{sample}.bam.bai"
+            "{sample}.bam.bai",
+            bam = "{sample}.bam"
         container:
             None
         shell:
             """
-            mv {input.bam} {output.bam}
+            mv {input} {output.bam}
             samtools index {output.bam}
             """
 
 rule general_stats:
     input:
-        bam = "{sample}.bam",
-        bai = "{sample}.bam.bai"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
@@ -285,7 +295,7 @@ rule samtools_report:
         "reports/bwa.stats.html"
     params:
         outdir = "reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
         comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
     conda:
@@ -308,6 +318,8 @@ rule barcode_report:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}

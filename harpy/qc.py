@@ -49,7 +49,7 @@ docstring = {
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Remove adapters and quality-control sequences
+    Adapter removal and other FASTQ preprocessing
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
@@ -130,6 +130,5 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Deduplicate:", "yes" if deduplicate else "no"),
         ("Deconvolve:", "yes" if deconvolve else "no"),
         ("Output Folder:", f"{output_dir}/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/qc.summary")

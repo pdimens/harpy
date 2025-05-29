@@ -142,7 +142,7 @@ rule barcode_stats:
     shell:
         "count_bx.py {input} > {output}"
 
-rule report_config:
+rule configure_report:
     input:
         yaml = f"workflow/report/_quarto.yml",
         scss = f"workflow/report/_harpy.scss"
@@ -169,6 +169,8 @@ rule barcode_report:
         "logs/barcode.report.log"
     conda:
         "envs/r.yaml"
+    retries:
+        3
     shell:
         """
         cp -f {input.qmd} {output.qmd}
@@ -184,7 +186,7 @@ rule qc_report:
     params:
         logdir = "reports/data/fastp/",
         module = "-m fastp",
-        options = "--no-version-check --force --quiet --no-data-dir",
+        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",
         comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
     conda:

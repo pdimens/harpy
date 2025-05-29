@@ -90,7 +90,6 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
 
     start_text = workflow_info(
         ("Samples:", sample_count),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")

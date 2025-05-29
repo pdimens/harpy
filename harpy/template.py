@@ -27,7 +27,7 @@ docstring = {
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def template():
     """
-    Create template files and HPC configs for workflows
+    Create files and HPC configs for workflows
 
     All subcommands write to `stdout`.
     """

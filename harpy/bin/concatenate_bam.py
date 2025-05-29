@@ -55,7 +55,7 @@ for i in aln_list:
 if err:
     parser.error("Some input files were not found on the system:\n" + ", ".join(err))
 
-# Get the max number of unique haplotag barcodes
+# Get the max number of unique haplotagging barcodes
 haplotag_limit = 96**4
 
 with pysam.AlignmentFile(aln_list[0]) as xam_in:
@@ -112,9 +112,9 @@ with pysam.AlignmentFile(sys.stdout.buffer, "wb", header = header) as bam_out:
                                 raise IndexError
                             BX_NEW = "".join(next(bc_generator))
                 except IndexError:
-                    errtext = f"Error:\nNumber of unique molecules exceeds the number of possible unique haplotag barcodes (96^4 = {haplotag_limit}). "
+                    errtext = f"Error:\nNumber of unique molecules exceeds the number of possible unique haplotagging barcodes (96^4 = {haplotag_limit}). "
                     errtext += "Consider pooling fewer individuals per group.\n\nIf this concatenation was performed as part of the harpy sv leviathan workflow, "
-                    errtext += "there is a limitation in LEVIATHAN where it does not recognize hyphenated (deconvolved) linked-read barcodes, which necessitates using all possible unique standard haplotag barcodes. "
+                    errtext += "there is a limitation in LEVIATHAN where it does not recognize hyphenated (deconvolved) linked-read barcodes, which necessitates using all possible unique standard haplotagging barcodes. "
                     errtext += "Consider using the 'sv naibr' workflow, which uses unique MI tags instead.\n"
                     sys.stderr.write(errtext)
                     sys.exit(1)

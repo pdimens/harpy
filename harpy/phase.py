@@ -121,7 +121,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         ("Alignment Files:", n),
         ("Phase Indels:", "yes" if reference else "no"),
         ("Reference:", os.path.basename(reference)) if reference else None,
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
-        ("Workflow Log:", sm_log.replace(f"{output_dir}/", "") + "[dim].gz")
+        ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/phase.summary")
