@@ -428,29 +428,35 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
     for i,fq in enumerate([r1_fq, r2_fq],1):
         with pysam.FastqFile(fq, "r") as in_fq, open(f"{prefix}.R{i}.fq.gz", "wb") as out_fq:
             gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = out_fq)
-            for record in in_fq:
-                _bx = bx_search(record)
-                if not _bx:
-                    inline_bc = "N"*18
-                    inline_qual = "I"*18
-                else:
-                    if NUCLEOTIDE_FMT:
-                        inline_bc = _bx
-                        inline_qual = "I"*len(_bx)
-                    else:
-                        nuc_bx = bc_inventory.get(_bx, None)
-                        if not nuc_bx:
-                            if is_invalid(_bx):
-                                nuc_bx = "".join(next(bc_iter_inv)) if preserve_invalid else "N"*18
-                            else:
-                                nuc_bx = "".join(next(bc_iter))
-                            bc_inventory[_bx] = nuc_bx
-                        inline_bc = nuc_bx
+            try:
+                for record in in_fq:
+                    _bx = bx_search(record)
+                    if not _bx:
+                        inline_bc = "N"*18
                         inline_qual = "I"*18
-                record.sequence = inline_bc + SPACER_NUC + record.sequence
-                record.quality  = "I"*len(inline_bc) + SPACER_QUAL + record.quality
-                gzip.stdin.write(str(record).encode("utf-8") + b"\n")
-
+                    else:
+                        if NUCLEOTIDE_FMT:
+                            inline_bc = _bx
+                            inline_qual = "I"*len(_bx)
+                        else:
+                            nuc_bx = bc_inventory.get(_bx, None)
+                            if not nuc_bx:
+                                if is_invalid(_bx):
+                                    nuc_bx = "".join(next(bc_iter_inv)) if preserve_invalid else "N"*18
+                                else:
+                                    nuc_bx = "".join(next(bc_iter))
+                                bc_inventory[_bx] = nuc_bx
+                            inline_bc = nuc_bx
+                            inline_qual = "I"*18
+                    record.sequence = inline_bc + SPACER_NUC + record.sequence
+                    record.quality  = "I"*len(inline_bc) + SPACER_QUAL + record.quality
+                    gzip.stdin.write(str(record).encode("utf-8") + b"\n")
+            finally:
+                gzip.stdin.close()
+                retcode = gzip.wait()
+                if retcode != 0:
+                    click.echo(f"Error: gzip exited with status {retcode}", err=True)
+                    sys.exit(retcode)
     if barcode_map:
         with open(f"{prefix}.barcode.map", "w") as bc_out:
             for bx,nuc in bc_inventory.items():
