@@ -54,7 +54,7 @@ with open(args.fai, "r", encoding= "utf-8") as fai:
 
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))
-    ends = [i for i in starts[1:]]
+    ends = [i-1 for i in starts[1:]]
     if not ends or ends[-1] != contig_len:
         ends.append(contig_len)
     return [range(i,j) for i,j in zip(starts,ends)]
@@ -86,7 +86,6 @@ def print_depth_counts(contig, counter_obj, intervals):
     for idx,int_bin in enumerate(intervals):
         try:
             sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/len(int_bin)}\n")
-            #sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]}\n")
         except ZeroDivisionError:
             continue
 
