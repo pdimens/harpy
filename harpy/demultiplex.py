@@ -29,9 +29,10 @@ def demultiplex():
     - `meier2021`: the original haplotagging barcode strategy
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
     
-    **Other**
-    - `ncbi`: restore barcodes from NCBI-downloaded linked-read sequences
     """
+#    **Other**
+#    - `ncbi`: restore barcodes from NCBI-downloaded linked-read sequences
+#    """
 
 docstring = {
     "harpy demultiplex meier2021": [
@@ -138,7 +139,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     )
     launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.meier2021.summary")
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
+@click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map', type=click.Path(exists=True, readable=True, resolve_path=True), help = 'Map of nucleotide-to-barcode conversion')
 @click.option('-s', '--barcode-style', type=click.Choice(["haplotagging","nucleotide","tellseq","10x", "stlfr"], case_sensitive = False), help = 'Style format for barcodes in output')
 @click.option('-p', '--prefix', required=True, type = str, help = "Output file name prefix")
