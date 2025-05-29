@@ -44,7 +44,7 @@ This report reflects the FASTQ files Harpy processed to identify obvious
 list(
   icon = "files",
   color = "light",
-  value = scales::label_comma(nrow(data))
+  value = prettyNum(nrow(data), big.mark = ",")
 )
 ```
 
@@ -54,7 +54,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(attention > 0, "warning", "success"),
-  value = scales::label_comma(attention)
+  value = prettyNum(attention, big.mark = ",")
 )
 ```
 
@@ -64,18 +64,18 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
-  value = scales::label_comma(bxnotlast)
+  value = prettyNum(bxnotlast, big.mark = ",")
 )
 ```
 
 ## desc
 
-| column           | 🟦 pass condition 🟦                                                        | 🟨 fail condition 🟨                                     |
-| :--------------- | :---------------------------------------------------------------------------- | :--------------------------------------------------------- |
-| **Format** | **all** reads with `BX:Z` tag have properly formatted `r platform` barcodes | **any** BX:Z barcodes have incorrect `r platform` format                |
-| **SAM Spec**     | **all** reads have proper `TAG:TYPE:VALUE` comments                           | **any** reads have incorrectly formatted comments          |
-| **BX:Z last**    | **all** reads have `BX:Z` as final comment                                    | **at least 1 read** doesn’t have BX:Z tag as final comment |
-| **BX:Z tag**     | **any** `BX:Z` tags present                                                   | **all** reads lack BX:Z tag                                |
+| column        | 🟦 pass condition 🟦                                                        | 🟨 fail condition 🟨                                       |
+|:--------------|:----------------------------------------------------------------------------|:-----------------------------------------------------------|
+| **Format**    | **all** reads with `BX:Z` tag have properly formatted `r platform` barcodes | **any** BX:Z barcodes have incorrect `r platform` format   |
+| **SAM Spec**  | **all** reads have proper `TAG:TYPE:VALUE` comments                         | **any** reads have incorrectly formatted comments          |
+| **BX:Z last** | **all** reads have `BX:Z` as final comment                                  | **at least 1 read** doesn’t have BX:Z tag as final comment |
+| **BX:Z tag**  | **any** `BX:Z` tags present                                                 | **all** reads lack BX:Z tag                                |
 
 ## File Stats
 ```{r resultstable}

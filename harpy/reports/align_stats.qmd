@@ -92,7 +92,7 @@ NX <- function(lengths, X=50){
 #| title: "Contigs"
 list(
   color = "light",
-  value = scales::label_comma(length(unique(tb$contig)))
+  value = prettyNum(length(unique(tb$contig)), big.mark = ",")
 )
 ```
 
@@ -101,7 +101,7 @@ list(
 #| title: "Unique Barcodes"
 list(
   color = "#d4d4d4",
-  value = scales::label_comma(totuniqBX)
+  value = prettyNum(totuniqBX, big.mark = ",")
 )
 ```
 
@@ -124,7 +124,7 @@ list(
 #| title: "Unique Molecules"
 list(
   color = "#d4d4d4",
-  value = scales::label_comma(length(unique(valids$molecule)))
+  value = prettyNum(length(unique(valids$molecule)), big.mark = ",")
 )
 ```
 
@@ -155,7 +155,7 @@ list(
 #| content: valuebox
 #| title: "Avg molecules per contig"
 if (VALID_PRESENT){
-  boxval <- scales::label_comma(avgBX)
+  boxval <- prettyNum(avgBX, big.mark = ",")
 } else {
   boxval <- "NA"
 }
@@ -431,7 +431,7 @@ contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = gl
 #| title: "Contigs"
 list(
   color = "light",
-  value = scales::label_comma(length(unique(tb$contig)))
+  value = prettyNum(length(unique(tb$contig)), big.mark = ",")
 )
 ```
 

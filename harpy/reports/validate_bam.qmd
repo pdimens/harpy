@@ -42,7 +42,7 @@ This report reflects the BAM files Harpy processed to identify obvious
 list(
   icon = "files",
   color = "light",
-  value = scales::label_comma(nrow(data))
+  value = prettyNum(nrow(data), big.mark = ",")
 )
 ```
 
@@ -52,7 +52,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(attention > 0, "warning", "success"),
-  value = scales::label_comma(attention)
+  value = prettyNum(attention, big.mark = ",")
 )
 ```
 
@@ -62,7 +62,7 @@ list(
 list(
   icon = ifelse(noMItag > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(noMItag > 0, "warning", "success"),
-  value = scales::label_comma(noBXtag)
+  value = prettyNum(noBXtag, big.mark = ",")
 )
 ```
 
@@ -72,7 +72,7 @@ list(
 list(
   icon = ifelse(noMItag > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(noMItag > 0, "warning", "success"),
-  value = scales::label_comma(noMItag)
+  value = prettyNum(noMItag, big.mark = ",")
 )
 ```
 
@@ -82,19 +82,19 @@ list(
 list(
   icon = ifelse(bxnotlast > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
-  value = scales::label_comma(bxnotlast)
+  value = prettyNum(bxnotlast, big.mark = ",")
 )
 ```
 
 ## viz desc
 
-| column           | 🟦 pass condition 🟦                                                               | 🟨 fail condition 🟨                                      |
-| :--------------- | :--------------------------------------------------------------------------------- | :-------------------------------------------------------- |
-| **Name Mismatch**   | the file name matches the `@RG ID:` tag in the header                           | file name does not match `@RG ID:` in the header          |
-| **MI tag**       | **any** alignments with `BX:Z` tag also have `MI`                                  | **all** reads have `BX:Z` tag present but `MI` tag absent |
-| **BX:Z tag**     | **any** `BX:Z` tags present                                                        | **all** alignments lack `BX:Z` tag                        |
-| **BX:Z last**    | **all** reads have `BX:Z` as final tag in alignment records                        | **at least 1 read** doesn't have `BX:Z` tag as final tag  |
-| **Format** | **all** alignments with `BX:Z` tag have properly formatted `r platform` barcodes        | **any** `BX:Z` barcodes have incorrect `r platform` format  |
+| column            | 🟦 pass condition 🟦                                                             | 🟨 fail condition 🟨                                       |
+|:------------------|:---------------------------------------------------------------------------------|:-----------------------------------------------------------|
+| **Name Mismatch** | the file name matches the `@RG ID:` tag in the header                            | file name does not match `@RG ID:` in the header           |
+| **MI tag**        | **any** alignments with `BX:Z` tag also have `MI`                                | **all** reads have `BX:Z` tag present but `MI` tag absent  |
+| **BX:Z tag**      | **any** `BX:Z` tags present                                                      | **all** alignments lack `BX:Z` tag                         |
+| **BX:Z last**     | **all** reads have `BX:Z` as final tag in alignment records                      | **at least 1 read** doesn't have `BX:Z` tag as final tag   |
+| **Format**        | **all** alignments with `BX:Z` tag have properly formatted `r platform` barcodes | **any** `BX:Z` barcodes have incorrect `r platform` format |
 
 ## file stats
 ```{r resultstable}
