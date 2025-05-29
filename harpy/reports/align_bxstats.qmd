@@ -147,7 +147,7 @@ list(
 #| title: "N50"
 list(
   color = "light",
-  value = scales::comma(round(mean(aggregate_df$N50[aggregate_df$N50 != 0]), 0))
+  value = scales::label_comma(round(mean(aggregate_df$N50[aggregate_df$N50 != 0]), 0))
 )
 ```
 
@@ -156,7 +156,7 @@ list(
 #| title: "N75"
 list(
   color = "light",
-  value = scales::comma(round(mean(aggregate_df$N75[aggregate_df$N75 != 0]), 0))
+  value = scales::label_comma(round(mean(aggregate_df$N75[aggregate_df$N75 != 0]), 0))
 )
 ```
 
@@ -165,7 +165,7 @@ list(
 #| title: "N90"
 list(
   color = "light",
-  value = scales::comma(round(mean(aggregate_df$N90[aggregate_df$N90 != 0]), 0))
+  value = scales::label_comma(round(mean(aggregate_df$N90[aggregate_df$N90 != 0]), 0))
 )
 ```
 

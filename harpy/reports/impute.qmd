@@ -137,7 +137,7 @@ gcts_minmax <- filter(gcts_long, Conversion != "missing") %>% summarise(min = mi
 #| title: "Samples"
 list(
   color = "light",
-  value = scales::comma(nrow(gcts))
+  value = scales::label_comma(nrow(gcts))
 )
 ```
 
@@ -146,7 +146,7 @@ list(
 #| title: "Minimum Imputations"
 list(
   color = "info",
-  value = scales::comma(gcts_minmax$min)
+  value = scales::label_comma(gcts_minmax$min)
 )
 ```
 ```{r}
@@ -154,7 +154,7 @@ list(
 #| title: "Maximum Imputations"
 list(
   color = "info",
-  value = scales::comma(gcts_minmax$max)
+  value = scales::label_comma(gcts_minmax$max)
 )
 ```
 

@@ -64,7 +64,7 @@ nvar <- sum(summinfo$total)
 #| title: "Variants"
 list(
   color = ifelse(nvar > 0, "success", "warning"),
-  value = scales::comma(nvar)
+  value = scales::label_comma(nvar)
 )
 ```
 ```{r}
@@ -74,7 +74,7 @@ list(
 nbnd <- ifelse("BND" %in% summinfo$type, summinfo$total[which(summinfo$type == "BND")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(nbnd)
+  value = scales::label_comma(nbnd)
 )
 ```
 ```{r}
@@ -83,7 +83,7 @@ list(
 ndel <- ifelse("DEL" %in% summinfo$type, summinfo$total[which(summinfo$type == "DEL")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndel)
+  value = scales::label_comma(ndel)
 )
 ```
 ```{r}
@@ -92,7 +92,7 @@ list(
 ndup <- ifelse("DUP" %in% summinfo$type, summinfo$total[which(summinfo$type == "DUP")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndup)
+  value = scales::label_comma(ndup)
 )
 ```
 ```{r}
@@ -101,7 +101,7 @@ list(
 ninv <- ifelse("INV" %in% summinfo$type, summinfo$total[which(summinfo$type == "INV")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ninv)
+  value = scales::label_comma(ninv)
 )
 ```
 ##

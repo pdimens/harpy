@@ -44,7 +44,7 @@ This report reflects the FASTQ files Harpy processed to identify obvious
 list(
   icon = "files",
   color = "light",
-  value = scales::comma(nrow(data))
+  value = scales::label_comma(nrow(data))
 )
 ```
 
@@ -54,7 +54,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(attention > 0, "warning", "success"),
-  value = scales::comma(attention)
+  value = scales::label_comma(attention)
 )
 ```
 
@@ -64,7 +64,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
-  value = scales::comma(bxnotlast)
+  value = scales::label_comma(bxnotlast)
 )
 ```
 

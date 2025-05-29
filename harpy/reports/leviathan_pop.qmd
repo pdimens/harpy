@@ -81,7 +81,7 @@ summinfo <- sv %>%
 #| title: "Populations"
 list(
   color = "light",
-  value = scales::comma(length(levels(sv$population)))
+  value = scales::label_comma(length(levels(sv$population)))
 )
 ```
 ```{r}
@@ -90,7 +90,7 @@ list(
 nbnd <- ifelse("BND" %in% summinfo$type, summinfo$avg[which(summinfo$type == "BND")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(nbnd)
+  value = scales::label_comma(nbnd)
 )
 ```
 ```{r}
@@ -99,7 +99,7 @@ list(
 ndel <- ifelse("DEL" %in% summinfo$type, summinfo$avg[which(summinfo$type == "DEL")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndel, accuracy = 0.01)
+  value = scales::label_comma(ndel, accuracy = 0.01)
 )
 ```
 ```{r}
@@ -108,7 +108,7 @@ list(
 ndup <- ifelse("DUP" %in% summinfo$type, summinfo$avg[which(summinfo$type == "DUP")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ndup, accuracy = 0.01)
+  value = scales::label_comma(ndup, accuracy = 0.01)
 )
 ```
 ```{r}
@@ -117,7 +117,7 @@ list(
 ninv <- ifelse("INV" %in% summinfo$type, summinfo$avg[which(summinfo$type == "INV")], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ninv, accuracy = 0.01)
+  value = scales::label_comma(ninv, accuracy = 0.01)
 )
 ```
 

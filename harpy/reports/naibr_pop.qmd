@@ -101,7 +101,7 @@ summinfo <- sv %>%
 #| title: "Populations"
 list(
   color = "light",
-  value = scales::comma(length(levels(sv$population)))
+  value = scales::label_comma(length(levels(sv$population)))
 )
 ```
 
@@ -112,7 +112,7 @@ variant <- "deletion"
 ndel <- ifelse(variant %in% summinfo$SV, summinfo$avg[which(summinfo$SV == variant)], 0)
 list(
   color = "#dfdfdf",
-  value =scales::comma(ndel, accuracy = 0.1)
+  value =scales::label_comma(ndel, accuracy = 0.1)
 )
 ```
 
@@ -123,7 +123,7 @@ variant <- "duplication"
 ndup <- ifelse(variant %in% summinfo$SV, summinfo$avg[which(summinfo$SV == variant)], 0)
 list(
   color = "#dfdfdf",
-  value= scales::comma(ndup, accuracy = 0.1)
+  value= scales::label_comma(ndup, accuracy = 0.1)
 )
 ```
 
@@ -134,7 +134,7 @@ variant <- "inversion"
 ninv <- ifelse(variant %in% summinfo$SV, summinfo$avg[which(summinfo$SV == variant)], 0)
 list(
   color = "#dfdfdf",
-  value = scales::comma(ninv, accuracy = 0.1)
+  value = scales::label_comma(ninv, accuracy = 0.1)
 )
 ```
 

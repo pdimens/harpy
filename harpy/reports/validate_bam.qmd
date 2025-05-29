@@ -42,7 +42,7 @@ This report reflects the BAM files Harpy processed to identify obvious
 list(
   icon = "files",
   color = "light",
-  value = scales::comma(nrow(data))
+  value = scales::label_comma(nrow(data))
 )
 ```
 
@@ -52,7 +52,7 @@ list(
 list(
   icon = ifelse(attention > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(attention > 0, "warning", "success"),
-  value = scales::comma(attention)
+  value = scales::label_comma(attention)
 )
 ```
 
@@ -62,7 +62,7 @@ list(
 list(
   icon = ifelse(noMItag > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(noMItag > 0, "warning", "success"),
-  value = scales::comma(noBXtag)
+  value = scales::label_comma(noBXtag)
 )
 ```
 
@@ -72,7 +72,7 @@ list(
 list(
   icon = ifelse(noMItag > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(noMItag > 0, "warning", "success"),
-  value = scales::comma(noMItag)
+  value = scales::label_comma(noMItag)
 )
 ```
 
@@ -82,7 +82,7 @@ list(
 list(
   icon = ifelse(bxnotlast > 0, "exclamation-triangle", "check2-square"),
   color = ifelse(bxnotlast > 0, "warning", "success"),
-  value = scales::comma(bxnotlast)
+  value = scales::label_comma(bxnotlast)
 )
 ```
 

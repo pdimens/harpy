@@ -16,9 +16,11 @@ params:
   contigs: "default"
   sample: "sample"
 ---
+
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
 # Barcode Stats
+
 ```{r package_imports, results = F}
 using<-function(...) {
     libs<-unlist(list(...))
@@ -83,13 +85,14 @@ NX <- function(lengths, X=50){
 }
 ```
 
-##
+## 
+
 ```{r}
 #| content: valuebox
 #| title: "Contigs"
 list(
   color = "light",
-  value = scales::comma(length(unique(tb$contig)))
+  value = scales::label_comma(length(unique(tb$contig)))
 )
 ```
 
@@ -98,7 +101,7 @@ list(
 #| title: "Unique Barcodes"
 list(
   color = "#d4d4d4",
-  value = scales::comma(totuniqBX)
+  value = scales::label_comma(totuniqBX)
 )
 ```
 
@@ -121,7 +124,7 @@ list(
 #| title: "Unique Molecules"
 list(
   color = "#d4d4d4",
-  value = scales::comma(length(unique(valids$molecule)))
+  value = scales::label_comma(length(unique(valids$molecule)))
 )
 ```
 
@@ -152,7 +155,7 @@ list(
 #| content: valuebox
 #| title: "Avg molecules per contig"
 if (VALID_PRESENT){
-  boxval <- scales::comma(avgBX)
+  boxval <- scales::label_comma(avgBX)
 } else {
   boxval <- "NA"
 }
@@ -162,9 +165,9 @@ list(
 )
 ```
 
-##
-::: {.card fill="false"}
+## 
 
+::: {.card fill="false"}
 ```{r NX_stats, eval = VALID_PRESENT}
 #| title: "Stats by Contig"
 if(!VALID_PRESENT){
@@ -212,14 +215,10 @@ if(!VALID_PRESENT){
 ```
 :::
 
-## Reads per molecule 
-::: {.card title="Reads per Molecule"}
+## Reads per molecule
 
-This chart shows the distribution of the number of reads per linked molecule. That is, how many alignments
-are associated with a unique molecule. This excludes the number of reads associated with invalid
-or absent linked-read barcodes. There are two distributions: one with `all` the alignments (orange)
-and another with only `linked reads` (green). The percent of molecules in the `linked reads`
-distribution is relative to the total number of non-singleton molecules.
+::: {.card title="Reads per Molecule"}
+This chart shows the distribution of the number of reads per linked molecule. That is, how many alignments are associated with a unique molecule. This excludes the number of reads associated with invalid or absent linked-read barcodes. There are two distributions: one with `all` the alignments (orange) and another with only `linked reads` (green). The percent of molecules in the `linked reads` distribution is relative to the total number of non-singleton molecules.
 
 ```{r readsper, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(valids$reads, breaks = min(valids$reads):max(valids$reads), plot = F)
@@ -247,13 +246,9 @@ highchart() |>
 :::
 
 ### bases per desc
-::: {.card title="Total Bases Aligned"}
 
-This is a frequency distribution showing the number of base pairs aligned
-per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis
-may not start at `0`. There are two distributions: one with `all` the alignments (orange)
-and another with only `linked reads` (green). The percent of molecules in the `linked reads`
-distribution is relative to the total number of non-singleton molecules.
+::: {.card title="Total Bases Aligned"}
+This is a frequency distribution showing the number of base pairs aligned per unique molecule. These data are shown in 500 bp bins. Be aware that the Y axis may not start at `0`. There are two distributions: one with `all` the alignments (orange) and another with only `linked reads` (green). The percent of molecules in the `linked reads` distribution is relative to the total number of non-singleton molecules.
 
 ```{r basesper, out.width="100%", eval = VALID_PRESENT}
 hs <- hist(round(valids$aligned_bp, -2), breaks = 50,  plot = F)
@@ -280,15 +275,10 @@ highchart() |>
 ```
 :::
 
-##
-:::{.card title="Inferred Molecule Lengths"}
-This is the frequency distribution of molecule lengths 
-inferred from the first and last alignment positions along a contig for all
-alignments associated with a single linked-read barcode on a given contig. 
-Be aware that the Y axis may not start at `0`. There are two distributions:
-one with `all` the alignments (orange) and another with only `linked reads`
-(green). The percent of molecules in the `linked reads` distribution is
-relative to the total number of non-singleton molecules.
+## 
+
+::: {.card title="Inferred Molecule Lengths"}
+This is the frequency distribution of molecule lengths inferred from the first and last alignment positions along a contig for all alignments associated with a single linked-read barcode on a given contig. Be aware that the Y axis may not start at `0`. There are two distributions: one with `all` the alignments (orange) and another with only `linked reads` (green). The percent of molecules in the `linked reads` distribution is relative to the total number of non-singleton molecules.
 
 ```{r inferred, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$length_inferred / 1000,0),breaks = 25,plot = F)
@@ -316,14 +306,10 @@ highchart() |>
 ```
 :::
 
-##
-:::{.card title="Molecule Read Coverage"}
+## 
 
-This chart shows molecule coverage breadth as computed by the number of bases aligned
-to that molecule. In other words, "_how much of each unique long molecule is actually sequenced/aligned?_"
-Keep in mind there is a distinction between sequences and alignments, since
-some sequences belonging to a particular molecule may not align well and wouldn't
-appear in the alignment data.  
+::: {.card title="Molecule Read Coverage"}
+This chart shows molecule coverage breadth as computed by the number of bases aligned to that molecule. In other words, "*how much of each unique long molecule is actually sequenced/aligned?*" Keep in mind there is a distinction between sequences and alignments, since some sequences belonging to a particular molecule may not align well and wouldn't appear in the alignment data.
 
 ```{r inferred_cov_bp, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_bp, 0), breaks = seq(0, 1, by = 0.05), plot = F)
@@ -351,9 +337,7 @@ highchart() |>
 :::
 
 ::: {.card title="Molecular Inferred Coverage"}
-This chart shows *molecule coverage breadth* as computed by the _inferred fragment_ from which the aligned sequences originate.
-Unlike read coverage, this calculation takes into account the total insert size, including unsequenced gaps between
-the forward and reverse reads.
+This chart shows *molecule coverage breadth* as computed by the *inferred fragment* from which the aligned sequences originate. Unlike read coverage, this calculation takes into account the total insert size, including unsequenced gaps between the forward and reverse reads.
 
 ```{r inferred_cov_insert, out.width = '100%', eval = VALID_PRESENT}
 hs <- hist(round(valids$coverage_inserts, 0), breaks = seq(0, 1, by = 0.05), plot = F)
@@ -381,6 +365,7 @@ highchart() |>
 :::
 
 # Depth Stats
+
 ```{r reset_env}
 # clear out objects in memory to reduce RAM usage
 rm(hs)
@@ -389,6 +374,7 @@ rm(valids)
 rm(invalids)
 rm(non_singletons)
 ```
+
 ```{r imports}
 covfile <- params$coverage
 molcovfile <- params$molcov
@@ -438,13 +424,14 @@ contig_avg <- rbind(data.frame(contig = "global", average = global_avg, sdv = gl
   mutate(average = round(average, 2), sdv = round(sdv, 2), mol_average = round(mol_average, 2), mol_sdv = round(mol_sdv, 2))
 ```
 
-##
+## 
+
 ```{r}
 #| content: valuebox
 #| title: "Contigs"
 list(
   color = "light",
-  value = scales::comma(length(unique(tb$contig)))
+  value = scales::label_comma(length(unique(tb$contig)))
 )
 ```
 
@@ -494,10 +481,9 @@ list(
 ```
 
 ## Distdesc header
+
 ::: {.card title="Alignment Depth Distribution"}
-These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs.
-For visual clarity, the distributions are truncated at the 99% quantile, which is **`r q99`** for the alignments
-and **`r format(mol_q99, scientific = F)`** for the inferred molecules.
+These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs. For visual clarity, the distributions are truncated at the 99% quantile, which is **`r q99`** for the alignments and **`r format(mol_q99, scientific = F)`** for the inferred molecules.
 
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
@@ -520,14 +506,12 @@ highchart() |>
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
   )
 ```
-
 :::
 
 ## Sumheader
+
 ::: {.card title="Average Depth"}
-This table shows the global and per-contig average depth and standard 
-deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged
-an outlier in the data. 
+This table shows the global and per-contig average depth and standard deviation per `r windowskb`kbp intervals **including** intervals whose depth is flagged an outlier in the data.
 
 ```{r depth_table}
 column_description <- c(
@@ -564,10 +548,10 @@ DT::datatable(
 ```
 :::
 
-###
+### 
+
 ::: {.card title="Depth Outliers"}
-This table shows the `r windowskb`kbp intervals considered outliers, as determined by 
-having depth greater than the 99% quantile (`r q99`) of aligment depths. 
+This table shows the `r windowskb`kbp intervals considered outliers, as determined by having depth greater than the 99% quantile (`r q99`) of aligment depths.
 
 ```{r depth_plot}
 column_description <- c(
@@ -604,31 +588,23 @@ DT::datatable(
 :::
 
 # Depth Plot
-##
+
+## 
+
 ::: {.card title="Depth and Coverage, Visualized" fill="false"}
-This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided).
-For clarity, this visualization truncates coverage at the 99% quantile (`r q99` for alignments and `r mol_q99` for inferred molecules).
-If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome. 
-Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name.
-The internal (grey) rings are a histogram where each bar represents the alignment depth at a `r windowskb` kilobase
-genomic interval. These reads are considered to have _proper_ alignment in the `r windowskb` kilobase interval, where
-"proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`,  or `QCFAIL` flags. The outer ring (magenta bars),
-is the number of _molecules_, i.e. the **linked depth**, which is the alignment depth of the molecules
-inferred from linked-read data, included unsequenced segments between reads sharing the same linked-read barcode. It's common for the
-linked depth histogram to gradually increase towards the center of a contig (your plot may resemble petals of a flower) due
-to the likelihood of linked molecules spanning the center of a contig.
+This is a circular vizualization the depth information across up to 30 of the largest contigs (unless specific contigs were provided). For clarity, this visualization truncates coverage at the 99% quantile (`r q99` for alignments and `r mol_q99` for inferred molecules). If you are unfamiliar with this kind of visualization, it's a circular representation of a linear genome. Each arc (segment) is a different contig, from position 0 to the end of the contig, and is labelled by the contig name. The internal (grey) rings are a histogram where each bar represents the alignment depth at a `r windowskb` kilobase genomic interval. These reads are considered to have *proper* alignment in the `r windowskb` kilobase interval, where "proper" refers to a read not marked as a duplicate or flagged with the SAM `UNMAP`, `SECONDARY`, or `QCFAIL` flags. The outer ring (magenta bars), is the number of *molecules*, i.e. the **linked depth**, which is the alignment depth of the molecules inferred from linked-read data, included unsequenced segments between reads sharing the same linked-read barcode. It's common for the linked depth histogram to gradually increase towards the center of a contig (your plot may resemble petals of a flower) due to the likelihood of linked molecules spanning the center of a contig.
 :::
 
-##
-### {width=20%}
+## 
+
+###  {width="20%"}
+
 ::: {.card title="Navigating the Plot"}
-You may hover your cursor over bars to view their positions and depths, pan by clicking and dragging,
-and zoom using scroll (mouse or touchpad). In case you become unable to scroll up from the plot due to these interactive 
-features, place your cursor over this left column and you will be able to scroll the report instead of zooming on the plot.
-Try refreshing the browser window if no plot is appearing in the pane. Note: The depth values are rounded to 4 decimal places.
+You may hover your cursor over bars to view their positions and depths, pan by clicking and dragging, and zoom using scroll (mouse or touchpad). In case you become unable to scroll up from the plot due to these interactive features, place your cursor over this left column and you will be able to scroll the report instead of zooming on the plot. Try refreshing the browser window if no plot is appearing in the pane. Note: The depth values are rounded to 4 decimal places.
 :::
 
-###
+### 
+
 ```{r limit_contigs}
 plot_contigs <- params$contigs
 # Find the 30 largest contigs
@@ -715,72 +691,84 @@ BioCircos(
 )
 ```
 
-
 # Supporting Info
-##
+
+## 
+
 ::: {.card title="Interpreting the Supporting File"}
-Below are the descriptions of the columns in **`r basename(infile)`**, which was created
-by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the
-`MI:i` tag in the alignments, which is a unique molecule ID given to the original
-fragment alignments sharing a barcode are inferred to have originated from. The inference
-takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds)
-and that the sequences aligned to the same contig.
+Below are the descriptions of the columns in **`r basename(infile)`**, which was created by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the `MI:i` tag in the alignments, which is a unique molecule ID given to the original fragment alignments sharing a barcode are inferred to have originated from. The inference takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds) and that the sequences aligned to the same contig.
 
 contig
-: name of the contig the molecule occurs on
+
+:   name of the contig the molecule occurs on
 
 molecule
-: the molecule name as given by the MI:i: tag
+
+:   the molecule name as given by the MI:i: tag
 
 reads
-: number of alignments associated with this molecule
+
+:   number of alignments associated with this molecule
 
 start
-: the start position of the first alignment for that molecule
+
+:   the start position of the first alignment for that molecule
 
 end
-: the end position of the last alignment for that molecule
+
+:   the end position of the last alignment for that molecule
 
 length_inferred
-: inferred length of the molecule based on the start/end of the alignments sharing the same barcode
+
+:   inferred length of the molecule based on the start/end of the alignments sharing the same barcode
 
 percent_coverage
-: what percent of the molecule is represented by sequence alignments
+
+:   what percent of the molecule is represented by sequence alignments
 
 aligned_bp
-: total number of base pairs aligned for that molecule
+
+:   total number of base pairs aligned for that molecule
 :::
 
-###
+### 
+
 ::: {.card title="Interpreting Linked-Read Terminology"}
 BX barcode validity is classified into one of three categories:
 
 Valid
-: A complete BX barcode was present in the read (i.e. no 00 for any segments)
+
+:   A complete BX barcode was present in the read (i.e. no 00 for any segments)
 
 Invalid
-: A barcode was present in the read, but it contained `00` in at least one of the barcode segments (haplotagging), `0` as one of the segments (stlfr), or an `N` (tellseq/10x).
+
+:   A barcode was present in the read, but it contained `00` in at least one of the barcode segments (haplotagging), `0` as one of the segments (stlfr), or an `N` (tellseq/10x).
 
 Missing
-: There is no barcode in the read. For technical reasons this is usually equivalent to `invalid`
+
+:   There is no barcode in the read. For technical reasons this is usually equivalent to `invalid`
 
 Linked-read data is specific for the definition of a "molecule":
 
 Unique/Inferred Molecules
-: Given linked-read barcode information, the original piece of DNA from which the sequenced fragments are considered to originate from.
+
+:   Given linked-read barcode information, the original piece of DNA from which the sequenced fragments are considered to originate from.
 
 Inferred Sequence
-: While somewhat similar to "inferred molecule", the inferred sequence describes the original DNA fragment that was put on the sequencer. If the fragment was longer than the sequencer could fully sequence, e.g. 400bp fragment and the sequencer can only sequence 300bp, then the inferred sequence is 400bp long, even though only 300bp are represented in the sequence data. If the entire fragment was sequenced, then the inferred length and sequence lengths should be identical.
+
+:   While somewhat similar to "inferred molecule", the inferred sequence describes the original DNA fragment that was put on the sequencer. If the fragment was longer than the sequencer could fully sequence, e.g. 400bp fragment and the sequencer can only sequence 300bp, then the inferred sequence is 400bp long, even though only 300bp are represented in the sequence data. If the entire fragment was sequenced, then the inferred length and sequence lengths should be identical.
 
 There are several kinds of "coverage" when working with linked-read data:
 
 Aligned Depth/Coverage
-: The standard interpretation of depth comparing the number of aligned base-pairs to the genome or contigs
+
+:   The standard interpretation of depth comparing the number of aligned base-pairs to the genome or contigs
 
 Molecule Coverage
-: The coverage breadth or depth of sequences onto _unique molecules_ (rather than the genome), as inferred from linked-read barcodes
+
+:   The coverage breadth or depth of sequences onto *unique molecules* (rather than the genome), as inferred from linked-read barcodes
 
 Linked Depth/Coverage
-: The coverage breadth or depth that _includes unsequenced gaps between linked sequences_ that are associated with a single unique molecule. For example, if two 300bp paired-end reads share the same barcode and map 2000bp apart, the calculation *includes* the 1400bp between the sequences as if they were present. This is similar to _inferred sequences_ described above, except spanning across linked sequences rather than within a paired-end sequence.
 
+:   The coverage breadth or depth that *includes unsequenced gaps between linked sequences* that are associated with a single unique molecule. For example, if two 300bp paired-end reads share the same barcode and map 2000bp apart, the calculation *includes* the 1400bp between the sequences as if they were present. This is similar to *inferred sequences* described above, except spanning across linked sequences rather than within a paired-end sequence.
 :::
