@@ -83,7 +83,7 @@ rule workflow_summary:
         f'-l {config["lr-type"]}',
         f'-c {config["molecule-coverage"]}',
         f'-m {config["molecule-length"]}',
-        f'-n {config ["molecule-number"]}',
+        f'-n {config ["molecules-per"]}',
         f'--mutation {config["mutation"]}',
         f'--indels {config["indels"]}',
         f'--extindels {config["extindels"]}',
