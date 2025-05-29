@@ -38,7 +38,7 @@ def harpy_progressbar(quiet: int) -> Progress:
     The pre-configured transient progress bar that workflows and validations use
     """
     return Progress(
-                SpinnerColumn(spinner_name = "dots12", style = "blue dim", finished_text="[green]✓"),
+                SpinnerColumn(spinner_name = "dots12", style = "blue dim", finished_text="[dim green]✓"),
                 TextColumn("[progress.description]{task.description}"),
                 BarColumn(complete_style="yellow", finished_style="blue"),
                 TaskProgressColumn("[progress.remaining]{task.completed}/{task.total}") if quiet == 0 else TaskProgressColumn(),

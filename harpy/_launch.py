@@ -157,7 +157,6 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                         exitcode = EXIT_CODE_SUCCESS if process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                         break
                     # add new progress bar track if the rule doesn't have one yet
-                    #rulematch = re.search(r"(rule|checkpoint)\s\w+:", output)
                     if output.lstrip().startswith("rule ") or output.lstrip().startswith("localrule "):
                         # catch the 2nd word and remove the colon
                         rule = output.split()[-1].replace(":", "")
@@ -173,13 +172,15 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                                 break
                         # store the job id in the inventory so we can later look up which rule it's associated with
                     # check which rule the job is associated with and update the corresponding progress bar
-                    #finishmatch = re.search(r"Finished\sjobid:\s\d+", output)
                     if output.startswith("Finished jobid: "):
                         completed = int(re.search(r"\d+", output).group())
                         for job,details in job_inventory.items():
                             if completed in details[2]:
                                 progress.advance(task_ids[job])
                                 progress.advance(task_ids["total_progress"])
+                                if progress.tasks[task_ids[job]].completed == progress.tasks[task_ids[job]].total:
+                                    progress.update(task_ids[job], description=f"[dim]{details[0]}")
+                                    #progress.update(task_ids[job], visible = False)
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break
