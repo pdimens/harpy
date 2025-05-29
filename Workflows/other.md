@@ -149,9 +149,18 @@ harpy view config Align/bwa
 
 ### modes
 {.compact}
-| MODE          | description                                |
-|:--------------|:-------------------------------------------|
-| `config`      | View a workflow's config file              |
-| `log`         | View a workflow's last log file            |
-| `snakefile`   | View a workflow's snakefile                |
-| `snakeparams` | View a workflow's snakemake parameter file |
+| MODE           | description                                                       |
+|:---------------|:------------------------------------------------------------------|
+| `config`       | View a workflow's config file                                     |
+| `environments`* | View the conda environments and their software in `.environments` |
+| `log`          | View a workflow's last log file                                   |
+| `snakefile`    | View a workflow's snakefile                                       |
+| `snakeparams`  | View a workflow's snakemake parameter file                        |
+
+With `environments` being an exception in that it does not require a `DIRECTORY` argument.
+To use `environments`, you can run it without arguments or give it a `SOFTWARE` argument
+to only print environments where `SOFTWARE` is found (it also works with partial matches).
+
+```bash
+harpy view environments
+```

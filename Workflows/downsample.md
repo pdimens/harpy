@@ -19,7 +19,7 @@ order: 10
 
 While downsampling (subsampling) FASTQ and BAM files is relatively simple with tools such as `awk`, `samtools`, `seqtk`, `seqkit`, etc.,
 [!badge corners="pill" text="downsample"] allows you to downsample a BAM file (or paired-end FASTQ) _by barcodes_. That means you can
-keep all the reads associated with `d` number of barcodes.
+keep all the reads associated with `d` number of barcodes or `-d` fraction of barcodes (e.g. `-d 0.5` will downsample to 50% of all barcodes).
 
 ```bash usage
 # BAM file
@@ -46,7 +46,7 @@ module is configured using the command-line arguments below.
 |:---------------------|:-------------:|:-----------------------------------------------------------------------------------------------------|
 | `INPUT`              |               | [!badge variant="info" text="required"] One BAM file or both read files from a paired-end FASTQ pair |
 | `--barcode-tag` `-b` |     `BX`      | SAM tag that contains the barcode                                                                    |
-| `--downsample` `-d`  |               | [!badge variant="info" text="required"] Number of barcodes to downsample to                          |
+| `--downsample` `-d`  |               | [!badge variant="info" text="required"] Number/fraction of barcodes to downsample to                          |
 | `--invalid` `-i`     |      `1`      | Proportion of invalid barcodes to potentially sample                                                 |
 | `--prefix` `-p`      | `downsampled` | Prefix for output files                                                                              |
 | `--random-seed`      |               | Random seed for sampling [!badge variant="secondary" text="optional"]                                |
