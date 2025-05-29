@@ -4,43 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.8.1.800392950660">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.9.0.801867167118">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 3.8.1">
+    <meta name="generator" content="Retype 3.9.0">
 
     <!-- Primary Meta Tags -->
-    <title> Haplotagging data | Harpy haplotag</title>
-    <meta name="title" content=" Haplotagging data | Harpy haplotag">
-    <meta name="description" content="Linked-read sequencing exists to combine the throughput and accuracy of short-read sequencing with the long range haplotype information of long-read...">
+    <title> Input Data | Harpy haplotag</title>
+    <meta name="title" content=" Input Data | Harpy haplotag">
+    <meta name="description" content="Reads must be at least 30 base pairs in length for alignment. By default, the module removes reads <30bp.">
 
     <!-- Canonical -->
-    <link rel="canonical" href="https://pdimens.github.io/harpy/haplotagdata/">
+    <link rel="canonical" href="https://pdimens.github.io/harpy/inputdata/">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://pdimens.github.io/harpy/haplotagdata/">
-    <meta property="og:title" content=" Haplotagging data | Harpy haplotag">
-    <meta property="og:description" content="Linked-read sequencing exists to combine the throughput and accuracy of short-read sequencing with the long range haplotype information of long-read...">
-    <meta property="og:image" content="https://pdimens.github.io/harpy/static/bc_threshold.png">
+    <meta property="og:url" content="https://pdimens.github.io/harpy/inputdata/">
+    <meta property="og:title" content=" Input Data | Harpy haplotag">
+    <meta property="og:description" content="Reads must be at least 30 base pairs in length for alignment. By default, the module removes reads <30bp.">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://pdimens.github.io/harpy/haplotagdata/">
-    <meta property="twitter:title" content=" Haplotagging data | Harpy haplotag">
-    <meta property="twitter:description" content="Linked-read sequencing exists to combine the throughput and accuracy of short-read sequencing with the long range haplotype information of long-read...">
-    <meta property="twitter:image" content="https://pdimens.github.io/harpy/static/bc_threshold.png">
+    <meta property="twitter:url" content="https://pdimens.github.io/harpy/inputdata/">
+    <meta property="twitter:title" content=" Input Data | Harpy haplotag">
+    <meta property="twitter:description" content="Reads must be at least 30 base pairs in length for alignment. By default, the module removes reads <30bp.">
 
-    <script data-cfasync="false">(function () { var el = document.documentElement, m = localStorage.getItem("doc_theme"), wm = window.matchMedia; if (m === "dark" || (!m && wm && wm("(prefers-color-scheme: dark)").matches)) { el.classList.add("dark") } else { el.classList.remove("dark") } })();</script>
+    <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.8.1.800392950660" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.9.0.801867167118" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.8.1.800392950660" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../resources/js/retype.js?v=3.8.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.8.1.800392950660" data-turbo-eval="false" defer></script>
-    <link href="../resources/css/katex.css?v=3.8.1" rel="stylesheet">
-    <script id="katex-js" data-cfasync="false" src="../resources/js/katex.js?v=3.8.1" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.9.0.801867167118" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/retype.js?v=3.9.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.9.0.801867167118" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="docs-app" class="relative text-base antialiased text-gray-700 bg-white font-body dark:bg-dark-850 dark:text-dark-300">
@@ -61,7 +57,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span class="hidden px-2 py-1 ml-4 text-sm font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-sm md:inline-block">v2</span>
+                        </a><span class="hidden mt-1 px-2 py-1 ml-4 text-xs font-semibold leading-none text-root-logo-label-text bg-root-logo-label-bg rounded-md md:inline-block">v2</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block dark:border-dark-650"></span>
@@ -75,7 +71,7 @@
                                 <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://github.com/pdimens/harpy" target="_blank">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="mb-px mr-1" width="18" height="18" viewBox="0 0 24 24" role="presentation">
                                         <g fill="currentColor">
-                                            <path d="M12 1C5.9225 1 1 5.9225 1 12C1 16.8675 4.14875 20.9787 8.52125 22.4362C9.07125 22.5325 9.2775 22.2025 9.2775 21.9137C9.2775 21.6525 9.26375 20.7862 9.26375 19.865C6.5 20.3737 5.785 19.1912 5.565 18.5725C5.44125 18.2562 4.905 17.28 4.4375 17.0187C4.0525 16.8125 3.5025 16.3037 4.42375 16.29C5.29 16.2762 5.90875 17.0875 6.115 17.4175C7.105 19.0812 8.68625 18.6137 9.31875 18.325C9.415 17.61 9.70375 17.1287 10.02 16.8537C7.5725 16.5787 5.015 15.63 5.015 11.4225C5.015 10.2262 5.44125 9.23625 6.1425 8.46625C6.0325 8.19125 5.6475 7.06375 6.2525 5.55125C6.2525 5.55125 7.17375 5.2625 9.2775 6.67875C10.1575 6.43125 11.0925 6.3075 12.0275 6.3075C12.9625 6.3075 13.8975 6.43125 14.7775 6.67875C16.8813 5.24875 17.8025 5.55125 17.8025 5.55125C18.4075 7.06375 18.0225 8.19125 17.9125 8.46625C18.6138 9.23625 19.04 10.2125 19.04 11.4225C19.04 15.6437 16.4688 16.5787 14.0213 16.8537C14.42 17.1975 14.7638 17.8575 14.7638 18.8887C14.7638 20.36 14.75 21.5425 14.75 21.9137C14.75 22.2025 14.9563 22.5462 15.5063 22.4362C19.8513 20.9787 23 16.8537 23 12C23 5.9225 18.0775 1 12 1Z"/>
+                                            <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"/>
                                         </g>
                                     </svg>
                                     <span>Source</span>
@@ -198,7 +194,7 @@
                                         <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-blue-500 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200" href="https://github.com/pdimens/harpy" target="_blank">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mb-px mr-1" width="18" height="18" viewBox="0 0 24 24" role="presentation">
                                                 <g fill="currentColor">
-                                                    <path d="M12 1C5.9225 1 1 5.9225 1 12C1 16.8675 4.14875 20.9787 8.52125 22.4362C9.07125 22.5325 9.2775 22.2025 9.2775 21.9137C9.2775 21.6525 9.26375 20.7862 9.26375 19.865C6.5 20.3737 5.785 19.1912 5.565 18.5725C5.44125 18.2562 4.905 17.28 4.4375 17.0187C4.0525 16.8125 3.5025 16.3037 4.42375 16.29C5.29 16.2762 5.90875 17.0875 6.115 17.4175C7.105 19.0812 8.68625 18.6137 9.31875 18.325C9.415 17.61 9.70375 17.1287 10.02 16.8537C7.5725 16.5787 5.015 15.63 5.015 11.4225C5.015 10.2262 5.44125 9.23625 6.1425 8.46625C6.0325 8.19125 5.6475 7.06375 6.2525 5.55125C6.2525 5.55125 7.17375 5.2625 9.2775 6.67875C10.1575 6.43125 11.0925 6.3075 12.0275 6.3075C12.9625 6.3075 13.8975 6.43125 14.7775 6.67875C16.8813 5.24875 17.8025 5.55125 17.8025 5.55125C18.4075 7.06375 18.0225 8.19125 17.9125 8.46625C18.6138 9.23625 19.04 10.2125 19.04 11.4225C19.04 15.6437 16.4688 16.5787 14.0213 16.8537C14.42 17.1975 14.7638 17.8575 14.7638 18.8887C14.7638 20.36 14.75 21.5425 14.75 21.9137C14.75 22.2025 14.9563 22.5462 15.5063 22.4362C19.8513 20.9787 23 16.8537 23 12C23 5.9225 18.0775 1 12 1Z"/>
+                                                    <path d="M12 1C5.923 1 1 5.923 1 12c0 4.867 3.149 8.979 7.521 10.436.55.096.756-.233.756-.522 0-.262-.013-1.128-.013-2.049-2.764.509-3.479-.674-3.699-1.292-.124-.317-.66-1.293-1.127-1.554-.385-.207-.936-.715-.014-.729.866-.014 1.485.797 1.691 1.128.99 1.663 2.571 1.196 3.204.907.096-.715.385-1.196.701-1.471-2.448-.275-5.005-1.224-5.005-5.432 0-1.196.426-2.186 1.128-2.956-.111-.275-.496-1.402.11-2.915 0 0 .921-.288 3.024 1.128a10.193 10.193 0 0 1 2.75-.371c.936 0 1.871.123 2.75.371 2.104-1.43 3.025-1.128 3.025-1.128.605 1.513.221 2.64.111 2.915.701.77 1.127 1.747 1.127 2.956 0 4.222-2.571 5.157-5.019 5.432.399.344.743 1.004.743 2.035 0 1.471-.014 2.654-.014 3.025 0 .289.206.632.756.522C19.851 20.979 23 16.854 23 12c0-6.077-4.922-11-11-11Z"/>
                                                 </g>
                                             </svg>
                                             <span>Source</span>
@@ -266,135 +262,36 @@
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="docs-sidebar-right-toggle"></div>
                                 <!-- Page content  -->
-<doc-anchor-target id="haplotagging-data" class="break-words">
+<doc-anchor-target id="input-data" class="break-words">
     <h1>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#haplotagging-data">#</doc-anchor-trigger>
-        <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0Zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5Z"/><path d="M0 13.75C0 12.784.784 12 1.75 12h3c.966 0 1.75.784 1.75 1.75v4a1.75 1.75 0 0 1-1.75 1.75h-3A1.75 1.75 0 0 1 0 17.75Zm1.75-.25a.25.25 0 0 0-.25.25v4c0 .138.112.25.25.25h3a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25ZM9 12a.75.75 0 0 0 0 1.5h1.5V18H9a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5H12v-5.25a.75.75 0 0 0-.75-.75H9Z"/></g></g></svg> Haplotagging data</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#input-data">#</doc-anchor-trigger>
+        <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M3 3a2 2 0 0 1 2-2h9.982a2 2 0 0 1 1.414.586l4.018 4.018A2 2 0 0 1 21 7.018V21a2 2 0 0 1-2 2H4.75a.75.75 0 0 1 0-1.5H19a.5.5 0 0 0 .5-.5V8.5h-4a2 2 0 0 1-2-2v-4H5a.5.5 0 0 0-.5.5v6.25a.75.75 0 0 1-1.5 0Zm12-.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 0-.146-.336l-4.018-4.018A.5.5 0 0 0 15 2.5Z"/><path d="M0 13.75C0 12.784.784 12 1.75 12h3c.966 0 1.75.784 1.75 1.75v4a1.75 1.75 0 0 1-1.75 1.75h-3A1.75 1.75 0 0 1 0 17.75Zm1.75-.25a.25.25 0 0 0-.25.25v4c0 .138.112.25.25.25h3a.25.25 0 0 0 .25-.25v-4a.25.25 0 0 0-.25-.25ZM9 12a.75.75 0 0 0 0 1.5h1.5V18H9a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5H12v-5.25a.75.75 0 0 0-.75-.75H9Z"/></g></g></svg> Input Data</span>
     </h1>
 </doc-anchor-target>
-<doc-anchor-target id="what-is-haplotagging">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#what-is-haplotagging">#</doc-anchor-trigger>
-        <span>What is haplotagging?</span>
-    </h2>
-</doc-anchor-target>
-<p>Linked-read sequencing exists to combine the throughput and accuracy of short-read
-sequencing with the long range haplotype information of long-read sequencing.
-Haplotagging is an implementation of linked-read sequencing developed by
-<a href="https://doi.org/10.1073/pnas.2015005118">Meier <em>et al.</em></a> to:</p>
-<ol>
-<li>sequence a large number of samples</li>
-<li>achieve high molecular resolution</li>
-<li>do both within a reasonable budget</li>
-</ol>
-<p>If you don&#x27;t have haplotagged data, you can simulate some and try it out! Otherwise, Harpy will likely be of little to no use to you. See the <a href="https://www.fml.tuebingen.mpg.de/9418/haplotagging">haplotagging site</a>
-for more information about haplotagging and why you might consider it for your study system.</p>
-<doc-anchor-target id="data-format">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#data-format">#</doc-anchor-trigger>
-        <span>Data Format</span>
-    </h2>
-</doc-anchor-target>
-<doc-anchor-target id="barcodes">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#barcodes">#</doc-anchor-trigger>
-        <span>Barcodes</span>
-    </h3>
-</doc-anchor-target>
-<p>While barcodes are actually combinatorial bases, in the read headers they are represented
-with the format <code v-pre>AxxCxxBxxDxx</code>, where each barcode segment is denoted as <code v-pre>Axx</code> (or <code v-pre>Bxx</code>, etc.).
-The capital letter denotes which preparation microwell plate the barcode segment is from (plate <code v-pre>A</code>, <code v-pre>B</code>, <code v-pre>C</code>, or <code v-pre>D</code>)
-and <code v-pre>xx</code> is a number between <code v-pre>00</code> and <code v-pre>96</code> corresponding to the well from that microplate.
-So, the <code v-pre>A14</code> segment would correspond with the barcode from Plate <code v-pre>A</code>, well <code v-pre>14</code>.
-A <code v-pre>00</code> barcode (e.g. <code v-pre>C00</code>) indicates a missing/invalid barcode segment, which invalidates the entire barcode.</p>
-<doc-anchor-target id="barcode-protocol-varieties">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#barcode-protocol-varieties">#</doc-anchor-trigger>
-        <span>barcode protocol varieties</span>
-    </h4>
-</doc-anchor-target>
-<p>If you think haplotagging is as simple as exactly <span class="math">96^4</span> unique barcodes, you would only be half-correct. The original haplotagging
-protocol in Meier <em>et al.</em> is good, but the authors (and others) have been working to improve this linked-read technology to improve
-things like reduce PCR duplicates, improve successful barcode sequencing and error correction, etc. As a result, a few updated variants
-of the beadtags will appear, each likely with their own way of properly demultiplexing the raw sequences. Harpy will aim to incorporate
-demultiplexing these beadtag variants as they become available.</p>
-<doc-anchor-target id="where-the-barcodes-go">
-    <h4>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#where-the-barcodes-go">#</doc-anchor-trigger>
-        <span>where the barcodes go</span>
-    </h4>
-</doc-anchor-target>
-<p>Chromium 10X linked-reads use a format where the barcode is the leading 16 bases
-of the forward (R1) read. However, haplotagging data <strong>does not use that format</strong> and many of the tools
-implemented in Harpy <strong>won&#x27;t work correctly</strong> with the 10X format. Once demultiplexed, haplotagging sequences should look
-like regular FASTQ files of inserts and the barcode is stored in a <code v-pre>BX:Z:AxxCxxBxxDxx</code> tag
-in the read header. Again, <strong>do not include the barcode in the sequence</strong>.</p>
-<doc-anchor-target id="read-headers">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#read-headers">#</doc-anchor-trigger>
-        <span>Read headers</span>
-    </h3>
-</doc-anchor-target>
-<p>Like mentioned, the haplotag barcode is expected to be stored in the <code v-pre>BX:Z:</code> tag in the
-read header. This information is retained through the various Harpy
-steps. An example read header could look like:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example valid read header</div>
-<pre class="language-none"><code v-pre class="language-none">@A00814:267:HTMH3DRXX:2:1101:4580:1000  RX:Z:GAAACGACCAACA+CGAACACGTTAGC    QX:Z:F,FFFFFFFFFFF+FF,FFF:FFFFFF   BX:Z:A02C01B11D46</code></pre>
-</doc-codeblock></div>
-<p>Notably, only the sequence ID (<code v-pre>@...</code>) and <code v-pre>BX:Z:</code> tag are actually required. In the example
-above, there are additional tags (<code v-pre>RX:Z:</code> and <code v-pre>QX:Z:</code>) which arent used by Harpy, but they
-conform to the <a href="https://samtools.github.io/hts-specs/SAMv1.pdf">SAM comment spec (section 1.5)</a>
-of <code v-pre>TAG:TYPE:VALUE</code>. The takeaway is that the <code v-pre>BX:Z:</code> tag can be anywhere in the read header
-after the sequence ID as long as any tags after it conform to the SAM spec <code v-pre>TAG:TYPE:VALUE</code> (see note).
-Read comments that aren&#x27;t following the <code v-pre>TAG:TYPE:VALUE</code> SAM spec may cause downstream errors.</p>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1 rounded-tl rounded-bl bg-yellow-500"></div>
-    <div class="flex w-full py-4 border border-l-0 border-gray-300 rounded-tr rounded-br doc-alert bg-white dark:bg-dark-700 dark:border-dark-700" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mb-px text-yellow-500" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>A caveat</h5>
-<p>The Leviathan structural variant caller expects the <code v-pre>BX:Z:</code> tag at the end of the alignment
-record, so if you intend on using that variant caller, you will need to make sure the <code v-pre>BX:Z:</code>
-tag is the last one in the <em>sequence alignment</em> (BAM file). If you use any method within
-<a href="../workflows/align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>harpy align</span>
-</a>, the <code v-pre>BX:Z:</code> tag is guaranteed to be at
-the end of the alignment record.</p>
-        </div>
-    </div>
-</div>
 <doc-anchor-target id="read-length">
-    <h3>
+    <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#read-length">#</doc-anchor-trigger>
         <span>Read length</span>
-    </h3>
+    </h2>
 </doc-anchor-target>
 <p>Reads must be at least 30 base pairs in length for alignment. By default, the <a href="../workflows/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-blue-600 bg-blue-100 border border-blue-100 hover:border-blue-300 dark:hover:bg-blue-200 transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>qc</span>
 </a> module removes reads &lt;30bp.</p>
 <doc-anchor-target id="compression">
-    <h3>
+    <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#compression">#</doc-anchor-trigger>
         <span>Compression</span>
-    </h3>
+    </h2>
 </doc-anchor-target>
 <p>Harpy generally doesn&#x27;t require the input sequences to be in gzipped/bgzipped format, but it&#x27;s good practice to compress your reads anyway.
 Compressed files are expected to end with the extension <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-green-700 bg-green-100 h-6 px-2 text-xs rounded-md">
     <span>.gz</span>
 </span>.</p>
 <doc-anchor-target id="naming-conventions">
-    <h3>
+    <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#naming-conventions">#</doc-anchor-trigger>
         <span>Naming conventions</span>
-    </h3>
+    </h2>
 </doc-anchor-target>
 <p>Unfortunately, there are many different ways of naming FASTQ files, which makes it
 difficult to accomodate every wacky iteration currently in circulation.
@@ -472,68 +369,6 @@ most common FASTQ naming styles are supported:</p>
 </ul>
 <p>You can also mix and match different formats and styles within a given directory, although again, <strong>this isn&#x27;t recommended</strong>.
 As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.</p>
-<doc-anchor-target id="barcode-thresholds">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#barcode-thresholds">#</doc-anchor-trigger>
-        <span>Barcode thresholds</span>
-    </h2>
-</doc-anchor-target>
-<p>By the nature of linked read technologies, there will (almost always) be more DNA fragments than unique barcodes for them. As a result,
-it&#x27;s common for barcodes to reappear in sequences. Rather than incorrectly assume that all sequences/alignments with the same barcode
-originated from the same orignal DNA molecule, linked-read aware programs include a threshold parameter to determine a &quot;cutoff&quot; distance
-between alignments with the same barcode. This parameter can be interpreted as &quot;if a barcode appears more than <code v-pre>X</code> base pairs away from the
-same barcode (on the same contig), then we&#x27;ll consider them as originating from different molecules.&quot; If this threshold is lower, then
-you are being more strict and indicating that alignments sharing barcodes must be closer together to be considered originating from the same
-DNA molecule. Conversely, a higher threshold indicates you are being more lax and indicating barcodes can be further away from each other
-and still be considered originating from the same DNA molecule. A threshold of 50kb-150kb is considered a decent balance, but you should choose
-larger/smaller values if you have evidence to support them.</p>
-<p><figure class="content-center">
-    <img src="../static/bc_threshold.png" alt="Molecule origin is determined by the distance between alignments with the same barcode relative to the specified threshold">
-    <figcaption class="caption">Molecule origin is determined by the distance between alignments with the same barcode relative to the specified threshold</figcaption>
-</figure>
-</p>
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable">
-<thead>
-<tr>
-<th style="text-align: left;">Alignment distance</th>
-<th style="text-align: left;">Inferred origin</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;">less than threshold</td>
-<td style="text-align: left;">same molecule</td>
-</tr>
-<tr>
-<td style="text-align: left;">greater than threshold</td>
-<td style="text-align: left;">different molecules</td>
-</tr>
-</tbody>
-</table>
-</div>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1 rounded-tl rounded-bl bg-yellow-500"></div>
-    <div class="flex w-full py-4 border border-l-0 border-gray-300 rounded-tr rounded-br doc-alert bg-white dark:bg-dark-700 dark:border-dark-700" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mb-px text-yellow-500" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>Potential SV detection obstruction</h5>
-<p>This kind of deconvolving method relies on alignment distances, which may worsen
-performance in finding structural variants larger than this threshold. For example,
-two reads originating from the same DNA molecule may have aligned quite far from each other
-due to mapping along the breakpoint of a very large inversion. If the inversion spans 3Mb,
-a barcode threshold of 100kb will likely incorrectly deconvolve the two reads and assume
-they shared a barcode by chance, which would hurt SV detection performance.</p>
-        </div>
-    </div>
-</div>
 
                                 
                                 <!-- Required only on API pages -->
@@ -541,28 +376,28 @@ they shared a barcode by chance, which would hurt SV detection performance.</p>
                             </div>
                             <footer class="clear-both">
                                 <div class="flex flex-wrap items-center justify-between mt-14">
-                                    <a class="my-2.5 inline-flex items-center text-sm whitespace-nowrap text-blue-500 dark:text-blue-400 hover:text-blue-700 hover:underline" href="https://github.com/pdimens/harpy/edit/docs/haplotagdata.md" target="_blank" rel="noopener">
+                                    <a class="my-2.5 inline-flex items-center text-sm whitespace-nowrap text-blue-500 dark:text-blue-400 hover:text-blue-700 hover:underline" href="https://github.com/pdimens/harpy/edit/docs/inputdata.md" target="_blank" rel="noopener">
                                         <svg class="mr-1.5" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M20 12c-.55 0-1 .45-1 1v7c0 .55-.45 1-1 1H4c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h7c.55 0 1-.45 1-1s-.45-1-1-1H4C2.35 3 1 4.35 1 6v14c0 1.65 1.35 3 3 3h14c1.65 0 3-1.35 3-3v-7c0-.55-.45-1-1-1z" /><path d="M22.21 1.79c-1.18-1.18-3.24-1.18-4.41 0l-9.5 9.5c-.13.13-.22.29-.26.46l-1 4c-.08.34.01.7.26.95.18.2.44.3.7.3.08 0 .16-.01.24-.03l4-1c.18-.04.34-.13.46-.26l9.5-9.5c1.22-1.22 1.22-3.2.01-4.42zm-1.42 3l-9.3 9.3-2.11.53.53-2.11 9.3-9.3c.42-.42 1.16-.42 1.59 0 .43.43.43 1.15-.01 1.58z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         <span>Edit this page</span>
                                     </a>
                                 </div>
                             
-                                <nav class="flex mt-14">
+                                <nav class="print:hidden flex mt-14">
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../development/">
+                                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                             <span>
                                                 <span class="block text-xs font-normal text-gray-400 dark:text-dark-400">Previous</span>
-                                                <span class="block mt-1">Development</span>
+                                                <span class="block mt-1">Home</span>
                                             </span>
                                         </a>
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../linked_read_data/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-blue-500 dark:text-blue-400 border border-gray-300 hover:border-gray-400 dark:border-dark-650 dark:hover:border-dark-450 rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../install/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-gray-400 dark:text-dark-400">Next</span>
-                                                <span class="block mt-1">Linked-​Read Data</span>
+                                                <span class="block mt-1">Install</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
@@ -571,13 +406,13 @@ they shared a barcode by chance, which would hurt SV detection performance.</p>
                             </footer>
                         </main>
                 
-                        <div class="border-t dark:border-dark-650 pt-6 mb-8">
-                            <footer class="flex flex-wrap items-center justify-between">
-                                <div>
+                        <div class="print:border-none border-t dark:border-dark-650 pt-6 mb-8">
+                            <footer class="flex flex-wrap items-center justify-between print:justify-center">
+                                <div class="print:hidden">
                                     <ul class="flex flex-wrap items-center text-sm">
                                     </ul>
                                 </div>
-                                <div class="docs-copyright py-2 text-gray-500 dark:text-dark-350 text-sm leading-relaxed"><p>© Copyright 2025. All rights reserved.</p></div>
+                                <div class="print:justify-center docs-copyright py-2 text-gray-500 dark:text-dark-350 text-sm leading-relaxed"><p>© Copyright 2025. All rights reserved.</p></div>
                             </footer>
                         </div>
                     </div>
@@ -606,6 +441,6 @@ they shared a barcode by chance, which would hurt SV detection performance.</p>
 
     <div id="docs-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Haplotagging Data", level: 1, icon: "file", hasPrism: false, hasMermaid: false, hasMath: true, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Input Data", level: 1, icon: "file", hasPrism: false, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
 </body>
 </html>
