@@ -483,7 +483,13 @@ list(
 ## Distdesc header
 
 ::: {.card title="Alignment Depth Distribution"}
-These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs. For visual clarity, the distributions are truncated at the 99% quantile, which is **`r q99`** for the alignments and **`r format(mol_q99, scientific = F)`** for the inferred molecules.
+These are the frequencies of interval coverage across all **`r windowskb` kilobase** intervals for all contigs. For visual clarity, 
+the distributions are truncated at the 99% quantile, which is **`r q99`** for the alignments and **`r format(mol_q99, scientific = F)
+`** for the inferred molecules. If the linked depth seems suspiciously high, then it's possible (or likely) that you have distant
+alignments sharing barcodes but don't actually originate from the same DNA molecule and instead share the barcode by chance. These
+are referred to by a handful of names like "barcode clashing" and can be remedied by deconvolution methods at the pre-
+or post-alignment stages. Additionally, many downstream linked-read softwares have internal deconvolution methods to account for 
+this, so it might not be something that needs addressing at this stage.
 
 ```{r depth_distribution}
 hs <- hist(tb$depth[tb$depth <= q99], breaks = 30, plot = F)
