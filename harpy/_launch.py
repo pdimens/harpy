@@ -24,25 +24,29 @@ def iserror(text):
 
 def highlight_params(text):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
-    if text.startswith("    jobid:"):
-        return text.replace("jobid:", "[bold default]jobid:[/]").rstrip()
-    if text.startswith("    input:"):
-        return text.replace("input:", "[bold default]input:[/]").rstrip()
-    if text.startswith("    output:"):
-        return text.replace("output:", "[bold default]output:[/]").rstrip()
-    if text.startswith("    log:"):
-        return text.replace("log:", "[bold default]log:[/]").rstrip()
-    if text.startswith("    conda-env:"):
-        return text.replace("conda-env:", "[bold default]conda-env:[/]").rstrip()
-    if text.startswith("    container:"):
-        return text.replace("container:", "[bold default]container:[/]").rstrip()
-    if text.startswith("    shell:"): 
-        return text.replace("shell:", "[bold default]shell:[/]").rstrip()
-    if text.startswith("    wildcards:"): 
-        return text.replace("wildcards:", "[bold default]wildcards:[/]").rstrip()
-    if text.startswith("    affected files:"): 
-        return text.replace("affected files:", "[bold default]affected files:[/]").rstrip()
-    return text.rstrip()
+    text = text.removeprefix("    ").rstrip()
+    test = text.lstrip()
+    if test.startswith("jobid:"):
+        return text.replace("jobid:", "[bold default]jobid:[/]")
+    if test.startswith("input:"):
+        return text.replace("input:", "[bold default]input:[/]")
+    if test.startswith("output:"):
+        return text.replace("output:", "[bold default]output:[/]")
+    if test.startswith("log:"):
+        return text.replace("log:", "[bold default]log:[/]")
+    if test.startswith("conda-env:"):
+        return text.replace("conda-env:", "[bold default]conda-env:[/]")
+    if test.startswith("container:"):
+        return text.replace("container:", "[bold default]container:[/]")
+    if test.startswith("shell:"): 
+        return text.replace("shell:", "[bold default]shell:[/]")
+    if test.startswith("wildcards:"): 
+        return text.replace("wildcards:", "[bold default]wildcards:[/]")
+    if test.startswith("affected files:"): 
+        return text.replace("affected files:", "[bold default]affected files:[/]")
+    if test.startswith("[") and text.endswith("]"):
+        return f"\n[blue]{text}[/]"
+    return text
 
 def purge_empty_logs(target_dir):
     """scan target_dir and remove empty files, then scan it again and remove empty directories"""
@@ -200,43 +204,43 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
                 if "Exception" in output or "Error" in output:
                     if output.startswith("CalledProcessError in file"):
-                        console.print("[yellow bold]" + output.rstrip().rstrip(":"), overflow = "ignore", crop = False)
+                        console.print("[yellow bold]\t" + output.rstrip().rstrip(":"), overflow = "ignore", crop = False)
                         # skip the Command source part
-                        while not output.startswith("["):
+                        while not output.strip().startswith("["):
                             output = process.stderr.readline()
-                        console.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
+                        console.print("\n[blue]" + output.strip(), overflow = "ignore", crop = False)
                         output = process.stderr.readline()
                         continue
                     else:
-                        console.print("[yellow bold]" + output.rstrip(), overflow = "ignore", crop = False)
+                        console.print("[yellow bold]" + output.strip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
                 if output.rstrip() == "Traceback (most recent call last):" :
                     while output.rstrip() != "snakemake.exceptions.SpawnedJobError":
                         output = process.stderr.readline()
                     output = process.stderr.readline()
-                if output.startswith("Logfile"):
+                if output.strip().startswith("Logfile"):
                     _log = output.rstrip().split()[1]
                     console.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
                     output = process.stderr.readline()
                     continue
-                if output.startswith("======"):
+                if output.strip().startswith("======"):
                     output = process.stderr.readline()
                     continue
                 if output.rstrip():
                     if output.lstrip().startswith("message:") or output.startswith("Finished jobid:") or output.rstrip().endswith(") done") or output.startswith("Removing output files of failed job"):
-                        output = process.stderr.readline()
+                        output = process.stderr.readline().strip()
                         continue
                     # handle errors in the python run blocks
                     if output.startswith("Exiting because a job execution failed. Look below for"):
                         while not output.startswith("[") and not output.rstrip().endswith("]"):
-                            output = process.stderr.readline()
+                            output = process.stderr.readline().lstrip()
                         console.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
-                        output = process.stderr.readline()
+                        output = process.stderr.readline().lstrip()
                         continue
                     if not output.startswith("Complete log"):
                         if output.startswith("[") and output.rstrip().endswith("]"):
-                            output = process.stderr.readline()
+                            output = process.stderr.readline().lstrip()
                             continue
                         if output.strip().startswith("processing file: ") and output.strip().endswith(".qmd"):
                             # make quarto error logs a little nicer by skipping progress
