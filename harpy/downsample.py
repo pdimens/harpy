@@ -3,7 +3,6 @@
 import os
 import re
 import sys
-from turtle import down
 import rich_click as click
 from ._cli_types_generic import convert_to_int, SnakemakeParams, HPCProfile
 from ._launch import launch_snakemake
