@@ -14,7 +14,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
         "align" : [
             "bioconda::bwa",
             "bioconda::ema",
-            "bioconda::samtools=1.20",
+            "bioconda::samtools=1.22",
             "bioconda::seqtk",
             "bioconda::strobealign",
             "bioconda::tabix",
@@ -74,7 +74,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::r-stitch>=1.7"
         ],
         "variants" : [
-            "bioconda::bcftools=1.20",
+            "bioconda::bcftools=1.22",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus"
