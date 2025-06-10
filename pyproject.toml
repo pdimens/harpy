@@ -23,10 +23,5 @@ harpy = ["**/*"]
 [project.scripts]
 harpy = "harpy.__main__:cli"
 
-[tool.setuptools_scm]
-find = {
-    "exclude": ["test/*", "deprecated/*", "resources/*", ".github/*"]
-}
-
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"
