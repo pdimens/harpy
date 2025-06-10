@@ -15,7 +15,7 @@ license = "GPL-3.0-or-later"
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["test*"]
+exclude = ["test*", "deprecated/*", "resources/*", ".github/*"]
 
 [tool.setuptools.package-data]
 harpy = ["**/*"]
