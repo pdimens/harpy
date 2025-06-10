@@ -48,9 +48,11 @@ docstring = {
 @click.option('-c','--molecule-coverage', help='mean percent coverage per molecule if <1, else mean number of reads per molecule', default=0.2, show_default=True, type=click.FloatRange(min=0.00001))
 @click.option('-m','--molecule-length', help='mean length of molecules in bp', show_default=True, default=80000, type=click.IntRange(min=50))
 @click.option('-n','--molecules-per', help='mean number of unrelated molecules per barcode, where a negative number (e.g. `-2`) will use a fixed number of unrelated molecules and a positive one will draw from a Normal distribution', default=2, show_default=True, type=int)
+@click.option('-s','--singletons', help='proportion of barcodes will only have a single read pair', default=0, show_default=True, type=click.FloatRange(0,1))
 # general
 @click.option('-o','--output-prefix', help='output file prefix', type = click.Path(exists = False, writable=True, resolve_path=True), default = "Simulate/linkedreads/SIM", show_default=True)
 @click.option('-O','--output-type', help='output format of FASTQ files', type = click.Choice(["10x", "stlfr", "standard", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-S','--seed', help='random seed for simulation', type=click.IntRange(min=1), default=None)
 @click.option('-t','--threads', help='number of threads to use for simulation', type = click.IntRange(1, 999, clamp = True), default=2, show_default=True)
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
@@ -59,7 +61,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('barcodes', type = Barcodes())
 @click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
-def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecules_per, snakemake, quiet, hpc, container, setup_only):
+def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
     """
     Create linked reads using genome haplotypes
 
@@ -109,20 +111,28 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     conda_envs = ["simulations"]
     configs = {
         "workflow" : workflow,
-        "read_coverage" : coverage,
-        "outer_distance" : distance,
-        "error_rate" :   error,
-        "length" :  length,
-        "stdev" : stdev,
         "output-prefix" : os.path.basename(output_prefix),
-        "lr-type" : lr_type,            
-        "output-type" : output_type if output_type else lr_type,
-        "molecule-coverage" : molecule_coverage,  
-        "molecule-length" : molecule_length,
-        "molecules-per" : molecules_per,   
-        "mutation" : mutation,
-        "indels" :  indels,
-        "extindels" : extindels,
+        "read_params": {
+            "read_coverage" : coverage,
+            "outer_distance" : distance,
+            "error_rate" :   error,
+            "length" :  length,
+            "stdev" : stdev
+        },
+        "variant_params":{
+            "mutation" : mutation,
+            "indels" :  indels,
+            "extindels" : extindels
+        },
+        "linked_read_params": {
+            "lr-type" : lr_type,            
+            "output-type" : output_type if output_type else lr_type,
+            "molecule-coverage" : molecule_coverage,  
+            "molecule-length" : molecule_length,
+            "molecules-per" : molecules_per,
+            "singletons": singletons,
+        },
+        "random_seed": seed,
         **({"regions":  regions} if regions else {}),
         "snakemake" : {
             "log" : sm_log,
