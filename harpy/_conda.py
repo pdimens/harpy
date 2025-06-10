@@ -14,7 +14,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
         "align" : [
             "bioconda::bwa",
             "bioconda::ema",
-            "bioconda::samtools=1.20",
+            "bioconda::samtools=1.22",
             "bioconda::seqtk",
             "bioconda::strobealign",
             "bioconda::tabix",
@@ -46,7 +46,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::falco=1.2.4",
             "bioconda::fastp",
             "bioconda::multiqc=1.28",
-            "bioconda::pysam=0.22",
+            "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution"
         ],
         "r" : [
@@ -63,7 +63,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "r::r-biocircos"
         ],
         "simulations" : [
-            "bioconda::mimick>=1.2",
+            "bioconda::mimick>=2",
             "bioconda::seqkit",
             "bioconda::simug>1.0.0",
         ],
@@ -71,10 +71,10 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::python=3"
         ],
         "stitch" : [
-            "bioconda::r-stitch>=1.7"
+            "bioconda::r-stitch>=1.8"
         ],
         "variants" : [
-            "bioconda::bcftools=1.20",
+            "bioconda::bcftools=1.22",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus"
