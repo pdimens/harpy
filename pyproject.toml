@@ -15,10 +15,10 @@ license = "GPL-3.0-or-later"
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["test"]
+exclude = ["test*"]
 
 [tool.setuptools.package-data]
-"*" = ["*.*"]
+harpy = ["**/*"]
 
 [project.scripts]
 harpy = "harpy.__main__:cli"
