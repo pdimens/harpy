@@ -76,8 +76,8 @@ jobs:
         id: harpybuild
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install dist/*.whl
+          python3 -m pip install --upgrade build && python3 -m build && \
+          pip install dist/*.whl && \
           resources/buildforCI.sh
 
   container:
