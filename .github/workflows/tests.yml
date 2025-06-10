@@ -169,13 +169,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: harpy demultiplex
         shell: micromamba-shell {0}
         run: |
@@ -209,13 +202,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: test validate fastq
         shell: micromamba-shell {0}
         run: |
@@ -255,13 +241,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: harpy qc
         shell: micromamba-shell {0}
         run: |
@@ -300,13 +279,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: harpy deconvolve
         shell: micromamba-shell {0}
         run: |
@@ -340,13 +312,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: test bwa
         shell: micromamba-shell {0}
         run: |
@@ -380,13 +345,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: test ema
         shell: micromamba-shell {0}
         run: |
@@ -420,13 +378,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: test strobealign
         shell: micromamba-shell {0}
         run: |
@@ -460,13 +411,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: snp mpileup
         shell: micromamba-shell {0}
         run: |
@@ -505,13 +449,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: snp freebayes
         shell: micromamba-shell {0}
         run: |
@@ -550,13 +487,6 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
       - name: impute
         shell: micromamba-shell {0}
         run: |
@@ -566,13 +496,13 @@ jobs:
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute
       - name: impute one region
         shell: micromamba-shell {0}
         if: always()
         run: |
-          harpy impute --quiet 2 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute
 
   phase:
@@ -602,13 +532,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+
       - name: phase
         shell: micromamba-shell {0}
         run: |
@@ -655,13 +579,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+
       - name: leviathan
         shell: micromamba-shell {0}
         run: |
@@ -701,13 +619,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+
       - name: naibr
         shell: micromamba-shell {0}
         run: |
@@ -759,13 +671,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+
       - name: simulate random snps/indels
         shell: micromamba-shell {0}
         run: |
@@ -824,24 +730,17 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+          create_simulation_data.py
+
       - name: simulate linked reads (random barcodes)
         shell: micromamba-shell {0}
         run: |
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 18,96 test/genome/genome*.fasta.gz && \
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 18,96 test.hap1.fa test.hap2.fa && \
           ls -lh Simulate/linkedreads
       - name: simulate linked reads (known barcodes)
         shell: micromamba-shell {0}
         run: |
-          haplotag_acbd.py .
-          cut -f2 segment_A.bc > hap.bc
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 2 hap.bc test/genome/genome*.fasta.gz && \
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 nucleotides.bc test.hap1.fa test.hap2.fa && \
           ls -lh Simulate/linkedreads
 
   assembly:
@@ -871,13 +770,7 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
-#      - name: Download Singularity Artifact
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity
+
       - name: test assembly
         shell: micromamba-shell {0}
         run: |
