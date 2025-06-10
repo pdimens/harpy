@@ -18,7 +18,7 @@ docstring = {
         "harpy impute": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--region", "--vcf-samples"],
+            "options": ["--extra-params", "--grid-size", "--region", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -34,6 +34,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-r', '--region', type = str, help = 'Specific region to impute')
+@click.option('-g', '--grid-size', show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -44,14 +45,15 @@ docstring = {
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
 @click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False, resolve_path=True), nargs=1)
 @click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
-def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
     
     Provide the parameter file followed by the input VCF and the input alignment files/directories (`.bam`) at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
     
-    Use `harpy template` to generate one and adjust it for your study.
+    Use `harpy template` to generate one and adjust it for your study. Set a `--grid-size` (in base pairs)
+    to significantly reduce computation time and memory usage at the cost of minor accuracy loss.
     The `--vcf-samples` option considers only the samples present in your input `VCF` file rather than all
     the samples identified in `INPUTS`. Use `--region` to only impute a specific genomic region, given as
     `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
@@ -102,6 +104,7 @@ def impute(parameters, vcf, inputs, output_dir, region, threads, vcf_samples, ex
         "samples_from_vcf" : vcf_samples,
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
+        "grid_size": grid_size,
         "stitch_parameters" : params,
         "inputs" : {
             "paramfile" : parameters,

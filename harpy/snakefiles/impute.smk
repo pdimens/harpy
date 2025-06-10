@@ -15,10 +15,11 @@ bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["inputs"]["variantfile"]
 paramfile     = config["inputs"]["paramfile"]
-region       = config.get("region", None)
+region        = config.get("region", None)
 skip_reports  = config["reports"]["skip"]
 stitch_params = config["stitch_parameters"]
 stitch_extra  = config.get("stitch_extra", "None")
+grid_size     = config["grid_size"]
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -33,6 +34,7 @@ else:
 
 # instantiate static STITCH arguments
 extraparams = {
+     **({"--gridWindowSize" : grid_size} if grid_size > 1 else {}),
     "--niterations" : 40,
     "--switchModelIteration" : 39,
     "--splitReadIterations" : "NA",
@@ -351,6 +353,8 @@ rule workflow_summary:
         stitch += "\t\tniterations = 40,\n"
         stitch += "\t\tswitchModelIteration = 39,\n"
         stitch += "\t\tsplitReadIterations = NA,\n"
+        if grid_size > 1:
+            stitch += f"\t\tgridWindowSize = {grid_size}\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
