@@ -256,15 +256,13 @@ rule concat_alignments:
         bai = "{sample}.bam.bai"
     log:
         "logs/concat/{sample}.concat.log"
-    threads:
-        2
     resources:
         mem_mb = 500
     container:
         None
     shell:
         """
-        samtools cat -@ 1 {input.aln_bc} {input.aln_nobc} |
+        samtools cat {input.aln_bc} {input.aln_nobc} |
             samtools sort -@ 1 -O bam --reference {input.genome} -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} - 2> {log}
         """
 
