@@ -80,12 +80,36 @@ jobs:
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
+
+  container:
+    needs: [changes, build]
+    if: ${{ needs.changes.outputs.environments == 'true' }}
+    name: Rebuild Container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Setup Mamba
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          init-shell: bash
+          generate-run-shell: true
+          environment-file: resources/harpy.yaml
+          cache-environment: true
+          post-cleanup: 'all'
+      - name: Install Harpy
+        id: harpybuild
+        shell: micromamba-shell {0}
+        run: |
+          python3 -m pip install --upgrade build && python3 -m build
+          pip install dist/*.whl
+          resources/buildforCI.sh
       - name: Clear Space
-        if: ${{ needs.changes.outputs.environments == 'true' && steps.harpybuild.outcome == 'success' }}
         uses: jlumbroso/free-disk-space@main
       - name: Rebuild Dockerfile
         id: rebuild
-        if: ${{ needs.changes.outputs.environments == 'true' && steps.harpybuild.outcome == 'success' }}
         shell: micromamba-shell {0}
         run: harpy containerize
       - name: Set up Docker Buildx
