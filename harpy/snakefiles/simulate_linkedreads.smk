@@ -6,7 +6,6 @@ import logging
 output_pref = config["output-prefix"]
 in_fasta = config["inputs"]["haplotypes"]
 in_bc = config["inputs"]["barcodes"]
-haps = [f"{i}".zfill(3) for i in range(1,len(in_fasta) + 1)]
 
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
@@ -16,7 +15,7 @@ rule simulate_reads:
     input:
         in_fasta
     output:
-        temp(collect(f"mimick/{output_pref}" + ".hap_{hap}.R{FR}.fq.gz", hap = haps, FR = [1,2]))
+        temp(collect(f"mimick/{output_pref}" + ".R{FR}.fq.gz", FR = [1,2]))
     log:
         "logs/mimick.simulation.log"        
     params:
@@ -44,13 +43,13 @@ rule simulate_reads:
 
 rule proper_pairing:
     input:
-        R1 = f"mimick/{output_pref}" + ".hap_{hap}.R1.fq.gz",
-        R2 = f"mimick/{output_pref}" + ".hap_{hap}.R2.fq.gz"
+        R1 = f"mimick/{output_pref}" + ".R1.fq.gz",
+        R2 = f"mimick/{output_pref}" + ".R2.fq.gz"
     output:
-        R1 = output_pref + ".hap_{hap}.R1.fq.gz",
-        R2 = output_pref + ".hap_{hap}.R2.fq.gz"
+        R1 = output_pref + ".R1.fq.gz",
+        R2 = output_pref + ".R2.fq.gz"
     log:
-        "logs/proper_pair.hap_{hap}.log"
+        "logs/proper_pair.log"
     params:
         "--id-regexp '^(\S+)\/[12]'",
         "--force",
@@ -59,16 +58,6 @@ rule proper_pairing:
         "envs/simulations.yaml"
     shell:
         "seqkit pair {params} -1 {input.R1} -2 {input.R2} 2> {log}"
-
-rule concatenate_haplotypes:
-    input:
-        collect(output_pref + ".hap_{hap}.R{{FR}}.fq.gz", hap = haps)
-    output:
-        output_pref + ".R{FR}.fq.gz"
-    container:
-        None
-    shell:
-        "cat {input} > {output}"
 
 rule workflow_summary:
     default_target: True

@@ -58,7 +58,7 @@ jobs:
 
   build:
     needs: changes
-    name: Build Harpy and Container
+    name: Build and Install Harpy
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
