@@ -15,7 +15,7 @@ license = "GPL-3.0-or-later"
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["test*", "deprecated/*", "resources/*", ".github/*"]
+exclude = ["test/*", "deprecated/*", "resources/*", ".github/*"]
 
 [tool.setuptools.package-data]
 harpy = ["**/*"]
@@ -24,6 +24,7 @@ harpy = ["**/*"]
 harpy = "harpy.__main__:cli"
 
 [tool.setuptools_scm]
+exclude = ["test/*", "deprecated/*", "resources/*", ".github/*"]
 
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"
