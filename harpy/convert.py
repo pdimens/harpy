@@ -12,7 +12,6 @@ import rich_click as click
 import pysam
 from ._misc import safe_read, harpy_pulsebar
 from ._convert import *
-from ._cli_types_generic import convert_to_int
 from ._printing import print_error
 from ._validations import validate_barcodefile
 
@@ -39,7 +38,7 @@ INVALID_TELLSEQ = "N" * 18
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `VX:i` to output')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
+@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
 def bam(to_,sam, standardize, quiet):
@@ -153,7 +152,7 @@ def bam(to_,sam, standardize, quiet):
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
+@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('fq1', metavar="R1_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
@@ -319,7 +318,7 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
         executor.submit(compress_fq, f"{output}.R2.fq")
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` `1` (all) or `2` (no) output')
+@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
 def standardize(sam, quiet):
     """

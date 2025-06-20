@@ -6,7 +6,6 @@ import sys
 import yaml
 import rich_click as click
 from ._conda import check_environments
-from ._cli_types_generic import convert_to_int
 from ._printing import print_error, workflow_info
 from ._launch import launch_snakemake
 from ._misc import snakemake_log, write_workflow_config
@@ -16,7 +15,7 @@ from ._conda import create_conda_recipes
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
 @click.option('-r', '--relative',  is_flag = True, default = False, help = 'Call Snakemake with relative paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
+@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
 def resume(directory, conda, relative, threads, quiet):
     """

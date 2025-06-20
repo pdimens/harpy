@@ -5,12 +5,6 @@ import yaml
 import click
 from pathlib import Path
 
-def convert_to_int(ctx, param, value):
-    # This function converts the string choice to an integer
-    if value is None:
-        return None
-    return int(value)
-
 class KParam(click.ParamType):
     """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""
     name = "k_param"

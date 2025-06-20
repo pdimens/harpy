@@ -4,7 +4,7 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import convert_to_int, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
 from ._cli_types_params import Barcodes
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
@@ -16,12 +16,12 @@ docstring = {
     "harpy simulate linkedreads": [
         {
             "name": "Read Simulation Parameters",
-            "options": ["--coverage","--distance","--error", "--length",  "--regions", "--stdev"],
+            "options": ["--circular", "--coverage","--distance","--error", "--length",  "--regions", "--stdev"],
             "panel_styles": {"border_style": "dim blue"}
         },
         {
             "name": "Linked Read Parameters",
-            "options": ["--lr-type", "--molecule-coverage", "--molecule-length", "--molecules-per"],
+            "options": ["--lr-type", "--molecule-attempts", "--molecule-coverage", "--molecule-length", "--molecules-per"],
             "panel_styles": {"border_style": "dim magenta"}
         },
         {
@@ -44,7 +44,9 @@ docstring = {
 @click.option('--regions', help='one or more regions to simulate, in BED format', type = click.Path(dir_okay=False, readable=True, resolve_path=True))
 @click.option('--stdev', help='standard deviation of --distance', default=50, show_default=True, type=click.IntRange(min=0))
 #Linked-read simulation
+@click.option('-C','--circular', is_flag= True, default = False, help = 'contigs are circular/prokaryotic')
 @click.option('-l', '--lr-type', help='type of linked-read experiment', default = "haplotagging", show_default=True, show_choices=True, type= click.Choice(["10x", "stlfr", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-a','--molecule-attempts', help='how many tries to create a molecule with <70% ambiguous bases', show_default=True, default=300, type=click.IntRange(min=5))
 @click.option('-c','--molecule-coverage', help='mean percent coverage per molecule if <1, else mean number of reads per molecule', default=0.2, show_default=True, type=click.FloatRange(min=0.00001))
 @click.option('-m','--molecule-length', help='mean length of molecules in bp', show_default=True, default=80000, type=click.IntRange(min=50))
 @click.option('-n','--molecules-per', help='mean number of unrelated molecules per barcode, where a negative number (e.g. `-2`) will use a fixed number of unrelated molecules and a positive one will draw from a Normal distribution', default=2, show_default=True, type=int)
@@ -57,11 +59,11 @@ docstring = {
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--quiet', show_default = True, default = "0", type = click.Choice(["0", "1", "2"]), callback = convert_to_int, help = '`0` all output, `1` show one progress bar, `2` no output')
+@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('barcodes', type = Barcodes())
 @click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
-def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,lr_type, molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
+def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,circular,lr_type, molecule_attempts,molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
     """
     Create linked reads using genome haplotypes
 
@@ -125,8 +127,10 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
             "extindels" : extindels
         },
         "linked_read_params": {
+            "circular": circular,
             "lr-type" : lr_type,            
             "output-type" : output_type if output_type else lr_type,
+            "molecule-attempts": molecule_attempts,
             "molecule-coverage" : molecule_coverage,  
             "molecule-length" : molecule_length,
             "molecules-per" : molecules_per,
