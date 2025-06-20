@@ -7,7 +7,7 @@
    viewBox="0 0 178.05201 64.737998"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4 (e7c3feb100, 2024-10-09)"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
    sodipodi:docname="linked_singletons.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -24,10 +24,10 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="1.2988636"
-     inkscape:cx="195.1706"
-     inkscape:cy="171.30359"
-     inkscape:window-width="1600"
-     inkscape:window-height="840"
+     inkscape:cx="287.17411"
+     inkscape:cy="171.68854"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -72,9 +72,9 @@
        style="font-size:37.8932px;font-family:'Montserrat Alternates';-inkscape-font-specification:'Montserrat Alternates, Normal';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect10);display:inline;fill:none;stroke:#000000;stroke-width:14.9594;stroke-linecap:square;stroke-linejoin:bevel;stroke-opacity:1;paint-order:fill markers stroke"><tspan
          x="229.73828"
          y="814.41333"
-         id="tspan2"><tspan
+         id="tspan4"><tspan
            dx="0 16.862463 25.653696 13.982643 22.887497 15.763512 19.969734 25.691566 11.709 9.9279938"
-           id="tspan1">Interval 1</tspan></tspan></text>
+           id="tspan3">Interval 1</tspan></tspan></text>
     <g
        id="g1"
        transform="translate(-4.8719134,7.4721196)">
@@ -296,7 +296,7 @@
          id="tspan31"
          style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:3.958"
          x="108.60215"
-         y="364.08606">nonsingletons</tspan></text>
+         y="364.08606">linked</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.1221px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
@@ -307,7 +307,7 @@
          id="tspan32"
          style="fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516"
          x="108.73419"
-         y="369.03918">barcodes appear more than once, aka &quot;linked&quot;</tspan></text>
+         y="369.03918">barcodes appear more than once, i.e. linked with other reads</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.1221px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#676767;fill-opacity:1;stroke:none;stroke-width:1.88516;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"

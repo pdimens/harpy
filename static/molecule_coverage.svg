@@ -7,7 +7,7 @@
    viewBox="0 0 212.27901 34.238998"
    version="1.1"
    id="svg1"
-   inkscape:version="1.4.1 (93de688d07, 2025-03-30)"
+   inkscape:version="1.4.2 (ebf0e940d0, 2025-05-08)"
    sodipodi:docname="molecule_coverage.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -23,11 +23,11 @@
      inkscape:pagecheckerboard="0"
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
-     inkscape:zoom="2.5977273"
-     inkscape:cx="228.27647"
-     inkscape:cy="-23.482065"
-     inkscape:window-width="1600"
-     inkscape:window-height="845"
+     inkscape:zoom="1.2988637"
+     inkscape:cx="309.50131"
+     inkscape:cy="-87.769028"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
@@ -57,11 +57,11 @@
        style="font-size:37.8932px;font-family:'Montserrat Alternates';-inkscape-font-specification:'Montserrat Alternates, Normal';text-align:center;writing-mode:lr-tb;direction:ltr;white-space:pre;shape-inside:url(#rect10);display:inline;fill:none;stroke:#000000;stroke-width:14.9594;stroke-linecap:square;stroke-linejoin:bevel;stroke-opacity:1;paint-order:fill markers stroke"><tspan
          x="229.73828"
          y="814.41333"
-         id="tspan2"><tspan
+         id="tspan4"><tspan
            dx="0 16.862463 25.653696 13.982643 22.887497 15.763512 19.969734 25.691566 11.709 9.9279938"
-           id="tspan1">Interval 1</tspan></tspan></text>
+           id="tspan3">Interval 1</tspan></tspan></text>
     <path
-       style="fill:none;stroke:#d6d6d6;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke"
+       style="fill:none;stroke:#679bbd;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-opacity:1;paint-order:fill markers stroke;fill-opacity:1"
        d="M 22.663418,329.28044 H 159.36891"
        id="path12-5"
        sodipodi:nodetypes="cc" />
@@ -93,13 +93,13 @@
          y="319.46848">linked reads</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#d6d6d6;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#679bbd;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
        x="-12.474023"
        y="331.65994"
        id="text25-1"><tspan
          sodipodi:role="line"
          id="tspan25-2"
-         style="fill:#d6d6d6;fill-opacity:1;stroke:none;stroke-width:3.958"
+         style="fill:#679bbd;fill-opacity:1;stroke:none;stroke-width:3.958"
          x="-12.474023"
          y="331.65994">inferred molecule</tspan></text>
     <text
@@ -148,26 +148,26 @@
          y="318.07852">100bp</tspan></text>
     <text
        xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.53402px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#6a6a6a;fill-opacity:1;stroke:none;stroke-width:0.199478;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.53402px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.199478;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke markers fill"
        x="91.032059"
        y="330.26999"
        id="text40"><tspan
          sodipodi:role="line"
          id="tspan40"
-         style="fill:#6a6a6a;fill-opacity:1;stroke:none;stroke-width:0.199478"
+         style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.199478"
          x="91.032059"
          y="330.26999">2000bp</tspan></text>
     <g
        id="g49">
       <text
          xml:space="preserve"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#717171;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.55505px;font-family:'URW Gothic';-inkscape-font-specification:'URW Gothic, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#679bbd;fill-opacity:1;stroke:none;stroke-width:3.95801;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:fill markers stroke"
          x="84.169327"
          y="344.15912"
          id="text41"><tspan
            sodipodi:role="line"
            id="tspan41"
-           style="fill:#717171;fill-opacity:1;stroke:none;stroke-width:3.958"
+           style="fill:#679bbd;fill-opacity:1;stroke:none;stroke-width:3.958"
            x="84.169327"
            y="344.15912">2000</tspan></text>
       <text
