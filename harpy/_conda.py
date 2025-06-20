@@ -64,7 +64,6 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
         ],
         "simulations" : [
             "bioconda::mimick>=2.2.2",
-            #"bioconda::seqkit",
             "bioconda::simug>1.0.0",
         ],
         "spades" : [
