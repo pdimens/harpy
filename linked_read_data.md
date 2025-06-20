@@ -35,7 +35,7 @@ is generally similar between non-10X linked-read technologies: a nucleotide barc
 to the read header under the `BX:Z` tag. The diagram below preserves the nucleotide barcode under the `OX:Z` tag and recodes
 it under `BX:Z` using the haplotagging "ACBD" segment-aware format, however it would also be valid to just keep the nucleotide
 barcode under `BX:Z`. Linked-read software is variable in its flexibility towards barcode formatting.
-![haplotagging linked read data before and after demultiplexing](/static/lr_conversion.png)
+![10X linked read data before and after demultiplexing](/static/lr_conversion.png)
 
 #### Deconvolution
 There are approaches to deconvolve linked read data (or "deconvolute", if you're indifferent to the burden of an extra syllable).
@@ -93,18 +93,19 @@ that only appears in one paired or unpaired read is a **singleton**, meaning it 
 having a linked-read barcode, the absence of other reads with the same barcode means the barcode information for that read (or read 
 pair) is mostly useless, aka it's just a plain-regular short read and can be used as such. Having <60% would be considered decent, 
 but you would want as few singletons as possible in a linked-read dataset. For perspective, if 90% of your reads were singletons, you 
-can think of that as "90% of your data aren't linked reads". There isn't yet a consensus for what
-to name the opposite, which is when a barcode is shared by more than one paired or unpaired read (a proper linked read), but our team 
-calls them **nonsingletons**. It's admittedly clunky and we are open to suggestions.
-![singletons and nonsingletons](/static/linked_singletons.svg)
+can think of that as "90% of your data aren't linked reads". The opposite of a singleton is when a barcode is shared by more than one
+paired or unpaired read, aka a linked read.
+![singletons and linked reads](/static/linked_singletons.svg)
 
 ## Linked Coverage
 Because of the "linked" component of linked-read data, we have an additional kind of sequence coverage
-to consider, which is **linked coverage**. Since linked-read barcodes preserve phase information, we can do an alternative kind of
+to consider, which is **linked coverage**. Since linked-read barcodes preserve long-distance information, we can do an alternative kind of
 coverage calculation where you pretend that all the sequences with a shared barcode are one big gapless sequence. If you use your 
 imagination that way, the name "synthetic long reads" begins to make more sense. Mathematically, the linked coverage (breadth and 
 depth) should always be higher than the coverage from just the alignments themselves, as gaps between linked reads are counted as 
-well.
+well. If you see that your linked depth is unusually high (e.g. the aligmment depth is 20 and linked depth is >1000), then it's
+very likely your have barcode clashing that has not been deconvoluted. In other words, reads from different DNA molecules that are
+sharing a barcode are mapped very far from each other and inflating the depth values for everything in between.
 ![linked depth](/static/linked_depth.svg)
 
 In real data, this actually looks very cool. Below is a graph from the per-sample alignment report Harpy generates. It's a circos 

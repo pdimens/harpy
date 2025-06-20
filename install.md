@@ -6,18 +6,19 @@ order: 100
 
 # :icon-desktop-download: Install Harpy
 === :icon-checklist: You will need one of either
-- [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html)
-  - if using conda, we strongly recommend using version `23.10` or later 
-  - if using mamba, replace `conda` with `mamba` in the instructions below
-- [pixi](https://prefix.dev/blog/pixi_a_fast_conda_alternative)
-  - relatively new kid on the block-- think of it as the next-gen of conda
-  - it's a little different, but it's _lightning fast_ and very sensible to use
+{.compact}
+| method                                                                                                                                                | considerations                                                                                                                                       |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html) | If using conda, we strongly recommend using version `23.10` or later. If using mamba, replace `conda` with `mamba` in the instructions below.        |
+| [pixi](https://prefix.dev/blog/pixi_a_fast_conda_alternative)                                                                                         | Relatively new kid on the block-- think of it as the next-gen of conda. It's a little different, but it's _lightning fast_ and very sensible to use. |
+| [docker](https://docs.docker.com/engine/install/)                                                                                                     | Clunkier to use, but best system compatibility and might be what your sysadmins prefer                                                               |
+
 ===
 
-Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy), which means you just need to have either  `conda` or `pixi` on your Linux-based 
-system to install it. This page details both the conda and pixi installation approaches.
+Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy), which means you just need to have either  `conda` or `pixi` (or `docker`) on your Unix-like 
+system to install it.
 
-## 🐍 Conda
++++ 🐍 Conda
 It's best to create a new environment for a harpy installation. The code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
 ```bash
 conda create -n harpy -c bioconda -c conda-forge harpy
@@ -56,30 +57,20 @@ conda update -c conda-forge bioconda::harpy
 ===
 
 ### ⚡ Conda Usage
-+++ Installed Globally
-
 Activate the conda environment with Harpy and call `harpy` or `harpy --help` on the command line to get started
 ```bash activate the environment
 conda activate harpy_env
-```
-```bash call harpy
-harpy
-```
 
-+++ Installed Locally
-Activate the conda environment with Harpy and call `harpy` or `harpy --help` on the command line to get started
-```bash activate the environment
+# or, if installed locally
 conda activate path/to/harpy_env
 ```
 
 ```bash call harpy
 harpy
 ```
-+++
 
-----
++++ 🌟 Pixi
 
-## 🌟 Pixi
 If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), you can
 install Harpy to be accessible in your PATH, i.e. a "global" installation:
 
@@ -105,39 +96,40 @@ pixi add harpy
 ==- ⬆️ updating harpy
 
 If installed via Pixi, you can update Harpy with `pixi update`:
-+++ global install
 ```bash
+# global install
 pixi global update harpy
-```
-+++ local install
-```bash
+
+# local install
 # project dir has the pixi.toml file
 cd path/to/projectdir
 pixi update harpy
 ```
-+++
 ===
 
 ### ⚡ Pixi Usage
-+++ Installed Globally
-If installed globally, just call `harpy` or `harpy --help` on the command line:
-```bash
+If installed globally, just call `harpy` or `harpy --help` on the command line, otherwise navigate to the directory with the pixi environment and call harpy from within it:
+```bash call harpy if installed globally
+# installed globally
 harpy
 ```
-+++ Installed Locally
-```bash Navigate to project directory
+```bash call harpy if installed locally
+# navigate to project directory
 cd path/to/workdir
-```
 
-Then:
-
-```bash call harpy from within pixi environment
+# activate the pixi environment and run harpy
 pixi shell
+harpy
 
-harpy --help
-```
-or
-```bash call harpy with pixi prefix
+# or prepend `pixi run` to it without activating the environment
 pixi run harpy
 ```
+
++++ 📦 Docker
+If you didn't know, packages on Bioconda are automatically built as containers too! So, if you're using docker, you can pull the Harpy container using:
+```bash pull harpy container
+docker pull quay.io/biocontainers/harpy
+```
+Then proceed to use containerized-Harpy however you are used to using containers on your system.
+
 +++
