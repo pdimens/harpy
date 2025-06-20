@@ -119,6 +119,13 @@ pixi update harpy
 
 </details>
 
+### 📦 Docker
+If you didn't know, packages on Bioconda are automatically built as containers too! So, if you're using docker, you can pull the Harpy container using:
+```bash
+docker pull quay.io/biocontainers/harpy
+```
+Then proceed to use containerized-Harpy however you are used to using containers on your system.
+
 ## ⚡ Usage
 Just call `harpy` or `harpy --help` on the command line to get started!
 ```bash
