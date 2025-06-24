@@ -740,7 +740,7 @@ jobs:
       - name: simulate linked reads (known barcodes)
         shell: micromamba-shell {0}
         run: |
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 -l tellseq nucleotides.bc test.hap1.fa test.hap2.fa && \
+          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 -x 1 nucleotides.bc test.hap1.fa test.hap2.fa && \
           ls -lh Simulate/linkedreads
 
   assembly:
