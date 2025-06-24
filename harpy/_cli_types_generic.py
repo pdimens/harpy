@@ -21,6 +21,27 @@ class KParam(click.ParamType):
         except ValueError:
             self.fail(f"{value} is not 'auto' or odd integers <128 separated by a comma.", param, ctx)
 
+class MultiInt(click.ParamType):
+    """A class for a click type which accepts n number of integers >0 separated by commas."""
+    name = "multi_int"
+    def __init__(self, n):
+        super().__init__()
+        self.n = n
+    def convert(self, value, param, ctx):
+        out = []
+        try:
+            parts = [i.strip() for i in value.split(',')]
+            if len(parts) > self.n:
+                raise ValueError
+            for i in parts:
+                i = int(i)
+                if i <= 0:
+                    raise ValueError
+                out.append(int(i))
+
+        except ValueError:
+            self.fail(f"{value} is not {self.n} integers separated by commas.", param, ctx)
+
 class ReadLengths(click.ParamType):
     """A class for a click type which accepts two integers, separated by a comma."""
     name = "readlengths"

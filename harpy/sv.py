@@ -5,7 +5,7 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
 from ._cli_types_params import LeviathanParams, NaibrParams
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
@@ -71,7 +71,7 @@ docstring = {
 @click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
 @click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-s', '--sharing-thresholds', type = click.IntRange(0,100, clamp = True), default = (95,95,95), nargs = 3, show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by spaces')
+@click.option('-s', '--sharing-thresholds', type = MultiInt(3), default = "95,95,95", show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants (no spaces)')
 @click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
@@ -94,7 +94,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
     Optionally specify `--populations` for population-pooled variant calling
     (**harpy template** can create that file). If you suspect Leviathan is missing certain variants
-    you expect to find, try lowering `--sharing-thresholds`, _e.g._ `95,95,95`. The thresholds don't
+    you expect to find, try lowering `--sharing-thresholds`, _e.g._ `90,90,90`. The thresholds don't
     have to be the same across the different size classes.
     """
     workflow = "sv_leviathan"
