@@ -41,6 +41,7 @@ class MultiInt(click.ParamType):
 
         except ValueError:
             self.fail(f"{value} is not {self.n} integers separated by commas.", param, ctx)
+        return out
 
 class ReadLengths(click.ParamType):
     """A class for a click type which accepts two integers, separated by a comma."""
