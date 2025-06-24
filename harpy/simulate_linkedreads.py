@@ -4,7 +4,7 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from ._cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
 from ._cli_types_params import Barcodes
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
@@ -16,12 +16,12 @@ docstring = {
     "harpy simulate linkedreads": [
         {
             "name": "Read Simulation Parameters",
-            "options": ["--coverage","--distance","--error", "--length",  "--regions", "--stdev"],
+            "options": ["--coverage","--distance","--error", "--lengths",  "--regions", "--stdev"],
             "panel_styles": {"border_style": "dim blue"}
         },
         {
             "name": "Linked Read Parameters",
-            "options": ["--circular", "--lr-type", "--molecule-attempts", "--molecule-coverage", "--molecule-length", "--molecules-per", "--singletons"],
+            "options": ["--circular", "--segments", "--molecule-attempts", "--molecule-coverage", "--molecule-length", "--molecules-per", "--singletons"],
             "panel_styles": {"border_style": "dim magenta"}
         },
         {
@@ -39,13 +39,13 @@ docstring = {
 @click.option('--error', help='base error rate', default=0.02, show_default=True, type=click.FloatRange(min=0, max=1))
 @click.option('--extindels', help='indels extension rate', default=0, hidden=True, type=click.FloatRange(min=0, max=1))
 @click.option('--indels', help='indels rate', default=0, hidden=True, type=click.FloatRange(min=0, max=1))
-@click.option('--length', help='length of reads in bp', default=150, show_default=True, type=click.IntRange(min=30))
+@click.option('--lengths', help='length of R1,R2 reads in bp', default="150,150", show_default=True, type=ReadLengths())
 @click.option('--mutation', help='mutation rate', default=0, hidden=True, type=click.FloatRange(min=0))
 @click.option('--regions', help='one or more regions to simulate, in BED format', type = click.Path(dir_okay=False, readable=True, resolve_path=True))
 @click.option('--stdev', help='standard deviation for `--distance`', default=50, show_default=True, type=click.IntRange(min=0))
 #Linked-read simulation
 @click.option('-C','--circular', is_flag= True, default = False, help = 'contigs are circular/prokaryotic')
-@click.option('-l', '--lr-type', help='type of linked-read experiment', default = "haplotagging", show_default=True, show_choices=True, type= click.Choice(["10x", "stlfr", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-x', '--segments', help='treat barcodes as combinatorial with this many segments', default = 4, show_default=True, type= click.IntRange(min=1))
 @click.option('-a','--molecule-attempts', help='how many tries to create a molecule with <70% ambiguous bases', show_default=True, default=300, type=click.IntRange(min=5))
 @click.option('-c','--molecule-coverage', help='mean percent coverage per molecule if <1, else mean number of reads per molecule', default=0.2, show_default=True, type=click.FloatRange(min=0.00001))
 @click.option('-m','--molecule-length', help='mean length of molecules in bp', show_default=True, default=80000, type=click.IntRange(min=50))
@@ -53,7 +53,7 @@ docstring = {
 @click.option('-s','--singletons', help='proportion of barcodes that will only have one read pair', default=0, show_default=True, type=click.FloatRange(0,1))
 # general
 @click.option('-o','--output-prefix', help='output file prefix', type = click.Path(exists = False, writable=True, resolve_path=True), default = "Simulate/linkedreads/SIM", show_default=True)
-@click.option('-O','--output-type', help='FASTQ output format', type = click.Choice(["10x", "stlfr", "standard", "haplotagging", "tellseq"], case_sensitive=False))
+@click.option('-O','--output-type', help='FASTQ output format', type = click.Choice(["10x", "stlfr", "standard", "standard:haplotagging", "standard:stlfr", "haplotagging", "tellseq"], case_sensitive=False))
 @click.option('-S','--seed', help='random seed for simulation', type=click.IntRange(min=1), default=None)
 @click.option('-t','--threads', help='number of threads to use for simulation', type = click.IntRange(1, 999, clamp = True), default=2, show_default=True)
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -63,16 +63,31 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('barcodes', type = Barcodes())
 @click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
-def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,length,mutation,stdev,circular,lr_type, molecule_attempts,molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
+def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,lengths,mutation,stdev,circular,segments, molecule_attempts,molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
     """
     Create linked reads using genome haplotypes
 
     This workflow is a very thin veneer to use `Mimick` with mutations (SNPs and indels) deactivated.
-    For all the features, you are encouraged to install `Mimick` from Bioconda and use it directly. You may specify the
-    linked-read barcode chemistry to simulate via `--lr-type` as well as the `--output-type` of FASTQ files (default: same as `lr-type`). See the
-    [Mimick documentation](https://pdimens.github.io/mimick/#/data_formats) for a thorough explanation of the chemistries
-    and output formats. Input barcodes can be supplied one of two ways:
+    For all the features, you are encouraged to install `Mimick` from Bioconda and use it directly.
+    In addition to selecting an `--output-type` (default varies by `-x`), barcodes can be parsed absolutely or you can specify the
+    linked-read barcode type using `-x/--segments`. For example, to simulate the common 4-segment haplotagging style:
+    ```
+    harpy simulate linkedreads -x 4 -O haplotagging 6,96 hap.{1..2}.fa
+    ```
+    
+    The `standard` output type can be suffixed with `:haplotagging` or `:stlfr` to use those barcode styles with the standard format
+    (e.g. `standard:haplotagging`). See the [Mimick documentation](https://pdimens.github.io/mimick/#/data_formats)
+    for a thorough explanation of the chemistries and output formats.
+    Configurations for the common linked-read varieties: 
+
+    | chemistry    | `--segments` | `--lengths` | `--output-type` default |
+    |:-------------|:------------:|:-----------:|:------------------------|
+    | 10x          |     `1`      |  `134,150`  | `tellseq`               |
+    | tellseq      |     `1`      |  `132,150`  | `tellseq`               |
+    | haplotagging |     `4`      |  `150,150`  | `standard:haplotagging` |
+    | stlfr        |     `3`      |  `150,108`  | `stlfr`                 |
    
+    Input barcodes can be supplied one of two ways:
     1. randomly generate barcodes based on a specification of `length,count`
         - two integers, comma-separated, no space
         - e.g. `16,400000` would generate 400,000 unique 16bp barcodes 
@@ -81,6 +96,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         ATGCAGGA
         GGAGGACT
         ```
+
     """
     workflow = "simulate_linkedreads"
     output_dir = os.path.dirname(output_prefix)
@@ -109,7 +125,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
             "read_coverage" : coverage,
             "outer_distance" : distance,
             "error_rate" :   error,
-            "length" :  length,
+            "lengths" :  lengths,
             "stdev" : stdev
         },
         "variant_params":{
@@ -119,8 +135,8 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         },
         "linked_read_params": {
             "circular": circular,
-            "lr-type" : lr_type,            
-            "output-type" : output_type if output_type else lr_type,
+            "segments" : segments,            
+            "output-type" : output_type if output_type else None,
             "molecule-attempts": molecule_attempts,
             "molecule-coverage" : molecule_coverage,  
             "molecule-length" : molecule_length,

@@ -192,8 +192,8 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     _command = []
     _command.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workflowdir, "workflow.smk")]))
     #command = f"snakemake --cores {threads} --snakefile {workflowdir}/workflow.smk"
-    _command.append(" ".join(["--configfile", os.path.join(workflowdir, "config.harpy.yaml"), "--profile", workflowdir]))
-    #command += f" --configfile {workflowdir}/config.harpy.yaml --profile {workflowdir}"
+    _command.append(" ".join(["--configfile", os.path.join(workflowdir, "workflow.yaml"), "--profile", workflowdir]))
+    #command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         hpc_dir = os.path.join(workflowdir, "hpc")
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
@@ -206,7 +206,7 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     workdir_rel = os.path.relpath(workflowdir)
     _command_rel = []
     _command_rel.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]))
-    _command_rel.append(" ".join([" --configfile", os.path.join(workdir_rel, "config.harpy.yaml"),"--profile", workdir_rel]))
+    _command_rel.append(" ".join([" --configfile", os.path.join(workdir_rel, "workflow.yaml"),"--profile", workdir_rel]))
     if hpc:
         hpc_dir = os.path.join(workdir_rel, "hpc")
         os.makedirs(hpc_dir, exist_ok=True)
@@ -228,7 +228,7 @@ def write_workflow_config(configs: dict, outdir: str) -> None:
     workdir = f"{outdir}/workflow"
     if not os.path.exists(workdir):
         os.makedirs(workdir, exist_ok=True)
-    with open(os.path.join(workdir, 'config.harpy.yaml'), "w", encoding="utf-8") as config:
+    with open(os.path.join(workdir, 'workflow.yaml'), "w", encoding="utf-8") as config:
         yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
 def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False) -> tuple[str,str]:

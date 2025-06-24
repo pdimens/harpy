@@ -9,6 +9,7 @@ from pygments import highlight
 from pygments.lexers import YamlLexer
 from click import echo_via_pager
 import rich_click as click
+from rich.console import Console
 from rich.panel import Panel
 from rich import print as rprint
 from ._printing import print_error
@@ -87,7 +88,7 @@ def config(directory):
     
     The workflow config file has all of the parameters and user inputs that went into the workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/config.harpy.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
+    `workflow/workflow.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -97,8 +98,8 @@ def config(directory):
     | `q`                     | exit                       |
     """
     err_dir = os.path.join(directory, "workflow")
-    target_file = os.path.join(err_dir, "config.harpy.yaml")
-    err_file = "There is no [blue]config.harpy.yaml[/] file"
+    target_file = os.path.join(err_dir, "workflow.yaml")
+    err_file = "There is no [blue]workflow.yaml[/] file"
     if not os.path.exists(err_dir):
         print_error(
             "directory not found", 
@@ -148,6 +149,8 @@ def environments(program):
             f"No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
         sys.exit(1)
+    console = Console()
+
     for i in files:
         deps = ""
         with open(i, "r") as file:
@@ -159,14 +162,15 @@ def environments(program):
                 if not skip:
                     dep = line.split("::")[-1].rstrip()
                     deps += f" {dep.rstrip()}"
-                    #rprint(f"  - [default]{dep.rstrip()}")
         if (program and program.lower() in deps) or not program:
-            rprint(f"\n[blue bold]{i.removesuffix('.yaml')}[/]")
+            console.print()
+            console.rule(i.removesuffix('.yaml'), style = "blue")
             for d in deps.split():
                 if program and program.lower() in d:
-                    rprint(f"[bold green]  →  {d}")
+                    console.print(f"→ {d}", style = "bold green")
                 else:
-                    rprint(f"[default]  -  {d}")
+                    console.print(f"- {d}", style = "default", highlight=False)
+            console.print()
     return
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
@@ -262,7 +266,7 @@ def snakefile(directory):
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory):
     """
-    View a workflow's snakemake parameter file
+    View a workflow's snakemake config file
     
     The snakemake parameter file file has the runtime parameters snakemake was invoked with.
     The only required input is the output folder designated in a previous Harpy run, where you can find

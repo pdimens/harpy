@@ -10,6 +10,7 @@ read_params = config["read_params"]
 lr_params = config["linked_read_params"]
 variant_params = config["variant_params"]
 circular = '-C' if lr_params["circular"] else ''
+out_type = f'-O {lr_params["output-type"]}' if lr_params.get('output-type', None) else ''
 seed = config.get("random_seed", None)
 onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
@@ -26,9 +27,9 @@ rule simulate_reads:
         f'--coverage {read_params["read_coverage"]}',
         f'--distance {read_params["outer_distance"]}',
         f'--error {read_params["error_rate"]}',
-        f'--length {read_params["length"]}',
+        f'--lengths {read_params["lengths"]}',
         f'--stdev {read_params["stdev"]}',
-        f'-l {lr_params["lr-type"]}',
+        f'-x {lr_params["segments"]}',
         f'-a {lr_params["molecule-attempts"]}',
         f'-c {lr_params["molecule-coverage"]}',
         circular,
@@ -40,7 +41,7 @@ rule simulate_reads:
         f'--indels {variant_params["indels"]}',
         f'--extindels {variant_params["extindels"]}',
         f'-o {config["output-prefix"]}',
-        f'-O {lr_params["output-type"]}',
+        out_type,
         bc = in_bc
     threads:
         workflow.cores
@@ -57,9 +58,9 @@ rule workflow_summary:
         f'--coverage {read_params["read_coverage"]}',
         f'--distance {read_params["outer_distance"]}',
         f'--error {read_params["error_rate"]}',
-        f'--length {read_params["length"]}',
+        f'--lengths {read_params["lengths"]}',
         f'--stdev {read_params["stdev"]}',
-        f'-l {lr_params["lr-type"]}',
+        f'-x {lr_params["segments"]}',
         f'-a {lr_params["molecule-attempts"]}',
         f'-c {lr_params["molecule-coverage"]}',
         circular,
@@ -71,7 +72,7 @@ rule workflow_summary:
         f'--indels {variant_params["indels"]}',
         f'--extindels {variant_params["extindels"]}',
         f'-o {config["output-prefix"]}',
-        f'-O {lr_params["output-type"]}',
+        out_type,
         bc = in_bc
     run:
         summary = ["The harpy simulate linkedreads workflow ran using these parameters:"]

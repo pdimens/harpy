@@ -34,11 +34,11 @@ def resume(directory, conda, relative, threads, quiet):
     if not os.path.exists(f"{directory}/workflow/config.yaml"):
         print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)
-    if not os.path.exists(f"{directory}/workflow/config.harpy.yaml"):
-        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.harpy.yaml[/]")
+    if not os.path.exists(f"{directory}/workflow/workflow.yaml"):
+        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         sys.exit(1)
     
-    with open(f"{directory}/workflow/config.harpy.yaml", 'r', encoding="utf-8") as f:
+    with open(f"{directory}/workflow/workflow.yaml", 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     conda_envs = harpy_config["conda_environments"] 
     if conda:
@@ -58,10 +58,6 @@ def resume(directory, conda, relative, threads, quiet):
         command = re.sub(r"--cores \d+", f"--cores {threads}", command)
     start_text = workflow_info(
         ("Workflow:", workflow.replace("_", " ")),
-        ("Output Folder:", directory + "/"),
-        ("Workflow Log:", sm_log.replace(f"{directory}/", "") + "[dim].gz")
+        ("Output Folder:", directory + "/")
     )
     launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
-
-
-
