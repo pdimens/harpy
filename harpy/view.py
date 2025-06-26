@@ -76,26 +76,20 @@ def view():
     """
     View a workflow's components
 
-    These convenient commands let you view the latest workflow log file, snakefile, snakemake parameter
+    These convenient commands let you view/edit the latest workflow log file, snakefile, snakemake parameter
     file, workflow config file in a directory that was used for the output of a Harpy run.
     """
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def config(directory):
+def config(directory, edit):
     """
-    View a workflow's config file
+    View/edit a workflow's config file
     
     The workflow config file has all of the parameters and user inputs that went into the workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/workflow.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
-    
-    | key                     | function                   |
-    | :---------------------- | :------------------------- |
-    | `Up/Down` arrow         | scroll up/down             |
-    | `Page Up/Down`          | faster up/down scrolling   |
-    | `/` + `pattern`         | search for `pattern`       |
-    | `q`                     | exit                       |
+    `workflow/workflow.yaml`.
     """
     err_dir = os.path.join(directory, "workflow")
     target_file = os.path.join(err_dir, "workflow.yaml")
@@ -112,7 +106,10 @@ def config(directory):
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
-    parse_file(target_file)
+    if edit:
+        click.edit(filename = target_file, extension = "yaml")
+    else:
+        parse_file(target_file)
     rprint(
         Panel(
             target_file,
@@ -190,8 +187,6 @@ def log(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    files = [i for i in glob.iglob(f"{directory}/logs/snakemake/*.log*")]
-    target_file = sorted(files, key = os.path.getmtime)[-1]
     err_dir = os.path.join(directory, "logs", "snakemake")
     err_file = "There are no log files"
     if not os.path.exists(err_dir):
@@ -200,12 +195,14 @@ def log(directory):
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
         sys.exit(1)
-    elif not files:
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    if not files:
         print_error(
             "files not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
         sys.exit(1)
+    target_file = sorted(files, key = os.path.getmtime)[-1]
     parse_file(target_file)
     rprint(
         Panel(
@@ -219,21 +216,15 @@ def log(directory):
     )
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def snakefile(directory):
+def snakefile(directory, edit):
     """
-    View a workflow's snakefile
+    View/edit a workflow's snakefile
     
     The snakefile contains all the instructions for a workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/workflow.smk`. Navigate with the typical `less` keyboard bindings, e.g.:
-    
-    | key                     | function                   |
-    | :---------------------- | :------------------------- |
-    | `Up/Down` arrow         | scroll up/down             |
-    | `Page Up/Down`          | faster up/down scrolling   |
-    | `/` + `pattern`         | search for `pattern`       |
-    | `q`                     | exit                       |
+    `workflow/workflow.smk`.
     """
     workdir = os.path.join(directory, "workflow")
     if not os.path.exists(workdir):
@@ -250,7 +241,10 @@ def snakefile(directory):
             f"[blue]{target_file}[/] was not found. Please check that you are looking in the correct folder."
         )
         sys.exit(1)
-    parse_file(target_file)
+    if edit:
+        click.edit(filename = target_file, extension = "yaml")
+    else:
+        parse_file(target_file)
     rprint(
         Panel(
             target_file,
@@ -263,21 +257,15 @@ def snakefile(directory):
     )
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def snakeparams(directory):
+def snakeparams(directory, edit):
     """
-    View a workflow's snakemake config file
+    View/edit a workflow's snakemake configurations
     
-    The snakemake parameter file file has the runtime parameters snakemake was invoked with.
+    The snakemake configuration file file has the runtime parameters snakemake was invoked with.
     The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/config.yaml`. Navigate with the typical `less` keyboard bindings, e.g.:
-    
-    | key                     | function                   |
-    | :---------------------- | :------------------------- |
-    | `Up/Down` arrow         | scroll up/down             |
-    | `Page Up/Down`          | faster up/down scrolling   |
-    | `/` + `pattern`         | search for `pattern`       |
-    | `q`                     | exit                       |
+    `workflow/config.yaml`.
     """
     err_dir = os.path.join(directory, "workflow")
     target_file = os.path.join(err_dir, "config.yaml")
@@ -294,7 +282,10 @@ def snakeparams(directory):
             f"{err_file} in [blue]{err_dir}[/]. Please check that you are looking in the the correct folder."
         )
         sys.exit(1)
-    parse_file(target_file)
+    if edit:
+        click.edit(filename = target_file, extension = "yaml")
+    else:
+        parse_file(target_file)
     rprint(
         Panel(
             target_file,
