@@ -24,26 +24,27 @@ class KParam(click.ParamType):
 class MultiInt(click.ParamType):
     """A class for a click type which accepts n number of integers >0 separated by commas."""
     name = "multi_int"
-    def __init__(self, n, _max = None):
+    def __init__(self, n: int, maximum = None, minimum = 0):
         super().__init__()
         self.n = n
-        self.max = _max
+        self.max = maximum
+        self.min = minimum
     def convert(self, value, param, ctx):
         out = []
-        try:
-            parts = [i.strip() for i in value.split(',')]
-            if len(parts) > self.n:
-                raise ValueError
-            for i in parts:
+        parts = [i.strip() for i in value.split(',')]
+        if len(parts) > self.n:
+            self.fail(f"{value} is not {self.n} integers >{self.min} and separated by commas.", param, ctx)
+        for i in parts:
+            try:
                 i = int(i)
-                if i <= 0:
-                    raise ValueError
-                if self.max and i > self.max:
-                    self.fail(f"All input values must be less than {self.max}", param, ctx)
-                out.append(int(i))
+            except ValueError:
+                self.fail(f"{i} is not an integer.", param, ctx)
+            if i < self.min:
+                self.fail(f"All input values must be {self.min} or greater.", param, ctx)
+            if self.max and i > self.max:
+                self.fail(f"All input values must be {self.max} or less.", param, ctx)
+            out.append(int(i))
 
-        except ValueError:
-            self.fail(f"{value} is not {self.n} integers >0 and separated by commas.", param, ctx)
         return out
 
 class ReadLengths(click.ParamType):
