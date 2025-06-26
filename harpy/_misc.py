@@ -17,7 +17,7 @@ from rich.console import Console
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from ._printing import print_error, print_solution
+from ._printing import print_error, print_solution, print_solution_with_culprits
 
 _STDERR_CONSOLE = Console(file=sys.stderr)
 
@@ -173,6 +173,24 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     Sets up the snakemake command based on hpc, threads, and extra snakemake params.
     Returns the command with which to launch snakemake, one with absolute paths and another with relative paths.
     """
+    badpath = []
+    patherr = False
+    for i in outdir.split("/"):
+        if " " in i:
+            patherr = True
+            badpath.append(f"[red]{i}[/]")
+        else:
+            badpath.append(i)
+    if patherr:
+        formatted_path = "/".join(badpath)
+        print_error(
+            "unsupported path name",
+            "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors."
+        )
+        print_solution(
+            f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
+        )
+        sys.exit(1)     
     profile = {
         "rerun-incomplete": True,
         "show-failed-logs": True,

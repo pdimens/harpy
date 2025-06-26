@@ -8,7 +8,7 @@ import rich_click as click
 from ._conda import create_conda_recipes
 from ._launch import launch_snakemake
 from ._misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
-from ._cli_types_generic import HPCProfile, SnakemakeParams
+from ._cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
 from ._cli_types_params import FastpParams
 from ._misc import filepath
 from ._parsers import parse_fastq_inputs
@@ -31,11 +31,11 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
-@click.option('-c', '--deconvolve', type = click.IntRange(0,100, clamp = True), nargs=4, help = "`k` `w` `d` `a` QuickDeconvolution parameters")
+@click.option('-c', '--deconvolve', type = MultiInt(4), help = "`k` `w` `d` `a` QuickDeconvolution parameters")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
-@click.option('-M', '--max-length', default = 150, show_default = True, type=int, help = 'Maximum length to trim sequences down to')
-@click.option('-m', '--min-length', default = 30, show_default = True, type=int, help = 'Discard reads shorter than this length')
+@click.option('-M', '--max-length', default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')
+@click.option('-m', '--min-length', default = 30, show_default = True, type=click.IntRange(min = 5), help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
@@ -86,7 +86,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     command, command_rel = setup_snakemake(
         workflow,
         "conda" if not container else "conda apptainer",
-        output_dir,
+        os.path.defpath(output_dir),
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
