@@ -128,8 +128,7 @@ def environments(program):
     View the Snakemake-managed conda environments
 
     This convenience command will print the main information of the conda environment recipes within
-    `.environments/`. This is useful in situations when troubleshooting requires you to enter
-    a specific conda environment, but you aren't sure which because Snakemake renames them with hashes.
+    `.environments/`, which can be useful when troubleshooting requires you to enter a specific conda environment.
     Optionally provide the name of a `PROGRAM` (or partial name, case insensitive) to only return the environments that
     contain that program (e.g. `leviath` would match `leviathan`).
     """
@@ -177,7 +176,7 @@ def log(directory):
     View a workflow's last log file
     
     The log file contains everything Snakemake printed during runtime.
-    The only required input is the output folder designated in a previous Harpy run, where you can find
+    The only required input is the output folder previously created by Harpy where you can find
     `logs/snakemake/`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
@@ -222,9 +221,8 @@ def snakefile(directory, edit):
     """
     View/edit a workflow's snakefile
     
-    The snakefile contains all the instructions for a workflow.
-    The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/workflow.smk`.
+    The snakefile contains all the instructions for a workflow. The only required input is the output folder
+    previously created by Harpy where you can find `workflow/workflow.smk`.
     """
     workdir = os.path.join(directory, "workflow")
     if not os.path.exists(workdir):
@@ -263,9 +261,9 @@ def snakeparams(directory, edit):
     """
     View/edit a workflow's snakemake configurations
     
-    The snakemake configuration file file has the runtime parameters snakemake was invoked with.
-    The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/config.yaml`.
+    The snakemake configuration file has the runtime parameters snakemake was invoked with (i.e.,
+    computational specifics that don't impact your results). The only required input is the output folder
+    previously created by Harpy where you can find `workflow/config.yaml`.
     """
     err_dir = os.path.join(directory, "workflow")
     target_file = os.path.join(err_dir, "config.yaml")
