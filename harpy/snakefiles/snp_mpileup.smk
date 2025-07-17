@@ -274,7 +274,7 @@ rule workflow_summary:
         merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
         summary.append(merged)
         normalize = "The variants were normalized using:\n"
-        normalize += "\tbcftools norm -m -both -d both"
+        normalize += "\tbcftools norm -m -both -d both -c w"
         summary.append(normalize)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
