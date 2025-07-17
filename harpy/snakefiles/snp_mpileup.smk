@@ -181,7 +181,7 @@ rule sort_variants:
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
-rule indel_realign:
+rule realign_indels:
     input:
         genome  = workflow_geno,
         bcf     = "variants.raw.bcf",
@@ -191,12 +191,14 @@ rule indel_realign:
         idx = "variants.normalized.bcf.csi"
     log:
         "logs/variants.normalized.log"
+    params:
+        "-m -both -d both --write-index -Ob -c w"
     threads:
         workflow.cores
     container:
         None
     shell:
-        "bcftools norm --threads {threads} -m -both -d both --write-index -Ob -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
+        "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
 
 rule general_stats:
     input:
