@@ -128,7 +128,7 @@ rule extract_hairs:
     params:
         indels = indelarg,
         bx = linkarg,
-        frags = f"--maxfragments {1000000 * attempt}"
+        frags = lambda wildcards, attempt: f"--maxfragments {1000000 * attempt}"
     conda:
         "envs/phase.yaml"
     shell:
