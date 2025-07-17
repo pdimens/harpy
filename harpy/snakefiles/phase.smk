@@ -113,6 +113,8 @@ if indels:
             """
 
 rule extract_hairs:
+    retries:
+        2
     input:
         vcf = "workflow/input/vcf/{sample}.het.vcf",
         bam = get_alignments,
@@ -125,7 +127,8 @@ rule extract_hairs:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
         indels = indelarg,
-        bx = linkarg
+        bx = linkarg,
+        frags = f"--maxfragments {1000000 * attempts}"
     conda:
         "envs/phase.yaml"
     shell:
