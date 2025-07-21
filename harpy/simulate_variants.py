@@ -281,7 +281,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
         2,
@@ -390,7 +389,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
         2,
@@ -489,7 +487,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        "simulate_variants",
         "conda" if not container else "conda apptainer",
         output_dir,
         2,
