@@ -111,7 +111,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     ## setup workflow ##
     vcaller = workflow if not populations else f"{workflow}_pop"
     command,command_rel = setup_snakemake(
-        vcaller,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
@@ -217,7 +216,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     vcaller = workflow if not populations else f"{workflow}_pop"
     vcaller += "_phase" if vcf else ""
     command,command_rel = setup_snakemake(
-        vcaller,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
