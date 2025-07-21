@@ -76,7 +76,6 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda",
         output_dir,
         threads,

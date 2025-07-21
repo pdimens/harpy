@@ -79,7 +79,6 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

@@ -57,7 +57,6 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

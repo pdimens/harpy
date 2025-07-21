@@ -107,7 +107,6 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

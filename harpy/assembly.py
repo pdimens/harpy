@@ -77,7 +77,6 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
 
     ## setup workflow #
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

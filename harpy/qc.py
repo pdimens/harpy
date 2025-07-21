@@ -84,7 +84,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     ## setup workflow ##
     command, command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

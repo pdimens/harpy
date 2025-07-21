@@ -30,6 +30,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install dist/*.whl
+          pip install importlib-resources
           resources/buildforCI.sh
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache

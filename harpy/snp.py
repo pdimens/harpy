@@ -116,7 +116,6 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     ## workflow setup ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
@@ -211,7 +210,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     ## workflow setup ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

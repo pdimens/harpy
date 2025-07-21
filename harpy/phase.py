@@ -72,7 +72,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

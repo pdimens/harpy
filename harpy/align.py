@@ -122,7 +122,6 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
@@ -230,7 +229,6 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
@@ -325,7 +323,6 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,

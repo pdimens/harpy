@@ -9,7 +9,7 @@ import yaml
 import urllib.request
 from datetime import datetime
 from pathlib import Path
-from importlib_resources import files
+import importlib.resources as resources
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn, MofNCompleteColumn
@@ -76,68 +76,75 @@ def fetch_script(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy script and write it into workdir/scripts
     """
-    os.makedirs(os.path.join(workdir, "scripts"), exist_ok= True)
-    with open(os.path.join(workdir, "scripts", target), "w", encoding="utf-8") as f:
-        if os.path.isfile(files(harpy.scripts).joinpath(target)):
-            f.write(files(harpy.scripts).joinpath(target).read_text())
-        else:
-            print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
+    dest_dir = os.path.join(workdir, "scripts")
+    dest_file = os.path.join(dest_dir, target)
+    os.makedirs(dest_dir, exist_ok= True)
+    source_file = resources.files("harpy.scripts") / target
+    if not os.path.isfile(source_file):
+        print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
+        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+        sys.exit(1)
+    with resources.as_file(source_file) as _source:
+        shutil.copy2(_src, dest_file)
 
 def fetch_rule(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy rule and write it into the workdir as workflow.smk
     """
+    dest_file = os.path.join(workdir,"workflow.smk")
     os.makedirs(workdir, exist_ok= True)
-    with open(os.path.join(workdir,"workflow.smk"), "w", encoding="utf-8") as f:
-        if os.path.isfile(files(harpy.snakefiles).joinpath(target)):
-            f.write(files(harpy.snakefiles).joinpath(target).read_text())
-        else:
-            print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
+    source_file = resources.files("harpy.snakefiles") / target
+    if not os.path.isfile(source_file):
+        print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.")
+        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+        sys.exit(1)
+    with resources.as_file(source_file) as _source:
+        shutil.copy2(_source, dest_file)
 
 def fetch_report(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy report and write it into workdir/report
     """
-    os.makedirs(os.path.join(workdir, "report"), exist_ok= True)
-    with open(os.path.join(workdir, "report",target), "w", encoding="utf-8") as f:
-        if os.path.isfile(files(harpy.reports).joinpath(target)):
-            f.write(files(harpy.reports).joinpath(target).read_text())
-        else:
-            print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
+    dest_dir = os.path.join(workdir, "report")
+    dest_file = os.path.join(dest_dir, target)
+    os.makedirs(dest_dir, exist_ok= True)
+    source_file = resources.files("harpy.reports") / target
+    if not os.path.isfile(source_file):
+        print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.")
+        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+        sys.exit(1)
+    with resources.as_file(source_file) as _source:
+        shutil.copy2(_source, dest_file)
+
     # pull yaml config file from github, use local if fails
-    destination = os.path.join(workdir, "report", "_quarto.yml")
+    destination = os.path.join(dest_dir, "_quarto.yml")
     try:
         _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
         with urllib.request.urlopen(_yaml) as response, open(destination, 'w') as yaml_out:
             yaml_out.write(response.read().decode("utf-8"))
     except:
-        with open(destination, "w", encoding="utf-8") as yml:
-            if os.path.isfile(files(harpy.reports).joinpath("_quarto.yml")):
-                yml.write(files(harpy.reports).joinpath("_quarto.yml").read_text())
-            else:
-                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.")
-                print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-                sys.exit(1)
+        source_file = resources.files("harpy.reports") / "_quarto.yml"
+        if not os.path.isfile(source_file):
+            print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            sys.exit(1)
+        with resources.as_file(source_file) as _source:
+            shutil.copy2(_source, destination)
+
     # same for the scss file
-    destination = os.path.join(workdir, "report", "_harpy.scss")
+    destination = os.path.join(dest_dir, "_harpy.scss")
     try:
         scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
         with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
             scss_out.write(response.read().decode("utf-8"))
     except:
-        with open(destination, "w", encoding="utf-8") as yml:
-            if os.path.isfile(files(harpy.reports).joinpath("_harpy.scss")):
-                yml.write(files(harpy.reports).joinpath("_harpy.scss").read_text())
-            else:
-                print_error("report configuration missing", f"The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.")
-                print_solution("There may be an issue with your internet connection or Harpy installation, that latter of which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-                sys.exit(1)
+        source_file = resources.files("harpy.reports") / "_harpy.scss"
+        if not os.path.isfile(source_file):
+            print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.")
+            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            sys.exit(1)
+        with resources.as_file(source_file) as _source:
+            shutil.copy2(_source, destination)
 
 def snakemake_log(outdir: str, workflow: str) -> str:
     """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -165,7 +172,7 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
-def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> tuple[str, str]:
+def setup_snakemake(sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> tuple[str, str]:
     """
     Writes a config.yaml file to outdir/workflow to use with --profile.
     Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
@@ -209,9 +216,7 @@ def setup_snakemake(workflow_name: str, sdm: str, outdir:str, threads: int, hpc:
     # command with absolute paths
     _command = []
     _command.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workflowdir, "workflow.smk")]))
-    #command = f"snakemake --cores {threads} --snakefile {workflowdir}/workflow.smk"
     _command.append(" ".join(["--configfile", os.path.join(workflowdir, "workflow.yaml"), "--profile", workflowdir]))
-    #command += f" --configfile {workflowdir}/workflow.yaml --profile {workflowdir}"
     if hpc:
         hpc_dir = os.path.join(workflowdir, "hpc")
         os.makedirs(f"{workflowdir}/hpc", exist_ok=True)

@@ -78,7 +78,6 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
@@ -143,7 +142,6 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
 
     ## setup workflow ##
     command,command_rel = setup_snakemake(
-        workflow,
         "conda" if not container else "conda apptainer",
         output_dir,
         threads,
