@@ -333,7 +333,7 @@ mean number of reads per molecule for that sample.
 hchart(aggregate_df, "scatter", hcaes(x = totalreads, y = round(nonsingletons / (nonsingletons + singletons), 2), color = averagereadspermol, name = sample, molper = averagereadspermol), name = "Linked-Read Performance", animation = F) |>
   hc_title(text = "Linked Reads vs Total Reads") |>
   hc_xAxis(title = list(text = "total reads")) |>
-  hc_yAxis(max = 1, title = list(text = "proportion of reads with linked-read information")) |>
+  hc_yAxis(max = 1, min = 0, title = list(text = "proportion of reads with linked-read information")) |>
   hc_tooltip(
     crosshairs = FALSE,
     pointFormat= '<b>{point.name}</b><br>reads: <b>{point.x}</b><br>proportion linked reads: <b>{point.y}</b><br>reads per molecule: <b>{point.molper}</b></br>'
