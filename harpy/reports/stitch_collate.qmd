@@ -164,8 +164,8 @@ to the `r sn$samples[1]` samples in `r bcf`.
 ```{r stats table}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
-names(psc) <- c("Sample", "HomozygousRef", "HomozygousAtl", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
-psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAtl
+names(psc) <- c("Sample", "HomozygousRef", "HomozygousAlt", "Heterozygotes", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+psc$Homozygotes <- psc$HomozygousRef + psc$HomozygousAlt
 DT::datatable(
   psc[,c(1,12,2,3,13,4,5,6,9)],
   rownames = F, 

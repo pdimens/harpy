@@ -357,7 +357,7 @@ if(do_qual){
 ```{r read_persample}
 .pscL <- grepl("^PSC", dataL)
 psc <- read.table(text=dataL[.pscL])[ ,3:14]
-names(psc) <- c("Sample", "HomRef", "HomAtl", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
+names(psc) <- c("Sample", "HomRef", "HomAlt", "Het", "Transitions", "Transversions", "Indels",	"MeanDepth", "Singletons",	"HapRef", "HapAlt", "Missing")
 tidy_psc <- pivot_longer(psc[,c(1,2,3,4,5,6,7,9,12)], -Sample , names_to = "Metric", values_to = "Count")
 tidy_psc$Sample <- as.factor(basename(tidy_psc$Sample))
 figheight <- 3 + (0.6 * nrow(psc))
