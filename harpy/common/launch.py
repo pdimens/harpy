@@ -8,8 +8,8 @@ import subprocess
 from datetime import datetime
 from rich import print as rprint
 from rich.console import Console
-from .common.misc import gzip_file, harpy_progressbar, harpy_pulsebar, harpy_progresspanel
-from .common.printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
+from .misc import gzip_file, harpy_progressbar, harpy_pulsebar, harpy_progresspanel
+from .printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1

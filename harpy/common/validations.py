@@ -10,8 +10,8 @@ from rich import box
 from rich import print as rprint
 from rich.table import Table
 import rich_click as click
-from .common.printing import print_error, print_notice, print_solution, print_solution_with_culprits
-from .common.misc import harpy_progressbar, harpy_progresspanel, safe_read
+from .printing import print_error, print_notice, print_solution, print_solution_with_culprits
+from .misc import harpy_progressbar, harpy_progresspanel, safe_read
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # logic to properly refresh progress bar for jupyter sessions
