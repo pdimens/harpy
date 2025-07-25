@@ -2,16 +2,12 @@
 
 import os
 import sys
-import yaml
-import shutil
 import rich_click as click
 from .common.cli_types_generic import KParam, HPCProfile, SnakemakeParams
 from .common.cli_types_params import SpadesParams, ArcsParams
-from .common.conda import create_conda_recipes
-from .common.launch import launch_snakemake
-from .common.misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from .common.printing import workflow_info
 from .common.validations import validate_fastq_bx
+from .common.workflow import Workflow
 
 docstring = {
     "harpy assembly": [
@@ -70,25 +66,22 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflow = "assembly"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("assembly", "assembly.smk", output_dir, quiet)
+    workflow.conda = ["assembly","qc"]
+
     ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
 
     ## setup workflow #
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, f"assembly.smk")
-
-    conda_envs = ["assembly","qc"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
@@ -112,11 +105,11 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "minimum_links" : links
         },
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
@@ -127,14 +120,13 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Barcode Tag: ", bx_tag.upper()),
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
         ("Output Folder:", f"{output_dir}/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/assembly.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/assembly.summary")
+

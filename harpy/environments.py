@@ -6,8 +6,9 @@ import subprocess
 from pathlib import Path
 import rich_click as click
 from .common.conda import create_conda_recipes
-from .common.launch import launch_snakemake
-from .common.misc import fetch_rule, snakemake_log
+#from .common.launch import launch_snakemake
+#from .common.misc import fetch_snakefile, snakemake_log
+from .common.workflow import Workflow
 
 @click.command(hidden = True)
 def containerize():
@@ -17,9 +18,10 @@ def containerize():
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
+    workflow = Workflow("container", "environments.smk", "container", 1)
+    workflow.fetch_snakefile()
     create_conda_recipes("container")
-    fetch_rule("container/workflow", "environments.smk")
-
+    
     with open("Dockerfile.raw", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
             'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
@@ -70,14 +72,13 @@ def localenv(workflows):
     - stitch
     - variants
     """
-    output_dir = "localenv/"
-    sm_log = snakemake_log(output_dir, "localenv")
+    workflow = Workflow("localenv", "environments.smk", "localenv/", 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
     if "all" in workflows:
-        create_conda_recipes(output_dir, workflows)
+        create_conda_recipes(workflow.output_directory, workflows)
     else:
-        create_conda_recipes(output_dir)
-    fetch_rule(os.path.join(output_dir, 'workflow'), "environments.smk")
-    command = " ".join(["snakemake", "-s", os.path.join(output_dir, "workflow", "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix .environments", "--conda-cleanup-pkgs cache", "--directory .", "--config spades=True"])
-    launch_snakemake(command, "localenv", "", output_dir, sm_log, 1, "workflow/localenv.summary")
-    shutil.rmtree(output_dir, ignore_errors = True)
+        create_conda_recipes(workflow.output_directory)
+    workflow.fetch_snakefile()
+    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix ../.environments", "--conda-cleanup-pkgs cache", "--directory localenv", "--config spades=True"])
+    workflow.launch("workflow/localenv.summary")
+    shutil.rmtree(workflow.output_directory, ignore_errors = True)

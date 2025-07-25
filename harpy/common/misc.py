@@ -63,31 +63,7 @@ def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress
         console = _STDERR_CONSOLE if stderr else None
     )
 
-def filepath(infile: str) -> str:
-    """returns a posix-formatted absolute path of infile"""
-    return Path(infile).resolve().as_posix()
-
-def symlink(original: str, destination: str) -> None:
-    """Create a symbolic link from original -> destination if the destination doesn't already exist."""
-    if not (Path(destination).is_symlink() or Path(destination).exists()):
-        Path(destination).symlink_to(Path(original).resolve())
-
-def fetch_script(workdir: str, target: str) -> None:
-    """
-    Retrieve the target harpy script and write it into workdir/scripts
-    """
-    dest_dir = os.path.join(workdir, "scripts")
-    dest_file = os.path.join(dest_dir, target)
-    os.makedirs(dest_dir, exist_ok= True)
-    source_file = resources.files("harpy.scripts") / target
-    if not os.path.isfile(source_file):
-        print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
-        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-        sys.exit(1)
-    with resources.as_file(source_file) as _source:
-        shutil.copy2(_src, dest_file)
-
-def fetch_rule(workdir: str, target: str) -> None:
+def fetch_snakefile(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy rule and write it into the workdir as workflow.smk
     """
@@ -101,60 +77,14 @@ def fetch_rule(workdir: str, target: str) -> None:
     with resources.as_file(source_file) as _source:
         shutil.copy2(_source, dest_file)
 
-def fetch_report(workdir: str, target: str) -> None:
-    """
-    Retrieve the target harpy report and write it into workdir/report
-    """
-    dest_dir = os.path.join(workdir, "report")
-    dest_file = os.path.join(dest_dir, target)
-    os.makedirs(dest_dir, exist_ok= True)
-    source_file = resources.files("harpy.reports") / target
-    if not os.path.isfile(source_file):
-        print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.")
-        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-        sys.exit(1)
-    with resources.as_file(source_file) as _source:
-        shutil.copy2(_source, dest_file)
+def filepath(infile: str) -> str:
+    """returns a posix-formatted absolute path of infile"""
+    return Path(infile).resolve().as_posix()
 
-    # pull yaml config file from github, use local if fails
-    destination = os.path.join(dest_dir, "_quarto.yml")
-    try:
-        _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
-        with urllib.request.urlopen(_yaml) as response, open(destination, 'w') as yaml_out:
-            yaml_out.write(response.read().decode("utf-8"))
-    except:
-        source_file = resources.files("harpy.reports") / "_quarto.yml"
-        if not os.path.isfile(source_file):
-            print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_source, destination)
-
-    # same for the scss file
-    destination = os.path.join(dest_dir, "_harpy.scss")
-    try:
-        scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
-        with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
-            scss_out.write(response.read().decode("utf-8"))
-    except:
-        source_file = resources.files("harpy.reports") / "_harpy.scss"
-        if not os.path.isfile(source_file):
-            print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_source, destination)
-
-def snakemake_log(outdir: str, workflow: str) -> str:
-    """Return a snakemake logfile name. Iterates logfile run number if one exists."""
-    attempts = glob.glob(os.path.join(outdir, "logs", "snakemake", "*.log*"))
-    timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
-    if not attempts:
-        os.makedirs(os.path.join(outdir, "logs", "snakemake"), exist_ok=True)
-        return os.path.join("logs", "snakemake", f"{workflow}.1.{timestamp}")
-    increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
-    return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
+def symlink(original: str, destination: str) -> None:
+    """Create a symbolic link from original -> destination if the destination doesn't already exist."""
+    if not (Path(destination).is_symlink() or Path(destination).exists()):
+        Path(destination).symlink_to(Path(original).resolve())
 
 def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
@@ -162,6 +92,15 @@ def gzip_file(infile: str) -> None:
         with open(infile, 'rb') as f_in, gzip.open(infile + '.gz', 'wb', 6) as f_out:
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
+
+def purge_empty_logs(output_directory):
+    """scan target_dir and remove empty files, then scan it again and remove empty directories"""
+    for logfile in glob.glob(f"{output_directory}/logs/**/*", recursive = True):
+        if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
+            os.remove(logfile)
+    for logfile in glob.glob(f"{output_directory}/logs/**/*", recursive = True):
+        if os.path.isdir(logfile) and not os.listdir(logfile):
+            os.rmdir(logfile)
 
 def safe_read(file_path: str):
     """returns the proper file opener for reading if a file_path is gzipped"""
@@ -171,99 +110,3 @@ def safe_read(file_path: str):
         return gzip.open(file_path, 'rt')
     except gzip.BadGzipFile:
         return open(file_path, 'r')
-
-def setup_snakemake(sdm: str, outdir:str, threads: int, hpc: str|None = None, sm_extra: str|None = None) -> tuple[str, str]:
-    """
-    Writes a config.yaml file to outdir/workflow to use with --profile.
-    Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
-    Copies the HPC config file to the workflow dir, if exists.
-    Sets up the snakemake command based on hpc, threads, and extra snakemake params.
-    Returns the command with which to launch snakemake, one with absolute paths and another with relative paths.
-    """
-    badpath = []
-    patherr = False
-    for i in outdir.split("/"):
-        if " " in i:
-            patherr = True
-            badpath.append(f"[red]{i}[/]")
-        else:
-            badpath.append(i)
-    if patherr:
-        formatted_path = "/".join(badpath)
-        print_error(
-            "unsupported path name",
-            "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors."
-        )
-        print_solution(
-            f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
-        )
-        sys.exit(1)     
-    profile = {
-        "rerun-incomplete": True,
-        "show-failed-logs": True,
-        "rerun-triggers": ["mtime", "params"],
-        "nolock": True,
-        "software-deployment-method": sdm,
-        "conda-prefix": filepath("./.environments"),
-        "conda-cleanup-pkgs": "cache",
-        "apptainer-prefix": filepath("./.environments"),
-        "directory": outdir
-    }
-    workflowdir = os.path.join(outdir, "workflow")
-    os.makedirs(workflowdir, exist_ok=True)
-    with open(os.path.join(workflowdir, 'config.yaml'), "w", encoding="utf-8") as sm_config:
-        yaml.dump(profile, sm_config, sort_keys=False, width=float('inf'))
-    # command with absolute paths
-    _command = []
-    _command.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workflowdir, "workflow.smk")]))
-    _command.append(" ".join(["--configfile", os.path.join(workflowdir, "workflow.yaml"), "--profile", workflowdir]))
-    if hpc:
-        hpc_dir = os.path.join(workflowdir, "hpc")
-        os.makedirs(f"{workflowdir}/hpc", exist_ok=True)
-        shutil.copy2(hpc, f"{workflowdir}/hpc/config.yaml")
-        _command.append(" ".join(["--workflow-profile", hpc_dir]))
-    if sm_extra:
-        _command.append(sm_extra)
-
-    # command with relative paths
-    workdir_rel = os.path.relpath(workflowdir)
-    _command_rel = []
-    _command_rel.append(" ".join(["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]))
-    _command_rel.append(" ".join([" --configfile", os.path.join(workdir_rel, "workflow.yaml"),"--profile", workdir_rel]))
-    if hpc:
-        hpc_dir = os.path.join(workdir_rel, "hpc")
-        os.makedirs(hpc_dir, exist_ok=True)
-        shutil.copy2(hpc, os.path.join(hpc_dir, "config.yaml"))
-        _command_rel.append(" ".join(["--workflow-profile", hpc_dir]))
-    if sm_extra:
-        _command_rel.append(sm_extra)
- 
-    command = " ".join(_command)
-    command_rel = " ".join(_command_rel)
-
-    return command, command_rel
-
-def write_workflow_config(configs: dict, outdir: str) -> None:
-    """
-    Writes a workflow.yaml file to workdir to use with --configfile. Creates outdir/workflow if it doesnt exist. Configs
-    are expected to be a dict
-    """
-    workdir = f"{outdir}/workflow"
-    if not os.path.exists(workdir):
-        os.makedirs(workdir, exist_ok=True)
-    with open(os.path.join(workdir, 'workflow.yaml'), "w", encoding="utf-8") as config:
-        yaml.dump(configs, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
-def instantiate_dir(output_dir: str, workflow_name: str, input_dir: bool = False) -> tuple[str,str]:
-    """
-    Given an output_dir, creates a \'workflow\' directory.
-    Given a workflow_name, gets the name of the next incremental snakemake log file
-    to use for the workflow and creates the snakemake log directory if none found.
-    The \'input_dir\' is a special case for workflows that also need an `input` directory inside `workflow` too.
-    Returns the full path to created workflow directory and the name of the snakemake log file
-    """
-    wd = os.path.join(output_dir, 'workflow')
-    creatdir = wd if not input_dir else os.path.join(output_dir, 'workflow', 'input')
-    os.makedirs(creatdir, exist_ok = True)
-    sm_log = snakemake_log(output_dir, workflow_name)
-    return wd, sm_log

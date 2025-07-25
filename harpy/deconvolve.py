@@ -2,15 +2,11 @@
 
 import os
 import sys
-import yaml
-import shutil
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, SnakemakeParams
-from .common.conda import create_conda_recipes
-from .common.launch import launch_snakemake
-from .common.misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from .common.parsers import parse_fastq_inputs
 from .common.printing import workflow_info
+from .common.workflow import Workflow
 
 docstring = {
     "harpy deconvolve": [
@@ -50,45 +46,40 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
-    workflow = "deconvolve"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, quiet)
+    workflow.conda = ["qc"]
+
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "deconvolve.smk")
-
-    conda_envs = ["qc"]
-    configs = {
-        "workflow": workflow,
+    workflow.config = {
+        "workflow": workflow.name,
         "kmer_length" : kmer_length,       
         "window_size" : window_size,
         "density" :  density,
         "dropout" :  dropout,
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "inputs": fqlist
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:", sample_count),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/deconvolve.summary")
+    
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/deconvolve.summary")

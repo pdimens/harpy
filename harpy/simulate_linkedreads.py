@@ -1,16 +1,12 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
 import sys
-import yaml
-import shutil
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
 from .common.cli_types_params import Barcodes
-from .common.conda import create_conda_recipes
-from .common.launch import launch_snakemake
-from .common.misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from .common.printing import workflow_info
 from .common.validations import check_fasta
+from .common.workflow import Workflow
 
 docstring = {
     "harpy simulate linkedreads": [
@@ -98,27 +94,24 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         ```
 
     """
-    workflow = "simulate_linkedreads"
     output_dir = os.path.dirname(output_prefix)
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("simulate_linkedreads", "simulate_linkedreads.smk", output_dir, quiet)
+    workflow.conda = ["simulations"]
+
     ## checks and validations ##
     for i in fasta:
         check_fasta(i)
 
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "simulate_linkedreads.smk")
-
-    conda_envs = ["simulations"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "output-prefix" : os.path.basename(output_prefix),
         "read_params": {
             "read_coverage" : coverage,
@@ -145,25 +138,23 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         "random_seed": seed,
         **({"regions":  regions} if regions else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "inputs" : {
             "barcodes" : barcodes,
             "haplotypes" : list(fasta),
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Haplotypes:", len(fasta)),
         ("Barcodes:", os.path.basename(barcodes) if os.path.exists(barcodes) else "randomly generated"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/simulate.reads.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/simulate.reads.summary")

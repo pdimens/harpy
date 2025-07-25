@@ -2,18 +2,15 @@
 
 import os
 import sys
-import yaml
-import shutil
+
 import rich_click as click
 from .common.cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
 from .common.cli_types_params import LeviathanParams, NaibrParams
-from .common.conda import create_conda_recipes
-from .common.launch import launch_snakemake
-from .common.misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
 from .common.parsers import parse_alignment_inputs
 from .common.printing import workflow_info
 from .common.validations import check_fasta, check_phase_vcf
 from .common.validations import validate_popfile, validate_popsamples, fasta_contig_match
+from .common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
@@ -110,9 +107,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
     ## setup workflow ##
     vcaller = workflow if not populations else f"{workflow}_pop"
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
@@ -122,9 +118,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     fetch_report(workflowdir, "leviathan.qmd")
     fetch_report(workflowdir, "leviathan_pop.qmd") if populations else None
 
-    conda_envs = ["align", "r", "variants"]
-    configs = {
-        "workflow" : workflow,
+    workflow.conda = ["align", "r", "variants"]
+    workflow.config = {
+        "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
         "min_size" : min_size,
         "iterations" : iterations,
@@ -136,11 +132,11 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -152,18 +148,16 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:", n),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.leviathan.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/sv.leviathan.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
@@ -199,8 +193,14 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    workflow = "sv_naibr"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    vcaller = workflow if not populations else f"{workflow}_pop"
+    vcaller += "_phase" if vcf else ""
+    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, quiet)
+    workflow.reports = ["naibr.qmd"]
+    if populations:
+        workflow.reports.append("naibr_pop.qmd")
+    workflow.conda = ["phase", "r", "variants"]
+
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     check_fasta(reference)
@@ -213,34 +213,26 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         check_phase_vcf(vcf)
 
     ## setup workflow ##
-    vcaller = workflow if not populations else f"{workflow}_pop"
-    vcaller += "_phase" if vcf else ""
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, f"{vcaller}.smk")
-    fetch_report(workflowdir, "naibr_pop.qmd") if populations else None
-    fetch_report(workflowdir, "naibr.qmd")
-
-    conda_envs = ["phase", "r", "variants"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
         "min_quality" : min_quality,
         "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -253,19 +245,17 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:", n),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/sv.naibr.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/sv.naibr.summary")
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

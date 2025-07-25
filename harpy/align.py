@@ -2,17 +2,14 @@
 
 import os
 import sys
-import yaml
-import shutil
 import rich_click as click
 from .common.conda import create_conda_recipes
-from .common.misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
 from .common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
 from .common.cli_types_params import BwaParams, EmaParams, StrobeAlignParams
-from .common.launch import launch_snakemake
 from .common.parsers import parse_fastq_inputs
 from .common.printing import print_error, print_solution, print_notice, workflow_info
 from .common.validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
+from .common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():
@@ -108,8 +105,10 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     to assign alignments to unique molecules. Use a value >`0` for `--molecule-distance` to have
     harpy perform alignment-distance based barcode deconvolution.
     """
-    workflow = "align_bwa"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, quiet)
+    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.conda = ["align", "r", "qc"]
+
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     check_fasta(reference)
@@ -121,21 +120,15 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         is_standardized = fastq_has_bx(fqlist, threads, quiet)
 
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "align_bwa.smk")
-    fetch_report(workflowdir, "align_stats.qmd")
-    fetch_report(workflowdir, "align_bxstats.qmd")
-
-    conda_envs = ["align", "r", "qc"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
@@ -146,11 +139,11 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -161,17 +154,15 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.bwa.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/align.bwa.summary")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = EmaParams(), help = 'Additional ema align parameters, in quotes')
@@ -206,8 +197,10 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
     list is a file of known barcodes (in nucleotide format, one per line) that lets EMA know what
     sequences at the beginning of the forward reads are known barcodes.
     """
-    workflow = "align_ema"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("align_ema", "align_ema.smk", output_dir, quiet)
+    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.conda = ["align", "r", "qc"]
+
     ## checks and validations ##
     platform = platform.lower()
     # the tellseq stuff isn't impremented yet, but this is a placeholder for that (wishful thinking)
@@ -228,21 +221,15 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         validate_barcodefile(barcode_list, False, quiet, gzip_ok=False, haplotag_only=True)
 
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "align_ema.smk")
-    fetch_report(workflowdir, "align_stats.qmd")
-    fetch_report(workflowdir, "align_bxstats.qmd")
-
-    conda_envs = ["align", "r", "qc"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "fragment_density_optimization": fragment_density,
@@ -251,11 +238,11 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         "EMA_bins" : ema_bins,
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -267,18 +254,16 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
         ("Platform:", platform),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.ema.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/align.ema.summary")
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
@@ -309,8 +294,10 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
     not use barcodes when mapping. Use a value >`0` for `--molecule-distance` to have
     harpy perform alignment-distance based barcode deconvolution.
     """
-    workflow = "align_strobe"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, quiet)
+    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.conda = ["align", "r", "qc"]
+
     ## checks and validations ##
     fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
     check_fasta(reference)
@@ -322,21 +309,15 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
         is_standardized = fastq_has_bx(fqlist, threads, quiet)
 
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
+    workflow.setup_snakemake(
         "conda" if not container else "conda apptainer",
-        output_dir,
         threads,
         hpc if hpc else None,
         snakemake if snakemake else None
     )
 
-    fetch_rule(workflowdir, "align_strobe.smk")
-    fetch_report(workflowdir, "align_stats.qmd")
-    fetch_report(workflowdir, "align_bxstats.qmd")
-
-    conda_envs = ["align", "r", "qc"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "alignment_quality" : min_quality,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
@@ -347,11 +328,11 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
         },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "absolute": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -362,17 +343,15 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Samples:",sample_count),
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/align.strobealign.summary")
+
+    workflow.initialize()
+    if not setup_only:
+        workflow.launch("workflow/align.strobealign.summary")
 
 align.add_command(bwa)
 align.add_command(ema)

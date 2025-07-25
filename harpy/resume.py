@@ -1,15 +1,14 @@
 """Module to bypass Harpy and run snakemake"""
 
+from datetime import datetime
 import os
 import re
 import sys
 import yaml
 import rich_click as click
-from .common.conda import check_environments
+from .common.conda import check_environments, create_conda_recipes
 from .common.printing import print_error, workflow_info
-from .common.launch import launch_snakemake
-from .common.misc import snakemake_log, write_workflow_config
-from .common.conda import create_conda_recipes
+from .common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
@@ -31,33 +30,50 @@ def resume(directory, conda, relative, threads, quiet):
     - the target directory has `workflow/config.yaml` present in it
     - the targest directory has `workflow/envs/*.yaml` present in it
     """
-    if not os.path.exists(f"{directory}/workflow/config.yaml"):
+    CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
+    PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
+    if not os.path.exists(PROFILE_FILE):
         print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)
-    if not os.path.exists(f"{directory}/workflow/workflow.yaml"):
+    if not os.path.exists(CONFIG_FILE):
         print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         sys.exit(1)
     
-    with open(f"{directory}/workflow/workflow.yaml", 'r', encoding="utf-8") as f:
+    with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
-    conda_envs = harpy_config["conda_environments"] 
-    if conda:
-        create_conda_recipes(directory, conda_envs)
-    else:
-        check_environments(directory, conda_envs)
-    
-    workflow = harpy_config["workflow"]
-    sm_log = snakemake_log(directory, workflow)
-    if sm_log != harpy_config["snakemake"]["log"]:
-        harpy_config["snakemake"]["log"] = sm_log
-        ## overwrite config file with this updated one, where only the snakemake log has been changed ##
-        write_workflow_config(harpy_config, directory)
+    with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
+        snakemake_config = yaml.full_load(f)
 
-    command = harpy_config["snakemake"]["relative"] if relative else harpy_config["snakemake"]["absolute"]
+    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], quiet)
+    workflow.conda = harpy_config["conda_environments"] 
+
+    if conda:
+        create_conda_recipes(directory, workflow.conda)
+    else:
+        check_environments(directory, workflow.conda)
+    
+    sm_log = os.path.join(directory, harpy_config["snakemake"]["log"])
+    if os.path.exists(sm_log) or os.path.exists(sm_log + ".gz"):
+        timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
+        split_log = sm_log.split(".")
+        _basename = ".".join(split_log[0:-3])
+        incremenent = int(split_log[-3]) + 1
+        harpy_config["snakemake"]["log"] = f"{_basename}.{incremenent}.{timestamp}"
+
     if threads:
-        command = re.sub(r"--cores \d+", f"--cores {threads}", command)
-    start_text = workflow_info(
-        ("Workflow:", workflow.replace("_", " ")),
+        harpy_config["snakemake"]["absolute"] = re.sub(r"--cores \d+", f"--cores {threads}", harpy_config["snakemake"]["absolute"])
+        harpy_config["snakemake"]["relative"] = re.sub(r"--cores \d+", f"--cores {threads}", harpy_config["snakemake"]["relative"])
+
+    workflow.snakemake_cmd_absolute = harpy_config["snakemake"]["absolute"]
+    workflow.snakemake_cmd_relative = harpy_config["snakemake"]["relative"]
+    workflow.config = harpy_config
+    workflow.start_text = workflow_info(
+        ("Workflow:", workflow.name.replace("_", " ")),
         ("Output Folder:", directory + "/")
     )
-    launch_snakemake(command, workflow, start_text, directory, sm_log, quiet, f'workflow/{workflow}.summary')
+
+    workflow.write_workflow_config()
+
+    workflow.print_onstart()
+    workflow.launch(f'workflow/{workflow.name}.summary')
+#
