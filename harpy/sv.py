@@ -5,15 +5,15 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
-from ._cli_types_params import LeviathanParams, NaibrParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._parsers import parse_alignment_inputs
-from ._printing import workflow_info
-from ._validations import check_fasta, check_phase_vcf
-from ._validations import validate_popfile, validate_popsamples, fasta_contig_match
+from .common.cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
+from .common.cli_types_params import LeviathanParams, NaibrParams
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.parsers import parse_alignment_inputs
+from .common.printing import workflow_info
+from .common.validations import check_fasta, check_phase_vcf
+from .common.validations import validate_popfile, validate_popsamples, fasta_contig_match
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():

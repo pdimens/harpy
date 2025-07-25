@@ -5,14 +5,14 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._conda import create_conda_recipes
-from ._misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
-from ._cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
-from ._cli_types_params import BwaParams, EmaParams, StrobeAlignParams
-from ._launch import launch_snakemake
-from ._parsers import parse_fastq_inputs
-from ._printing import print_error, print_solution, print_notice, workflow_info
-from ._validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
+from .common.conda import create_conda_recipes
+from .common.misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
+from .common.cli_types_params import BwaParams, EmaParams, StrobeAlignParams
+from .common.launch import launch_snakemake
+from .common.parsers import parse_fastq_inputs
+from .common.printing import print_error, print_solution, print_notice, workflow_info
+from .common.validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():

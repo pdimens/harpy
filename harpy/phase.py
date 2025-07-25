@@ -5,14 +5,14 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
-from ._cli_types_params import HapCutParams
-from ._parsers import parse_alignment_inputs
-from ._printing import workflow_info
-from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from .common.cli_types_params import HapCutParams
+from .common.parsers import parse_alignment_inputs
+from .common.printing import workflow_info
+from .common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 
 docstring = {
         "harpy phase": [

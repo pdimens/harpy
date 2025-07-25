@@ -5,14 +5,14 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams
-from ._cli_types_params import StitchParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
-from ._printing import workflow_info, print_error, print_solution
-from ._validations import vcf_sample_match, check_impute_params, validate_bam_RG
+from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from .common.cli_types_params import StitchParams
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
+from .common.printing import workflow_info, print_error, print_solution
+from .common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
 
 docstring = {
         "harpy impute": [

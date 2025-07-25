@@ -4,13 +4,13 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
-from ._cli_types_params import Barcodes
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
-from ._printing import workflow_info
-from ._validations import check_fasta
+from .common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
+from .common.cli_types_params import Barcodes
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.printing import workflow_info
+from .common.validations import check_fasta
 
 docstring = {
     "harpy simulate linkedreads": [

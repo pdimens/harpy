@@ -5,15 +5,15 @@ import sys
 import yaml
 import shutil
 import rich_click as click
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
-from ._cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
-from ._cli_types_params import FastpParams
-from ._misc import filepath
-from ._parsers import parse_fastq_inputs
-from ._printing import workflow_info
-from ._validations import check_fasta
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_report, fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
+from .common.cli_types_params import FastpParams
+from .common.misc import filepath
+from .common.parsers import parse_fastq_inputs
+from .common.printing import workflow_info
+from .common.validations import check_fasta
 
 docstring = {
     "harpy qc": [

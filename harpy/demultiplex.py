@@ -10,12 +10,12 @@ import pysam
 import shutil
 import subprocess
 import rich_click as click
-from ._cli_types_generic import HPCProfile, SnakemakeParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, safe_read, setup_snakemake, write_workflow_config
-from ._printing import print_error, print_solution_with_culprits, workflow_info
-from ._validations import validate_demuxschema
+from .common.cli_types_generic import HPCProfile, SnakemakeParams
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, instantiate_dir, safe_read, setup_snakemake, write_workflow_config
+from .common.printing import print_error, print_solution_with_culprits, workflow_info
+from .common.validations import validate_demuxschema
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def demultiplex():

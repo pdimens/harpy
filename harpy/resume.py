@@ -5,11 +5,11 @@ import re
 import sys
 import yaml
 import rich_click as click
-from ._conda import check_environments
-from ._printing import print_error, workflow_info
-from ._launch import launch_snakemake
-from ._misc import snakemake_log, write_workflow_config
-from ._conda import create_conda_recipes
+from .common.conda import check_environments
+from .common.printing import print_error, workflow_info
+from .common.launch import launch_snakemake
+from .common.misc import snakemake_log, write_workflow_config
+from .common.conda import create_conda_recipes
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')

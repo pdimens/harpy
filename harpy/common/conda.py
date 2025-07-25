@@ -6,7 +6,7 @@ import yaml
 from rich import box
 from rich.table import Table
 from rich import print as rprint
-from ._printing import print_error, print_solution_with_culprits
+from .common.printing import print_error, print_solution_with_culprits
 
 def create_conda_recipes(outdir: str, envs: list= []) -> None:
     """Create the YAML files of the workflow conda dependencies"""

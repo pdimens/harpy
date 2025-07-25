@@ -6,14 +6,14 @@ import yaml
 import shutil
 from pathlib import Path
 import rich_click as click
-from ._cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
-from ._cli_types_params import MpileupParams, FreebayesParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._parsers import parse_alignment_inputs
-from ._printing import workflow_info
-from ._validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
+from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
+from .common.cli_types_params import MpileupParams, FreebayesParams
+from .common.conda import create_conda_recipes
+from .common.launch import launch_snakemake
+from .common.misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
+from .common.parsers import parse_alignment_inputs
+from .common.printing import workflow_info
+from .common.validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():

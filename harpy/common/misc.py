@@ -17,7 +17,7 @@ from rich.console import Console
 import harpy.scripts
 import harpy.reports
 import harpy.snakefiles
-from ._printing import print_error, print_solution, print_solution_with_culprits
+from .common.printing import print_error, print_solution, print_solution_with_culprits
 
 _STDERR_CONSOLE = Console(file=sys.stderr)
 
