@@ -148,7 +148,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/snp.freebayes.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
@@ -240,7 +240,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/snp.mpileup.summary")
+        workflow.launch()
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

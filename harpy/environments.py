@@ -80,5 +80,5 @@ def localenv(workflows):
         create_conda_recipes(workflow.output_directory)
     workflow.fetch_snakefile()
     workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix ../.environments", "--conda-cleanup-pkgs cache", "--directory localenv", "--config spades=True"])
-    workflow.launch("workflow/localenv.summary")
+    workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)

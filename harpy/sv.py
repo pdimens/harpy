@@ -157,7 +157,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/sv.leviathan.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
@@ -255,7 +255,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/sv.naibr.summary")
+        workflow.launch()
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

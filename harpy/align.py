@@ -162,7 +162,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/align.bwa.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/align/ema")
 @click.option('-x', '--extra-params', type = EmaParams(), help = 'Additional ema align parameters, in quotes')
@@ -263,7 +263,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/align.ema.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-w', '--depth-window', default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
@@ -351,7 +351,7 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/align.strobealign.summary")
+        workflow.launch()
 
 align.add_command(bwa)
 align.add_command(ema)

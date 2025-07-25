@@ -113,4 +113,4 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/phase.summary")
+        workflow.launch()

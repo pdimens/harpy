@@ -47,7 +47,7 @@ def highlight_params(text):
         return f"\n[blue]{text}[/]"
     return text
 
-def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, summaryfile = None, CONSOLE = CONSOLE):
+def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
     """launch snakemake with the given commands"""
     exitcode = None
     sm_start = datetime.now()

@@ -82,4 +82,4 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/deconvolve.summary")
+        workflow.launch()

@@ -128,5 +128,5 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/assembly.summary")
+        workflow.launch()
 

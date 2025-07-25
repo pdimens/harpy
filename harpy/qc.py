@@ -122,4 +122,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/qc.summary")
+        workflow.launch()

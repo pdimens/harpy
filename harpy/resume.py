@@ -75,5 +75,5 @@ def resume(directory, conda, relative, threads, quiet):
     workflow.write_workflow_config()
 
     workflow.print_onstart()
-    workflow.launch(f'workflow/{workflow.name}.summary')
+    workflow.launch()
 #

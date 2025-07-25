@@ -157,4 +157,4 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/simulate.reads.summary")
+        workflow.launch()

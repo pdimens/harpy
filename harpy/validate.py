@@ -101,7 +101,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/validate.bam.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
@@ -160,7 +160,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/validate.fastq.summary")
+        workflow.launch()
 
 validate.add_command(bam)
 validate.add_command(fastq)

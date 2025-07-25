@@ -229,7 +229,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/simulate.snpindel.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
@@ -321,7 +321,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/simulate.inversion.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known copy number variants to simulate')
@@ -426,7 +426,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/simulate.cnv.summary")
+        workflow.launch()
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
@@ -515,5 +515,5 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/simulate.translocation.summary")
+        workflow.launch()
 

@@ -102,4 +102,4 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/downsample.summary")
+        workflow.launch()

@@ -40,6 +40,7 @@ class Workflow():
         self.start_text = None
         self.quiet = quiet
         self.start_time = datetime.now()
+        self.summary = name.replace("_",".").replace(" ",".") + ".summary"
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -242,18 +243,17 @@ class Workflow():
         datatable.add_column("value", justify="left")
         datatable.add_row("Duration:", time_text)
         if self.summary:
-            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/{self.summary}")
+            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
         datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
         CONSOLE.rule("[bold]Workflow Finished!", style="green")
         CONSOLE.print(datatable)
 
-    def launch(self, summary_file:str|None, absolute:bool = False):
+    def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
-        self.summary = summary_file
         if absolute:
-            launch_snakemake(self.snakemake_cmd_absolute, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet, summary_file)
+            launch_snakemake(self.snakemake_cmd_absolute, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
         else:
-            launch_snakemake(self.snakemake_cmd_relative, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet, summary_file)
+            launch_snakemake(self.snakemake_cmd_relative, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
         self.purge_empty_logs()
         gzip_file(os.path.join(self.output_directory, self.snakemake_log))
         self.print_onsuccess()

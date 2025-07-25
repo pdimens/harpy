@@ -99,4 +99,4 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/metassembly.summary")
+        workflow.launch()

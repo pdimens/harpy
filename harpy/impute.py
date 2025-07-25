@@ -116,4 +116,4 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
 
     workflow.initialize()
     if not setup_only:
-        workflow.launch("workflow/impute.summary")
+        workflow.launch()
