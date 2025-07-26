@@ -114,15 +114,20 @@ class Workflow():
         dest_file = os.path.join(dest_dir, target)
         os.makedirs(dest_dir, exist_ok= True)
         source_file = resources.files("harpy.reports") / target
-        if not os.path.isfile(source_file):
+        try:
+            with resources.as_file(source_file) as _source:
+                shutil.copy2(_source, dest_file)
+        except (FileNotFoundError, KeyError):
             print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_source, dest_file)
 
-        # pull yaml config file from github, use local if fails
-        # pull yaml config file from GitHub, use local if download fails
+    def fetch_report_configs(self):
+        """
+        pull yaml config file from github, use local if fails
+        pull yaml config file from GitHub, use local if download fails
+        """
+        dest_dir = os.path.join(self.workflow_directory, "report")
         destination = os.path.join(dest_dir, "_quarto.yml")
         try:
             _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
@@ -182,45 +187,39 @@ class Workflow():
              )
              sys.exit(1)
 
-    def fetch_snakefile(self):
-        """
-        Retrieve the target harpy rule and write it into the workdir as workflow.smk
-        """
-        dest_file = os.path.join(self.workflow_directory,"workflow.smk")
-        source_file = resources.files("harpy.snakefiles") / self.snakefile
-        if not os.path.isfile(source_file):
-            print_error("snakefile missing", f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-            sys.exit(1)
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_source, dest_file)
-
     def fetch_script(self, target: str) -> None:
         """
         Retrieve the target harpy script and write it into workdir/scripts
         """
-        dest_dir = os.path.join(self.workflow_directory, "scripts")
-        dest_file = os.path.join(dest_dir, target)
+        dest_file = os.path.join(self.workflow_directory, "scripts", target)
         source_file = resources.files("harpy.scripts") / target
-        if not os.path.isfile(source_file):
-            print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+        try:
+            with resources.as_file(source_file) as _source:
+                shutil.copy2(_source, dest_file)
+        except (FileNotFoundError, KeyError):
+            print_error(
+                "snakefile missing",
+                f"The required script [blue bold]{target}[/] was not found in the Harpy installation."
+            )
+            print_solution(
+                "There may be an issue with your Harpy installation, which would require "
+                "reinstalling Harpy. Alternatively, there may be an issue with your "
+                "conda/mamba environment or configuration."
+            )
             sys.exit(1)
-        for i in self.reports:
-            self.fetch_report(i)
-        for i in self.scripts:
-            self.fetch_script(i)
+
+    def write_snakemake_profile(self):
+        """Writes the Snakemake profile to a file. The profile is expected to be a dict"""
+        with open(os.path.join(self.workflow_directory, 'config.yaml'), "w", encoding="utf-8") as sm_config:
+            yaml.dump(self.profile, sm_config, sort_keys=False, width=float('inf'))
+
+    def write_workflow_config(self) -> None:
         """
         Writes a workflow.yaml file to workdir to use with --configfile. Configs
         are expected to be a dict
         """
         with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
-
-    def write_snakemake_profile(self):
-        """Writes the Snakemake profile to a file. The profile is expected to be a dict"""
-        with open(os.path.join(self.workflow_directory, 'config.yaml'), "w", encoding="utf-8") as sm_config:
-            yaml.dump(self.profile, sm_config, sort_keys=False, width=float('inf'))
 
     def purge_empty_logs(self):
         """scan target_dir and remove empty files, then scan it again and remove empty directories"""
@@ -241,6 +240,8 @@ class Workflow():
             self.fetch_report(i)
         for i in self.scripts:
             self.fetch_script(i)
+        if self.reports:
+            self.fetch_report_configs()
         if self.hpc:
             hpc_dest = os.path.join(self.workflow_directory, "hpc")
             os.makedirs(hpc_dest, exist_ok=True)
