@@ -181,7 +181,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    vcaller = "sv_naibr" if not populations else "sv_naibr__pop"
+    vcaller = "sv_naibr" if not populations else "sv_naibr_pop"
     vcaller += "_phase" if vcf else ""
     workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
@@ -200,14 +200,6 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         validate_popsamples(bamlist, populations, quiet)
     if vcf:
         check_phase_vcf(vcf)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
