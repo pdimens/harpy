@@ -208,6 +208,11 @@ class Workflow():
             )
             sys.exit(1)
 
+    def fetch_hpc(self):
+        hpc_dest = os.path.join(self.workflow_directory, "hpc")
+        os.makedirs(hpc_dest, exist_ok=True)
+        shutil.copy2(self.hpc, os.path.join(hpc_dest, "config.yaml"))
+
     def write_snakemake_profile(self):
         """Writes the Snakemake profile to a file. The profile is expected to be a dict"""
         with open(os.path.join(self.workflow_directory, 'config.yaml'), "w", encoding="utf-8") as sm_config:
@@ -243,9 +248,7 @@ class Workflow():
         if self.reports:
             self.fetch_report_configs()
         if self.hpc:
-            hpc_dest = os.path.join(self.workflow_directory, "hpc")
-            os.makedirs(hpc_dest, exist_ok=True)
-            shutil.copy2(self.hpc, os.path.join(hpc_dest, "config.yaml"))
+            self.fetch_hpc()
         self.print_onstart()
         if not setup_only:
             self.launch()
