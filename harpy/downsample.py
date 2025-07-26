@@ -2,12 +2,10 @@
 
 import os
 import re
-import sys
 import rich_click as click
-from ._cli_types_generic import SnakemakeParams, HPCProfile
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, setup_snakemake, write_workflow_config
-from ._printing import workflow_info
+from .common.cli_types_generic import SnakemakeParams, HPCProfile
+from .common.printing import workflow_info
+from .common.workflow import Workflow
 
 docstring = {
     "harpy downsample": [
@@ -55,8 +53,9 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     | `1` | adds all invalid barcodes to the sampling pool |
     | 0<`i`<1| keeps `i` proprotion of invalids in the sampling pool |
     """
-    workflow = "downsample"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("downsample", "downsample.smk", output_dir, quiet)
+    workflow.setup_snakemake(False, threads, hpc, snakemake)
+
     ## checks and validations ##
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.', param_hint="INPUT")
@@ -73,40 +72,25 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     if len(barcode_tag) != 2:
         raise click.BadParameter('The barcode tag must be 2 chracters from the English alphabet (A-Z)', param_hint="--barcode-tag/-b")            
 
-
-    ## setup workflow ##
-    command,command_rel = setup_snakemake(
-        "conda",
-        output_dir,
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
-    fetch_rule(workflowdir, "downsample.smk")
-
-    configs = {
-        "workflow": workflow,
+    workflow.config = {
+        "workflow": workflow.name,
         "prefix" :  prefix,
         "downsample" :  int(downsample) if downsample >= 1 else downsample,
         "barcode-tag" : barcode_tag.upper(),
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "inputs": input
     }
 
-    write_workflow_config(configs, output_dir)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Downsample barcodes:" if downsample >= 1 else "Downsample fraction:", f"{int(downsample) if downsample >= 1 else downsample}"),
         ("Invalid Proportion:", invalid),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, f"workflow/downsample.summary")
+
+    workflow.initialize(setup_only)

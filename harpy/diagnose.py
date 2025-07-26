@@ -5,7 +5,7 @@ import subprocess
 import rich_click as click
 from rich.console import Console
 from rich import print as rprint
-from ._printing import print_error
+from .common.printing import print_error, CONSOLE
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
@@ -14,21 +14,23 @@ def diagnose(directory):
     Run the Snakemake debugger to identify hang-ups 
     """
     directory = directory.rstrip("/")
-    if not os.path.exists(f"{directory}/workflow/workflow.yaml"):
+    PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
+    CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
+
+    if not os.path.exists(CONFIG_FILE):
         print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         sys.exit(1)
-    if not os.path.exists(f"{directory}/workflow/config.yaml"):
+    if not os.path.exists(PROFILE_FILE):
         print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
         sys.exit(1)
 
-    with open(f"{directory}/workflow/workflow.yaml", 'r', encoding="utf-8") as f:
+    with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
     
     command = harpy_config["snakemake"]["absolute"]
     # prefix the new arguments, in case a positional argument was added at the end by user
     command = command.replace("snakemake -", "snakemake --dry-run --debug-dag -")
-    console = Console(stderr=True)
-    console.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
+    CONSOLE.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
     try:
         process = subprocess.Popen(
             command.split(),
@@ -56,8 +58,8 @@ def diagnose(directory):
                 else:
                     rprint(f"[yellow]{output}", end="", file=sys.stderr)
     except:
-        console.print("")
-        console.rule("[bold]End of diagnosis", style = "yellow")
+        CONSOLE.print("")
+        CONSOLE.rule("[bold]End of diagnosis", style = "yellow")
         process.terminate()
         process.wait()
         sys.exit(1)

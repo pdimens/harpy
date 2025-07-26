@@ -1,16 +1,11 @@
 """Harpy validation checks of FASTQ and BAM files for workflows"""
 
 import os
-import sys
-import yaml
-import shutil
 import rich_click as click
-from ._cli_types_generic import HPCProfile, SnakemakeParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._parsers import parse_alignment_inputs, parse_fastq_inputs
-from ._printing import workflow_info
+from .common.cli_types_generic import HPCProfile, SnakemakeParams
+from .common.parsers import parse_alignment_inputs, parse_fastq_inputs
+from .common.printing import workflow_info
+from .common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def validate():
@@ -71,46 +66,32 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     This **will not** fix your data, but it will report the number of records that feature errors  to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = "validate_bam"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow.reports = ["validate_bam.qmd"]
+    workflow.conda = ["r"]
+
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
 
-    ## setup workflow ##
-    command,command_rel = setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        output_dir,
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
-    fetch_rule(workflowdir, "validate_bam.smk")
-    fetch_report(workflowdir, "validate_bam.qmd")
-
-    conda_envs = ["r"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "platform": platform.lower(),
         "inputs" : bamlist
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Alignment Files:", n),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.bam.summary")
+
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
@@ -135,46 +116,34 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     fix your data, but it will report the number of reads that feature errors to help
     you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = "validate_fastq"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow.reports = ["validate_fastq.qmd"]
+    workflow.conda = ["r"]
+
     ## checks and validations ##
     fqlist, n = parse_fastq_inputs(inputs, "INPUTS")
 
     ## setup workflow ##
-    command,command_rel = setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        output_dir,
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
-    fetch_rule(workflowdir, "validate_fastq.smk")
-    fetch_report(workflowdir, "validate_fastq.qmd")
-
-    conda_envs = ["r"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "platform": platform.lower(),
         "inputs" : fqlist
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("FASTQ Files:", n),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/validate.fastq.summary")
+
+    workflow.initialize(setup_only)
 
 validate.add_command(bam)
 validate.add_command(fastq)

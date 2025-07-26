@@ -12,8 +12,8 @@ import rich_click as click
 from rich.console import Console
 from rich.panel import Panel
 from rich import print as rprint
-from ._printing import print_error
-from ._validations import is_gzip
+from .common.printing import print_error
+from .common.validations import is_gzip
 
 def check_terminal_colors():
     # Initialize curses

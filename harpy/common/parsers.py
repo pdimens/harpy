@@ -8,8 +8,8 @@ from typing import Tuple
 from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
-from ._misc import filepath
-from ._printing import print_error, print_solution_with_culprits
+from .misc import filepath
+from .printing import print_error, print_solution_with_culprits
 
 def getnames(directory: str, ext: str) -> list[str]:
     """Find all files in 'directory' that end with 'ext'"""

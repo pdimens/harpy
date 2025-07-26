@@ -6,7 +6,7 @@ import sys
 import rich_click as click
 from rich import print as rprint
 from rich.markdown import Markdown
-from ._printing import print_notice
+from .common.printing import print_notice
 
 def package_exists(pkg):
     """helper function to search for a package in the active conda environment"""

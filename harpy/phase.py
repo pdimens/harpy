@@ -1,18 +1,13 @@
 """Harpy haplotype phasing workflow"""
 
 import os
-import sys
-import yaml
-import shutil
 import rich_click as click
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, fetch_report, instantiate_dir, setup_snakemake, write_workflow_config
-from ._cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
-from ._cli_types_params import HapCutParams
-from ._parsers import parse_alignment_inputs
-from ._printing import workflow_info
-from ._validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
+from .common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from .common.cli_types_params import HapCutParams
+from .common.parsers import parse_alignment_inputs
+from .common.printing import workflow_info
+from .common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
+from .common.workflow import Workflow
 
 docstring = {
         "harpy phase": [
@@ -59,8 +54,11 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     the samples present in your input `VCF` file rather than all the samples present in
     the `INPUT` alignments.
     """
-    workflow = "phase"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("phase", "phase.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow.reports = ["hapcut.qmd"]
+    workflow.conda = ["phase", "r"]
+
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
@@ -70,21 +68,8 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     if contigs:
         vcf_contig_match(contigs, vcf)
 
-    ## setup workflow ##
-    command,command_rel = setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        output_dir,
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
-    fetch_rule(workflowdir, "phase.smk")
-    fetch_report(workflowdir, "hapcut.qmd")
-
-    conda_envs = ["phase", "r"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "prune" : prune_threshold/100,
         "samples_from_vcf" : vcf_samples,
         "barcodes": {
@@ -93,11 +78,11 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         },
         **({'extra': extra_params} if extra_params else {}),
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
@@ -109,12 +94,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         }
     }
 
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcf)),
         ("Samples in VCF:", len(samplenames)),
         ("Alignment Files:", n),
@@ -122,4 +102,5 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         ("Reference:", os.path.basename(reference)) if reference else None,
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/phase.summary")
+
+    workflow.initialize(setup_only)

@@ -343,5 +343,5 @@ rule workflow_summary:
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)
-        with open("workflow/align.strobealign.summary", "w") as f:
+        with open("workflow/align.strobe.summary", "w") as f:
             f.write("\n\n".join(summary))
