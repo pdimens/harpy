@@ -1,7 +1,6 @@
 """Harpy haplotype phasing workflow"""
 
 import os
-import sys
 import rich_click as click
 from .common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from .common.cli_types_params import HapCutParams
@@ -56,6 +55,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
     the `INPUT` alignments.
     """
     workflow = Workflow("phase", "phase.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["hapcut.qmd"]
     workflow.conda = ["phase", "r"]
 
@@ -67,14 +67,6 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         check_fasta(reference)
     if contigs:
         vcf_contig_match(contigs, vcf)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -88,7 +80,7 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {
@@ -111,6 +103,4 @@ def phase(vcf, inputs, output_dir, threads, molecule_distance, prune_threshold, 
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)

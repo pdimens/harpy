@@ -52,13 +52,10 @@ class Workflow():
         increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
         return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
-    def setup_snakemake(self, sdm: str, threads: int, hpc: str|None = None, sm_extra: str|None = None):
+    #def setup_snakemake(self, sdm: str, threads: int, hpc: str|None = None, sm_extra: str|None = None):
+    def setup_snakemake(self, container: bool, threads: int, hpc: str|None = None, sm_extra: str|None = None):
         """
-        Writes a config.yaml file to outdir/workflow to use with --profile.
-        Creates outdir/workflow if it doesnt exist. sdm is the software deployment method.
-        Copies the HPC config file to the workflow dir, if exists.
         Sets up the snakemake command based on hpc, threads, and extra snakemake params.
-        Returns the command with which to launch snakemake, one with absolute paths and another with relative paths.
         """
         badpath = []
         patherr = False
@@ -83,7 +80,7 @@ class Workflow():
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
             "nolock": True,
-            "software-deployment-method": sdm,
+            "software-deployment-method": "conda" if not container else "conda apptainer",
             "conda-prefix": filepath("./.environments"),
             "conda-cleanup-pkgs": "cache",
             "apptainer-prefix": filepath("./.environments"),
@@ -125,19 +122,28 @@ class Workflow():
             shutil.copy2(_source, dest_file)
 
         # pull yaml config file from github, use local if fails
+        # pull yaml config file from GitHub, use local if download fails
         destination = os.path.join(dest_dir, "_quarto.yml")
         try:
             _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
             with urllib.request.urlopen(_yaml) as response, open(destination, 'w') as yaml_out:
                 yaml_out.write(response.read().decode("utf-8"))
-        except:
+        except (urllib.error.URLError, OSError, IOError):
             source_file = resources.files("harpy.reports") / "_quarto.yml"
-            if not os.path.isfile(source_file):
-                print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.")
-                print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            try:
+                with resources.as_file(source_file) as _source:
+                    shutil.copy2(_source, destination)
+            except (FileNotFoundError, KeyError):
+                print_error(
+                    "report configuration missing",
+                    "The required quarto configuration could not be downloaded from the Harpy repository, "
+                    "nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation."
+                )
+                print_solution(
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. "
+                    "Alternatively, there may be an issue with your conda/mamba environment or configuration."
+                )
                 sys.exit(1)
-            with resources.as_file(source_file) as _source:
-                shutil.copy2(_source, destination)
 
         # same for the scss file
         destination = os.path.join(dest_dir, "_harpy.scss")
@@ -145,14 +151,36 @@ class Workflow():
             scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
             with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
                 scss_out.write(response.read().decode("utf-8"))
-        except:
+        except (urllib.error.URLError, OSError, IOError):
             source_file = resources.files("harpy.reports") / "_harpy.scss"
-            if not os.path.isfile(source_file):
+            try:
+                with resources.as_file(source_file) as _source:
+                    shutil.copy2(_source, destination)
+            except (FileNotFoundError, KeyError):
                 print_error("report configuration missing", "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.")
                 print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
                 sys.exit(1)
-            with resources.as_file(source_file) as _source:
-                shutil.copy2(_source, destination)
+
+    def fetch_snakefile(self):
+         """
+         Retrieve the target harpy rule and write it into the workdir as workflow.smk
+         """
+         dest_file = os.path.join(self.workflow_directory, "workflow.smk")
+         source_file = resources.files("harpy.snakefiles") / self.snakefile
+         try:
+             with resources.as_file(source_file) as _source:
+                 shutil.copy2(_source, dest_file)
+         except (FileNotFoundError, KeyError):
+             print_error(
+                 "snakefile missing",
+                 f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation."
+             )
+             print_solution(
+                 "There may be an issue with your Harpy installation, which would require "
+                 "reinstalling Harpy. Alternatively, there may be an issue with your "
+                 "conda/mamba environment or configuration."
+             )
+             sys.exit(1)
 
     def fetch_snakefile(self):
         """
@@ -178,10 +206,10 @@ class Workflow():
             print_error("script missing", f"Bundled script [blue bold]{target}[/] was not found in the Harpy installation.")
             print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
             sys.exit(1)
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_src, dest_file)
-
-    def write_workflow_config(self) -> None:
+        for i in self.reports:
+            self.fetch_report(i)
+        for i in self.scripts:
+            self.fetch_script(i)
         """
         Writes a workflow.yaml file to workdir to use with --configfile. Configs
         are expected to be a dict
@@ -203,7 +231,7 @@ class Workflow():
             if os.path.isdir(logfile) and not os.listdir(logfile):
                 os.rmdir(logfile)
 
-    def initialize(self):
+    def initialize(self, setup_only: bool = False):
         """Using the configurations, create all necessary folders and files"""
         self.write_workflow_config()
         self.write_snakemake_profile()
@@ -212,19 +240,21 @@ class Workflow():
         for i in self.reports:
             self.fetch_report(i)
         for i in self.scripts:
-            self.fetch_script
+            self.fetch_script(i)
         if self.hpc:
             hpc_dest = os.path.join(self.workflow_directory, "hpc")
-            os.makedirs(hpc_dest)
+            os.makedirs(hpc_dest, exist_ok=True)
             shutil.copy2(self.hpc, os.path.join(hpc_dest, "config.yaml"))
         self.print_onstart()
+        if not setup_only:
+            self.launch()
 
     def print_onstart(self):
         """Print a panel of info on workflow run"""
         if self.quiet == 2:
             return
         rprint("")
-        CONSOLE.rule(f"[bold]harpy {self.name.replace("_", " ")}", style = "light_steel_blue")
+        CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
         CONSOLE.print(self.start_text)
 
     def print_onsuccess(self):

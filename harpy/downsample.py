@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 import rich_click as click
 from .common.cli_types_generic import SnakemakeParams, HPCProfile
 from .common.printing import workflow_info
@@ -55,6 +54,8 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     | 0<`i`<1| keeps `i` proprotion of invalids in the sampling pool |
     """
     workflow = Workflow("downsample", "downsample.smk", output_dir, quiet)
+    workflow.setup_snakemake(False, threads, hpc, snakemake)
+
     ## checks and validations ##
     if len(input) > 2:
         raise click.BadParameter('inputs must be 1 BAM file or 2 FASTQ files.', param_hint="INPUT")
@@ -71,14 +72,6 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     if len(barcode_tag) != 2:
         raise click.BadParameter('The barcode tag must be 2 chracters from the English alphabet (A-Z)', param_hint="--barcode-tag/-b")            
 
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
     workflow.config = {
         "workflow": workflow.name,
         "prefix" :  prefix,
@@ -89,7 +82,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "inputs": input
     }
@@ -100,6 +93,4 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)

@@ -1,7 +1,7 @@
 """Harpy workflows to call SNP variants"""
 
 import os
-import sys
+import shutil
 from pathlib import Path
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
@@ -91,6 +91,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
     workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["r", "variants"]
 
@@ -99,7 +100,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
     validate_regions(regions, reference)
-    region = Path(f"{workflowdir}/regions.bed").resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
     if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
     elif os.path.exists(regions):
@@ -112,14 +113,6 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         # check that samplenames and populations line up
         validate_popsamples(bamlist, populations,quiet)
 
-    ## workflow setup ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
@@ -127,7 +120,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
@@ -146,9 +139,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
@@ -182,6 +173,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
     workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["r"]
 
@@ -190,7 +182,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     validate_bam_RG(bamlist, threads, quiet)
     check_fasta(reference)
     validate_regions(regions, reference)
-    region = Path(f"{workflowdir}/regions.bed").resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
     if isinstance(regions, int):
         os.system(f"make_windows.py -m 1 -w {regions} {reference} > {region}")
     elif os.path.isfile(regions):
@@ -202,14 +194,6 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         # check that samplenames and populations line up
         validate_popsamples(bamlist, populations, quiet)
 
-    ## workflow setup ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
@@ -217,7 +201,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {
@@ -238,9 +222,7 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

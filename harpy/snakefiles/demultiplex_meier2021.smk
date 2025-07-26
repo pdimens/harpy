@@ -113,7 +113,7 @@ rule configure_report:
         "workflow/multiqc.yaml"
     run:
         import yaml
-        workflow.config = {
+        configs = {
             "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
             "table_sample_merge": {
                 "R1": ".R1",

@@ -1,8 +1,6 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
 import sys
-import yaml
-import shutil
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
 from .common.printing import print_error, workflow_info
@@ -154,6 +152,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
     workflow = Workflow("simulate_snpindel", "simulate_snpindel.smk", output_dir, quiet, True)
+    workflow.setup_snakemake(container, 2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
     ## checks and validations ##
@@ -170,14 +169,6 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
         sys.exit(1)
     check_fasta(genome)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        2,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -203,7 +194,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
@@ -227,9 +218,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
@@ -262,6 +251,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
     workflow = Workflow("simulate_inversion", "simulate_variants.smk", output_dir, quiet, True)
+    workflow.setup_snakemake(container, 2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
     ## checks and validations ##
@@ -272,14 +262,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
         sys.exit(1)   
     check_fasta(genome)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        2,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -298,7 +280,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
@@ -319,9 +301,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known copy number variants to simulate')
@@ -364,6 +344,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     | `--gain-ratio` | copy gain / loss | gain only | loss only| 
     """
     workflow = Workflow("simulate_cnv", "simulate_variants.smk", output_dir, quiet, True)
+    workflow.setup_snakemake(container, 2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
     ## checks and validations ##
@@ -374,14 +355,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
         sys.exit(1) 
     check_fasta(genome)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        2,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -403,7 +376,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
@@ -424,9 +397,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
 @click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
@@ -457,6 +428,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
     workflow = Workflow("simulate_translocation", "simulate_variants.smk", output_dir, quiet, True)
+    workflow.setup_snakemake(container, 2, hpc, snakemake)
     workflow.conda = ["simulations"]    
 
     ## checks and validations ##
@@ -467,15 +439,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
         sys.exit(1) 
     check_fasta(genome)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        output_dir,
-        2,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -492,7 +455,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
@@ -513,7 +476,5 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 

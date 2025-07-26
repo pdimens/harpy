@@ -80,17 +80,11 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     subsequent analyses, but may be useful for your own diagnostics. 
     """
     workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, quiet) 
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
+    
     ## checks and validations ##
     multi_id = validate_demuxschema(schema)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -102,7 +96,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {
@@ -125,9 +119,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map', type=click.Path(exists=True, readable=True, resolve_path=True), help = 'Map of nucleotide-to-barcode conversion')
@@ -276,7 +268,6 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                     gzip.stdin.write(str(record).encode("utf-8") + b"\n")
             sys.stderr.write(f"\t{DEMUX_TOTAL}\t{AMBIG_TOTAL}\n")
         
-
 
 demultiplex.add_command(meier2021)
 demultiplex.add_command(ncbi)

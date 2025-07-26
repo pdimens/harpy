@@ -1,7 +1,6 @@
 """Harpy sequence adapter trimming and quality control"""
 
 import os
-import sys
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
 from .common.cli_types_params import FastpParams
@@ -64,6 +63,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
       - use `harpy deconvolve` to perform this task separately
     """
     workflow = Workflow("qc", "qc.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["bx_count.qmd"]
     workflow.conda = ["qc", "r"]
 
@@ -79,14 +79,6 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
             trim_adapters = filepath(trim_adapters)
     else:
         trim_adapters = False
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -120,6 +112,4 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         ("Output Folder:", f"{output_dir}/"),
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)

@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 from concurrent.futures import ThreadPoolExecutor
-import gzip
 from itertools import product, zip_longest
 import os
 from random import sample
@@ -11,7 +10,7 @@ import sys
 import rich_click as click
 import pysam
 from .common.misc import safe_read, harpy_pulsebar
-from .common.convert import *
+from .common.convert import FQRecord, compress_fq
 from .common.printing import print_error
 from .common.validations import validate_barcodefile
 

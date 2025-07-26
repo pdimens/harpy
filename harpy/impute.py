@@ -3,9 +3,9 @@
 import os
 import sys
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from .common.cli_types_generic import HPCProfile, SnakemakeParams
 from .common.cli_types_params import StitchParams
-from .common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions, contigs_from_vcf
+from .common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
 from .common.printing import workflow_info, print_error, print_solution
 from .common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
 from .common.workflow import Workflow
@@ -56,6 +56,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
     workflow = Workflow("impute", "impute.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["impute.qmd", "stitch_collate.qmd"]
     workflow.conda = ["r", "stitch"]
 
@@ -64,7 +65,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     validate_bam_RG(bamlist, threads, quiet)
     samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflowdir)
+    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflow.workflow_directory)
     if region:
         contig, start,end, buffer = parse_impute_regions(region, vcf)
         if contig not in biallelic_names:
@@ -74,14 +75,6 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
             )
             print_solution(f"Restrict the contigs provided to [bold green]--regions[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/].")
             sys.exit(1)
-    
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -89,7 +82,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "samples_from_vcf" : vcf_samples,
@@ -114,6 +107,4 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)

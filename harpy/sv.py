@@ -1,8 +1,6 @@
 """Harpy workflows to detect structural variants"""
 
 import os
-import sys
-
 import rich_click as click
 from .common.cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
 from .common.cli_types_params import LeviathanParams, NaibrParams
@@ -94,8 +92,14 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     you expect to find, try lowering `--sharing-thresholds`, _e.g._ `90,90,90`. The thresholds don't
     have to be the same across the different size classes.
     """
-    workflow = "sv_leviathan"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    vcaller = "sv_leviathan" if not populations else "sv_leviathan_pop"
+    workflow = Workflow("sv_leviathan", f"{vcaller}.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow.reports = ["leviathan.qmd"]
+    if populations:
+        workflow.reports.append("leviathan_pop.qmd")
+    workflow.conda = ["align", "r", "variants"]
+
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
     check_fasta(reference)
@@ -103,22 +107,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         fasta_contig_match(contigs, reference)
     if populations:
         validate_popfile(populations)
-        validate_popsamples(bamlist, populations,quiet)
+        validate_popsamples(bamlist, populations, quiet)
 
-    ## setup workflow ##
-    vcaller = workflow if not populations else f"{workflow}_pop"
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
-    fetch_rule(workflowdir, f"{vcaller}.smk")
-    fetch_report(workflowdir, "leviathan.qmd")
-    fetch_report(workflowdir, "leviathan_pop.qmd") if populations else None
-
-    workflow.conda = ["align", "r", "variants"]
     workflow.config = {
         "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
@@ -134,7 +124,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {
@@ -155,9 +145,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
@@ -193,9 +181,10 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    vcaller = workflow if not populations else f"{workflow}_pop"
+    vcaller = "sv_naibr" if not populations else "sv_naibr__pop"
     vcaller += "_phase" if vcf else ""
     workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["naibr.qmd"]
     if populations:
         workflow.reports.append("naibr_pop.qmd")
@@ -230,7 +219,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "reports" : {
@@ -253,9 +242,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 sv.add_command(leviathan)
 sv.add_command(naibr)

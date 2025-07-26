@@ -1,6 +1,5 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
-import sys
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
 from .common.cli_types_params import Barcodes
@@ -96,19 +95,12 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     """
     output_dir = os.path.dirname(output_prefix)
     workflow = Workflow("simulate_linkedreads", "simulate_linkedreads.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["simulations"]
 
     ## checks and validations ##
     for i in fasta:
         check_fasta(i)
-
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -140,7 +132,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
@@ -155,6 +147,4 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)

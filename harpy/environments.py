@@ -6,8 +6,6 @@ import subprocess
 from pathlib import Path
 import rich_click as click
 from .common.conda import create_conda_recipes
-#from .common.launch import launch_snakemake
-#from .common.misc import fetch_snakefile, snakemake_log
 from .common.workflow import Workflow
 
 @click.command(hidden = True)

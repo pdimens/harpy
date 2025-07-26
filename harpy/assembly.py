@@ -1,7 +1,5 @@
 """Perform a linked-read aware metassembly"""
 
-import os
-import sys
 import rich_click as click
 from .common.cli_types_generic import KParam, HPCProfile, SnakemakeParams
 from .common.cli_types_params import SpadesParams, ArcsParams
@@ -67,18 +65,11 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     the input FASTQ files with `harpy deconvolve`.
     """
     workflow = Workflow("assembly", "assembly.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
     validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
-
-    ## setup workflow #
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -126,7 +117,4 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
         ("Output Folder:", f"{output_dir}/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
-
+    workflow.initialize(setup_only)

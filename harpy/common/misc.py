@@ -70,12 +70,13 @@ def fetch_snakefile(workdir: str, target: str) -> None:
     dest_file = os.path.join(workdir,"workflow.smk")
     os.makedirs(workdir, exist_ok= True)
     source_file = resources.files("harpy.snakefiles") / target
-    if not os.path.isfile(source_file):
+    try:
+        with resources.as_file(source_file) as _source:
+            shutil.copy2(_source, dest_file)
+    except (FileNotFoundError, KeyError):
         print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.")
         print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
         sys.exit(1)
-    with resources.as_file(source_file) as _source:
-        shutil.copy2(_source, dest_file)
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""

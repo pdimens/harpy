@@ -1,7 +1,6 @@
 """Harpy validation checks of FASTQ and BAM files for workflows"""
 
 import os
-import sys
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, SnakemakeParams
 from .common.parsers import parse_alignment_inputs, parse_fastq_inputs
@@ -68,26 +67,19 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     you diagnose if file formatting will cause downstream issues. 
     """
     workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["validate_bam.qmd"]
     workflow.conda = ["r"]
 
     ## checks and validations ##
     bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
 
-    ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
     workflow.config = {
         "workflow" : workflow.name,
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "platform": platform.lower(),
@@ -99,9 +91,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
@@ -127,6 +117,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     you diagnose if file formatting will cause downstream issues. 
     """
     workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, quiet)
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["validate_fastq.qmd"]
     workflow.conda = ["r"]
 
@@ -134,19 +125,13 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     fqlist, n = parse_fastq_inputs(inputs, "INPUTS")
 
     ## setup workflow ##
-    workflow.setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
 
     workflow.config = {
         "workflow" : workflow.name,
         "snakemake" : {
             "log" : workflow.snakemake_log,
             "absolute": workflow.snakemake_cmd_absolute,
-            "absolute": workflow.snakemake_cmd_relative,
+            "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
         "platform": platform.lower(),
@@ -158,9 +143,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
-    workflow.initialize()
-    if not setup_only:
-        workflow.launch()
+    workflow.initialize(setup_only)
 
 validate.add_command(bam)
 validate.add_command(fastq)

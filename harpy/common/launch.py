@@ -5,10 +5,8 @@ import re
 import os
 import sys
 import subprocess
-from rich import print as rprint
-#from rich.CONSOLE import CONSOLE
 from .misc import harpy_progressbar, harpy_pulsebar, harpy_progresspanel, gzip_file, purge_empty_logs
-from .printing import CONSOLE, print_onsuccess, print_onstart, print_onerror, print_setup_error
+from .printing import CONSOLE, print_onerror, print_setup_error
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
@@ -64,7 +62,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                 exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in output else exitcode
                 break
             if quiet < 2:
-                with CONSOLE.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
+                with CONSOLE.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow"):
                     while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
                 if "Nothing to be" in output:
