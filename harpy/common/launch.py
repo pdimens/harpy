@@ -1,15 +1,12 @@
 """launch snakemake"""
 
+from datetime import datetime
 import re
 import os
 import sys
-import glob
 import subprocess
-from datetime import datetime
-from rich import print as rprint
-from rich.console import Console
-from ._misc import gzip_file, harpy_progressbar, harpy_pulsebar, harpy_progresspanel
-from ._printing import print_onsuccess, print_onstart, print_onerror, print_setup_error
+from .misc import harpy_progressbar, harpy_pulsebar, harpy_progresspanel, gzip_file, purge_empty_logs
+from .printing import CONSOLE, print_onerror, print_setup_error
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
@@ -48,21 +45,10 @@ def highlight_params(text):
         return f"\n[blue]{text}[/]"
     return text
 
-def purge_empty_logs(target_dir):
-    """scan target_dir and remove empty files, then scan it again and remove empty directories"""
-    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
-        if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-            os.remove(logfile)
-    for logfile in glob.glob(f"{target_dir}/logs/**/*", recursive = True):
-        if os.path.isdir(logfile) and not os.listdir(logfile):
-            os.rmdir(logfile)
-
-def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, summaryfile = None):
+def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
     """launch snakemake with the given commands"""
-    start_time = datetime.now()
-    if quiet < 2:
-        print_onstart(starttext, workflow.replace("_", " "))
     exitcode = None
+    sm_start = datetime.now()
     try:
         # Start snakemake as a subprocess
         process = subprocess.Popen(sm_args.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
@@ -76,8 +62,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                 exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in output else exitcode
                 break
             if quiet < 2:
-                console = Console()
-                with console.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow") as status:
+                with CONSOLE.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow"):
                     while output.startswith("Building DAG of jobs...") or output.startswith("Assuming"):
                         output = process.stderr.readline()
                 if "Nothing to be" in output:
@@ -188,31 +173,29 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                                 # remove the job to save memory. wont be seen again
                                 details[2].discard(completed)
                                 break
-
         process.wait()
-        end_time = datetime.now()
-        elapsed_time = end_time - start_time
         if process.returncode < 1:
-            if quiet < 2:
-                print_onsuccess(outdir, summaryfile, sm_logfile, elapsed_time)
+            return
         else:
             if exitcode in (1,2):
                 print_setup_error(exitcode)
             elif exitcode == 3:
-                print_onerror(os.path.join(os.path.basename(outdir), sm_logfile), elapsed_time)
-            console = Console(stderr = True, tab_size = 4, highlight=False)
+                print_onerror(os.path.join(os.path.basename(outdir), sm_logfile), datetime.now() - sm_start)
+            #CONSOLE = CONSOLE(stderr = True, tab_size = 4, highlight=False)
+            CONSOLE.tab_size = 4
+            CONSOLE._highlight = False
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
                 if "Exception" in output or "Error" in output:
                     if output.startswith("CalledProcessError in file"):
-                        console.print("[yellow bold]\t" + output.rstrip().rstrip(":"), overflow = "ignore", crop = False)
+                        CONSOLE.print("[yellow bold]\t" + output.rstrip().rstrip(":"), overflow = "ignore", crop = False)
                         # skip the Command source part
                         while not output.strip().startswith("["):
                             output = process.stderr.readline()
-                        console.print("\n[blue]" + output.strip(), overflow = "ignore", crop = False)
+                        CONSOLE.print("\n[blue]" + output.strip(), overflow = "ignore", crop = False)
                         output = process.stderr.readline()
                         continue
                     else:
-                        console.print("[yellow bold]" + output.strip(), overflow = "ignore", crop = False)
+                        CONSOLE.print("[yellow bold]" + output.strip(), overflow = "ignore", crop = False)
                     output = process.stderr.readline()
                     continue
                 if output.rstrip() == "Traceback (most recent call last):" :
@@ -221,7 +204,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     output = process.stderr.readline()
                 if output.strip().startswith("Logfile"):
                     _log = output.rstrip().split()[1]
-                    console.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
+                    CONSOLE.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
                     output = process.stderr.readline()
                     continue
                 if output.strip().startswith("======"):
@@ -235,7 +218,7 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                     if output.startswith("Exiting because a job execution failed. Look below for"):
                         while not output.startswith("[") and not output.rstrip().endswith("]"):
                             output = process.stderr.readline().lstrip()
-                        console.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
+                        CONSOLE.print("[blue]" + output.rstrip(), overflow = "ignore", crop = False)
                         output = process.stderr.readline().lstrip()
                         continue
                     if not output.startswith("Complete log"):
@@ -248,19 +231,16 @@ def launch_snakemake(sm_args, workflow, starttext, outdir, sm_logfile, quiet, su
                                 output = process.stderr.readline()
                         if output.strip().startswith("Trying to restart job"):
                             break
-                        console.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
+                        CONSOLE.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break
                 if not output:
                     break
                 output = process.stderr.readline()
-        purge_empty_logs(outdir)
-        gzip_file(os.path.join(outdir, sm_logfile))
-        sys.exit(process.returncode)
+            sys.exit(process.returncode)
     except KeyboardInterrupt:
-        console = Console(stderr=True)
-        console.print("")
-        console.rule("[bold]Terminating Harpy", style = "yellow")
+        CONSOLE.print("")
+        CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
         process.terminate()
         process.wait()
         gzip_file(os.path.join(outdir,sm_logfile))

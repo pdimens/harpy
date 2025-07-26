@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 
 from concurrent.futures import ThreadPoolExecutor
-import gzip
 from itertools import product, zip_longest
 import os
 from random import sample
@@ -10,10 +9,10 @@ import subprocess
 import sys
 import rich_click as click
 import pysam
-from ._misc import safe_read, harpy_pulsebar
-from ._convert import *
-from ._printing import print_error
-from ._validations import validate_barcodefile
+from .common.misc import safe_read, harpy_pulsebar
+from .common.convert import FQRecord, compress_fq
+from .common.printing import print_error
+from .common.validations import validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():

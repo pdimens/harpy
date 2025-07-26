@@ -5,17 +5,14 @@ import os
 from random import sample
 import re
 import sys
-import yaml
 import pysam
-import shutil
 import subprocess
 import rich_click as click
-from ._cli_types_generic import HPCProfile, SnakemakeParams
-from ._conda import create_conda_recipes
-from ._launch import launch_snakemake
-from ._misc import fetch_rule, instantiate_dir, safe_read, setup_snakemake, write_workflow_config
-from ._printing import print_error, print_solution_with_culprits, workflow_info
-from ._validations import validate_demuxschema
+from .common.cli_types_generic import HPCProfile, SnakemakeParams
+from .common.misc import safe_read
+from .common.printing import print_error, print_solution_with_culprits, workflow_info
+from .common.validations import validate_demuxschema
+from .common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def demultiplex():
@@ -82,36 +79,26 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = "demultiplex_meier2021"
-    workflowdir,sm_log = instantiate_dir(output_dir, workflow)
+    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, quiet) 
+    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow.conda = ["demultiplex", "qc"]
+    
     ## checks and validations ##
     multi_id = validate_demuxschema(schema)
 
-    ## setup workflow ##
-    command,command_rel = setup_snakemake(
-        "conda" if not container else "conda apptainer",
-        output_dir,
-        threads,
-        hpc if hpc else None,
-        snakemake if snakemake else None
-    )
-
-    fetch_rule(workflowdir, "demultiplex_meier2021.smk")
-
-    conda_envs = ["demultiplex", "qc"]
-    configs = {
-        "workflow" : workflow,
+    workflow.config = {
+        "workflow" : workflow.name,
         "retain" : {
             "qx_rx" : qx_rx,
             "barcodes" : keep_unknown_barcodes,
             "samples" : keep_unknown_samples,
         },
         "snakemake" : {
-            "log" : sm_log,
-            "absolute": command,
-            "relative": command_rel
+            "log" : workflow.snakemake_log,
+            "absolute": workflow.snakemake_cmd_absolute,
+            "relative": workflow.snakemake_cmd_relative,
         },
-        "conda_environments" : conda_envs,
+        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports
         },
@@ -124,19 +111,15 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         }
     }
     
-    write_workflow_config(configs, output_dir)
-    create_conda_recipes(output_dir, conda_envs)
-    if setup_only:
-        sys.exit(0)
-    
-    start_text = workflow_info(
+    workflow.start_text = workflow_info(
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
         ("Demultiplex Schema:", os.path.basename(schema)),
         ("Multi-ID Samples:", "[bold yellow]Yes[/] [dim](assuming this was intentional)[/]" if multi_id else "No"),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
-    launch_snakemake(command_rel, workflow, start_text, output_dir, sm_log, quiet, "workflow/demux.meier2021.summary")
+
+    workflow.initialize(setup_only)
 
 @click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map', type=click.Path(exists=True, readable=True, resolve_path=True), help = 'Map of nucleotide-to-barcode conversion')
@@ -285,7 +268,6 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                     gzip.stdin.write(str(record).encode("utf-8") + b"\n")
             sys.stderr.write(f"\t{DEMUX_TOTAL}\t{AMBIG_TOTAL}\n")
         
-
 
 demultiplex.add_command(meier2021)
 demultiplex.add_command(ncbi)

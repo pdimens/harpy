@@ -3,6 +3,11 @@
 import os
 import sys
 import pysam
+from .printing import print_error
+
+INVALID_STLFR = "0_0_0"
+INVALID_TELLSEQ = "N" * 18
+INVALID_HAPLOTAGGING = "A00C00B00D00"
 
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):

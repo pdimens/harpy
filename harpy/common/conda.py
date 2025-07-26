@@ -6,7 +6,7 @@ import yaml
 from rich import box
 from rich.table import Table
 from rich import print as rprint
-from ._printing import print_error, print_solution_with_culprits
+from .printing import print_error, print_solution_with_culprits
 
 def create_conda_recipes(outdir: str, envs: list= []) -> None:
     """Create the YAML files of the workflow conda dependencies"""
@@ -76,7 +76,8 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::bcftools=1.22",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
-            "bioconda::naibr-plus"
+            "bioconda::naibr-plus",
+            "conda-forge::setuptools"
         ]
     }
     _out = os.path.join(outdir, "workflow", "envs")

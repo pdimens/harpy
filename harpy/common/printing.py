@@ -9,7 +9,7 @@ from rich import box
 from rich.table import Table
 from rich.panel import Panel
 
-console = Console(stderr=True)
+CONSOLE = Console(stderr=True)
 
 def print_error(errortitle: str, errortext: str) -> None:
     """Print a yellow panel with error text"""
@@ -65,8 +65,8 @@ def print_notice(noticetext: str) -> None:
 def print_onstart(text: str, title: str) -> None:
     """Print a panel of info on workflow run"""
     rprint("")
-    console.rule(f"[bold]harpy {title}", style = "light_steel_blue")
-    console.print(text)
+    CONSOLE.rule(f"[bold]harpy {title}", style = "light_steel_blue")
+    CONSOLE.print(text)
 
 def print_setup_error(exitcode: int) -> None:
     """Print a red panel with snakefile or conda/singularity error text"""
@@ -76,9 +76,9 @@ def print_setup_error(exitcode: int) -> None:
     else:
         errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         errortype = "Software Environment Error"
-    console.rule(f"[bold]{errortype}", style = "red")
-    console.print(errortext)
-    console.rule("[bold]Error Reported by Snakemake", style = "red")
+    CONSOLE.rule(f"[bold]{errortype}", style = "red")
+    CONSOLE.print(errortext)
+    CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
 
 def print_onsuccess(outdir: str, summary:str|None = None, logfile:str|None = None, time = None) -> None:
     """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
@@ -95,8 +95,8 @@ def print_onsuccess(outdir: str, summary:str|None = None, logfile:str|None = Non
     if summary:
         datatable.add_row("Summary: ", f"{os.path.basename(outdir)}/{summary}")
     datatable.add_row("Workflow Log:", f"{os.path.basename(outdir)}/{logfile}.gz")
-    console.rule("[bold]Workflow Finished!", style="green")
-    console.print(datatable)
+    CONSOLE.rule("[bold]Workflow Finished!", style="green")
+    CONSOLE.print(datatable)
 
 def print_onerror(logfile: str, time = None) -> None:
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
@@ -111,10 +111,10 @@ def print_onerror(logfile: str, time = None) -> None:
     datatable.add_column("value", justify="left")
     datatable.add_row("Duration:", time_text)
     datatable.add_row("Workflow Log: ", logfile + ".gz")
-    console.rule("[bold]Workflow Error", style = "red")
-    console.print(f"The workflow stopped because of an error. See the information Snakemake reported below.")
-    console.print(datatable)
-    console.rule("[bold]Where Error Occurred", style = "red")
+    CONSOLE.rule("[bold]Workflow Error", style = "red")
+    CONSOLE.print(f"The workflow stopped because of an error. See the information Snakemake reported below.")
+    CONSOLE.print(datatable)
+    CONSOLE.rule("[bold]Where Error Occurred", style = "red")
 
 def workflow_info(*arg: tuple[str, str | int | float]) -> Table:
     """
