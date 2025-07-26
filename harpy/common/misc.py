@@ -61,8 +61,8 @@ def fetch_snakefile(workdir: str, target: str) -> None:
     """
     Retrieve the target harpy rule and write it into the workdir as workflow.smk
     """
-    dest_file = os.path.join(workdir,"workflow.smk")
     os.makedirs(workdir, exist_ok= True)
+    dest_file = os.path.join(workdir,"workflow.smk")
     source_file = resources.files("harpy.snakefiles") / target
     try:
         with resources.as_file(source_file) as _source:

@@ -12,7 +12,7 @@ from rich import print as rprint
 from rich import box
 from rich.table import Table
 from .conda import create_conda_recipes
-from .misc import filepath, gzip_file
+from .misc import filepath, gzip_file, fetch_snakefile, purge_empty_logs
 from .printing import CONSOLE, print_error, print_solution
 from .launch import launch_snakemake
 
@@ -170,22 +170,7 @@ class Workflow():
          """
          Retrieve the target harpy rule and write it into the workdir as workflow.smk
          """
-         dest_file = os.path.join(self.workflow_directory, "workflow.smk")
-         source_file = resources.files("harpy.snakefiles") / self.snakefile
-         try:
-             with resources.as_file(source_file) as _source:
-                 shutil.copy2(_source, dest_file)
-         except (FileNotFoundError, KeyError):
-             print_error(
-                 "snakefile missing",
-                 f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation."
-             )
-             print_solution(
-                 "There may be an issue with your Harpy installation, which would require "
-                 "reinstalling Harpy. Alternatively, there may be an issue with your "
-                 "conda/mamba environment or configuration."
-             )
-             sys.exit(1)
+         fetch_snakefile(self.workflow_directory, self.snakefile)
 
     def fetch_script(self, target: str) -> None:
         """
@@ -227,13 +212,7 @@ class Workflow():
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     def purge_empty_logs(self):
-        """scan target_dir and remove empty files, then scan it again and remove empty directories"""
-        for logfile in glob.glob(f"{self.output_directory}/logs/**/*", recursive = True):
-            if os.path.isfile(logfile) and os.path.getsize(logfile) == 0:
-                os.remove(logfile)
-        for logfile in glob.glob(f"{self.output_directory}/logs/**/*", recursive = True):
-            if os.path.isdir(logfile) and not os.listdir(logfile):
-                os.rmdir(logfile)
+        purge_empty_logs(self.output_directory)
 
     def initialize(self, setup_only: bool = False):
         """Using the configurations, create all necessary folders and files"""
