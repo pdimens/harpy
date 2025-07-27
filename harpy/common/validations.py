@@ -71,10 +71,10 @@ def check_impute_params(parameters: str) -> dict:
             culprit_text = []
             if invalid_col:
                 errtext.append("\n  - invalid column names")
-                culprit_text.append(f"[red]Invalid columns:[/] " + ", ".join(invalid_col))
+                culprit_text.append("[red]Invalid columns:[/] " + ", ".join(invalid_col))
             if missing_col:
                 errtext.append("\n  - missing columns")
-                culprit_text.append( f"[yellow]Missing columns:[/] " + ", ".join(missing_col))
+                culprit_text.append("[yellow]Missing columns:[/] " + ", ".join(missing_col))
 
             print_error("incorrect columns", f"Parameter file [bold]{parameters}[/] has incorrect column names" + "".join(errtext) + f"\nValid names are: [green bold]" + " ".join(colnames) + "[/]")
             print_solution_with_culprits(
@@ -484,7 +484,7 @@ def fastq_has_bx(fastq_list: list[str], threads: int, quiet: int, max_records: i
                 records += 1
         return False
     progress = harpy_progressbar(quiet)
-    with harpy_progresspanel(progress, title = "Parsing FASTQ input", quiet=quiet) as panel, ThreadPoolExecutor(max_workers=threads) as executor:
+    with harpy_progresspanel(progress, title = "Parsing FASTQ input", quiet=quiet), ThreadPoolExecutor(max_workers=threads) as executor:
         task_progress = progress.add_task("[dim]Progress", total=len(fastq_list))
         futures = [executor.submit(has_bx_tag, i, max_records) for i in fastq_list]
         for future in as_completed(futures):
@@ -542,7 +542,7 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
             sys.exit(1)
         return len(barcode)
     progress = harpy_progressbar(quiet)
-    with safe_read(infile) as bc_file, harpy_progresspanel(progress, title= "Validating barcodes", quiet=quiet) as panel:
+    with safe_read(infile) as bc_file, harpy_progresspanel(progress, title= "Validating barcodes", quiet=quiet):
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         linenum = int(out.partition(b' ')[0])
         if linenum > 96**4 and haplotag_only:

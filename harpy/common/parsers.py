@@ -5,7 +5,6 @@ import os
 import sys
 import subprocess
 from typing import Tuple
-from pathlib import Path
 from rich.markdown import Markdown
 import rich_click as click
 from .misc import filepath

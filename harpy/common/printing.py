@@ -1,6 +1,5 @@
 """Module of pretty-printing for errors and prompts"""
 
-from datetime import datetime
 import os
 import sys
 from rich import print as rprint
@@ -112,7 +111,7 @@ def print_onerror(logfile: str, time = None) -> None:
     datatable.add_row("Duration:", time_text)
     datatable.add_row("Workflow Log: ", logfile + ".gz")
     CONSOLE.rule("[bold]Workflow Error", style = "red")
-    CONSOLE.print(f"The workflow stopped because of an error. See the information Snakemake reported below.")
+    CONSOLE.print("The workflow stopped because of an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")
 
