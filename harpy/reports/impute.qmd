@@ -290,7 +290,6 @@ filterthresh <- rbind(c("all", tots), filterthresh)
 column_description <- c(
   "name of the contig",
   "total number of SNPs on the contig",
-  "mean number of SNPs per haplotype",
   "number of SNPs remaining after filtering at INFO>=0.2",
   "number of SNPs remaining after filtering at INFO>=0.25",
   "number of SNPs remaining after filtering at INFO>=0.3",
