@@ -1,10 +1,8 @@
 """Harpy module to create HPC profiles for running snakemake on a cluster"""
 
-import os
 import subprocess
 import sys
 import rich_click as click
-from rich import print as rprint
 from rich.markdown import Markdown
 from .common.printing import print_notice
 
