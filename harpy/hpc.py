@@ -1,29 +1,74 @@
 """Harpy module to create HPC profiles for running snakemake on a cluster"""
 
-import subprocess
+import os
 import sys
 import rich_click as click
 from rich.markdown import Markdown
 from .common.printing import print_notice
 
+def is_conda_package_installed(package_name):
+    from conda.core.prefix_data import PrefixData
+    from conda.base.context import context
+    try:
+        # Get the current environment prefix
+        prefix = context.active_prefix or context.root_prefix
+
+        # Get prefix data for current environment
+        prefix_data = PrefixData(prefix)
+
+        # Check if package exists in the prefix
+        return any(package_name in record.name for record in prefix_data.iter_records())
+    except Exception as e:
+        print(f"Error checking package: {e}")
+        return False
+
+def is_pip_package_installed(package_name):
+    from importlib.metadata import PackageNotFoundError
+    import importlib.metadata
+    try:
+        importlib.metadata.version(package_name)
+        return True
+    except PackageNotFoundError:
+        return False
+
+def is_in_pixi_shell():
+    # Check for pixi-specific environment variables
+    pixi_indicators = [
+        'PIXI_PROJECT_ROOT',
+        'PIXI_PROJECT_NAME',
+        'PIXI_PROJECT_MANIFEST',
+        'PIXI_ENVIRONMENT_NAME'
+    ]
+
+    return any(var in os.environ for var in pixi_indicators)
+
 def package_exists(pkg):
     """helper function to search for a package in the active conda environment"""
-    search_pkg = subprocess.run(f"conda list snakemake-executor-plugin-{pkg}".split(), capture_output = True, text = True)
-    exists = False
-    for i in search_pkg.stdout.split("\n"):
-        if i and not i.startswith("#"):
-            exists = True
-    if not exists:
-        print_notice(Markdown(f"""
-Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment.
-It can be installed with:
+    full_pkg = f"snakemake-executor-plugin-{pkg}"
+    try:
+        exists = is_conda_package_installed(full_pkg)
+        is_conda = True
+    except ModuleNotFoundError:
+        try:
+            exists = is_pip_package_installed(full_pkg)
+            is_conda = False
+        except ModuleNotFoundError:
+            print_notice(f"Failed to determine if [green]{full_pkg}[/] is installed in the environment using both conda and pip.")
+            return
+    if is_conda:
+        if is_in_pixi_shell():
+            install_text = f"pixi add {full_pkg}"
+        else:
+            install_text = f"conda install bioconda::{full_pkg}"
+    else:
+        install_text = f"pip install {full_pkg}"
     
-```bash
-conda install bioconda::snakemake-executor-plugin-{pkg}
-# or #
-pixi add snakemake-executor-plugin-{pkg}
-```
-    """))
+    if not exists:
+        print_notice(
+            Markdown(
+                f"""Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment. It can be installed with:\n\n```bash\n{install_text}\n```"""
+            )
+        )
 
 @click.command()
 def hpc_generic():
