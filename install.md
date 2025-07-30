@@ -127,17 +127,20 @@ pixi run harpy
 
 +++ 📦 Containers
 If you didn't know, packages on Bioconda are automatically built as containers too!
+Use one of the two approaches below then proceed to use containerized-Harpy however
+you are used to using containers on your system.
+
 ### 🐳 Docker
+Works on Windows, macOS, and Linux.
 ```bash
 docker pull quay.io/biocontainers/harpy
 ```
 
 ### 🅰️ Apptainer
-Find the most recent tag [here](https://quay.io/repository/biocontainers/harpy?tab=tags) and replace `$TAG` with it or use the `TAG=$(curl ...)` part below to pull the latest version name using the repository's API.
+Apptainer is Linux-only, but can be used inside a Windows WSL. Find the most recent tag [here](https://quay.io/repository/biocontainers/harpy?tab=tags) and replace `$TAG` with it or use the `TAG=$(curl ...)` part below to pull the latest version name using the repository's API.
 ```bash
 TAG=$(curl -s "https://quay.io/api/v1/repository/biocontainers/harpy/tag/" | cut -d'"' -f6)
 apptainer pull docker://quay.io/biocontainers/harpy:$TAG
 ```
 
-Then proceed to use containerized-Harpy however you are used to using containers on your system.
 +++
