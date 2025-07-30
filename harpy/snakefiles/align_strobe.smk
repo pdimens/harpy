@@ -76,7 +76,6 @@ rule align:
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
-        samps = lambda wc: d[wc.get("sample")],
         quality = config["alignment_quality"],
         unmapped_strobe = "" if keep_unmapped else "-U",
         unmapped = "" if keep_unmapped else "-F 4",
@@ -89,7 +88,7 @@ rule align:
     shell:
         """
         strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} |
-            samtools view -h {params.unmapped} -q {params.quality} > {output} 
+            samtools view -h -q {params.quality} > {output} 
         """
 
 rule standardize_barcodes:
@@ -131,7 +130,7 @@ rule mark_duplicates:
             OPTICAL_BUFFER=100
         fi
         samtools collate -O -u {input.sam} 2> {log.debug} |
-            samtools fixmate -m -u - - 2>> {log.debug} |
+            samtools fixmate -z on -m -u - - 2>> {log.debug} |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
             samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
         rm -rf {params.tmpdir}
