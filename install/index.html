@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807165703575">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807166079749">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.11.0.807165703575" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.11.0.807166079749" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.11.0.807165703575" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.11.0.807166079749" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.11.0.807165703575" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.11.0.807165703575" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.11.0.807166079749" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.11.0.807166079749" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -438,13 +438,16 @@ pixi run harpy</code></pre>
 </doc-tab>
 <doc-tab v-cloak id="containers">
 <template #title><span class="docs-emoji">&#x1F4E6;</span> Containers</template>
-<p>If you didn&#x27;t know, packages on Bioconda are automatically built as containers too!</p>
+<p>If you didn&#x27;t know, packages on Bioconda are automatically built as containers too!
+Use one of the two approaches below then proceed to use containerized-Harpy however
+you are used to using containers on your system.</p>
 <doc-anchor-target id="-docker">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#-docker">#</doc-anchor-trigger>
         <span><span class="docs-emoji">&#x1F433;</span> Docker</span>
     </h3>
 </doc-anchor-target>
+<p>Works on Windows, macOS, and Linux.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker pull quay.io/biocontainers/harpy</code></pre>
 </doc-codeblock></div>
@@ -454,12 +457,11 @@ pixi run harpy</code></pre>
         <span><span class="docs-emoji">&#x1F170;&#xFE0F;</span> Apptainer</span>
     </h3>
 </doc-anchor-target>
-<p>Find the most recent tag <a href="https://quay.io/repository/biocontainers/harpy?tab=tags">here</a> and replace <code v-pre>$TAG</code> with it or use the <code v-pre>TAG=$(curl ...)</code> part below to pull the latest version name using the repository&#x27;s API.</p>
+<p>Apptainer is Linux-only, but can be used inside a Windows WSL. Find the most recent tag <a href="https://quay.io/repository/biocontainers/harpy?tab=tags">here</a> and replace <code v-pre>$TAG</code> with it or use the <code v-pre>TAG=$(curl ...)</code> part below to pull the latest version name using the repository&#x27;s API.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">TAG=$(curl -s &quot;https://quay.io/api/v1/repository/biocontainers/harpy/tag/&quot; | cut -d'&quot;' -f6)
 apptainer pull docker://quay.io/biocontainers/harpy:$TAG</code></pre>
 </doc-codeblock></div>
-<p>Then proceed to use containerized-Harpy however you are used to using containers on your system.</p>
 </doc-tab>
 </doc-tabs>
 
