@@ -11,9 +11,7 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
 from rich.console import Console
-from .printing import print_error, print_solution
-
-_STDERR_CONSOLE = Console(file=sys.stderr)
+from .printing import print_error, print_solution, CONSOLE
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
     """Returns a nicely formatted live-panel with the progress bar in it"""
@@ -24,7 +22,8 @@ def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: in
             border_style="dim"
         ) if quiet != 2 else None,
         refresh_per_second=8,
-        transient=True
+        transient=True,
+        console=CONSOLE
     )
 
 def harpy_progressbar(quiet: int) -> Progress:
@@ -34,12 +33,14 @@ def harpy_progressbar(quiet: int) -> Progress:
     return Progress(
         SpinnerColumn(spinner_name = "dots12", style = "blue dim", finished_text="[dim green]✓"),
         TextColumn("[progress.description]{task.description}"),
-        BarColumn(complete_style="yellow", finished_style="dim blue"),
+        BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
         TaskProgressColumn("[progress.remaining]{task.completed}/{task.total}") if quiet == 0 else TaskProgressColumn(),
         TimeElapsedColumn(),
         transient = True,
         auto_refresh = True,
-        disable = quiet == 2
+        disable = quiet == 2,
+        console= CONSOLE,
+        expand=True
     )
 
 def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress:
@@ -49,12 +50,13 @@ def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress
     """
     return Progress(
         TextColumn("[progress.description]{task.description}"),
-        BarColumn(bar_width= max(10, 70 - len(desc_text)), pulse_style = "grey46"),
+        BarColumn(bar_width= None, pulse_style = "grey46"),
         TimeElapsedColumn(),
         auto_refresh = True,
         transient = True,
         disable = quiet == 2,
-        console = _STDERR_CONSOLE if stderr else None
+        console = CONSOLE if stderr else None,
+        expand=True
     )
 
 def fetch_snakefile(workdir: str, target: str) -> None:
