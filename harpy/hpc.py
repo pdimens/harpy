@@ -13,7 +13,7 @@ def is_conda_package_installed(package_name):
             from conda.base.context import context
         except ModuleNotFoundError:
             # CONDA_PREFIX is there but conda itself isnt: likely mamba
-            return "mamba"
+            return ("mamba", False)
         try:
             # Get the current environment prefix
             prefix = context.active_prefix or context.root_prefix
@@ -24,6 +24,8 @@ def is_conda_package_installed(package_name):
             # Check if package exists in the prefix
             if any(package_name in record.name for record in prefix_data.iter_records()):
                 return True
+            else:
+                return ("conda", False)
         except Exception as e:
             return False
     else:
@@ -56,27 +58,25 @@ def package_exists(pkg):
     """helper function to search for a package in the active conda environment"""
     full_pkg = f"snakemake-executor-plugin-{pkg}"
     out_text = "Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment. It can be installed with:"
-    if is_in_pixi_shell():
-        out_text += f"\n\n```bash\npixi add {full_pkg}\n```"
-        print_notice(Markdown(out_text))
-        return
 
     # check for conda/mamba
-    if is_conda_package_installed(full_pkg):
-        if is_conda_package_installed(full_pkg) == "mamba":
-            out_text += f"\n\n```bash\nmamba install bioconda::{full_pkg}\n```"
+    conda_check = is_conda_package_installed(full_pkg)
+    if conda_check == ("conda", False):
+        if is_in_pixi_shell():
+            out_text += f"\n\n```bash\npixi add {full_pkg}\n```"
         else:
             out_text += f"\n\n```bash\nconda install bioconda::{full_pkg}\n```"
+    elif conda_check == ("mamba", False):
+        out_text += f"\n\n```bash\nmamba install bioconda::{full_pkg}\n```"
+    
+    if conda_check != False:
         print_notice(Markdown(out_text))
         return
     
-    if is_pip_package_installed(full_pkg):
+    if not is_pip_package_installed(full_pkg):
         out_text += f"\n\n```bash\npip install {full_pkg}\n```"
         print_notice(Markdown(out_text))
         return
-
-    print_notice(f"Failed to determine if [green]{full_pkg}[/] is installed in the environment using pixi, conda, and pip.")
-    return
 
 @click.command()
 def hpc_generic():
