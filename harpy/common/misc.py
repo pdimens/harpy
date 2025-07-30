@@ -10,7 +10,6 @@ import importlib.resources as resources
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
-from rich.console import Console
 from .printing import print_error, print_solution, CONSOLE
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
