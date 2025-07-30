@@ -7,19 +7,26 @@ from rich.markdown import Markdown
 from .common.printing import print_notice
 
 def is_conda_package_installed(package_name):
-    from conda.core.prefix_data import PrefixData
-    from conda.base.context import context
-    try:
-        # Get the current environment prefix
-        prefix = context.active_prefix or context.root_prefix
+    if "CONDA_PREFIX" in os.environ:
+        try:
+            from conda.core.prefix_data import PrefixData
+            from conda.base.context import context
+        except ModuleNotFoundError:
+            # CONDA_PREFIX is there but conda itself isnt: likely mamba
+            return "mamba"
+        try:
+            # Get the current environment prefix
+            prefix = context.active_prefix or context.root_prefix
 
-        # Get prefix data for current environment
-        prefix_data = PrefixData(prefix)
+            # Get prefix data for current environment
+            prefix_data = PrefixData(prefix)
 
-        # Check if package exists in the prefix
-        return any(package_name in record.name for record in prefix_data.iter_records())
-    except Exception as e:
-        print(f"Error checking package: {e}")
+            # Check if package exists in the prefix
+            if any(package_name in record.name for record in prefix_data.iter_records()):
+                return True
+        except Exception as e:
+            return False
+    else:
         return False
 
 def is_pip_package_installed(package_name):
@@ -40,35 +47,36 @@ def is_in_pixi_shell():
         'PIXI_ENVIRONMENT_NAME'
     ]
 
-    return any(var in os.environ for var in pixi_indicators)
+    if any(var in os.environ for var in pixi_indicators):
+        return True
+    return False
+
 
 def package_exists(pkg):
     """helper function to search for a package in the active conda environment"""
     full_pkg = f"snakemake-executor-plugin-{pkg}"
-    try:
-        exists = is_conda_package_installed(full_pkg)
-        is_conda = True
-    except ModuleNotFoundError:
-        try:
-            exists = is_pip_package_installed(full_pkg)
-            is_conda = False
-        except ModuleNotFoundError:
-            print_notice(f"Failed to determine if [green]{full_pkg}[/] is installed in the environment using both conda and pip.")
-            return
-    if is_conda:
-        if is_in_pixi_shell():
-            install_text = f"pixi add {full_pkg}"
+    out_text = "Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment. It can be installed with:"
+    if is_in_pixi_shell():
+        out_text += f"\n\n```bash\npixi add {full_pkg}\n```"
+        print_notice(Markdown(out_text))
+        return
+
+    # check for conda/mamba
+    if is_conda_package_installed(full_pkg):
+        if is_conda_package_installed(full_pkg) == "mamba":
+            out_text += f"\n\n```bash\nmamba install bioconda::{full_pkg}\n```"
         else:
-            install_text = f"conda install bioconda::{full_pkg}"
-    else:
-        install_text = f"pip install {full_pkg}"
+            out_text += f"\n\n```bash\nconda install bioconda::{full_pkg}\n```"
+        print_notice(Markdown(out_text))
+        return
     
-    if not exists:
-        print_notice(
-            Markdown(
-                f"""Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment. It can be installed with:\n\n```bash\n{install_text}\n```"""
-            )
-        )
+    if is_pip_package_installed(full_pkg):
+        out_text += f"\n\n```bash\npip install {full_pkg}\n```"
+        print_notice(Markdown(out_text))
+        return
+
+    print_notice(f"Failed to determine if [green]{full_pkg}[/] is installed in the environment using pixi, conda, and pip.")
+    return
 
 @click.command()
 def hpc_generic():
