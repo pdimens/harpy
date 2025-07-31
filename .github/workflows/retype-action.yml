@@ -18,6 +18,8 @@ jobs:
         with:
           dotnet-version: 7.0.x
       - uses: retypeapp/action-build@latest
+        env:
+          RETYPE_KEY: ${{ secrets.RETYPE_KEY }}
       - uses: retypeapp/action-github-pages@latest
         with:
           branch: website

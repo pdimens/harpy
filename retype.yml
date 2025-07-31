@@ -1,3 +1,7 @@
+nav:
+  mode: stack   # Pro key required
+start:
+  pro: true
 input: .
 output: .retype
 url: pdimens.github.io/harpy/
@@ -7,7 +11,7 @@ footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 branding:
   title: Harpy
-  label: v2
+  label: v2.5
   logo: static/logo_navbar.png
   logoDark: static/logo_navbar.png
   logoAlign: left
