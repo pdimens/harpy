@@ -103,7 +103,7 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        bwa mem {params.static} -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
+        bwa mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
         """     
 
 rule standardize_barcodes:
