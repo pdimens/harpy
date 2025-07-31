@@ -1,5 +1,3 @@
-nav:
-  mode: stack   # Pro key required
 start:
   pro: true
 input: .
