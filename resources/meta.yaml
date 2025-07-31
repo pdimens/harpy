@@ -28,7 +28,7 @@ requirements:
     - pip
     - setuptools-scm >=8
   run:
-    - apptainer # [linux]
+#    - apptainer # [linux]
     - bcftools =1.22
     - conda >24.7
     - htslib =1.22

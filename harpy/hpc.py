@@ -1,82 +1,8 @@
 """Harpy module to create HPC profiles for running snakemake on a cluster"""
 
-import os
 import sys
 import rich_click as click
-from rich.markdown import Markdown
-from .common.printing import print_notice
-
-def is_conda_package_installed(package_name):
-    if "CONDA_PREFIX" in os.environ:
-        try:
-            from conda.core.prefix_data import PrefixData
-            from conda.base.context import context
-        except ModuleNotFoundError:
-            # CONDA_PREFIX is there but conda itself isnt: likely mamba
-            return ("mamba", False)
-        try:
-            # Get the current environment prefix
-            prefix = context.active_prefix or context.root_prefix
-
-            # Get prefix data for current environment
-            prefix_data = PrefixData(prefix)
-
-            # Check if package exists in the prefix
-            if any(package_name in record.name for record in prefix_data.iter_records()):
-                return True
-            else:
-                return ("conda", False)
-        except Exception as e:
-            return False
-    else:
-        return False
-
-def is_pip_package_installed(package_name):
-    from importlib.metadata import PackageNotFoundError
-    import importlib.metadata
-    try:
-        importlib.metadata.version(package_name)
-        return True
-    except PackageNotFoundError:
-        return False
-
-def is_in_pixi_shell():
-    # Check for pixi-specific environment variables
-    pixi_indicators = [
-        'PIXI_PROJECT_ROOT',
-        'PIXI_PROJECT_NAME',
-        'PIXI_PROJECT_MANIFEST',
-        'PIXI_ENVIRONMENT_NAME'
-    ]
-
-    if any(var in os.environ for var in pixi_indicators):
-        return True
-    return False
-
-
-def package_exists(pkg):
-    """helper function to search for a package in the active conda environment"""
-    full_pkg = f"snakemake-executor-plugin-{pkg}"
-    out_text = "Using this scheduler requires installing a Snakemake plugin which wasn't detected in this environment. It can be installed with:"
-
-    # check for conda/mamba
-    conda_check = is_conda_package_installed(full_pkg)
-    if conda_check == ("conda", False):
-        if is_in_pixi_shell():
-            out_text += f"\n\n```bash\npixi add {full_pkg}\n```"
-        else:
-            out_text += f"\n\n```bash\nconda install bioconda::{full_pkg}\n```"
-    elif conda_check == ("mamba", False):
-        out_text += f"\n\n```bash\nmamba install bioconda::{full_pkg}\n```"
-    
-    if conda_check != False:
-        print_notice(Markdown(out_text))
-        return
-    
-    if not is_pip_package_installed(full_pkg):
-        out_text += f"\n\n```bash\npip install {full_pkg}\n```"
-        print_notice(Markdown(out_text))
-        return
+from .common.misc import package_absent
 
 @click.command()
 def hpc_generic():
@@ -112,7 +38,7 @@ def hpc_generic():
     sys.stdout.write("#  - software-deployment\n")
     sys.stdout.write("#  - sources\n")
     sys.stdout.write("#  - source-cache\n")
-    package_exists("cluster-generic")
+    package_absent("snakemake-executor-plugin-cluster-generic")
 
 @click.command()
 def hpc_lsf():
@@ -142,7 +68,7 @@ def hpc_lsf():
     sys.stdout.write("#  - software-deployment\n")
     sys.stdout.write("#  - sources\n")
     sys.stdout.write("#  - source-cache\n")
-    package_exists("lsf")
+    package_absent("snakemake-executor-plugin-lsf")
 
 @click.command()
 def hpc_slurm():
@@ -171,7 +97,7 @@ def hpc_slurm():
     sys.stdout.write("#  - software-deployment\n")
     sys.stdout.write("#  - sources\n")
     sys.stdout.write("#  - source-cache\n")
-    package_exists("slurm")
+    package_absent("snakemake-executor-plugin-slurm")
 
 @click.command()
 def hpc_googlebatch():
@@ -232,4 +158,4 @@ def hpc_googlebatch():
     sys.stdout.write("  googlebatch_mount_path: '/mnt/share'\n")
     sys.stdout.write("\n# One or more snippets to add to the Google Batch task setup\n")
     sys.stdout.write("  googlebatch_snippets: VALUE\n")
-    package_exists("googlebatch")
+    package_absent("snakemake-executor-plugin-googlebatch")

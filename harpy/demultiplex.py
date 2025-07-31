@@ -9,7 +9,7 @@ import pysam
 import subprocess
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, SnakemakeParams
-from .common.misc import safe_read
+from .common.misc import container_ok, safe_read
 from .common.printing import print_error, print_solution_with_culprits, workflow_info
 from .common.validations import validate_demuxschema
 from .common.workflow import Workflow
@@ -60,7 +60,7 @@ def gen1():
 @click.option('-q', '--qx-rx', is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Demultiplex", show_default=True,  help = 'Output directory name')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')

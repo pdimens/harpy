@@ -4,6 +4,7 @@ import os
 import rich_click as click
 from .common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
 from .common.cli_types_params import HapCutParams
+from .common.misc import container_ok
 from .common.parsers import parse_alignment_inputs
 from .common.printing import workflow_info
 from .common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
@@ -32,7 +33,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', default = 7, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')

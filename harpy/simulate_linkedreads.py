@@ -3,6 +3,7 @@ import os
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
 from .common.cli_types_params import Barcodes
+from .common.misc import container_ok
 from .common.printing import workflow_info
 from .common.validations import check_fasta
 from .common.workflow import Workflow
@@ -52,7 +53,7 @@ docstring = {
 @click.option('-S','--seed', help='random seed for simulation', type=click.IntRange(min=1), default=None)
 @click.option('-t','--threads', help='number of threads to use for simulation', type = click.IntRange(1, 999, clamp = True), default=2, show_default=True)
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
