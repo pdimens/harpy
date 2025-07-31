@@ -35,16 +35,16 @@ harpy align strobe genome.fasta Sequences/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align strobe"] module is configured using these command-line arguments:
 
 {.compact}
-| argument                   | type                 | default  | description                                                                                                                     |
-|:---------------------------|:---------------------|:--------:|:--------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |          | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
-| `INPUTS`                   | file/directory paths |          | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |          | Additional EMA-align/BWA arguments, in quotes                                                                                   |
-| `--ignore-bx`              | toggle               |  false   | Ignore parts of the workflow specific to linked-read sequences                                                                  |
-| `--keep-unmapped` `-u`     | toggle               |  false   | Output unmapped sequences too                                                                                                   |
-| `--min-quality` `-d`       | integer (0-40)       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
-| `--molecule-distance` `-m` | integer              | `100000` | Base-pair distance threshold to separate molecules, disabled with `0`                                                           |
+| argument                   | type                 | default | description                                                                                                                     |
+|:---------------------------|:---------------------|:-------:|:--------------------------------------------------------------------------------------------------------------------------------|
+| `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
+| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--contigs`                | file path or list    |         | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`      | string               |         | Additional EMA-align/BWA arguments, in quotes                                                                                   |
+| `--ignore-bx`              | toggle               |  false  | Ignore parts of the workflow specific to linked-read sequences                                                                  |
+| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                   |
+| `--min-quality` `-d`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
+| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                       |
 
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow

@@ -35,15 +35,15 @@ harpy align bwa genome.fasta Sequences/
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align bwa"] module is configured using these command-line arguments:
 
 {.compact}
-| argument                   | type                 | default  | description                                                                                                                     |
-|:---------------------------|:---------------------|:--------:|:--------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |          | [!badge variant="info" text="required"] Reference assembly for read mapping                                                     |
-| `INPUTS`                   | file/directory paths |          | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |          | Additional BWA arguments, in quotes                                                                                             |
-| `--molecule-distance` `-d` | integer              | `100000` | Base-pair distance threshold to separate molecules, disabled with `0`                                                           |
-| `--min-quality` `-q`       | integer (0-40)       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
-| `--keep-unmapped` `-u`     | toggle               |  false   | Output unmapped sequences too                                                                                                   |
+| argument                   | type                 | default | description                                                                                                                     |
+|:---------------------------|:---------------------|:-------:|:--------------------------------------------------------------------------------------------------------------------------------|
+| `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference assembly for read mapping                                                     |
+| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
+| `--contigs`                | file path or list    |         | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`      | string               |         | Additional BWA arguments, in quotes                                                                                             |
+| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                           |
+| `--min-quality` `-q`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
+| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                   |
 
 ### Output format
 Regardless of the input linked-read format, the `align` workflows will standardize the output alignment records
