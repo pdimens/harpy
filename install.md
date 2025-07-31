@@ -11,7 +11,8 @@ order: 100
 |:------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html) | If using conda, we strongly recommend using version `23.10` or later. If using mamba, replace `conda` with `mamba` in the instructions below.        |
 | [pixi](https://prefix.dev/blog/pixi_a_fast_conda_alternative)                                                                                         | Relatively new kid on the block-- think of it as the next-gen of conda. It's a little different, but it's _lightning fast_ and very sensible to use. |
-| [docker](https://docs.docker.com/engine/install/) or [apptainer]                                                                                                     | Clunkier to use, but best system compatibility and might be what your sysadmins prefer                                                               |
+| [docker](https://docs.docker.com/engine/install/) or [apptainer](https://apptainer.org/docs/user/latest/quick_start.html#installation)                | Clunkier to use, but best system compatibility and might be what your sysadmins prefer.                                                              |
+| [pip](https://python.land/virtual-environments/installing-packages-with-pip)                                                                          | Should be considered your last resort if the other methods don't work.                                                                               |
 
 ===
 
