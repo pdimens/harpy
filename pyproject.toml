@@ -12,6 +12,12 @@ description = "An automated workflow to demultiplex sequences, trim reads, map s
 requires-python = ">=3.9"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "GPL-3.0-or-later"
+dependencies = [
+    'click',
+    'rich-click',
+    'pysam',
+    'snakemake'
+]
 
 [tool.setuptools.packages.find]
 where = ["."]

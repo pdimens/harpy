@@ -1,4 +1,4 @@
-name: Test Harpy Modules
+name: Test
 
 on:
   push:
@@ -57,7 +57,7 @@ jobs:
           filters: .github/filters.yml
 
   build:
-    name: Build and Install Harpy
+    name: Build and Install
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -76,7 +76,7 @@ jobs:
         id: harpybuild
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build && \
+          python3 -m pip install --upgrade --no-deps build && python3 -m build && \
           pip install dist/*.whl && \
           resources/buildforCI.sh
 
@@ -102,7 +102,7 @@ jobs:
         id: harpybuild
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: Clear Space
@@ -165,7 +165,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: harpy demultiplex
@@ -198,7 +198,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: test validate fastq
@@ -237,7 +237,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: harpy qc
@@ -275,7 +275,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: harpy deconvolve
@@ -308,7 +308,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: test bwa
@@ -341,7 +341,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: test ema
@@ -374,7 +374,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: test strobealign
@@ -407,7 +407,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: snp mpileup
@@ -445,7 +445,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: snp freebayes
@@ -483,7 +483,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: impute
@@ -528,7 +528,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 
@@ -575,7 +575,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 
@@ -615,7 +615,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 
@@ -667,7 +667,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 
@@ -727,7 +727,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
           create_simulation_data.py
@@ -767,7 +767,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 
@@ -811,7 +811,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
 #     - name: Clear Space
@@ -860,7 +860,7 @@ jobs:
       - name: Install Harpy
         shell: micromamba-shell {0}
         run: |
-          python3 -m pip install --upgrade build && python3 -m build
+          python3 -m pip install --upgrade --no-deps build && python3 -m build
           pip install dist/*.whl
           resources/buildforCI.sh
       - name: convert haplotag to stlfr
