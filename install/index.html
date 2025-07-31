@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807301467851">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807308008423">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../static/favicon.png" rel="icon">
-    <link href="../resources/css/retype.css?v=3.11.0.807301467851" rel="stylesheet">
+    <link href="../resources/css/retype.css?v=3.11.0.807308008423" rel="stylesheet">
 
-    <script data-cfasync="false" src="../resources/js/config.js?v=3.11.0.807301467851" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../resources/js/config.js?v=3.11.0.807308008423" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.11.0.807301467851" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.11.0.807301467851" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../resources/js/lunr.js?v=3.11.0.807308008423" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../resources/js/prism.js?v=3.11.0.807308008423" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.5</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -290,7 +290,7 @@
 <td style="text-align: left;">Relatively new kid on the block-- think of it as the next-gen of conda. It&#x27;s a little different, but it&#x27;s <em>lightning fast</em> and very sensible to use.</td>
 </tr>
 <tr>
-<td style="text-align: left;"><a href="https://docs.docker.com/engine/install/">docker</a></td>
+<td style="text-align: left;"><a href="https://docs.docker.com/engine/install/">docker</a> or [apptainer]</td>
 <td style="text-align: left;">Clunkier to use, but best system compatibility and might be what your sysadmins prefer</td>
 </tr>
 </tbody>
@@ -441,29 +441,114 @@ pixi run harpy</code></pre>
 <p>If you didn&#x27;t know, packages on Bioconda are automatically built as containers too!
 Use one of the two approaches below then proceed to use containerized-Harpy however
 you are used to using containers on your system.</p>
-<doc-anchor-target id="-docker">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#-docker">#</doc-anchor-trigger>
-        <span><span class="docs-emoji">&#x1F433;</span> Docker</span>
-    </h3>
-</doc-anchor-target>
+<doc-panels>
+   <doc-panel id="docker" collapsed>
+       <template #title><span class="docs-emoji">&#x1F433;</span> Docker</template>
 <p>Works on Windows, macOS, and Linux.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker pull quay.io/biocontainers/harpy</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="-apptainer">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#-apptainer">#</doc-anchor-trigger>
-        <span><span class="docs-emoji">&#x1F170;&#xFE0F;</span> Apptainer</span>
-    </h3>
-</doc-anchor-target>
+   </doc-panel>
+   <doc-panel id="apptainer" collapsed>
+       <template #title><span class="docs-emoji">&#x1F170;&#xFE0F;</span> Apptainer</template>
 <p>Apptainer is Linux-only, but can be used inside a Windows WSL. Find the most recent tag <a href="https://quay.io/repository/biocontainers/harpy?tab=tags">here</a> and replace <code v-pre>$TAG</code> with it or use the <code v-pre>TAG=$(curl ...)</code> part below to pull the latest version name using the repository&#x27;s API.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">TAG=$(curl -s &quot;https://quay.io/api/v1/repository/biocontainers/harpy/tag/&quot; | cut -d'&quot;' -f6)
 apptainer pull docker://quay.io/biocontainers/harpy:$TAG</code></pre>
 </doc-codeblock></div>
+   </doc-panel>
+</doc-panels>
 </doc-tab>
-</doc-tabs>
+<doc-tab v-cloak id="pip">
+<template #title><span class="docs-emoji">&#x1F4A3;</span> Pip</template>
+<p>This is the &quot;all else fails&quot; solution and generally not recommended. You can install Harpy locally via <code v-pre>pip</code>, however, it can
+only get so far as installing the Python package dependencies and not the other software, which you will need to install manually
+if it&#x27;s not already on your system.</p>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-danger"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mb-px text-callout-danger" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M21.71 6.15L15.85.29c-.19-.18-.44-.29-.71-.29H6.86c-.27 0-.52.11-.71.29L.29 6.15c-.18.19-.29.44-.29.71v8.28c0 .27.11.52.29.71l5.86 5.86c.19.18.44.29.71.29h8.28c.27 0 .52-.11.71-.29l5.86-5.86a.99.99 0 00.29-.71V6.86c0-.27-.11-.52-.29-.71zM20 14.73L14.73 20H7.27L2 14.73V7.27L7.27 2h7.45L20 7.27v7.46z"></path>
+                    <path d="M11 12c.55 0 1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .55.45 1 1 1zM11.01 14c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+<p>The problem is, if you get Harpy installed this way, you will need to use <code v-pre>--container</code> for the workflows, since otherwise
+it would use Conda, which we&#x27;re assuming isn&#x27;t available to your system (otherwise you would have installed Harpy using it).
+If you&#x27;re on a Linux system, that should be fine. However, if you&#x27;re on a macOS system, the container software, <code v-pre>Apptainer</code>, isn&#x27;t available
+for macOS (or Windows), meaning you won&#x27;t be able to use most of Harpy.</p>
+        </div>
+    </div>
+</div>
+<doc-panels>
+   <doc-panel id="download-the-latest-release">
+       <template #title>Download the latest release</template>
+<p>The latest release can be found <a href="https://github.com/pdimens/harpy/releases/latest">here</a>. You will want to download the latest
+tarball, which will be named <code v-pre>harpy.VERISON.tar.gz</code>. Something like <code v-pre>https://github.com/pdimens/harpy/releases/download/2.5.0/harpy.2.5.0.tar.gz</code>.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash"># change the version number to the latest release!
+wget https://github.com/pdimens/harpy/releases/download/2.5.0/harpy.2.5.0.tar.gz
+tar xvfz harpy.2.5.0.tar.gz
+cd harpy.2.5.0</code></pre>
+</doc-codeblock></div>
+   </doc-panel>
+   <doc-panel id="install-harpy-using-pip" collapsed>
+       <template #title>Install Harpy using <code v-pre>pip</code></template>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">python -m pip install .</code></pre>
+</doc-codeblock></div>
+<p>If for some reason it&#x27;s fussing when you try that command, you can attempt this method:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">python3 -m pip install --upgrade build &amp;&amp; python3 -m build &amp;&amp; \
+    pip install dist/*.whl</code></pre>
+</doc-codeblock></div>
+   </doc-panel>
+   <doc-panel id="install-the-bundled-scripts" collapsed>
+       <template #title>Install the bundled scripts</template>
+<p>Harpy needs all the scripts in the <code v-pre>harpy/bin</code> folder installed too. You will need to copy them into some kind of folder
+on your PATH (e.g. <code v-pre>/usr/local/bin</code> or <code v-pre>~/.local/bin</code>). If you don&#x27;t understand what that means, see <a href="https://www.howtogeek.com/658904/how-to-add-a-directory-to-your-path-in-linux/">this resource</a>.</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">chmod +x harpy/bin/*
+cp harpy/bin/* path/to/the/folder</code></pre>
+</doc-codeblock></div>
+   </doc-panel>
+   <doc-panel id="install-the-remaining-software" collapsed>
+       <template #title>Install the remaining software</template>
+<p>Unfortunately, you will still need to install the remaining non-Python software, listed below with their minimum version numbers in
+parentheses. With any luck, your system might have one of more of them already installed!</p>
+<ul>
+<li>bcftools (&gt;=1.22)</li>
+<li>htslib (&gt;=1.22)</li>
+<li>samtools (&gt;=1.22)</li>
+</ul>
+<p>All three of <code v-pre>bcftools</code>, <code v-pre>samtools</code>, and <code v-pre>htslib</code> can be installed as <a href="https://www.htslib.org/download/">described here</a>.</p>
+<ul>
+<li>seqtk</li>
+</ul>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-none"><code v-pre class="language-none">git clone https://github.com/lh3/seqtk.git;
+cd seqtk; make</code></pre>
+</doc-codeblock></div>
+   </doc-panel>
+   <doc-panel id="updating-harpy" collapsed>
+       <template #title><span class="docs-emoji">&#x2B06;&#xFE0F;</span> updating harpy</template>
+<p>Updating Harpy installed this way would require repeating the steps with a different Harpy version.</p>
+   </doc-panel>
+</doc-panels>
+<doc-anchor-target id="-pip-usage">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#-pip-usage">#</doc-anchor-trigger>
+        <span><span class="docs-emoji">&#x26A1;</span> Pip Usage</span>
+    </h3>
+</doc-anchor-target>
+<p>You should be able to call <code v-pre>harpy</code> from your command line:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy</code></pre>
+</doc-codeblock></div>
+</doc-tab>
 
                                 
                                 <!-- Required only on API pages -->
