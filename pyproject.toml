@@ -9,14 +9,14 @@ authors = [
     {name = "Pavel Dimens"}
 ]
 description = "An automated workflow to demultiplex sequences, trim reads, map sequences, call variants, impute genotypes, and phase haplotypes of Haplotagging data. Batteries included."
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "GPL-3.0-or-later"
 dependencies = [
-    'click',
-    'rich-click',
-    'pysam',
-    'snakemake'
+    'click>8.0',
+    'rich-click>=1.8',
+    'pysam>=0.23',
+    'snakemake>=9.0'
 ]
 
 [tool.setuptools.packages.find]
