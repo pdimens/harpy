@@ -189,7 +189,6 @@ rule align_bwa:
     log:
         "logs/align/{sample}.bwa.align.log"
     params:
-        quality = f"-T {config['alignment_quality']}",
         unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\""
     threads:
@@ -198,7 +197,7 @@ rule align_bwa:
         "envs/align.yaml"
     shell:
         """
-        bwa mem -t {threads} -v2 -C {params.quality} {params.RG_tag} {input.genome} {input.reads} 2> {log} {params.unmapped} > {output}
+        bwa mem -t {threads} -v2 -C {params.RG_tag} {input.genome} {input.reads} 2> {log} {params.unmapped} > {output}
         """
 
 rule mark_duplicates:
@@ -211,7 +210,8 @@ rule mark_duplicates:
     log:
         "logs/markdup/{sample}.markdup.log"
     params: 
-        tmpdir = lambda wc: "." + d[wc.sample]
+        tmpdir = lambda wc: "." + d[wc.sample],
+        quality = config['alignment_quality']
     resources:
         mem_mb = 500
     container:
@@ -227,6 +227,7 @@ rule mark_duplicates:
         fi
         samtools collate -O -u {input.sam} |
             samtools fixmate -m -u - - |
+            samtools view -h -q {params.quality} |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
             samtools markdup -@ {threads} -S -d $OPTICAL_BUFFER -f {log} - {output}
         rm -rf {params.tmpdir}

@@ -95,7 +95,6 @@ rule align:
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
-        quality = f"-T {config['alignment_quality']}",
         static = "-C -v 2" if is_standardized else "-v 2",
         extra = extra
     threads:
@@ -104,7 +103,7 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        bwa mem {params.static} -t {threads} {params.RG_tag} {params.quality} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
+        bwa mem {params.static} -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
         """     
 
 rule standardize_barcodes:
@@ -131,7 +130,8 @@ rule mark_duplicates:
         stats = "logs/markdup/{sample}.markdup.stats"
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
-        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
+        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        quality = config['alignment_quality']
     resources:
         mem_mb = 2000
     container:
@@ -147,6 +147,7 @@ rule mark_duplicates:
         fi
         samtools collate -O -u {input.sam} 2> {log.debug} |
             samtools fixmate -z on -m -u - - 2>> {log.debug} |
+            samtools view -h -q {params.quality} |
             samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
             samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
         rm -rf {params.tmpdir}
