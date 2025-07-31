@@ -5,6 +5,7 @@ import sys
 import rich_click as click
 from .common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
 from .common.cli_types_params import BwaParams, EmaParams, StrobeAlignParams
+from .common.misc import container_ok
 from .common.parsers import parse_fastq_inputs
 from .common.printing import print_error, print_solution, print_notice, workflow_info
 from .common.validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
@@ -82,7 +83,7 @@ docstring = {
 @click.option('-d', '--molecule-distance', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -167,7 +168,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('-l', '--barcode-list', type = click.Path(exists=True, dir_okay=False, resolve_path=True), help = "File of known barcodes for 10x linked reads")
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
@@ -255,7 +256,7 @@ def ema(reference, inputs, output_dir, platform, barcode_list, fragment_density,
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')

@@ -4,7 +4,7 @@ import os
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
 from .common.cli_types_params import FastpParams
-from .common.misc import filepath
+from .common.misc import container_ok, filepath
 from .common.parsers import parse_fastq_inputs
 from .common.printing import workflow_info
 from .common.validations import check_fasta
@@ -34,7 +34,7 @@ docstring = {
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')

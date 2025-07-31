@@ -5,6 +5,7 @@ import sys
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, SnakemakeParams
 from .common.cli_types_params import StitchParams
+from .common.misc import container_ok
 from .common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
 from .common.printing import workflow_info, print_error, print_solution
 from .common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
@@ -31,7 +32,7 @@ docstring = {
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-r', '--region', type = str, help = 'Specific region to impute')
 @click.option('-g', '--grid-size', show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')

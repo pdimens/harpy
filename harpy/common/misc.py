@@ -5,6 +5,7 @@ import sys
 import glob
 import gzip
 import shutil
+import rich_click as click
 from pathlib import Path
 import importlib.resources as resources
 from rich.live import Live
@@ -106,3 +107,10 @@ def safe_read(file_path: str):
         return gzip.open(file_path, 'rt')
     except gzip.BadGzipFile:
         return open(file_path, 'r')
+
+def container_ok(ctx, param, value):
+    if value and os.sys.platform != 'linux':
+        raise click.BadParameter(
+            "Snakemake uses Singularity to manage containers, which is only available for Linux systems.", ctx, param
+        )
+    return value

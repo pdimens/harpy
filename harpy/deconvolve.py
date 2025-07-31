@@ -3,6 +3,7 @@
 import os
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, SnakemakeParams
+from .common.misc import container_ok
 from .common.parsers import parse_fastq_inputs
 from .common.printing import workflow_info
 from .common.workflow import Workflow
@@ -29,7 +30,7 @@ docstring = {
 @click.option('-a', '--dropout', default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Deconvolve", show_default=True,  help = 'Output directory name')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')

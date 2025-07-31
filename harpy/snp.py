@@ -6,6 +6,7 @@ from pathlib import Path
 import rich_click as click
 from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
 from .common.cli_types_params import MpileupParams, FreebayesParams
+from .common.misc import container_ok
 from .common.parsers import parse_alignment_inputs
 from .common.printing import workflow_info
 from .common.validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
@@ -66,7 +67,7 @@ docstring = {
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
@@ -149,7 +150,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda')
+@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
