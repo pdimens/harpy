@@ -27,7 +27,7 @@ harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 harpy demultiplex meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="demultiplex meier2021"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="demultiplex meier2021"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                       | description                                                                                              |

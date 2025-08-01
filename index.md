@@ -2,13 +2,14 @@
 label: Home
 description: Using Harpy to process your linked-read data
 icon: home
+hidden: true
 ---
 
 # :icon-home: Home
 
 ![](static/logo_trans.png)
 
-Harpy is a [haplotagging data](inputdata.md) processing pipeline for Linux-based systems-- at least it
+Harpy is a [haplotagging data](Getting_Started/inputformat.md) processing pipeline for Linux-based systems-- at least it
 was prior to the release of version 2. Now, it can process linked-read data from haplotagging, TELLseq, stLFR, and
 even regular non-linked WGS data. It uses all the magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 under the hood to handle  the worklfow decision-making, but as a user, you just interact with it like a normal command-line 

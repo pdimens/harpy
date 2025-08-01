@@ -28,7 +28,7 @@ harpy metassembly --threads 20 -u prokaryote -k 13,51,75,83 FASTQ_R1 FASTQ_R2
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="metassembly"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="metassembly"] module is configured using these command-line arguments:
 
 {.compact}
 | argument               |   default   | description                                                                                                                                    |

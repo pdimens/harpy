@@ -72,5 +72,5 @@ fairly common to use `0.05` (e.g. `-i 'MAF>0.05'`) to `0.10` (e.g. `-i 'MAF>0.10
 Missing data is, frankly, not terribly useful. The amount of missing data you're willing to tolerate will depend on your study, but
 it's common to remove sites with >20% missing data (e.g. `-e 'F_MISSING>0.2'`). This can be as strict (or lenient) as you want; it's not uncommon to see very
 conservative filtering at 10% or 5% missing data. **However**, you can impute missing genotypes to recover
-missing data! Harpy can leverage linked-read information to impute genotypes with the [!badge corners="pill" text="impute"](../Workflows/impute.md)
+missing data! Harpy can leverage linked-read information to impute genotypes with the [!badge corners="pill" text="impute"](/Workflows/impute.md)
 module. You should try to impute genotypes first before filtering out sites based on missingness.

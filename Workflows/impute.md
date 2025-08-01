@@ -54,14 +54,14 @@ harpy impute --threads 20 stitch.params data/variants.bcf data/*.bam
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | default | description                                                                                                                  |
 |:----------------------|:-------:|:-----------------------------------------------------------------------------------------------------------------------------|
 | `PARAMETERS`          |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
 | `VCF`                 |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
-| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md)                |
+| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md)                |
 | `--extra-params` `-x` |         | Extra arguments to add to STITCH, provided in quotes                                                                         |
 | `--region`       `-r` |         | Specific region to impute, in the format `contig:start-end-buffer`                                                           |
 | `--vcf-samples`       |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |
@@ -158,7 +158,7 @@ The `bxlimit` parameter is an integer that informs STITCH when alignments with t
 should be considered as originating from different molecules. This is a common consideration for linked-read analyses
 and 50kb (`50000`) is often a reasonable default. A lower value is considered more strict (fewer reads per moleucle)
 and a higher value is considered more generous (more reads per molecule). You can/should change this value if you 
-have evidence that 50kb isn't appropriate. See [Barcode Thresholds](/linked_read_data.md#barcode-thresholds) for a more thorough explanation.
+have evidence that 50kb isn't appropriate. See [Barcode Thresholds](/Getting_Started/linked_read_data.md#barcode-thresholds) for a more thorough explanation.
 
 +++k
 ##### Number ancestral haplotypes

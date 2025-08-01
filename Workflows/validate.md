@@ -46,12 +46,12 @@ harpy validate bam --threads 20 Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="validate fastq"] and [!badge corners="pill" text="validate bam"] modules are configured using only command-line input arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="validate fastq"] and [!badge corners="pill" text="validate bam"] modules are configured using only command-line input arguments:
 
 {.compact}
 | argument          | description                                                                                                                            |
 |:------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`          | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/common_options.md#input-arguments) |
+| `INPUTS`          | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/Getting_Started/Resources/common_options.md#input-arguments) |
 | `--platform` `-p` | linked-read type (options: [`haplotgagging`, `stlfr`, `tellseq`], default: `haplotagging`)                                             |
 
 ## Workflow

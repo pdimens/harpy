@@ -67,12 +67,12 @@ the super-fast and super-lightweight solver from Mamba. If you're experiencing
 a suspiciously slow Harpy installation, either update Conda to at least version `23.10` or use Mamba.
 
 ### imputation or phasing failure
-If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](Workflows/impute.md) or
-[!badge corners="pill" text="phase"](Workflows/phase.md) modules, they will cause both programs to error. We don't know why, but they do.
+If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](/Workflows/impute.md) or
+[!badge corners="pill" text="phase"](/Workflows/phase.md) modules, they will cause both programs to error. We don't know why, but they do.
 
 **Solution**: Do not clip overlapping alignments for bam files you intend to use for
-the [!badge corners="pill" text="impute"](Workflows/impute.md) or
-[!badge corners="pill" text="phase"](Workflows/phase.md) modules. Harpy does not clip overlapping alignments, so
+the [!badge corners="pill" text="impute"](/Workflows/impute.md) or
+[!badge corners="pill" text="phase"](/Workflows/phase.md) modules. Harpy does not clip overlapping alignments, so
 alignments produced by Harpy should work just fine.
 
 ### SAM name and ID mismatch

@@ -3,11 +3,11 @@ label: Assembly
 description: Create a genome assembly from linked reads
 category: [linked-read]
 tags: [linked-read]
-icon: commit
+icon: git-commit
 order: 11
 ---
 
-# :icon-commit: Create a Genome Assembly
+# :icon-git-commit: Create a Genome Assembly
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -28,7 +28,7 @@ harpy metassembly --threads 20 -u prokaryote -k 13,51,75,83 FASTQ_R1 FASTQ_R2
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="assembly"]
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="assembly"]
 module is configured using the command-line arguments below. Since the assembly process consists of several distinct phases,
 the descriptions are provided with an extra badge to reflect which part of the assembly process they correspond to.
 

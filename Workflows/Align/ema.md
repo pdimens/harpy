@@ -41,14 +41,14 @@ harpy align ema genome.fasta Sequences/
 
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/ Resources/common_options.md), the [!badge corners="pill" text="align ema"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                  | type                 |    default     | description                                                                                                                     |
 |:--------------------------|:---------------------|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------|
 | `REFERENCE`               | file path            |                | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
-| `INPUTS`                  | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--contigs`               | file path or list    |                | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `INPUTS`                  | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/Resources/common_options.md#input-arguments) |
+| `--contigs`               | file path or list    |                | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                   |
 | `--fragment-density` `-d` | toggle               |     false      | Perform read fragment density optimization                                                                                      |
 | `--ema-bins` `-e`         | integer (1-1000)     |     `500`      | Number of barcode bins for EMA                                                                                                  |
 | `--extra-params` `-x`     | string               |                | Additional EMA-align arguments, in quotes                                                                                       |

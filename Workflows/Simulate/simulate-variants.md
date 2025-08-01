@@ -43,7 +43,7 @@ There are 4 submodules with very obvious names:
 
 ## :icon-terminal: Running Options
 While there are serveral differences between individual workflow options, each has available all the
-[!badge variant="info" corners="pill" text="common runtime options"](/common_options.md) like other Harpy modules.
+[!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md) like other Harpy modules.
 Each requires and input genome at the end of the command line, and each requires either a `--count` of variants
 to randomly simulate, or a `--vcf` of specific variants to simulate. There are also these unifying options among the different variant types:
 

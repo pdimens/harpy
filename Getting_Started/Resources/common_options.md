@@ -6,11 +6,11 @@ order: 5
 
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](Workflows/qc.md) or [!badge corners="pill" text="phase"](Workflows/phase.md)) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/phase.md)) follows the format of
 ```bash
 harpy module options arguments
 ```
-where `module` is something like [!badge corners="pill" text="impute"](Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](Workflows/snp.md) and `options` are the runtime parameters,
+where `module` is something like [!badge corners="pill" text="impute"](/Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](/Workflows/snp.md) and `options` are the runtime parameters,
 which can include things like an input `--vcf` file, `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
@@ -27,7 +27,7 @@ to avoid unexpected behavior.
 !!!warning clashing names
 Given the regex pattern matching Harpy employs under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
-and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](Workflows/Align/Align.md)
+and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)
 would both result in `output/sample1.bam`, creating a problem. This also holds true for the same sample name but different extension, such
 as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as the sample name and create a naming clash for workflow outputs.
 During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior. 
@@ -44,7 +44,7 @@ Harpy container to manage workflow dependencies.
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
-the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](Workflows/qc.md)) also share a series of common runtime
+the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md)) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters are listed in the modules' help strings and can be 
 configured using these arguments:
@@ -55,17 +55,17 @@ configured using these arguments:
 | `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                           |
 | `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                      |
 | `--help` `-h`       |                   |         | Show the module docstring                                                                                                                             |
-| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](/hpc.md))                                                                                         |
+| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](hpc.md))                                                                                         |
 | `--ignore-bx`       | toggle            |         | Ignore parts of the workflow specific to linked-read data                                                                                             |
 | `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                              |
 | `--quiet`           | toggle            |         | Suppress the progress bars and other status text when running                                                                                         |
-| `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
+| `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](/Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
 | `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                      |
 | `--snakemake`       | string            |         | Additional [Snakemake](snakemake#adding-snakemake-parameters) options, in quotes                                                                      |
 | `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                              |
 
 ### --contigs
-Some of the workflows (like [!badge corners="pill" text="align"](Workflows/Align/Align.md)) plot per-contig information in their reports.
+Some of the workflows (like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)) plot per-contig information in their reports.
 By default, Harpy will plot up to 30 of the largest contigs. If you are only interested in a specific set of contigs, then you can use `--contigs`
 to have Harpy only create plots for those contigs. **This will only impact plotting for reports**. This can be done by including a file of one-per-line contig names or a comma-separated
 list of contigs (without spaces):
@@ -88,7 +88,7 @@ exceed that number.
 !!!
 
 ### example
-You could call [!badge corners="pill" text="align strobe"](Workflows/Align/strobe.md) and specify 20 threads with no output to console:
+You could call [!badge corners="pill" text="align strobe"](/Workflows/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
 harpy align strobe --threads 20 --quiet genome.fasta samples/trimmedreads

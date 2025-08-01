@@ -1,5 +1,7 @@
 start:
   pro: true
+nav:
+  mode: stack
 input: .
 output: .retype
 url: pdimens.github.io/harpy/
@@ -7,6 +9,13 @@ meta:
   title: " | Harpy haplotag"
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
+showSidebarFilter: false
+theme:
+  base:
+    base-link-weight: 500
+    nav-item-text-active-weight: 700
+    image-rounded: 0.75rem
+    nav-item-text-stack: "#8ABB6C"
 branding:
   title: Harpy
   label: v2.5

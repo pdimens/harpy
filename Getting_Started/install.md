@@ -1,7 +1,7 @@
 ---
 label: Install
 icon: desktop-download
-order: 100
+order: 101
 ---
 
 # :icon-desktop-download: Install Harpy

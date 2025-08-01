@@ -58,13 +58,13 @@ harpy snp freebayes --threads 20 genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../common_options.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | default | description                                                                                                                   |
 |:----------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------|
 | `REFERENCE` `-g`      |         | [!badge variant="info" text="required"] Reference genome used for variant calling                                             |
-| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md#input-arguments) |
 | `--extra-params` `-x` |         | Additional mpileup/freebayes arguments, in quotes                                                                             |
 | `--ploidy` `-n`       |   `2`   | Ploidy of samples                                                                                                             |
 | `--populations` `-p`  |         | Tab-delimited file of sample\<*tab*\>group                                                                                    |

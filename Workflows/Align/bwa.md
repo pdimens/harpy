@@ -32,14 +32,14 @@ harpy align bwa genome.fasta Sequences/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="align bwa"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="align bwa"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                   | type                 | default | description                                                                                                                     |
 |:---------------------------|:---------------------|:-------:|:--------------------------------------------------------------------------------------------------------------------------------|
 | `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference assembly for read mapping                                                     |
-| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |         | [Contigs to plot](/common_options.md#--contigs) in the report                                                                   |
+| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/Resources/common_options.md#input-arguments) |
+| `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                   |
 | `--extra-params` `-x`      | string               |         | Additional BWA arguments, in quotes                                                                                             |
 | `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                           |
 | `--min-quality` `-q`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |
@@ -52,7 +52,7 @@ such that the barcode is contained in the `BX:Z` tag and barcode validation is i
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow
 to assign alignments a unique Molecular Identifier `MI:i` tag based on their
-linked-read barcode and the [distance threshold](/linked_read_data.md#barcode-thresholds) you specify.
+linked-read barcode and the [distance threshold](/Getting_Started/linked_read_data.md#barcode-thresholds) you specify.
 Set this value to `0` to skip distance-based deconvolution,
 which may improve detection of very large structural variants. 
 

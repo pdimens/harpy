@@ -61,14 +61,14 @@ harpy sv naibr --threads 20 --vcf Variants/data.vcf.gz genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                   | default  | description                                                                                                                   |
 |:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/common_options.md#input-arguments) |
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md#input-arguments) |
 | `REFERENCE`                |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
-| `--contigs`                |          | [Contigs to plot](/common_options.md#--contigs) in the report                                                                 |
+| `--contigs`                |          | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                 |
 | `--extra-params` `-x`      |          | Additional naibr arguments, in quotes                                                                                         |
 | `--min-barcodes` `-b`      |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
 | `--min-quality` `-q`       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
@@ -80,7 +80,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
 barcode can be from each other and still considered as originating from the same DNA molecule. See 
-[Barcode Thresholds](/linked_read_data.md#barcode-thresholds) for more information on what this value does. If you want
+[Barcode Thresholds](/Getting_Started/linked_read_data.md#barcode-thresholds) for more information on what this value does. If you want
 NAIBR to not split molecules in this manner (e.g. you might be looking for inversions greater than this threshold),
 then set this number to be unreasonably high, such as the length of your largest chromosome.
 
