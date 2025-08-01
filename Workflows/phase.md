@@ -24,7 +24,7 @@ genotypes into haplotypes requires alignment files, such as those produced by [!
 and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](snp.md)
 or [!badge corners="pill" text="impute"](impute.md). **Phasing only works on SNP data**, and will not
 work for structural variants produced by [!badge corners="pill" text="sv leviathan"](SV/leviathan.md)
-or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](/blog/filtering_snps.md). You can phase genotypes into haplotypes with
+or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md). You can phase genotypes into haplotypes with
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
@@ -35,14 +35,14 @@ harpy phase --threads 20 Variants/variants.raw.bcf Align/ema
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                   | default  | description                                                                                                                   |
 |:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
 | `VCF`                      |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                  |
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md#input-arguments) |
-| `--contigs`                |          | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                 |
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                |          | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
 | `--extra-params` `-x`      |          | Additional Hapcut2 arguments, in quotes                                                                                       |
 | `--reference` `-r`         |          | Path to reference genome if wanting to also use reads spanning indels                                                         |
 | `--ignore-bx` `-b`         |          | Ignore linked-read barcodes for phasing                                                                                       |

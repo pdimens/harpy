@@ -1,7 +1,6 @@
 ---
 label: Snakemake Things
 icon: git-merge
-order: 5
 ---
 
 # :icon-git-merge: Snakamake Things

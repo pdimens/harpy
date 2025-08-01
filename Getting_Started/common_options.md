@@ -55,13 +55,13 @@ configured using these arguments:
 | `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                           |
 | `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                      |
 | `--help` `-h`       |                   |         | Show the module docstring                                                                                                                             |
-| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](hpc.md))                                                                                         |
+| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                         |
 | `--ignore-bx`       | toggle            |         | Ignore parts of the workflow specific to linked-read data                                                                                             |
 | `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                              |
 | `--quiet`           | toggle            |         | Suppress the progress bars and other status text when running                                                                                         |
 | `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](/Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
 | `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                      |
-| `--snakemake`       | string            |         | Additional [Snakemake](snakemake#adding-snakemake-parameters) options, in quotes                                                                      |
+| `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                                      |
 | `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                              |
 
 ### --contigs

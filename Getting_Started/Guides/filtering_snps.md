@@ -9,7 +9,12 @@ icon: filter
 image: https://visualpharm.com/assets/479/Filter-595b40b65ba036ed117d440c.svg
 ---
 
-# :icon-filter: Filtering Variants
+# :icon-filter: Filtering SNPs
+## TL;DR
+- Called SNPs need filtering
+- No single way to filter SNPs, but there are things that are generally/usually filtered
+- `bcftools` is your best friend
+
 The discussion around filtering SNPs and indels is _massive_ and many researchers go about it differently, each very
 opinionated as to why their method is the best. As a starting point, have a look at how the authors of `HTSlib` give [a
 technical overview of variant filtering](http://www.htslib.org/workflow/filter.html). It's a dense read, but does offer

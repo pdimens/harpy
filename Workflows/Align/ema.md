@@ -47,8 +47,8 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument                  | type                 |    default     | description                                                                                                                     |
 |:--------------------------|:---------------------|:--------------:|:--------------------------------------------------------------------------------------------------------------------------------|
 | `REFERENCE`               | file path            |                | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
-| `INPUTS`                  | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/Resources/common_options.md#input-arguments) |
-| `--contigs`               | file path or list    |                | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                   |
+| `INPUTS`                  | file/directory paths |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`               | file path or list    |                | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
 | `--fragment-density` `-d` | toggle               |     false      | Perform read fragment density optimization                                                                                      |
 | `--ema-bins` `-e`         | integer (1-1000)     |     `500`      | Number of barcode bins for EMA                                                                                                  |
 | `--extra-params` `-x`     | string               |                | Additional EMA-align arguments, in quotes                                                                                       |

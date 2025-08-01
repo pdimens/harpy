@@ -6,10 +6,17 @@ date: 2024-06-21
 category: guides
 description: Deciding between using Conda or Containers
 icon: container
+label: Software Management
 image: https://visualpharm.com/assets/917/Docker-595b40b65ba036ed117d3f62.svg
 ---
 
 # :icon-container: Choosing a software runtime method
+## TL;DR
+- container is more likely to work on all systems, but much slower
+  - `Apptainer` (what Snakemake uses) is only available on Linux systems
+- conda is quicker and better for troubleshooting, but may have unexpected errors
+  - but works on any operation system, assuming it's installed
+
 There are two ways you can run Harpy, using a container with the necessary
 software environments in it (`--container`), or with local conda environments
 (the default). If software development and containerization 
@@ -17,9 +24,6 @@ isn't your jam, that's great, you're in the right place! Below is a quick
 explanation of what/why and the tradeoffs between either approach so you
 can decide for yourself which makes more sense to use.
 
-### TL;DR
-- container is more likely to work on all systems, but much slower
-- conda is quicker and better for troubleshooting, but may have unexpected errors
 
 ## What Harpy Provides
 An conda-based installation of Harpy provides only the minimal set of 

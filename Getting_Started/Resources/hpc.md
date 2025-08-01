@@ -1,7 +1,6 @@
 ---
 label: Running on an HPC
 icon: server
-order: 5
 ---
 # :icon-server: Running on an HPC Cluster
 

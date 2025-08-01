@@ -6,10 +6,14 @@ date: 2025-02-06
 category: guides
 description: How to use Harpy for plain-regular WGS data
 icon: feed-rocket
+label: Non linked-read data
 image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 ---
 
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
+## TL;DR
+- Most of Harpy's workflow have a `--ignore-bx` switch to adjust the workflows to ignore linked-read specific things
+
 As of version `2.0`, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,
 align sequences, call SNPs and small indels, phase, and impute genotypes. All of that is done with the flick of

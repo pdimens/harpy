@@ -32,12 +32,12 @@ harpy qc --threads 20 -a auto Sequences_Raw/
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
 {.compact}
 | argument               | default | description                                                                                                                                                                                                  |
 |:-----------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`               |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/Resources/common_options.md#input-arguments)                                                                              |
+| `INPUTS`               |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments)                                                                              |
 | `--deconvolve` `-c`    |         | Resolve barcode clashes between reads from different molecules. Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order (e.g. `21 40 3 0`) |
 | `--deduplicate` `-d`   |         | Identify and remove PCR duplicates                                                                                                                                                                           |
 | `--extra-params` `-x`  |         | Additional fastp arguments, in quotes                                                                                                                                                                        |

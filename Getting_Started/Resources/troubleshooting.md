@@ -1,7 +1,6 @@
 ---
 label: Troubleshooting
 icon: alert
-order: 5
 ---
 
 Lots of stuff can go wrong during an analysis. The intent of this page is to guide you through

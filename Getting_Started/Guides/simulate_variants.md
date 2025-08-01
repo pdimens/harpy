@@ -10,6 +10,10 @@ image: https://neupsykey.com/wp-content/uploads/2017/03/ch02_f01.jpg
 ---
 
 # :icon-git-merge-queue: Simulating variants
+## TL;DR
+- Simulating haploid variants: relatively simple
+- Simulating polyploid variants: complicated
+
 You may want to (and are encouraged to) simulate data before investing in the
 costs associated with linked-read sample preparation and subsequent sequencing. 
 Harpy provides both a variant and linked-read simulators and this tutorial serves to

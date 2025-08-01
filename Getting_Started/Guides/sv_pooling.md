@@ -6,10 +6,15 @@ date: 2024-08-01
 category: guides
 description: Why pool samples for SV calling and when to do it
 icon: sync
+label: SV calling pooled samples
 image: https://visualpharm.com/assets/214/Merge%20Files-595b40b75ba036ed117d8636.svg
 ---
 
 # :icon-sync: Pooling samples for SV calling
+## TL;DR
+- Samples can be concatenated together into a single "pool" and have SV called on the pool
+- Pooling samples requires barcode deconvolution
+
 One of the cool benefits of linked-read data is the fact that you
 can call structural variants with it. Depending on the depth of 
 your data, you may want (or need) to pool samples together. This 

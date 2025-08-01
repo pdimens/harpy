@@ -30,21 +30,14 @@ edit:
   base: /
   branch: "docs"
 links:
+- text: Therkildsen Lab
+  link: https://www.therkildsenlab.org/
+  icon: https://www.therkildsenlab.org/uploads/1/4/5/5/145548022/published/new-logo-smaller.png
+  target: blank
 - text: Source
   link: https://github.com/pdimens/harpy
   icon: mark-github
   target: blank
-- text: Therkildsen Lab
-  link: https://www.therkildsenlab.org/
-  icon: beaker
-  target: blank
-- text: Haplotagging
-  link: https://www.fml.tuebingen.mpg.de/9418/haplotagging
-  icon: ruby
-  target: blank
-- text: Guides
-  link: /blog
-  icon: code-of-conduct
 - text: Submit Issue
   link: https://github.com/pdimens/harpy/issues/new/choose
   icon: bug
@@ -52,3 +45,4 @@ links:
 exclude:
   - "src/"
   - "test/"
+  - "harpy/"

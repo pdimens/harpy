@@ -61,14 +61,14 @@ harpy sv naibr --threads 20 --vcf Variants/data.vcf.gz genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                   | default  | description                                                                                                                   |
 |:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md#input-arguments) |
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
 | `REFERENCE`                |          | [!badge variant="info" text="required"] Genome assembly for phasing bam files                                                 |
-| `--contigs`                |          | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                 |
+| `--contigs`                |          | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
 | `--extra-params` `-x`      |          | Additional naibr arguments, in quotes                                                                                         |
 | `--min-barcodes` `-b`      |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
 | `--min-quality` `-q`       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
@@ -113,7 +113,7 @@ for more details on that process.
 This file can be in vcf/vcf.gz/bcf format and most importantly **it must be phased haplotypes**. There are various
 ways to haplotype SNPs, but you can use [!badge corners="pill" text="harpy phase"](../phase.md) to phase your SNPs
 into haplotypes using the haplotag barcode information. The resulting phased VCF file can then be used as input here.
-Your VCF file should be [filtered in some capacity](/blog/filtering_snps.md) to keep high quality data.
+Your VCF file should be [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md) to keep high quality data.
 
 ```mermaid
 ---

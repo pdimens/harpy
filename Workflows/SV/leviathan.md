@@ -46,7 +46,7 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 
 After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using LEVIATHAN. To make sure your data
-will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/Getting_Started/Resources/common_options.md) should **end**
+will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/Getting_Started/common_options.md) should **end**
 with a `BX:Z` tag. Use [!badge corners="pill" text="validate bam"](../validate.md) if you want to double-check file
 format validity.
 
@@ -59,14 +59,14 @@ harpy sv leviathan --threads 20 genome.fasta Align/bwa
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                    |  default   | description                                                                                                                        |
 |:----------------------------|:----------:|:-----------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                    |            | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md#input-arguments)      |
+| `INPUTS`                    |            | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)      |
 | `REFERENCE`                 |            | [!badge variant="info" text="required"] Reference genome that was used to create alignments                                        |
-| `--contigs`                 |            | [Contigs to plot](/Getting_Started/Resources/common_options.md#--contigs) in the report                                                                      |
+| `--contigs`                 |            | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                      |
 | `--duplicates` `-d`         |    `10`    | Consider SV of the same type as duplicates if their breakpoints are within this distance                                           |
 | `--extra-params` `-x`       |            | Additional naibr arguments, in quotes                                                                                              |
 | `--iterations` `-i`         |    `50`    | Number of iterations to perform through index (reduces memory)                                                                     |

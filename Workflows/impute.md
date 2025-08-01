@@ -39,7 +39,7 @@ tasks yourself prior to running the [!badge corners="pill" text="impute"] module
 After variants have been called, you may want to impute missing genotypes to get the
 most from your data. Harpy uses `STITCH` to impute genotypes, a haplotype-based
 method that is linked-read aware. Imputing genotypes requires a variant call file 
-**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/blog/filtering_snps.md).
+**containing SNPs**, such as that produced by [!badge corners="pill" text="harpy snp"](snp.md) and preferably [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md).
 You can impute genotypes with Harpy using the [!badge corners="pill" text="impute"] module:
 ```bash usage
 harpy impute OPTIONS... PARAMETERS VCF INPUTS...
@@ -54,14 +54,14 @@ harpy impute --threads 20 stitch.params data/variants.bcf data/*.bam
 ```
 
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/Resources/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
 {.compact}
 | argument              | default | description                                                                                                                  |
 |:----------------------|:-------:|:-----------------------------------------------------------------------------------------------------------------------------|
 | `PARAMETERS`          |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
 | `VCF`                 |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
-| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/Resources/common_options.md)                |
+| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md)                |
 | `--extra-params` `-x` |         | Extra arguments to add to STITCH, provided in quotes                                                                         |
 | `--region`       `-r` |         | Specific region to impute, in the format `contig:start-end-buffer`                                                           |
 | `--vcf-samples`       |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |

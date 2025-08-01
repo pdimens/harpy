@@ -1,7 +1,6 @@
 ---
 label: Development
 icon: tools
-order: 5
 ---
 
 # :icon-tools: Developing Harpy
