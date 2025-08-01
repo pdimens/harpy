@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807373336172">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807373459261">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.11.0.807373336172" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.11.0.807373459261" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.807373336172" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.807373459261" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.807373336172" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.807373336172" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.807373459261" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.807373459261" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -214,6 +214,40 @@
                             <div class="retype-markdown" id="retype-content">
                                 <!-- Rendered if sidebar right is enabled -->
                                 <div id="retype-sidebar-right-toggle"></div>
+                                <nav id="retype-breadcrumb" class="breadcrumb" aria-label="Breadcrumb">
+                                    <ol role="list">
+                                        <li class="pr-4">
+                                            <a href="../../../" class="pr-4">
+                                                Home
+                                            </a>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"/>
+                                            </svg>
+                                        </li>
+                                        <li class="pr-4">
+                                            <span class="pr-4">
+                                                Getting Started
+                                            </span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"/>
+                                            </svg>
+                                        </li>
+                                        <li class="pr-4">
+                                            <span class="pr-4">
+                                                Resources
+                                            </span>
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path d="M8.72 18.78a.75.75 0 0 1 0-1.06L14.44 12 8.72 6.28a.751.751 0 0 1 .018-1.042.751.751 0 0 1 1.042-.018l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0Z"/>
+                                            </svg>
+                                        </li>
+                                        <li class="pr-4">
+                                            <a href="../../../getting_started/resources/development/" class="pr-4">
+                                                Development
+                                            </a>
+                                        </li>
+                                    </ol>
+                                </nav>
+                
                                 <!-- Page content  -->
 <doc-anchor-target id="developing-harpy" class="break-words">
     <h1>
@@ -316,7 +350,7 @@ First, you&#x27;ll need to clone the Harpy git repository:</p>
 <li>it recieves command line inputs and parses them</li>
 <li>uses the parsed command line inputs to run a specific Snakemake workflow</li>
 </ol>
-<p>To accomplish this, Harpy is written as a Python program, using <a href="https://github.com/ewels/rich-click">rich-click</a>
+<p>To accomplish this, Harpy is written as a Python program, using <a href="https://github.com/ewels/rich-click" class="outbound" target="_blank"><span>rich-click</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 for the aesthetically pleasing interface. Since Harpy also relies on Snakemake
 snakefiles for each module, bash scripts, python scripts, and rmarkdown files,
 not all of it can be installed as a pure python program using <code v-pre>setuptools</code>.
@@ -331,7 +365,7 @@ using non-python code.</p>
         <span>bioconda recipe</span>
     </h3>
 </doc-anchor-target>
-<p>For the ease of installation for end-users, Harpy has a <a href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml">recipe and build script</a> in Bioconda,
+<p>For the ease of installation for end-users, Harpy has a <a href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml" class="outbound" target="_blank"><span>recipe and build script</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> in Bioconda,
 which makes it available for download and installation. A copy of the recipe is also
 stored in <code v-pre>resources/meta.yml</code>. The yaml file is the metadata of the package, including software
 deps and their versions. Now that Harpy is hosted on bioconda, when a new version is tagged with
@@ -352,7 +386,7 @@ requiring any intervention on the development side for the newest Harpy version 
 <p>Harpy exists as a Git repository and has 3 standard branches that are used in
 specific ways during development. Git is a popular version control system and
 discussing its use is out of the scope of this documentation, however there is no
-shortage of <a href="https://www.youtube.com/watch?v=8Dd7KRpKeaE">great resources</a> to get
+shortage of <a href="https://www.youtube.com/watch?v=8Dd7KRpKeaE" class="outbound" target="_blank"><span>great resources</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> to get
 you started. The 3 standard branches in the Harpy repository are outlined in the
 table below:</p>
 <div class="table-wrapper scrollbar overflow-hidden">
@@ -387,7 +421,7 @@ table below:</p>
 </doc-anchor-target>
 <p>The dev workflow is reasonably standard:</p>
 <ol>
-<li><a href="https://github.com/pdimens/harpy/fork">create a fork</a> of Harpy, usually from the <code v-pre>main</code> branch</li>
+<li><a href="https://github.com/pdimens/harpy/fork" class="outbound" target="_blank"><span>create a fork</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> of Harpy, usually from the <code v-pre>main</code> branch</li>
 <li>within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code v-pre>naibr_bugfix</code>, <code v-pre>add_deepvariant</code>)</li>
 <li>add and modify code with your typical coding workflow, pushing your changes to your Harpy fork</li>
 <li>when it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code v-pre>main</code> branch</li>
@@ -409,7 +443,7 @@ that is uploaded to Dockerhub. Updating or editing this container can be done au
 <p>The testing GitHub Action will automatically create a Dockerfile with <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>harpy containerize</span>
 </span> (a hidden harpy command)
-and build a new Docker container, then upload it to <a href="https://hub.docker.com/repository/docker/pdimens/harpy/general">dockerhub</a>
+and build a new Docker container, then upload it to <a href="https://hub.docker.com/repository/docker/pdimens/harpy/general" class="outbound" target="_blank"><span>dockerhub</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 with the <code v-pre>latest</code> tag. This process is triggered on <code v-pre>push</code> or <code v-pre>pull request</code> with changes to either
 <code v-pre>src/harpy/conda_deps.py</code> or <code v-pre>src/harpy/snakefiles/containerize.smk</code> on <code v-pre>main</code>.</p>
 <doc-anchor-target id="manually">
@@ -476,7 +510,7 @@ crop up this way and require more work so Harpy can be resilient to more use cas
         <span>releases</span>
     </h3>
 </doc-anchor-target>
-<p>There is <a href="https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml">an automation</a>
+<p>There is <a href="https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml" class="outbound" target="_blank"><span>an automation</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
 upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
 build a new Dockerfile and tag it with the same git tag for Harpy&#x27;s next release and push it to Dockerhub.
