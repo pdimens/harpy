@@ -18,7 +18,7 @@ jobs:
           ref: docs
       - uses: retypeapp/action-build@latest
         with:
-          RETYPE_KEY: ${{ secrets.RETYPE_KEY }}
+          key: ${{ secrets.RETYPE_KEY }}
       - uses: retypeapp/action-github-pages@latest
         with:
           branch: website
