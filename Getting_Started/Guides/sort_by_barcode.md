@@ -10,6 +10,9 @@ image: https://t4.ftcdn.net/jpg/07/40/71/29/360_F_740712956_dyX3F3ehpbdqjCZT0Rdq
 ---
 
 # :icon-list-ordered: Sort data by barcode
+## TL;DR
+- sorting by a SAM tag requires converting FASTQ to SAM then back to FASTQ
+
 You would think sorting data would be a no-brainer, and in most cases it is.
 You can use `seqtk` or `seqkit` to sort FASTQ/A files by their IDs, `samtools` to sort
 SAM/BAM/CRAM files by name or coordinates. However, in the world of linked-read
