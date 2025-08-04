@@ -56,7 +56,7 @@ def bam(to_,sam, standardize, quiet):
     from_ = None
     try:
         with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
-            progress.add_task(f"[dim]Determining barcode type", total = None)
+            progress.add_task("[dim]Determining barcode type", total = None)
             HEADER = alnfile.header
             for record in alnfile.fetch(until_eof = True):
                 try:
@@ -90,21 +90,18 @@ def bam(to_,sam, standardize, quiet):
     # it's not functionally important, but it does make the barcodes *look* more distinct
     if to_ == "10x":
         bc_generator = product(*[sample("ATCG", 4) for i in range(16)])
-        invalid = INVALID_10x
         def is_valid(bc):
             return "N" not in bc
         def format_bc(bc):
             return "".join(bc)
     elif to_ == "tellseq":
         bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
-        invalid = INVALID_TELLSEQ
         def is_valid(bc):
             return "N" not in bc
         def format_bc(bc):
             return "".join(bc)
     elif to_ == "stlfr":
         bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
-        invalid = INVALID_STLFR
         def is_valid(bc):
             return "0" not in bc.split("_")
         def format_bc(bc):
@@ -116,7 +113,6 @@ def bam(to_,sam, standardize, quiet):
             ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
             ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
         )
-        invalid = INVALID_HAPLOTAGGING
         def is_valid(bc):
             return "00" not in bc
         def format_bc(bc):
@@ -332,7 +328,7 @@ def standardize(sam, quiet):
         with (
             pysam.AlignmentFile(sam, require_index=False) as SAM, 
             pysam.AlignmentFile(sys.stdout, "wb", template=SAM),
-            harpy_pulsebar(quiet, "Standardizing", True) as progress,
+            harpy_pulsebar(quiet, "Standardizing", True),
         ):
             for record in SAM.fetch(until_eof=True):
                 if record.has_tag("BX") and record.has_tag("VX"):
@@ -445,7 +441,6 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
                                     nuc_bx = "".join(next(bc_iter))
                                 bc_inventory[_bx] = nuc_bx
                             inline_bc = nuc_bx
-                            inline_qual = "I"*18
                     record.sequence = inline_bc + SPACER_NUC + record.sequence
                     record.quality  = "I"*len(inline_bc) + SPACER_QUAL + record.quality
                     gzip.stdin.write(str(record).encode("utf-8") + b"\n")
