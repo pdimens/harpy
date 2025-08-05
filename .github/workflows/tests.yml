@@ -711,7 +711,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install --no-deps dist/*.whl
-          create_simulation_data.py
+          create_simulation_data
 
       - name: simulate linked reads (random barcodes)
         shell: micromamba-shell {0}
