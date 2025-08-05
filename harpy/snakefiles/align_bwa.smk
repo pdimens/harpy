@@ -292,6 +292,8 @@ rule samtools_report:
         collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         "reports/bwa.stats.html"
+    log:
+        "logs/multiqc.log"
     params:
         outdir = "reports/data/samtools_stats reports/data/samtools_flagstat",
         options = "--no-ai --no-version-check --force --quiet --no-data-dir",
@@ -300,7 +302,7 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc {params} --filename {output} 2> /dev/null"
+        "multiqc {params} --filename {output} 2> {log}"
 
 rule barcode_report:
     input: 

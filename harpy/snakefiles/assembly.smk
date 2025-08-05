@@ -160,13 +160,15 @@ rule build_report:
         "quast/report.tsv"
     output:
         "reports/assembly.metrics.html"
+    log:
+        "logs/multiqc.log"
     params:
         options = "--no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Assembly Metrics\""
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc {input} {params} --filename {output}"
+        "multiqc {input} {params} --filename {output} 2> {log}"
 
 rule workflow_summary:
     default_target: True
