@@ -140,7 +140,7 @@ rule barcode_stats:
     container:
         None
     shell:
-        "count_bx.py {input} > {output}"
+        "count_bx {input} > {output}"
 
 rule configure_report:
     input:

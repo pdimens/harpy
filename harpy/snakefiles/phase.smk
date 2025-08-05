@@ -237,7 +237,7 @@ rule summarize_blocks:
         """
         echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
         for i in {input}; do
-            parse_phaseblocks.py $i >> {params}
+            parse_phaseblocks $i >> {params}
         done
         gzip {params}
         """

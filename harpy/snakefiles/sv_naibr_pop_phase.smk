@@ -195,7 +195,7 @@ rule concat_groups:
     container:
         None
     shell:
-        "concatenate_bam.py -b {input.bamlist} > {output} 2> {log}"
+        "concatenate_bam -b {input.bamlist} > {output} 2> {log}"
 
 rule sort_groups:
     input:
@@ -265,7 +265,7 @@ rule infer_variants:
         None
     shell:
         """
-        infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
+        infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
         cp {input.refmt} {output.refmt}
         cp {input.vcf} {output.vcf}
         """
@@ -383,7 +383,7 @@ rule workflow_summary:
         phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
         summary.append(phase)
         concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam.py -o groupname.bam -b samples.list"
+        concat += "\tconcatenate_bam -o groupname.bam -b samples.list"
         summary.append(concat)
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"

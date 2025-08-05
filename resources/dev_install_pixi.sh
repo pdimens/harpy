@@ -17,10 +17,4 @@ if ! cd harpy; then
     exit 1
 fi
 
-pixi shell
-
-mkdir -p ${ENV_PREFIX}/bin
-
-# associated scripts
-chmod +x harpy/bin/* 
-cp -f harpy/bin/* ${ENV_PREFIX}/bin/
+pixi install

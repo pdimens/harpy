@@ -40,7 +40,7 @@ rule barcode_segments:
     container:
         None
     shell:
-        "haplotag_acbd.py workflow"
+        "haplotag_acbd workflow"
 
 rule demultiplex:
     input:

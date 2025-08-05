@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+import argparse
 import sys
 import re
 import pysam
@@ -23,18 +24,25 @@ def bx_search(rec):
         rec.query_name = rec.query_name.removesuffix(barcode)
     return rec
 
-if not sys.stdin.isatty():
-    # Input is being piped in via stdin
-    input_data = sys.stdin
-elif len(sys.argv) > 1:
-    # First argument passed via command line
-    input_data = sys.argv[1]
+def main():
+    parser = argparse.ArgumentParser(
+        prog='standardize_barcodes_sam',
+        description='Convert barcode notation in input SAM file to BX:Z:BARCODE VX:i:0/1, where 0/1 is whether the barcode is valid (1) or invalid (0)',
+        usage = "standardize_barcodes_sam input.sam > output.sam",
+        )
+    parser.add_argument('input_sam', nargs='?', type=argparse.FileType('r'), default= (None if sys.stdin.isatty() else sys.stdin), help = "Input SAM file")
+    args = parser.parse_args()
+    if not args.input_sam:
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
-try:
-    with pysam.AlignmentFile(input_data, require_index=False) as SAM, \
-         pysam.AlignmentFile(sys.stdout.buffer, "w", template=SAM) as OUT:
-        for record in SAM.fetch(until_eof=True):
-            OUT.write(bx_search(record))
-except (IOError, ValueError) as e:
-    print(f"Error processing file: {e}", file=sys.stderr)
-    sys.exit(1)
+    try:
+        with (
+            pysam.AlignmentFile(args.input_sam, require_index=False) as SAM,
+            pysam.AlignmentFile(sys.stdout.buffer, "w", template=SAM) as OUT
+        ):
+            for record in SAM.fetch(until_eof=True):
+                OUT.write(bx_search(record))
+    except (IOError, ValueError) as e:
+        print(f"Error processing file: {e}", file=sys.stderr)
+        sys.exit(1)

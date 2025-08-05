@@ -55,7 +55,7 @@ rule sample_barcodes:
         bx_tag = f"-b {bc_tag}",
         random_seed = f"-r {random_seed}" if random_seed else ""
     shell:
-        "extract_bxtags.py {params} {input} > {output} 2> {log}"
+        "extract_bxtags {params} {input} > {output} 2> {log}"
 
 rule index_input:
     input:
@@ -107,7 +107,7 @@ rule workflow_summary:
         if is_fastq:
             summary.append(convs)
         extraction = "Barcodes were extracted and sampled using:\n"
-        extraction += f"\textract_bxtags.py -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
+        extraction += f"\textract_bxtags -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
         summary.append(extraction)
         downsampled = "The inputs were indexed and downsampled using:\n"
         downsampled += f"\tsamtools view -O BAM -h -D {bc_tag}:barcodes.txt input.bam"

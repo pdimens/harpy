@@ -13,5 +13,5 @@ pip install --no-deps --disable-pip-version-check -e . && \
     rm -rf build
 
 # associated scripts
-chmod +x harpy/bin/* 
-cp -f harpy/bin/* ${CONDA_PREFIX}/bin/
+#chmod +x harpy/bin/* 
+#cp -f harpy/bin/* ${CONDA_PREFIX}/bin/

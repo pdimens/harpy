@@ -702,7 +702,7 @@ BioCircos(
 ## 
 
 ::: {.card title="Interpreting the Supporting File"}
-Below are the descriptions of the columns in **`r basename(infile)`**, which was created by Harpy using the included `bx_stats.py` script. The term `molecule` refers to the `MI:i` tag in the alignments, which is a unique molecule ID given to the original fragment alignments sharing a barcode are inferred to have originated from. The inference takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds) and that the sequences aligned to the same contig.
+Below are the descriptions of the columns in **`r basename(infile)`**, which was created by Harpy using the included `bx_stats` script. The term `molecule` refers to the `MI:i` tag in the alignments, which is a unique molecule ID given to the original fragment alignments sharing a barcode are inferred to have originated from. The inference takes into account an [alignment distance threshold](https://pdimens.github.io/harpy/haplotagdata/#barcode-thresholds) and that the sequences aligned to the same contig.
 
 contig
 

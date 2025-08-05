@@ -115,7 +115,7 @@ rule infer_variants:
         None
     shell:
         """
-        infer_sv.py {input.bedpe} -f {output.fail} > {output.bedpe}
+        infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
         cp {input.refmt} {output.refmt}
         cp {input.vcf} {output.vcf}
         """

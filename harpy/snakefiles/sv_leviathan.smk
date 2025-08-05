@@ -215,7 +215,6 @@ rule workflow_summary:
     run:
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {bn}")
-        summary.append("The alignments were deconvolved using: leviathan_bx_shim.py")
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "LRez index bam -p -b INPUT"
         summary.append(bc_idx)

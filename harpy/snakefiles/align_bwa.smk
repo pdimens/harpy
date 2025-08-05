@@ -116,7 +116,7 @@ rule standardize_barcodes:
     container:
         None
     shell:
-        "standardize_barcodes_sam.py > {output} 2> {log} < {input}"
+        "standardize_barcodes_sam > {output} 2> {log} < {input}"
 
 rule mark_duplicates:
     input:
@@ -168,7 +168,7 @@ rule assign_molecules:
         None
     shell:
         """
-        assign_mi.py -c {params} {input} > {output.bam} 2> {log}
+        assign_mi -c {params} {input} > {output.bam} 2> {log}
         samtools index {output.bam}
         """
 
@@ -185,7 +185,7 @@ rule barcode_stats:
     container:
         None
     shell:
-        "bx_stats.py {input.bam} > {output} 2> {log}"
+        "bx_stats {input.bam} > {output} 2> {log}"
 
 rule molecule_coverage:
     input:
@@ -200,7 +200,7 @@ rule molecule_coverage:
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
+        "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
@@ -347,7 +347,7 @@ rule workflow_summary:
         align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
         summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"

@@ -16,11 +16,4 @@ if ! pip install --no-deps --disable-pip-version-check -e .; then
     echo "Error: Failed to install harpy package"
     exit 1
 fi
-
-# install harpy proper
-pip install --no-deps --disable-pip-version-check -e . && \
-    rm -rf build
-
-# associated scripts
-chmod +x harpy/bin/* 
-cp -f harpy/bin/* ${CONDA_PREFIX}/bin/
+rm -rf build

@@ -17,6 +17,33 @@ dependencies = [
     'snakemake>=9.0'
 ]
 
+[project.scripts]
+harpy = "harpy.__main__:cli"
+assign_mi = "harpy.bin:assign_mi.main"
+bx_stats = "harpy.bin:bx_stats.main"
+bx_to_end = "harpy.bin:bx_to_end.main"
+check_bam = "harpy.bin:check_bam.main"
+check_fastq = "harpy.bin:check_fastq.main"
+concatenate_bam = "harpy.bin:concatenate_bam.main"
+count_bx = "harpy.bin:count_bx.main"
+create_simulation_data = "harpy.bin:create_simulation_data.main"
+deconvolve_alignments = "harpy.bin:deconvolve_alignments.main"
+depth_windows = "harpy.bin:depth_windows.main"
+extract_bxtags= "harpy.bin:extract_bxtags.main"
+haplotag_acbd = "harpy.bin:haplotag_acbd.main"
+haplotag_barcodes = "harpy.bin:haplotag_barcodes.main"
+infer_sv = "harpy.bin:infer_sv.main"
+make_windows = "harpy.bin:make_windows.main"
+molecule_coverage = "harpy.bin:molecule_coverage.main"
+parse_phaseblocks = "harpy.bin:parse_phaseblocks.main"
+rename_bam = "harpy.bin:rename_bam.main"
+separate_singletons = "harpy.bin:separate_singletons.main"
+separate_validbx = "harpy.bin:separate_validbx.main"
+standardize_barcodes_sam = "harpy.bin:standardize_barcodes_sam.main"
+
+[project.urls]
+Homepage = "https://github.com/pdimens/harpy"
+
 [tool.setuptools.packages.find]
 where = ["."]
 exclude = ["test/*", "deprecated/*", "resources/*", ".github/*"]
@@ -24,8 +51,3 @@ exclude = ["test/*", "deprecated/*", "resources/*", ".github/*"]
 [tool.setuptools.package-data]
 harpy = ["**/*"]
 
-[project.scripts]
-harpy = "harpy.__main__:cli"
-
-[project.urls]
-Homepage = "https://github.com/pdimens/harpy"
