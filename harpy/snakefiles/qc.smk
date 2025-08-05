@@ -183,6 +183,8 @@ rule qc_report:
         collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames)
     output:
         "reports/qc.report.html"
+    log:
+        "logs/multiqc.log"
     params:
         logdir = "reports/data/fastp/",
         module = "-m fastp",
@@ -192,7 +194,7 @@ rule qc_report:
     conda:
         "envs/qc.yaml"
     shell: 
-        "multiqc {params} --filename {output}"
+        "multiqc {params} --filename {output} 2> {log}"
 
 rule workflow_summary:
     default_target: True
