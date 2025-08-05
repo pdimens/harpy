@@ -43,9 +43,9 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::whatshap"
         ],
         "qc" : [
-            "bioconda::falco=1.2.4",
+            "bioconda::falco=1.2.5",
             "bioconda::fastp",
-            "bioconda::multiqc=1.28",
+            "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution"
         ],
