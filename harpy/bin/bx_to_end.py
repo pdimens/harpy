@@ -73,8 +73,12 @@ def main():
     else:
         try:
             bam_in = pysam.AlignmentFile(infile, "rb")
-        except:
-            bam_in = pysam.AlignmentFile(infile, "r")
+        except (OSError, ValueError):
+            try:
+                bam_in = pysam.AlignmentFile(infile, "r")
+            except (OSError, ValueError) as e:
+                print(f"Could not process {input} as a SAM/BAM file. See the error from pysam: {e}")
+                sys.exit(1)
         with pysam.AlignmentFile(sys.stdout.buffer, "wb", template = bam_in) as bam_out:
             for aln_rec in bam_in:
                 bam_out.write(format_bam(aln_rec))

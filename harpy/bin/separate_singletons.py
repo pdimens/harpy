@@ -23,10 +23,10 @@ def main():
 
     args = parser.parse_args()
     if args.threads <1:
-        parser.error("Threads supplied to -t ({args.threads}) must be positive (e.g. >1)")
+        parser.error(f"Threads supplied to -t ({args.threads}) must be positive (e.g. >1)")
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
-    if len(args.bx_tag) != 2 or args.bx_tag.isalnum():
+    if len(args.bx_tag) != 2 or not args.bx_tag.isalnum():
         parser.error(f"The header tag supplied to -b ({args.bx_tag}) must be alphanumeric and exactly two characters long")
 
     invalid_pattern = re.compile(r'[AaBbCcDd]00')
@@ -44,17 +44,17 @@ def main():
             try:
                 barcode = record.get_tag(args.bx_tag)
                 if isinstance(barcode, int):
-                    pass # an int from an MI-tharype tag
+                    pass # an int from an MI-type tag
                 elif invalid_pattern.search(barcode):
                     continue
             except KeyError:
                 continue
             # write the stored records when the barcode changes
             if last_barcode and barcode != last_barcode:
-                if read_count > 1:
-                    [nonsingleton.write(i) for i in record_store]
-                else:
-                    [singleton.write(i) for i in record_store]
+                target_file = nonsingleton if read_count > 1 else singleton  
+                for record in record_store:  
+                    target_file.write(record)  
+
                 # reset the record store and read count
                 record_store = []
                 read_count = 0
@@ -70,12 +70,9 @@ def main():
             last_barcode = barcode
         # After the for loop ends
         if record_store:
-            if read_count > 1:
-                for i in record_store:
-                    nonsingleton.write(i)
-            else:
-                for i in record_store:
-                    singleton.write(i)
+            target_file = nonsingleton if read_count > 1 else singleton
+            for i in record_store:
+                target_file.write(i)
 
     # final housekeeping to remove intermediate
     os.remove(sorted_bam)

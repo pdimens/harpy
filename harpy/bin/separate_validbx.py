@@ -22,7 +22,7 @@ def main():
         sys.exit(1)
     if os.path.isdir(args.input_bam):
         print(f"{args.input_bam} was provided as input but not found.")
-
+        sys.exit(1)
 
     sys.exit(
         os.system(

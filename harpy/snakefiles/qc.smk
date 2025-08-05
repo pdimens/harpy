@@ -186,15 +186,15 @@ rule qc_report:
     log:
         "logs/multiqc.log"
     params:
-        logdir = "reports/data/fastp/",
         module = "-m fastp",
-        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
+        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"QC Summary\"",
-        comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\""
+        comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\"",
+        logdir = "reports/data/fastp/"
     conda:
         "envs/qc.yaml"
     shell: 
-        "multiqc {params} --filename {output} 2> {log}"
+        "multiqc {params} > {output} 2> {log}"
 
 rule workflow_summary:
     default_target: True
