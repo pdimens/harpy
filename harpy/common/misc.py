@@ -109,6 +109,14 @@ def safe_read(file_path: str):
     except gzip.BadGzipFile:
         return open(file_path, 'r')
 
+def is_conda_priority_strict():
+    try:
+        from conda.base.context import context
+    # Check the channel priority setting
+    except ModuleNotFoundError:
+        return False
+    return context.channel_priority == "strict"
+
 def is_conda_package_installed(package_name):
     """
     Return 0 if package exists

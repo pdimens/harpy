@@ -7,6 +7,7 @@ from rich.console import Console
 from rich import box
 from rich.table import Table
 from rich.panel import Panel
+from .misc import is_conda_priority_strict
 
 CONSOLE = Console(stderr=True)
 
@@ -74,6 +75,8 @@ def print_setup_error(exitcode: int) -> None:
         errortype = "Snakefile Error"
     else:
         errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        if is_conda_priority_strict():
+            errortext += "\nNotice: Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
         errortype = "Software Environment Error"
     CONSOLE.rule(f"[bold]{errortype}", style = "red")
     CONSOLE.print(errortext)
