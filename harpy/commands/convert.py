@@ -427,11 +427,9 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
                     _bx = bx_search(record)
                     if not _bx:
                         inline_bc = "N"*18
-                        inline_qual = "I"*18
                     else:
                         if NUCLEOTIDE_FMT:
                             inline_bc = _bx
-                            inline_qual = "I"*len(_bx)
                         else:
                             nuc_bx = bc_inventory.get(_bx, None)
                             if not nuc_bx:

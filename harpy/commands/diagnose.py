@@ -3,7 +3,6 @@ import sys
 import yaml
 import subprocess
 import rich_click as click
-from rich.console import Console
 from rich import print as rprint
 from harpy.common.printing import print_error, CONSOLE
 
