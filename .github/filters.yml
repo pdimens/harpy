@@ -24,8 +24,8 @@ validate: &validate
   - 'harpy/snakefiles/validate_bam.smk'
   - 'test/fastq/**'
   - 'test/bam/**'
-  - 'harpy/bin/check_bam.py'
-  - 'harpy/bin/check_fastq.py'
+  - 'harpy/scripts/check_bam.py'
+  - 'harpy/scripts/check_fastq.py'
   - 'harpy/reports/validate_fastq.qmd'
   - 'harpy/reports/validate_bam.qmd'
 deconvolve: &deconvolve
@@ -53,10 +53,10 @@ bwa: &bwa
   - 'harpy/snakefiles/align_bwa.smk'
   - 'harpy/reports/align_stats.qmd'
   - 'harpy/reports/align_bxstats.qmd'
-  - 'harpy/bin/bx_stats.py'
-  - 'harpy/bin/count_bx.py'
-  - 'harpy/bin/assign_mi.py'
-  - 'harpy/bin/molecule_coverage.py'
+  - 'harpy/scripts/bx_stats.py'
+  - 'harpy/scripts/count_bx.py'
+  - 'harpy/scripts/assign_mi.py'
+  - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
 ema: &ema
   - *common
@@ -65,9 +65,9 @@ ema: &ema
   - 'harpy/snakefiles/align_ema.smk'
   - 'harpy/reports/align_stats.qmd'
   - 'harpy/reports/align_bxstats.qmd'
-  - 'harpy/bin/bx_stats.py'
-  - 'harpy/bin/count_bx.py'
-  - 'harpy/bin/molecule_coverage.py'
+  - 'harpy/scripts/bx_stats.py'
+  - 'harpy/scripts/count_bx.py'
+  - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -76,10 +76,10 @@ strobealign: &strobealign
   - 'harpy/snakefiles/align_strobealign.smk'
   - 'harpy/reports/align_stats.qmd'
   - 'harpy/reports/align_bxstats.qmd'
-  - 'harpy/bin/assign_mi.py'
-  - 'harpy/bin/bx_stats.py'
-  - 'harpy/bin/count_bx.py'
-  - 'harpy/bin/molecule_coverage.py'
+  - 'harpy/scripts/assign_mi.py'
+  - 'harpy/scripts/bx_stats.py'
+  - 'harpy/scripts/count_bx.py'
+  - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
@@ -87,7 +87,7 @@ mpileup: &mpileup
   - 'harpy/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
   - 'harpy/reports/bcftools_stats.qmd'
-  - 'harpy/bin/make_windows.py'
+  - 'harpy/scripts/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
@@ -95,7 +95,7 @@ freebayes: &freebayes
   - 'harpy/snp.py'
   - 'harpy/snakefiles/snp_freebayes.smk'
   - 'harpy/reports/bcftools_stats.qmd'
-  - 'harpy/bin/make_windows.py'
+  - 'harpy/scripts/make_windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common
@@ -106,27 +106,26 @@ impute: &impute
   - 'test/vcf/test.bcf'
   - 'harpy/reports/impute.qmd'
   - 'harpy/reports/stitch_collate.qmd'
-  - 'harpy/scripts/stitch_impute.R'
 leviathan: &leviathan
   - *common
   - *environments
   - 'harpy/sv.py'
   - 'harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
-  - 'harpy/bin/concatenate_bam.py'
-  - 'harpy/bin/leviathan_bx_shim.py'
+  - 'harpy/scripts/concatenate_bam.py'
+  - 'harpy/scripts/leviathan_bx_shim.py'
   - 'harpy/reports/leviathan**.qmd'
 naibr: &naibr
   - *common
   - *environments
   - 'harpy/sv.py'
   - 'harpy/snakefiles/sv_naibr**.smk'
-  - 'harpy/bin/concatenate_bam.py'
+  - 'harpy/scripts/concatenate_bam.py'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
   - 'harpy/reports/naibr**.qmd'
-  - 'harpy/bin/infer_sv.py'
+  - 'harpy/scripts/infer_sv.py'
 phase: &phase
   - *common
   - *environments
@@ -135,7 +134,7 @@ phase: &phase
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'harpy/reports/hapcut.qmd'
-  - 'harpy/bin/parse_phaseblocks.py'
+  - 'harpy/scripts/parse_phaseblocks.py'
 simvars: &simvars
   - *common
   - *environments
@@ -144,7 +143,6 @@ simvars: &simvars
   - 'harpy/snakefiles/simulate_snpindel.smk'
   - 'harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
-  - 'harpy/scripts/simuG.pl'
 simreads: &simreads
   - *common
   - *environments
@@ -153,8 +151,7 @@ simreads: &simreads
   - 'harpy/snakefiles/simulate_linkedreads.smk'
   - 'test/genome**gz'
   - 'extractReads.cpp'
-  - 'harpy/bin/haplotag_barcodes.py'
-  - 'harpy/scripts/HaploSim.pl'
+  - 'harpy/scripts/haplotag_barcodes.py'
 assembly: &assembly
   - *common
   - *environments
