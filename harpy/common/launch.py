@@ -5,6 +5,9 @@ import re
 import os
 import sys
 import subprocess
+from rich.table import Table
+from rich import box
+from rich.syntax import Syntax
 from .misc import harpy_progressbar, harpy_pulsebar, harpy_progresspanel, gzip_file, purge_empty_logs
 from .printing import CONSOLE, print_onerror, print_setup_error
 
@@ -15,11 +18,26 @@ EXIT_CODE_RUNTIME_ERROR = 3
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
-def iserror(text):
+def iserror(text: str):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
 
-def highlight_params(text):
+def print_shellcmd(text: str):
+    _table = Table(
+        show_header=False,
+        pad_edge=False,
+        show_edge=False,
+        padding=(0,0),
+        box=box.SIMPLE,
+    )
+    _table.add_column("Lpadding", justify="left")
+    _table.add_column("shell", justify="left")
+    _table.add_column("Rpadding", justify="left")
+    cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
+    _table.add_row("  ", cmd, "  ")
+    CONSOLE.print("[bold default]shell:", _table)
+
+def highlight_params(text: str):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
     text = text.removeprefix("    ").rstrip()
     test = text.lstrip()
@@ -205,11 +223,15 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                 if output.strip().startswith("Logfile"):
                     _log = output.rstrip().split()[1]
                     CONSOLE.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
-                    output = process.stderr.readline()
-                    continue
-                if output.strip().startswith("======"):
-                    output = process.stderr.readline()
-                    continue
+                    lines = 0
+                    while lines < 2:
+                        output = process.stderr.readline()
+                        if "====" in output:
+                            lines += 1
+                            continue
+                        CONSOLE.print("[red]" + output, overflow = "ignore", crop = False)
+                    if "====" in output:
+                        output = process.stderr.readline()
                 if output.rstrip():
                     if output.lstrip().startswith("message:") or output.startswith("Finished jobid:") or output.rstrip().endswith(") done") or output.startswith("Removing output files of failed job"):
                         output = process.stderr.readline().strip()
@@ -231,7 +253,15 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                                 output = process.stderr.readline()
                         if output.strip().startswith("Trying to restart job"):
                             break
-                        CONSOLE.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
+                        if output.strip().startswith("shell:"):
+                            output = process.stderr.readline()
+                            print_shellcmd(output)
+                            output = process.stderr.readline()
+                        if "(command exited with non-zero" in output:
+                            output = process.stderr.readline()
+                            continue
+                        else:
+                            CONSOLE.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break
                 elif output.startswith("At least one job did not"):
