@@ -31,7 +31,10 @@ def main():
 
     invalid_pattern = re.compile(r'[AaBbCcDd]00')
     sorted_bam = f"{args.input[:-4]}.bxsort.bam"
-    subprocess.run(f"samtools sort -@ {args.threads} -o {sorted_bam} -t {args.bx_tag} {args.input}".split(), stderr=sys.stderr)
+    result = subprocess.run(f"samtools sort -@ {args.threads} -o {sorted_bam} -t {args.bx_tag} {args.input}".split(), stderr=sys.stderr)
+    if result.returncode != 0:
+        sys.stderr.write(f"Error: samtools sort failed with exit code {result.returncode}\n")
+        sys.exit(1)
     with (
         pysam.AlignmentFile(sorted_bam, "rb", check_sq=False) as infile,
         pysam.AlignmentFile(sys.stdout, "wb", template=infile) as nonsingleton,

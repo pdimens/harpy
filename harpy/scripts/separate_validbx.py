@@ -1,8 +1,9 @@
 #! /usr/bin/env python
 
-import os
-import sys
 import argparse
+import os
+import subprocess
+import sys
 
 def main():
     parser = argparse.ArgumentParser(
@@ -21,11 +22,11 @@ def main():
         print(f"{args.input_bam} was provided as input but not found.")
         sys.exit(1)
     if os.path.isdir(args.input_bam):
-        print(f"{args.input_bam} was provided as input but not found.")
+        print(f"{args.input_bam} is a directory, not a file.")
         sys.exit(1)
 
     sys.exit(
-        os.system(
-            "samtools view -e '[BX]!~\"[ABCD]0{2,4}\"' --unoutput " + f"{args.invalid_bam} {args.input_bam}"
-        )
+        subprocess.run(
+            ("samtools view -e '[BX]!~\"[ABCD]0{2,4}\"' --unoutput " + f"{args.invalid_bam} {args.input_bam}").split()            
+        ).returncode
     )

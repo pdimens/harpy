@@ -128,7 +128,6 @@ def main():
     ):
         for record in alnfile.fetch(until_eof = True):
             chrm = record.reference_name
-            bp   = record.query_alignment_length
             # check if the current chromosome is different from the previous one
             # if so, empty the dict (a consideration for RAM usage)
             if LAST_CONTIG and chrm != LAST_CONTIG:

@@ -15,8 +15,8 @@ def bx_search(rec):
     bx = re.search(bx_pattern, rec.query_name)
     if bx:
         barcode = bx[0]
-        if barcode.startswith("#"):
         # set validation tag VX:i
+        if barcode.startswith("#"):
             rec.set_tag("VX", 0 if "0" in barcode.split("_") else 1, value_type="i")
         else:
             rec.set_tag("VX", 0 if "N" in barcode else 1, value_type="i")

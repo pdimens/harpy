@@ -257,7 +257,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                             output = process.stderr.readline()
                             print_shellcmd(output)
                             output = process.stderr.readline()
-                        if "(command exited with non-zero" in output:
+                        if "(command exited with non-zero" in output or output.startswith("Removing temporary output"):
                             output = process.stderr.readline()
                             continue
                         else:
