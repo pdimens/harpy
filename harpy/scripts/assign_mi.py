@@ -74,7 +74,7 @@ def main():
     Assign an MI:i: (Molecular Identifier) tag to each barcoded
     record based on a molecular distance cutoff. Unmapped records
     are discarded in the output. Records without a BX:Z: tag or
-    with an invalid barcode (00 as one of its segments) are presevered
+    with an invalid barcode (00 as one of its segments) are preserved
     but are not assigned an MI:i tag. Input file MUST BE COORDINATE SORTED.
     """,
     usage = "assign_mi -c cutoff input.bam > output.bam",

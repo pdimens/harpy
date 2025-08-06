@@ -23,7 +23,7 @@ def main():
 
     args = parser.parse_args()
     if args.threads <1:
-        parser.error(f"Threads supplied to -t ({args.threads}) must be positive (e.g. >1)")
+        parser.error(f"Threads supplied to -t ({args.threads}) must be positive (e.g. >=1)")
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
     if len(args.bx_tag) != 2 or not args.bx_tag.isalnum():
