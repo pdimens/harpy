@@ -184,6 +184,9 @@ def main():
 
             # distance from last alignment = current aln start - previous aln end
             dist = pos_start - d[bx]["lastpos"]
+            # handle overlapping or out-of-order alignments
+            if dist < 0:
+                dist = 0
             # if the distance between alignments is > cutoff, it's a different molecule
             # so we'll +1 the suffix of the original barcode and relabel this one as
             # BX + suffix. Since it's a new entry, we initialize it and move on

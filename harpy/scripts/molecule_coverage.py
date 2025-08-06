@@ -95,7 +95,6 @@ def main():
         IDX_CONTIG = None
         IDX_START = None
         IDX_END = None
-        aln_ranges = []
         # read in the header
         line = statsfile.readline()
         # for safety, find out which columns are the contig, start, and end positions

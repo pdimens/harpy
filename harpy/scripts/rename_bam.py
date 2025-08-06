@@ -30,8 +30,12 @@ def main():
         )
 
     if JOB_STATUS != 0:
+        sys.stderr.write("samtools addreplacerg failed with an error\n")  
         sys.exit(JOB_STATUS)
     else:
         if args.delete:
-            os.remove(args.input)
+            try:
+                os.remove(args.input)
+            except OSError:
+                sys.stderr.write(f"Failed to delete {args.input}, but otherwise samtools was successful.\n")
         sys.exit(JOB_STATUS)
