@@ -6,7 +6,7 @@ import sys
 import glob
 from rich import print as rprint
 import rich_click as click
-from .common.printing import print_error, print_solution, print_notice
+from harpy.common.printing import print_error, print_solution, print_notice
 from .hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
 
 docstring = {

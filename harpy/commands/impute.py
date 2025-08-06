@@ -3,13 +3,13 @@
 import os
 import sys
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, SnakemakeParams
-from .common.cli_types_params import StitchParams
-from .common.misc import container_ok
-from .common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
-from .common.printing import workflow_info, print_error, print_solution
-from .common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_types_params import StitchParams
+from harpy.common.misc import container_ok
+from harpy.common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
+from harpy.common.printing import workflow_info, print_error, print_solution
+from harpy.common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
+from harpy.common.workflow import Workflow
 
 docstring = {
         "harpy impute": [

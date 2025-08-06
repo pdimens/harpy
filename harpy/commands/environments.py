@@ -5,8 +5,8 @@ import shutil
 import subprocess
 from pathlib import Path
 import rich_click as click
-from .common.conda import create_conda_recipes
-from .common.workflow import Workflow
+from harpy.common.conda import create_conda_recipes
+from harpy.common.workflow import Workflow
 
 @click.command(hidden = True)
 def containerize():

@@ -6,9 +6,9 @@ import re
 import sys
 import yaml
 import rich_click as click
-from .common.conda import check_environments, create_conda_recipes
-from .common.printing import print_error, workflow_info
-from .common.workflow import Workflow
+from harpy.common.conda import check_environments, create_conda_recipes
+from harpy.common.printing import print_error, workflow_info
+from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')

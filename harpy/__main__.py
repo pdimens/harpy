@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
 import rich_click as click
-from . import align
-from . import assembly, metassembly
-from . import convert
-from . import diagnose, resume, view
-from . import deconvolve
-from . import demultiplex
-from . import downsample
-from . import environments
-from . import impute
-from . import qc
-from . import phase
-from . import simulate
-from . import snp
-from . import sv
-from . import template
-from . import validate
+from .commands import align
+from .commands import assembly, metassembly
+from .commands import convert
+from .commands import diagnose, resume, view
+from .commands import deconvolve
+from .commands import demultiplex
+from .commands import downsample
+from .commands import environments
+from .commands import impute
+from .commands import qc
+from .commands import phase
+from .commands import simulate
+from .commands import snp
+from .commands import sv
+from .commands import template
+from .commands import validate
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False

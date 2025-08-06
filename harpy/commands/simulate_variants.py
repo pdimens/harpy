@@ -2,11 +2,11 @@
 import os
 import sys
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
-from .common.misc import container_ok
-from .common.printing import print_error, workflow_info
-from .common.validations import check_fasta
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from harpy.common.misc import container_ok
+from harpy.common.printing import print_error, workflow_info
+from harpy.common.validations import check_fasta
+from harpy.common.workflow import Workflow
 
 commandstring = {
     "harpy simulate": [

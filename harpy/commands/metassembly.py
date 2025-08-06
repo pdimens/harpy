@@ -1,12 +1,12 @@
 """Perform a linked-read aware metassembly"""
 
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, KParam, SnakemakeParams
-from .common.cli_types_params import SpadesParams
-from .common.misc import container_ok
-from .common.printing import workflow_info
-from .common.validations import validate_fastq_bx
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, KParam, SnakemakeParams
+from harpy.common.cli_types_params import SpadesParams
+from harpy.common.misc import container_ok
+from harpy.common.printing import workflow_info
+from harpy.common.validations import validate_fastq_bx
+from harpy.common.workflow import Workflow
 
 docstring = {
     "harpy metassembly": [

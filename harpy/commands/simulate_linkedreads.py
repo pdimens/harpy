@@ -1,12 +1,12 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
-from .common.cli_types_params import Barcodes
-from .common.misc import container_ok
-from .common.printing import workflow_info
-from .common.validations import check_fasta
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
+from harpy.common.cli_types_params import Barcodes
+from harpy.common.misc import container_ok
+from harpy.common.printing import workflow_info
+from harpy.common.validations import check_fasta
+from harpy.common.workflow import Workflow
 
 docstring = {
     "harpy simulate linkedreads": [

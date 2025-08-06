@@ -8,11 +8,11 @@ import sys
 import pysam
 import subprocess
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, SnakemakeParams
-from .common.misc import container_ok, safe_read
-from .common.printing import print_error, print_solution_with_culprits, workflow_info
-from .common.validations import validate_demuxschema
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.misc import container_ok, safe_read
+from harpy.common.printing import print_error, print_solution_with_culprits, workflow_info
+from harpy.common.validations import validate_demuxschema
+from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def demultiplex():

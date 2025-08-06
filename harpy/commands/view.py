@@ -12,8 +12,8 @@ import rich_click as click
 from rich.console import Console
 from rich.panel import Panel
 from rich import print as rprint
-from .common.printing import print_error
-from .common.validations import is_gzip
+from harpy.common.printing import print_error
+from harpy.common.validations import is_gzip
 
 def check_terminal_colors():
     # Initialize curses
@@ -68,7 +68,7 @@ def parse_file(infile):
             for line in f:
                 yield highlight(line, YamlLexer(),formatter())
     os.environ["PAGER"] = "less -R"
-    click.echo_via_pager(_read_file(infile), color = n_colors > 0)
+    echo_via_pager(_read_file(infile), color = n_colors > 0)
     return infile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -135,14 +135,14 @@ def environments(program):
     if not os.path.exists(".environments"):
         print_error(
             "directory not found", 
-            f"No [blue].environments/[/] folder found in the current directory."
+            "No [blue].environments/[/] folder found in the current directory."
         )
         sys.exit(1)
     files = [i for i in glob.iglob(".environments/*.yaml")]
     if not files:
         print_error(
             "files not found", 
-            f"No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
+            "No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
         sys.exit(1)
     console = Console()

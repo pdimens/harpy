@@ -234,7 +234,9 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                         CONSOLE.print("[red]" + highlight_params(output), overflow = "ignore", crop = False)
                     if output.startswith("Removing output files of failed job"):
                         break
-                if not output:
+                elif output.startswith("At least one job did not"):
+                    break
+                else:
                     break
                 output = process.stderr.readline()
             sys.exit(process.returncode)

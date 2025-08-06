@@ -3,13 +3,13 @@
 import os
 import sys
 import rich_click as click
-from .common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
-from .common.cli_types_params import BwaParams, EmaParams, StrobeAlignParams
-from .common.misc import container_ok
-from .common.parsers import parse_fastq_inputs
-from .common.printing import print_error, print_solution, print_notice, workflow_info
-from .common.validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
+from harpy.common.cli_types_params import BwaParams, EmaParams, StrobeAlignParams
+from harpy.common.misc import container_ok
+from harpy.common.parsers import parse_fastq_inputs
+from harpy.common.printing import print_error, print_solution, print_notice, workflow_info
+from harpy.common.validations import check_fasta, fasta_contig_match, fastq_has_bx, validate_barcodefile
+from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def align():

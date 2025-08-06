@@ -9,10 +9,10 @@ import subprocess
 import sys
 import rich_click as click
 import pysam
-from .common.misc import safe_read, harpy_pulsebar
-from .common.convert import FQRecord, compress_fq
-from .common.printing import print_error
-from .common.validations import validate_barcodefile
+from harpy.common.misc import safe_read, harpy_pulsebar
+from harpy.common.convert import FQRecord, compress_fq
+from harpy.common.printing import print_error
+from harpy.common.validations import validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():

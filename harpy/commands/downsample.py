@@ -3,9 +3,9 @@
 import os
 import re
 import rich_click as click
-from .common.cli_types_generic import SnakemakeParams, HPCProfile
-from .common.printing import workflow_info
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import SnakemakeParams, HPCProfile
+from harpy.common.printing import workflow_info
+from harpy.common.workflow import Workflow
 
 docstring = {
     "harpy downsample": [

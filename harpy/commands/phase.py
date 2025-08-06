@@ -2,13 +2,13 @@
 
 import os
 import rich_click as click
-from .common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
-from .common.cli_types_params import HapCutParams
-from .common.misc import container_ok
-from .common.parsers import parse_alignment_inputs
-from .common.printing import workflow_info
-from .common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from harpy.common.cli_types_params import HapCutParams
+from harpy.common.misc import container_ok
+from harpy.common.parsers import parse_alignment_inputs
+from harpy.common.printing import workflow_info
+from harpy.common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
+from harpy.common.workflow import Workflow
 
 docstring = {
         "harpy phase": [

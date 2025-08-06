@@ -2,13 +2,13 @@
 
 import os
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
-from .common.cli_types_params import FastpParams
-from .common.misc import container_ok, filepath
-from .common.parsers import parse_fastq_inputs
-from .common.printing import workflow_info
-from .common.validations import check_fasta
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
+from harpy.common.cli_types_params import FastpParams
+from harpy.common.misc import container_ok, filepath
+from harpy.common.parsers import parse_fastq_inputs
+from harpy.common.printing import workflow_info
+from harpy.common.validations import check_fasta
+from harpy.common.workflow import Workflow
 
 docstring = {
     "harpy qc": [

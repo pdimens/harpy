@@ -4,13 +4,13 @@ import os
 import shutil
 from pathlib import Path
 import rich_click as click
-from .common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
-from .common.cli_types_params import MpileupParams, FreebayesParams
-from .common.misc import container_ok
-from .common.parsers import parse_alignment_inputs
-from .common.printing import workflow_info
-from .common.validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
-from .common.workflow import Workflow
+from harpy.common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams, SNPRegion
+from harpy.common.cli_types_params import MpileupParams, FreebayesParams
+from harpy.common.misc import container_ok
+from harpy.common.parsers import parse_alignment_inputs
+from harpy.common.printing import workflow_info
+from harpy.common.validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
+from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
