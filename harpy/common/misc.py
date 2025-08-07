@@ -136,7 +136,7 @@ def is_conda_package_installed(package_name):
                 return 0
             else:
                 return 2
-        except Exception as e:
+        except Exception:
             return 3
     else:
         return 4
