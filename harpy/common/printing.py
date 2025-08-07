@@ -70,20 +70,22 @@ def print_onstart(text: str, title: str) -> None:
 def print_setup_error(exitcode: int) -> None:
     """Print a red panel with snakefile or conda/singularity error text"""
     if exitcode == 1:
-        errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         errortype = "Snakefile Error"
+        errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
     else:
+        errortype = "Software Environment Error"
         errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        # Check if this is the `base` conda environment
+        current_env = os.environ.get('CONDA_DEFAULT_ENV')
+        if current_env == 'base':
+            errortext += "\n[yellow]Notice:[/] Harpy detected that you're in the [blue]base[/] conda environment; conda recommends against installing anything into the [base]base[/] environment."
         # Check the channel priority setting
         try:
             from conda.base.context import context
+            if context.channel_priority == "strict":
+                errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
         except ModuleNotFoundError:
-            strict = False
-        strict = context.channel_priority == "strict"
-        
-        if strict:
-            errortext += "\nNotice: Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
-        errortype = "Software Environment Error"
+            pass
     CONSOLE.rule(f"[bold]{errortype}", style = "red")
     CONSOLE.print(errortext)
     CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
