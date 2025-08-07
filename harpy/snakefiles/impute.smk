@@ -13,7 +13,7 @@ wildcard_constraints:
 
 bamlist       = config["inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
-variantfile   = config["inputs"]["variantfile"]
+variantfile   = config["inputs"]["vcf"]
 paramfile     = config["inputs"]["paramfile"]
 region        = config.get("region", None)
 skip_reports  = config["reports"]["skip"]

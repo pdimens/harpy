@@ -86,14 +86,13 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
             "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
-        "samples_from_vcf" : vcf_samples,
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
         "grid_size": grid_size,
         "stitch_parameters" : params,
         "inputs" : {
             "paramfile" : parameters,
-            "variantfile" : vcf,
+            "vcf" : vcf,
             **({"biallelic_contigs" : biallelic_file} if not region else {}), 
             "alignments" : bamlist
         }
