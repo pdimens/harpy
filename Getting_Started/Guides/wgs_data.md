@@ -35,8 +35,7 @@ harpy qc --ignore-bx --trim-adapters auto --min-length 50 data/WGS/sample_*.gz
 ## Sequence Alignment
 Likewise, you can use either [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md) or [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md) to align
 your sequences onto a reference genome. The `--molecule-distance` will be ignored when
-using `--ignore-bx`. Since EMA is a linked-read specific aligner, it is not available
-for WGS/RADseq data, nor would you get any value from trying to use it for such.
+using `--ignore-bx`.
 
 ```bash align example
 harpy align bwa --ignore-bx --min-quality 25 genome.fasta data/WGS/trimmed 

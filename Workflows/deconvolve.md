@@ -22,20 +22,10 @@ order: 10
 Running [!badge corners="pill" text="deconvolve"] is **optional**. In the alignment
 workflows ([!badge corners="pill" text="align bwa"](Align/bwa.md) 
 [!badge corners="pill" text="align strobe"](Align/strobe.md)), Harpy already uses a distance-based approach to
-deconvolve barcodes and assign `MI` tags (Molecular Identifier), whereas the
-[!badge corners="pill" text="align ema"](Align/ema.md) workflow has the
-deconvolution occur within the `ema` aligner itself. This workflow uses a reference-free method,
+deconvolve barcodes and assign `MI` tags (Molecular Identifier). This workflow uses a reference-free method,
 [QuickDeconvolution](https://github.com/RolandFaure/QuickDeconvolution), which uses k-mers to look at "read clouds" (all reads with the same linked-read barcode)
 and decide which ones likely originate from different molecules. Regardless of whether you run 
 this workflow or not, [!badge corners="pill" text="harpy align"](Align/Align.md) will still perform its own deconvolution.
-
-!!!danger Won't work with EMA
-Reads with deconvolved barcodes will not work with [!badge corners="pill" text="align ema"](Align/ema.md),
-since EMA expects barcodes to have a specific, un-hyphenated format. If deconvolving, use either
-[!badge corners="pill" text="align bwa"](Align/bwa.md) or [!badge corners="pill" text="align strobe"](Align/strobe.md)
-for sequence alignment.
-!!!
-
 
 !!! Also in harpy qc
 This method of deconvolution is also available as an option in the [!badge corners="pill" text="qc"](qc.md) workflow

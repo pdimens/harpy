@@ -52,7 +52,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument          | description                                                                                                                            |
 |:------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
 | `INPUTS`          | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/Getting_Started/common_options.md#input-arguments) |
-| `--platform` `-p` | linked-read type (options: [`haplotgagging`, `stlfr`, `tellseq`], default: `haplotagging`)                                             |
+| `--platform` `-P` | linked-read type (options: [`haplotgagging`, `stlfr`, `tellseq`], default: `haplotagging`)                                             |
 
 ## Workflow
 

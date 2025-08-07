@@ -76,7 +76,7 @@ You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/mast
 `--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
 without spaces. Example:
 ```bash
-harpy impute -t 15 -x "--regionStart=20, --regionEnd=500" stitch.params file.vcf Align/ema
+harpy impute -t 15 -x "--regionStart=20, --regionEnd=500" stitch.params file.vcf Align/strobe
 ```
 
 ### Prioritize the vcf file

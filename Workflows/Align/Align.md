@@ -9,13 +9,12 @@ will need to align them to a reference genome before you can call variants.
 Harpy offers several aligners for this purpose:
 
 {.compact}
-| aligner | linked-read aware | speed | repository | publication |
-| :--- | :---: | :---:| :---: | :---:|
-| [BWA](bwa.md) | no ❌ | fast ⚡ | [github](https://github.com/lh3/bwa) | [paper](http://arxiv.org/abs/1303.3997) |
-| [EMA](ema.md) | yes ✅ | slow 🐢 |[github](https://github.com/arshajii/ema) | [preprint](https://www.biorxiv.org/content/early/2017/11/16/220236) |
-| [strobealign](strobe.md) | no ❌ | super fast ⚡⚡ | [github](https://github.com/ksahlin/strobealign) | [paper](https://doi.org/10.1186/s13059-022-02831-7) |
+| aligner                  |     speed     |                    repository                    |                     publication                     |
+|:-------------------------|:-------------:|:------------------------------------------------:|:---------------------------------------------------:|
+| [BWA](bwa.md)            |    fast ⚡     |       [github](https://github.com/lh3/bwa)       |       [paper](http://arxiv.org/abs/1303.3997)       |
+| [strobealign](strobe.md) | super fast ⚡⚡ | [github](https://github.com/ksahlin/strobealign) | [paper](https://doi.org/10.1186/s13059-022-02831-7) |
 
-Despite the fact that EMA is the only barcode-aware aligner offered, when using BWA or strobealign, Harpy retains the barcode information from the sequence headers and will
+Neither of these are linked-read aware aligners, but Harpy transfers the barcode information from the sequence headers into the alignments and will
 assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../Getting_Started/linked_read_data.md#barcode-thresholds).
 
 ## Non linked-read WGS data

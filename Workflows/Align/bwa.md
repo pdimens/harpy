@@ -96,8 +96,7 @@ alignments as duplicates if the primary alignment was marked as a duplicate. Dup
 - ignores (but retains) barcode information
 - fast
 
-The [BWA MEM](https://github.com/lh3/bwa) workflow is much simpler and faster than the EMA workflow
-and maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
+The [BWA MEM](https://github.com/lh3/bwa) workflow maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
 The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
 are not used to inform mapping. The `-m` threshold is used for alignment molecule assignment.
 

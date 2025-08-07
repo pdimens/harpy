@@ -40,7 +40,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference genome for read mapping                                                       |
 | `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
 | `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |         | Additional EMA-align/BWA arguments, in quotes                                                                                   |
+| `--extra-params` `-x`      | string               |         | Additional stroebealign arguments, in quotes                                                                                   |
 | `--ignore-bx`              | toggle               |  false  | Ignore parts of the workflow specific to linked-read sequences                                                                  |
 | `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                   |
 | `--min-quality` `-d`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                            |

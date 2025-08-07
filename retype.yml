@@ -18,7 +18,7 @@ theme:
     nav-item-text-stack: "#8ABB6C"
 branding:
   title: Harpy
-  label: v2.5
+  label: v2.6
   logo: static/logo_navbar.png
   logoDark: static/logo_navbar.png
   logoAlign: left

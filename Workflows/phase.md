@@ -31,24 +31,27 @@ Harpy using the [!badge corners="pill" text="phase"] module:
 harpy phase OPTIONS... VCF INPUTS...
 ```
 ```bash example
-harpy phase --threads 20 Variants/variants.raw.bcf Align/ema 
+harpy phase --threads 20 Variants/variants.raw.bcf Align/bwa 
 ```
 
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
-| argument                   | default  | description                                                                                                                   |
-|:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `VCF`                      |          | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                  |
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                |          | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
-| `--extra-params` `-x`      |          | Additional Hapcut2 arguments, in quotes                                                                                       |
-| `--reference` `-r`         |          | Path to reference genome if wanting to also use reads spanning indels                                                         |
-| `--ignore-bx` `-b`         |          | Ignore linked-read barcodes for phasing                                                                                       |
-| `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
-| `--prune-threshold` `-p`   |   `7`    | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                     |
-| `--vcf-samples`            |          | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory              |
+| argument                   |     default     | description                                                                                                                                   |
+|:---------------------------|:---------------:|:----------------------------------------------------------------------------------------------------------------------------------------------|
+| `VCF`                      |                 | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                                  |
+| `INPUTS`                   |                 | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                |                 | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
+| `--extra-params` `-x`      |                 | Additional Hapcut2 arguments, in quotes                                                                                                       |
+| `--reference` `-r`         |                 | Path to reference genome if wanting to also use reads spanning indels                                                                         |
+| `--ignore-bx` `-b`         |                 | Ignore linked-read barcodes for phasing                                                                                                       |
+| `--min-map-qual` `-q`      |      `20`       | Minimum mapping quality score to be considered for phasing                                                                                    |
+| `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                  |
+| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                            |
+| `--platform` `-P`          | `haplotgagging` | linked-read type: [`haplotgagging`, `stlfr`, `tellseq`]                                                                                       |
+| `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                     |
+| `--vcf-samples`            |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory                              |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
@@ -76,8 +79,7 @@ See [Barcode Thresholds](/Getting_Started/linked_read_data.md#barcode-thresholds
 ### Pruning threshold
 The pruning threshold refers to a PHRED-scale value between 0-1 (a percentage) for removing
 low-confidence SNPs from consideration. With Harpy, you configure this value as an integer 
-between 0-100, which gets converted to a floating point value between 0-1 internally
-(_i.e._ `-p 7` is equivalent to a 0.07 threshold, aka 7%).
+between 0-100, (_i.e._ `-p 30` is equivalent to a 0.30 threshold, aka 30%).
 
 ---
 ## :icon-git-pull-request: Phasing Workflow

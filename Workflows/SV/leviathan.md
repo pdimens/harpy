@@ -14,7 +14,6 @@ order: 1
 - sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
   - the `BX` tag must be the last tag in the alignment record
   - the barcode must be haplotagging ACBD or 10x/TELLseq nucleotide format (stLFR isn't recognized)
-  - **NOT** aligned with EMA because LEVIATHAN relies on split read information and EMA does not report split reads
 - genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
 
