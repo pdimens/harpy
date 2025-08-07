@@ -40,7 +40,7 @@ rule barcode_segments:
     container:
         None
     shell:
-        "haplotag_acbd.py workflow"
+        "haplotag_acbd workflow"
 
 rule demultiplex:
     input:
@@ -140,13 +140,13 @@ rule quality_report:
     log:
         "logs/multiqc.log"
     params:
-        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
+        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
         module = " --module fastqc",
         logdir = "reports/data/"
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc --filename {output} --config {input.mqc_yaml} {params} 2> {log}"
+        "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
 
 rule workflow_summary:
     default_target: True

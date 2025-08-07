@@ -174,7 +174,7 @@ rule standardize_barcodes:
         None
     shell:
         """
-        standardize_barcodes_sam.py < {input} 2> {log} | samtools view -h -b > {output.bam}
+        standardize_barcodes_sam < {input} 2> {log} | samtools view -h -b > {output.bam}
         samtools index {output.bam}
         """
 
@@ -287,7 +287,7 @@ rule barcode_stats:
     container:
         None
     shell:
-        "bx_stats.py {input.bam} > {output}"
+        "bx_stats {input.bam} > {output}"
 
 rule molecule_coverage:
     input:
@@ -302,7 +302,7 @@ rule molecule_coverage:
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
+        "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule configure_report:
     input:
@@ -367,15 +367,17 @@ rule samtools_report:
         collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"]),
     output: 
         "reports/ema.stats.html"
+    log:
+        "logs/multiqc.log"
     params:
-        outdir = f"reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-ai --no-version-check --force --quiet --no-data-dir",
+        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
-        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
+        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\"",
+        outdir = f"reports/data/samtools_stats reports/data/samtools_flagstat"
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc {params} --filename {output} 2> /dev/null"
+        "multiqc {params} > {output} 2> {log}"
 
 rule barcode_report:
     input: 
@@ -430,7 +432,7 @@ rule workflow_summary:
         bwa_align += '\tbwa mem -C -v 2 -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         bwa_align += f"\tsamtools view -h {params.unmapped} -q {config["alignment_quality"]}"
         standardization = "Barcodes were standardized in the EMA aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam.py < {input} | samtools view -h -b > {output}"
+        standardization += "\tstandardize_barcodes_sam < {input} | samtools view -h -b > {output}"
         summary.append(standardization)
         summary.append(bwa_align)
         duplicates = "Duplicates in non-barcoded alignments were marked following:\n"

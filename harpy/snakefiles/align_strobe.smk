@@ -99,7 +99,7 @@ rule standardize_barcodes:
     container:
         None
     shell:
-        "standardize_barcodes_sam.py > {output} 2> {log} < {input}"
+        "standardize_barcodes_sam > {output} 2> {log} < {input}"
 
 rule mark_duplicates:
     input:
@@ -151,7 +151,7 @@ rule assign_molecules:
         None
     shell:
         """
-        assign_mi.py -c {params} {input} > {output.bam} 2> {log}
+        assign_mi -c {params} {input} > {output.bam} 2> {log}
         samtools index {output.bam}
         """
 
@@ -168,7 +168,7 @@ rule barcode_stats:
     container:
         None
     shell:
-        "bx_stats.py {input.bam} > {output} 2> {log}"
+        "bx_stats {input.bam} > {output} 2> {log}"
 
 rule molecule_coverage:
     input:
@@ -183,7 +183,7 @@ rule molecule_coverage:
     container:
         None
     shell:
-        "molecule_coverage.py -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
+        "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
@@ -275,15 +275,17 @@ rule samtools_report:
         collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
     output: 
         "reports/strobealign.stats.html"
+    log:
+        "logs/multiqc.log"
     params:
-        outdir = "reports/data/samtools_stats reports/data/samtools_flagstat",
-        options = "--no-ai  --no-version-check --force --quiet --no-data-dir",
+        options = "-n stdout --no-ai  --no-version-check --force --quiet --no-data-dir",
         title = "--title \"Basic Alignment Statistics\"",
-        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\""
+        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\"",
+        outdir = "reports/data/samtools_stats reports/data/samtools_flagstat"
     conda:
         "envs/qc.yaml"
     shell:
-        "multiqc {params} --filename {output} 2> /dev/null"
+        "multiqc {params} > {output} 2> {log}"
 
 rule barcode_report:
     input: 
@@ -331,7 +333,7 @@ rule workflow_summary:
         align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam.py > {output} < {input}"
+        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
         summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"

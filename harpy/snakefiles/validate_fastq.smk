@@ -37,7 +37,7 @@ rule check_forward:
     container:
         None
     shell: 
-        "check_fastq.py {params} {input} > {output}"
+        "check_fastq {params} {input} > {output}"
 
 rule check_reverse:
     input:
@@ -49,7 +49,7 @@ rule check_reverse:
     container:
         None
     shell: 
-        "check_fastq.py {params} {input} > {output}"
+        "check_fastq {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -107,7 +107,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy validate fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
-        valids += f"\tcheck_fastq.py {platform} sample.fastq > sample.txt"
+        valids += f"\tcheck_fastq {platform} sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"

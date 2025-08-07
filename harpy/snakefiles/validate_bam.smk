@@ -32,7 +32,7 @@ rule check_bam:
     container:
         None
     shell: 
-        "check_bam.py {params} {input} > {output}"
+        "check_bam {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -90,7 +90,7 @@ rule workflow_summary:
     run:
         summary = ["The harpy validate bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
-        valids += f"\tcheck_bam.py {lr_platform} sample.bam > sample.txt"
+        valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
         summary.append(valids)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
