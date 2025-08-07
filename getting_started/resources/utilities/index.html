@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807912790993">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.807913436576">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../../static/favicon.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.11.0.807912790993" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.11.0.807913436576" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.807912790993" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.807913436576" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.807912790993" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.807912790993" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.807913436576" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.807913436576" defer></script>
     <link href="../../../resources/css/katex.css?v=3.11.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=3.11.0" defer></script>
 </head>
@@ -272,30 +272,30 @@ used by the workflows that are accessible from within the Harpy conda environmen
 This page serves to document those scripts, since using them outside of a workflow
 might be useful too. You can call up the docstring for any one of these utilities
 by calling the program without any arguments.</p>
-<doc-anchor-target id="assign_mipy">
+<doc-anchor-target id="assign_mi">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#assign_mipy">#</doc-anchor-trigger>
-        <span>assign_mi.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#assign_mi">#</doc-anchor-trigger>
+        <span>assign_mi</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">assign_mi.py -c cutoff input.bam &gt; output.bam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">assign_mi -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Assign an <code v-pre>MI:i</code> (Molecular Identifier) tag to each barcoded
 record based on a molecular distance cutoff. Input file <strong>must be coordinate sorted</strong>.
-This is similar to <doc-anchor-trigger to="#deconvolve_alignmentspy">deconvolve_alignments.py</doc-anchor-trigger>, except it does not record the deconvolution in the <code v-pre>BX</code> tag.</p>
+This is similar to <doc-anchor-trigger to="#deconvolve_alignments">deconvolve_alignments</doc-anchor-trigger>, except it does not record the deconvolution in the <code v-pre>BX</code> tag.</p>
 <ul>
 <li>unmapped records are discarded</li>
 <li>records without a <code v-pre>BX:Z</code> tag or with an invalid barcode (<code v-pre>00</code> as one of its segments) are presevered but are not assigned an <code v-pre>MI:i</code> tag</li>
 </ul>
-<doc-anchor-target id="bx_statspy">
+<doc-anchor-target id="bx_stats">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#bx_statspy">#</doc-anchor-trigger>
-        <span>bx_stats.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#bx_stats">#</doc-anchor-trigger>
+        <span>bx_stats</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_stats.py input.bam &gt; output.gz</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_stats input.bam &gt; output.gz</code></pre>
 </doc-codeblock></div>
 <p>Calculates various linked-read molecule metrics from the (coordinate-sorted) input alignment file.
 Metrics include (per molecule):</p>
@@ -309,27 +309,27 @@ Metrics include (per molecule):</p>
 <li>molecule coverage (%) based on aligned bases</li>
 <li>molecule coverage (%) based on total inferred insert length</li>
 </ul>
-<doc-anchor-target id="bx_to_endpy">
+<doc-anchor-target id="bx_to_end">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#bx_to_endpy">#</doc-anchor-trigger>
-        <span>bx_to_end.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#bx_to_end">#</doc-anchor-trigger>
+        <span>bx_to_end</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_to_end.py input.[fq|bam] &gt; output.[fq.gz|bam]</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_to_end input.[fq|bam] &gt; output.[fq.gz|bam]</code></pre>
 </doc-codeblock></div>
 <p>Parses the records of a FASTQ or BAM file and moves the <code v-pre>BX:Z</code> tag, if present, to
 the end of the record, which makes the data play nice with LRez/LEVIATHAN. During
 alignment, Harpy will automatically move the <code v-pre>BX:Z</code> tag to the end of the alignment
 record, so that will <strong>not</strong> require manual intervention.</p>
-<doc-anchor-target id="check_bampy">
+<doc-anchor-target id="check_bam">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#check_bampy">#</doc-anchor-trigger>
-        <span>check_bam.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#check_bam">#</doc-anchor-trigger>
+        <span>check_bam</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_bam.py platform input.bam &gt; output.txt</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_bam platform input.bam &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses an aligment file to check:</p>
 <ul>
@@ -344,14 +344,14 @@ record, so that will <strong>not</strong> require manual intervention.</p>
 </ul>
 </li>
 </ul>
-<doc-anchor-target id="check_fastqpy">
+<doc-anchor-target id="check_fastq">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#check_fastqpy">#</doc-anchor-trigger>
-        <span>check_fastq.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#check_fastq">#</doc-anchor-trigger>
+        <span>check_fastq</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_fastq.py platform input.fq &gt; output.txt</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_fastq platform input.fq &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses a FASTQ file to check if any sequences don&#x27;t conform to the SAM spec,
 whether BX:Z: is the last tag in the record, and the counts of:</p>
@@ -360,16 +360,16 @@ whether BX:Z: is the last tag in the record, and the counts of:</p>
 <li>reads without <code v-pre>BX:Z</code> tag</li>
 <li>reads with incorrect <code v-pre>BX:Z</code> tag (specific to <code v-pre>platform</code>)</li>
 </ul>
-<doc-anchor-target id="concatenate_bampy">
+<doc-anchor-target id="concatenate_bam">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#concatenate_bampy">#</doc-anchor-trigger>
-        <span>concatenate_bam.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#concatenate_bam">#</doc-anchor-trigger>
+        <span>concatenate_bam</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">concatenate_bam.py [--bx] file_1.bam file_2.bam...file_N.bam &gt; output.bam
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">concatenate_bam [--bx] file_1.bam file_2.bam...file_N.bam &gt; output.bam
 # or #
-concatenate_bam.py [--bx] -b bam_files.txt &gt; output.bam</code></pre>
+concatenate_bam [--bx] -b bam_files.txt &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Concatenate records from haplotagged SAM/BAM files while making sure <code v-pre>MI</code> tags  remain unique for every sample.
 This is a means of accomplishing the same as <code v-pre>samtools cat</code>, except all <code v-pre>MI</code> tags are updated
@@ -377,14 +377,14 @@ so individuals don&#x27;t have overlapping <code v-pre>MI</code> tags (which wou
 all the files you want to concatenate, or a single file featuring filenames with the <code v-pre>-b</code> option. Use the <code v-pre>--bx</code> option
 to also rewrite <code v-pre>BX</code> tags such that they are unique for every individual too, although take note that there can only be
 <span class="math">96^4</span> (84,934,656) unique haplotag barcodes and it will raise an error if that number is exceeded.</p>
-<doc-anchor-target id="count_bxpy">
+<doc-anchor-target id="count_bx">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#count_bxpy">#</doc-anchor-trigger>
-        <span>count_bx.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#count_bx">#</doc-anchor-trigger>
+        <span>count_bx</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">count_bx.py input.fastq &gt; output.txt</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">count_bx input.fastq &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses a FASTQ file to count:</p>
 <ul>
@@ -394,63 +394,63 @@ to also rewrite <code v-pre>BX</code> tags such that they are unique for every i
 <li>number of invalid <code v-pre>BX</code> tags</li>
 <li>number of invalid <code v-pre>BX</code> tag segments (i.e. <code v-pre>A00</code>, <code v-pre>C00</code>, <code v-pre>B00</code>, <code v-pre>D00</code>).</li>
 </ul>
-<doc-anchor-target id="deconvolve_alignmentspy">
+<doc-anchor-target id="deconvolve_alignments">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#deconvolve_alignmentspy">#</doc-anchor-trigger>
-        <span>deconvolve_alignments.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#deconvolve_alignments">#</doc-anchor-trigger>
+        <span>deconvolve_alignments</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">deconvolve_alignments.py -c cutoff input.bam &gt; output.bam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">deconvolve_alignments -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Deconvolve BX-tagged barcodes and assign an <code v-pre>MI</code> (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff.
-Input file <strong>must be coordinate sorted</strong>. This is similar to <doc-anchor-trigger to="#assign_mipy">assign_mi.py</doc-anchor-trigger>, except it will also deconvolve the <code v-pre>BX</code> tag by
+Input file <strong>must be coordinate sorted</strong>. This is similar to <doc-anchor-trigger to="#assign_mi">assign_mi</doc-anchor-trigger>, except it will also deconvolve the <code v-pre>BX</code> tag by
 hyphenating it with an integer (e.g. <code v-pre>A01C25B31D92-2</code>).</p>
 <ul>
 <li>unmapped records are discarded</li>
 <li>records without a <code v-pre>BX</code> tag or with an invalid barcode (<code v-pre>00</code> as one of its segments) are presevered but are not assigned an <code v-pre>MI</code> tag</li>
 </ul>
-<doc-anchor-target id="depth_windowspy">
+<doc-anchor-target id="depth_windows">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#depth_windowspy">#</doc-anchor-trigger>
-        <span>depth_windows.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#depth_windows">#</doc-anchor-trigger>
+        <span>depth_windows</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">samtools depth -a file.bam | depth_windows.py windowsize &gt; output.txt</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">samtools depth -a file.bam | depth_windows windowsize &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Reads the output of <code v-pre>samtools depth -a</code> from stdin and calculates means within windows of a given <code v-pre>windowsize</code>.</p>
-<doc-anchor-target id="haplotag_acbdpy">
+<doc-anchor-target id="haplotag_acbd">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#haplotag_acbdpy">#</doc-anchor-trigger>
-        <span>haplotag_acbd.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#haplotag_acbd">#</doc-anchor-trigger>
+        <span>haplotag_acbd</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">haplotag_acbd.py output_directory</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">haplotag_acbd output_directory</code></pre>
 </doc-codeblock></div>
 <p>Generates the <code v-pre>BC_{ABCD}.txt</code> files necessary to demultiplex Gen I haplotag barcodes into the specified <code v-pre>output_directory</code>.</p>
-<doc-anchor-target id="infer_svpy">
+<doc-anchor-target id="infer_sv">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#infer_svpy">#</doc-anchor-trigger>
-        <span>infer_sv.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#infer_sv">#</doc-anchor-trigger>
+        <span>infer_sv</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">infer_sv.py file.bedpe [-f fail.bedpe] &gt; outfile.bedpe</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">infer_sv file.bedpe [-f fail.bedpe] &gt; outfile.bedpe</code></pre>
 </doc-codeblock></div>
 <p>Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags
 and you can use the optional <code v-pre>-f</code> (<code v-pre>--fail</code>) argument to output FAIL variants to a separate file.</p>
-<doc-anchor-target id="inline_to_haplotagpy">
+<doc-anchor-target id="inline_to_haplotag">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#inline_to_haplotagpy">#</doc-anchor-trigger>
-        <span>inline_to_haplotag.py <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-warning-text bg-badge-warning border border-badge-warning-border h-6 px-2 text-xs rounded-full">
+        <doc-anchor-trigger class="header-anchor-trigger" to="#inline_to_haplotag">#</doc-anchor-trigger>
+        <span>inline_to_haplotag <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-warning-text bg-badge-warning border border-badge-warning-border h-6 px-2 text-xs rounded-full">
             <span>deprecated</span>
         </span></span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">inline_to_haplotag.py -b &lt;barcodes.txt&gt; -p &lt;prefix&gt; forward.fq.gz reverse.fq.gz</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">inline_to_haplotag -b &lt;barcodes.txt&gt; -p &lt;prefix&gt; forward.fq.gz reverse.fq.gz</code></pre>
 </doc-codeblock></div>
 <p>Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in <code v-pre>BX:Z</code> and <code v-pre>OX:Z</code> header tags. The <code v-pre>barcodes.txt</code> file
 can be gzipped and must be in the form of nucleotide-barcode <em>TAB</em> haplotagging-barcode. Example:</p>
@@ -459,59 +459,39 @@ can be gzipped and must be in the form of nucleotide-barcode <em>TAB</em> haplot
 <pre translate="no" class="language-none"><code v-pre class="language-none">ATTACACATA    A01C03B57D31
 AGGACACATA    A11C83B77D29</code></pre>
 </doc-codeblock></div>
-<doc-anchor-target id="leviathan_bx_shimpy">
+<doc-anchor-target id="make_windows">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#leviathan_bx_shimpy">#</doc-anchor-trigger>
-        <span>leviathan_bx_shim.py <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-warning-text bg-badge-warning border border-badge-warning-border h-6 px-2 text-xs rounded-full">
-            <span>deprecated</span>
-        </span></span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#make_windows">#</doc-anchor-trigger>
+        <span>make_windows</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">leviathan_bx_shim.py input.bam &gt; output.bam</code></pre>
-</doc-codeblock></div>
-<p>Uses the <code v-pre>MI</code> tags in <code v-pre>input.bam</code> as a point of reference to deconvolve the <code v-pre>BX</code> tags by rewriting them as unique,
-non-hyphenated ACBD tags.</p>
-<ul>
-<li>requires <code v-pre>input.bam</code> to have <code v-pre>MI</code> tags for alignment records
-<ul>
-<li>all <code v-pre>harpy align</code> workflows provide <code v-pre>MI</code> tags, but these may not be present if the BAM file was generated by other means.</li>
-</ul>
-</li>
-</ul>
-<doc-anchor-target id="make_windowspy">
-    <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#make_windowspy">#</doc-anchor-trigger>
-        <span>make_windows.py</span>
-    </h3>
-</doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">make_windows.py -w &lt;window.size&gt; -m &lt;0,1&gt; input.fasta[.fai] &gt; output.bed</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">make_windows -w &lt;window.size&gt; -m &lt;0,1&gt; input.fasta[.fai] &gt; output.bed</code></pre>
 </doc-codeblock></div>
 <p>Create a BED file of fixed intervals (<code v-pre>-w</code>, --<code v-pre>window</code>) from a FASTA or fai file (the kind generated with <code v-pre>samtools faidx</code>).
 Nearly identical to <code v-pre>bedtools makewindows</code>, except the intervals are nonoverlapping. The <code v-pre>-m</code> (<code v-pre>--mode</code>) option specified
 whether indexing starts at <code v-pre>0</code> or <code v-pre>1</code>.</p>
-<doc-anchor-target id="molecule_coveragepy">
+<doc-anchor-target id="molecule_coverage">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#molecule_coveragepy">#</doc-anchor-trigger>
-        <span>molecule_coverage.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#molecule_coverage">#</doc-anchor-trigger>
+        <span>molecule_coverage</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">molecule_coverage.py -f genome.fasta.fai statsfile &gt; output.cov</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">molecule_coverage -f genome.fasta.fai statsfile &gt; output.cov</code></pre>
 </doc-codeblock></div>
-<p>Using the statsfile generated by <code v-pre>bx_stats.py</code> from Harpy, will calculate &quot;molecular coverage&quot; across the genome.
+<p>Using the statsfile generated by <code v-pre>bx_stats</code> from Harpy, will calculate &quot;molecular coverage&quot; across the genome.
 Molecular coverage is the &quot;effective&quot; alignment coverage if you treat a molecule inferred from linked-read data as
 one contiguous alignment, even though the reads that make up that molecule don&#x27;t cover its entire length. Requires a
 FASTA fai index (the kind created with <code v-pre>samtools faidx</code>) to know the actual sizes of the contigs.</p>
-<doc-anchor-target id="parse_phaseblockspy">
+<doc-anchor-target id="parse_phaseblocks">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#parse_phaseblockspy">#</doc-anchor-trigger>
-        <span>parse_phaseblocks.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#parse_phaseblocks">#</doc-anchor-trigger>
+        <span>parse_phaseblocks</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">parse_phaseblocks.py input &gt; output.txt</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">parse_phaseblocks input &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parse a phase block file from HapCut2 to pull out summary information</p>
 <doc-anchor-target id="rename_bam">
@@ -521,7 +501,7 @@ FASTA fai index (the kind created with <code v-pre>samtools faidx</code>) to kno
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">rename_bam.py [-d] new_name input.bam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">rename_bam [-d] new_name input.bam</code></pre>
 </doc-codeblock></div>
 <p>Rename a sam/bam file and modify the <code v-pre>@RG</code> tag of the alignment file to reflect the change for both <code v-pre>ID</code> and <code v-pre>SM</code>.
 This process creates a new file <code v-pre>new_name.bam</code> and you may use <code v-pre>-d</code> to delete the original file. Requires <code v-pre>samtools</code>.</p>
@@ -551,14 +531,14 @@ actually link and reads togeher.</p>
 <li><strong>first argument</strong>: alignments invalid ACBD barcodes</li>
 <li><code v-pre>stdout</code>: alignments with valid ACBD barcodes</li>
 </ul>
-<doc-anchor-target id="standardize_barcodes_sampy">
+<doc-anchor-target id="standardize_barcodes_sam">
     <h3>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#standardize_barcodes_sampy">#</doc-anchor-trigger>
-        <span>standardize_barcodes_sam.py</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#standardize_barcodes_sam">#</doc-anchor-trigger>
+        <span>standardize_barcodes_sam</span>
     </h3>
 </doc-anchor-target>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">standardize_barcodes_sam.py input.bam &gt; output.sam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">standardize_barcodes_sam input.bam &gt; output.sam</code></pre>
 </doc-codeblock></div>
 <p>Parse a SAM/BAM file to identify the linked-read barcode (haplotagging, stlfr, tellseq, 10x) and
 move it to the <code v-pre>BX:Z</code> tag if it&#x27;s not already there. After, add a <code v-pre>VX:i:0</code> if the barcode is
