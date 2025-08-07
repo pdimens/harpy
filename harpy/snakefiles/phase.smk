@@ -61,29 +61,26 @@ def get_align_index(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0] + ".bai"
 
-rule extract_het:
+rule isolate_sample:
     input: 
-        vcf = variantfile
+        variantfile
     output:
-        "workflow/input/vcf/{sample}.het.vcf"
+        vcf = temp("workflow/input/original/{sample}.bcf"),
+        csi = temp("workflow/input/original/{sample}.bcf.csi")
     container:
         None
     shell:
-        """
-        bcftools view -s {wildcards.sample} -Ou -m 2 -M 2 {input.vcf} | bcftools view -i 'GT="het"' > {output}
-        """
+        "bcftools view -Ob -W -s {wildcards.sample} -o {output.vcf} {input}"
 
-rule extract_hom:
+rule isolate_het_snps:
     input: 
-        vcf = variantfile
+        "workflow/input/original/{sample}.bcf"
     output:
-        "workflow/input/vcf/{sample}.hom.vcf"
+        temp("workflow/input/heterozygotes/{sample}.het.vcf")
     container:
         None
     shell:
-        """
-        bcftools view -s {wildcards.sample} -Ou {input.vcf} | bcftools view -i 'GT="hom"' > {output}
-        """
+        "bcftools view -m 2 -M 2 -i 'GT=\"het\"' {input} > {output}"
 
 rule index_alignments:
     input:
@@ -100,8 +97,8 @@ if indels:
         input:
             genomefile
         output: 
-            fasta = geno,
-            fai = genofai
+            fasta = temp(geno),
+            fai = temp(genofai)
         log:
             f"workflow/reference/{bn}.preprocess.log"
         container:
@@ -116,13 +113,14 @@ rule extract_hairs:
     retries:
         2
     input:
-        vcf = "workflow/input/vcf/{sample}.het.vcf",
+        vcf = "workflow/input/heterozygotes/{sample}.het.vcf",
         bam = get_alignments,
         bai = get_align_index,
         geno = geno,
         fai  = genofai
     output:
-        "extract_hairs/{sample}.unlinked.frags"
+        all_bc = "extract_hairs/{sample}.unlinked.all.frags",
+        no_invalid = "extract_hairs/{sample}.unlinked.frags"
     log:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
@@ -132,27 +130,30 @@ rule extract_hairs:
     conda:
         "envs/phase.yaml"
     shell:
-        "extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output} > {log} 2>&1"
+        """
+        extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
+        awk '!/[ABCD]00/' {output.all_bc} > {output.no_invalid}
+        """
 
 rule link_fragments:
     input: 
         bam       = get_alignments,
-        vcf       = "workflow/input/vcf/{sample}.het.vcf",
+        vcf       = "workflow/input/heterozygotes/{sample}.het.vcf",
         fragments = "extract_hairs/{sample}.unlinked.frags"
     output:
         "link_fragments/{sample}.linked.frags"
     log:
         "logs/link_fragments/{sample}.linked.log"
     params:
-        d = molecule_distance
+        f"-d {molecule_distance}"
     conda:
         "envs/phase.yaml"
     shell:
-        "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} -d {params} > {log} 2>&1"
+        "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
 rule phase:
     input:
-        vcf       = "workflow/input/vcf/{sample}.het.vcf",
+        vcf       = "workflow/input/heterozygotes/{sample}.het.vcf",
         fragments = fragfile
     output: 
         blocks    = "phase_blocks/{sample}.blocks",
@@ -161,7 +162,7 @@ rule phase:
         "logs/hapcut2/{sample}.blocks.phased.log"
     params: 
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
-        fixed_params = "--nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1",
+        fixed_params = "--nf 1 --error_analysis_mode 1 --outvcf 1 --call_homozygous 1",
         extra = extra
     conda:
         "envs/phase.yaml"
@@ -178,20 +179,17 @@ rule compress_phaseblock:
     shell:
         "bcftools view -Oz6 -o {output} --write-index {input}"
 
-use rule compress_phaseblock as compress_vcf with:
-    input:
-        "workflow/input/vcf/{sample}.hom.vcf"
-    output:
-        "workflow/input/gzvcf/{sample}.hom.vcf.gz"
-
-rule merge_het_hom:
+rule annotate_phase:
     priority: 100
     input:
+        "workflow/input/original/{sample}.bcf.csi",
         phase = "phase_blocks/{sample}.phased.vcf.gz",
-        orig  = "workflow/input/gzvcf/{sample}.hom.vcf.gz"
+        orig = "workflow/input/original/{sample}.bcf"
     output:
         bcf = "phased_samples/{sample}.phased.annot.bcf",
         idx = "phased_samples/{sample}.phased.annot.bcf.csi"
+    log:
+        "logs/annotate/{sample}.annotate.log"
     params:
         "-Ob --write-index -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT"
     threads:
@@ -199,30 +197,31 @@ rule merge_het_hom:
     container:
         None
     shell:
-        "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig}"
+        "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
+rule create_merge_list:
+    input:
+        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames)
+    output:
+        filelist = temp("phased_samples/bcf.list")
+    run:
+        with open(output.filelist, "w") as f_out:
+            for i in input.bcf:
+                f_out.write(i + "\n")
 
 rule merge_samples:
+    priority: 100
     input: 
-        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
-        idx = collect("phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
+        collect("phased_samples/{sample}.phased.annot.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"]),
+        filelist = "phased_samples/bcf.list"
     output:
-        bcf = "variants.phased.bcf",
-        idx = "variants.phased.bcf.csi"
-    params:
-        "true" if len(samplenames) > 1 else "false"
+        "variants.phased.bcf.csi",
+        bcf = "variants.phased.bcf"
     threads:
         workflow.cores
     container:
         None
     shell:
-        """
-        if [ "{params}" = true ]; then
-            bcftools merge --threads {threads} -Ob -o {output.bcf} --write-index {input.bcf}
-        else
-           cp {input.bcf} {output.bcf}
-           cp {input.idx} {output.idx}
-        fi
-        """
+        "bcftools merge --threads {threads} --force-single -l {input.filelist} -Ob -o {output.bcf} --write-index"
 
 rule summarize_blocks:
     input:
@@ -290,7 +289,7 @@ rule workflow_summary:
         summary = ["The harpy phase workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {variantfile}")
         hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
-        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -i \'GT=\"het\"\'"
+        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -m 2 -M 2 -i \'GT=\"het\"\'"
         summary.append(hetsplit)
         phase = "Phasing was performed using the components of HapCut2:\n"
         phase += "\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
