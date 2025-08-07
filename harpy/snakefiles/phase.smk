@@ -13,17 +13,19 @@ wildcard_constraints:
 
 bc_type = config["barcodes"]["platform"]
 if bc_type == "haplotagging":
-    invalid_bc = "'!/[ABCD]00/'"
+    invalid_bc = "'$4 !~ /[ABCD]00/'"
 elif bc_type == "stlfr":
-    invalid_bc = "'!/^0_|_0_|_0$/'"
+    invalid_bc = "'$4 !~ /^0_|_0_|_0$/'"
 else:
-    invalid_bc = "'!/N/'"
+    invalid_bc = "'$4 !~ /N/'"
 
-pruning           = config["prune"]
+pruning           = config["phasing"]["prune"]
+map_qual          = config["phasing"]["min_map_quality"]
+base_qual         = config["phasing"]["min_base_quality"]
 molecule_distance = config["barcodes"]["distance_threshold"]
 extra             = config.get("extra", "") 
-samples_from_vcf  = config["samples_from_vcf"]
-variantfile       = config["inputs"]["variantfile"]
+samples_from_vcf  = config["inputs"]["vcf"]["prioritize_samples"]
+variantfile       = config["inputs"]["vcf"]["file"]
 skip_reports      = config["reports"]["skip"]
 plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
@@ -132,15 +134,14 @@ rule extract_hairs:
     log:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
-        indels = indelarg,
-        bx = linkarg,
-        frags = "--maxfragments 1000000"
+        static = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000",
+        purge_invalid = invalid_bc
     conda:
         "envs/phase.yaml"
     shell:
         """
-        extractHAIRS {params} --nf 1 --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
-        awk '!/[ABCD]00/' {output.all_bc} > {output.no_invalid}
+        extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
+        awk {params.purge_invalid} {output.all_bc} > {output.no_invalid}
         """
 
 rule link_fragments:
@@ -153,7 +154,7 @@ rule link_fragments:
     log:
         "logs/link_fragments/{sample}.linked.log"
     params:
-        f"-d {molecule_distance}"
+        f"-d {molecule_distance} --use-tag"
     conda:
         "envs/phase.yaml"
     shell:
