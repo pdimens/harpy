@@ -31,7 +31,6 @@ jobs:
       demux: ${{ steps.filter.outputs.demux }}
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
-      ema: ${{ steps.filter.outputs.ema }}
       strobealign: ${{ steps.filter.outputs.strobealign }}
       mpileup: ${{ steps.filter.outputs.mpileup }}
       freebayes: ${{ steps.filter.outputs.freebayes }}
@@ -307,38 +306,6 @@ jobs:
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/bwa
-
-  ema:
-    needs: [changes,build]
-    if: ${{ needs.changes.outputs.ema == 'true' }}
-    name: align EMA
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
-      - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-      - name: test ema
-        shell: micromamba-shell {0}
-        run: |
-          harpy align ema --quiet 2 --ema-bins 150 test/genome/genome.fasta.gz test/fastq && \
-          ls -lh Align/ema
 
   strobe:
     needs: [changes,build]
