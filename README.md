@@ -51,3 +51,6 @@ No data? No problem! Harpy lets you [simulate genomic variants](https://pdimens.
 from an existing genome and can also [create linked-read data](https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads/)
 from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without paying a cent! A simple tutorial on simulating
 both of these can be found [here](https://pdimens.github.io/harpy/blog/simulate_diploid/).
+
+## Citation
+>Dimens PV, Franckowiak RP, Iqbal A, Grenier JK, Munn PR, Therkildsen NO. Harpy: a pipeline for processing haplotagging linked-read data. Bioinform Adv. 2025 Jun 5;5(1):vbaf133. doi: [10.1093/bioadv/vbaf133](https://pubmed.ncbi.nlm.nih.gov/40575478/). PMID: 40575478; PMCID: PMC12198493.
