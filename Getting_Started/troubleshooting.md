@@ -65,6 +65,29 @@ as dependencies increased. Recent (`23.10+`) versions of Conda [now use the `lib
 the super-fast and super-lightweight solver from Mamba. If you're experiencing
 a suspiciously slow Harpy installation, either update Conda to at least version `23.10` or use Mamba.
 
+### Conda issues
+Unless using `--container`, Harpy leans on Snakemake to install small conda environments necessary to accomplish the tasks in workflows.
+The most common issue we tend to see is errors during this process. Two common sources of errors here are:
+
+#### strict channel priorities
+Although Conda recommends setting channel priorities to `strict`, we find that it sometimes causes the solver (within Snakemake) to
+fail to find the necessary software. One typical way to circumvent that is to set the channel priority to something other than `strict`:
+```bash
+conda config --set channel_priority true
+# or #
+conda config --set channel_priority false
+```
+
+#### installation into base
+It's tempting to install software into the `base` environment conda/mamba ships with, but that behavior is discouraged (by Conda itself, not just us).
+Modificatons to `base` can mess with all sorts of things in other environments ([see this issue](https://github.com/pdimens/harpy/issues/248)), so we recommend installing Harpy (or anything) into literally any other environment. If you find conda things just aren't working
+right and you know you have at some point modified the `base` environment, you can reset your `base` environment. It's not guaranteed, but 
+doing that might just fix things:
+```bash
+conda install --rev 0 --name base
+```
+
+
 ### imputation or phasing failure
 If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](/Workflows/impute.md) or
 [!badge corners="pill" text="phase"](/Workflows/phase.md) modules, they will cause both programs to error. We don't know why, but they do.
@@ -84,7 +107,7 @@ Harpy will check for this and will preemtively warn you of a mismatch between fi
 sample name. Due to certain expectations of the workflow, this mismatch will absolutely cause things
 to fail, hence the pre-flight check.
 
-**Solution**: If you need to rename a bam file, do so using the [rename_bam](utilities.md#rename_bam) script bundled with Harpy, which is a just a thin veneer over `samtools addreplacerg` with some extra validations.
+**Solution**: If you need to rename a bam file, do so using the [rename_bam](Resources/utilities.md#rename_bam) script bundled with Harpy, which is a just a thin veneer over `samtools addreplacerg` with some extra validations.
 ```bash
 rename_bam newname input.bam 
 ```
