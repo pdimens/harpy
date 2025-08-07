@@ -43,6 +43,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::whatshap"
         ],
         "qc" : [
+            "conda-forge::click=8.2.1",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::multiqc=1.30",
