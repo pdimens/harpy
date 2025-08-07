@@ -11,6 +11,14 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+bc_type = config["barcodes"]["platform"]
+if bc_type == "haplotagging":
+    invalid_bc = "'!/[ABCD]00/'"
+elif bc_type == "stlfr":
+    invalid_bc = "'!/^0_|_0_|_0$/'"
+else:
+    invalid_bc = "'!/N/'"
+
 pruning           = config["prune"]
 molecule_distance = config["barcodes"]["distance_threshold"]
 extra             = config.get("extra", "") 
