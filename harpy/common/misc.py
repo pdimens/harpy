@@ -173,23 +173,23 @@ def package_absent(pkg: str, executor: bool = True):
     out_text += "It can be installed with:"
 
     # check for conda/mamba
-    conda_check = is_conda_package_installed(pkg)
-    if conda_check == 0:
-        return False
-    elif conda_check == 2:
-        if is_in_pixi_shell():
-            out_text += f"\n\n```bash\npixi add {pkg}\n```"
-        else:
-            out_text += f"\n\n```bash\nconda install bioconda::{pkg}\n```"
-    elif conda_check == 1:
-        out_text += f"\n\n```bash\nmamba install bioconda::{pkg}\n```"
-
-    if conda_check in [1,2]:
-        if executor:
-            print_notice(Markdown(out_text))
-        else:
-            print_error("missing required package", Markdown(out_text))
-        return True
+    if shutil.which("conda") or shutil.which("mamba"):
+        conda_check = is_conda_package_installed(pkg)
+        if conda_check == 0:
+            return False
+        elif conda_check == 2:
+            if is_in_pixi_shell():
+                out_text += f"\n\n```bash\npixi add {pkg}\n```"
+            else:
+                out_text += f"\n\n```bash\nconda install bioconda::{pkg}\n```"
+        elif conda_check == 1:
+            out_text += f"\n\n```bash\nmamba install bioconda::{pkg}\n```"
+        if conda_check in [1,2]:
+            if executor:
+                print_notice(Markdown(out_text))
+            else:
+                print_error("missing required package", Markdown(out_text))
+            return True
 
     if not is_pip_package_installed(pkg):
         out_text += f"\n\n```bash\npip install {pkg}\n```"
@@ -207,7 +207,9 @@ def container_ok(ctx, param, value):
             raise click.BadParameter(
                 "Snakemake uses Singularity to manage containers, which is only available for Linux systems.", ctx, param
             )
-        check = package_absent("apptainer", False)
-        if check:
-            sys.exit(1)
-    return value
+        if shutil.which("apptainer"):
+            return value
+        else:
+            raise click.BadParameter(
+                "Container software management requires apptainer, which wasn't detected in this environment.", ctx, param
+            )
