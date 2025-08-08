@@ -2,7 +2,8 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile
+from harpy.common.cli_types_generic import MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import FastpParams
 from harpy.common.misc import container_ok, filepath
 from harpy.common.parsers import parse_fastq_inputs
@@ -41,7 +42,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Adapter removal and other FASTQ preprocessing

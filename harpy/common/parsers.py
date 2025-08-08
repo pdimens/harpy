@@ -1,5 +1,6 @@
 """Module for workflow file parsers"""
 
+from itertools import chain
 import re
 import os
 import sys
@@ -36,24 +37,13 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
         sys.exit(1)
     return contig, startpos, endpos, buffer
 
-def parse_fastq_inputs(inputs: list[str], param: str = None) -> Tuple[list[str], int]:
+def parse_fastq_inputs(inputs, param: str = None) -> Tuple[list[str], int]:
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
     i.e. forward and reverse reads for one sample = 1 sample.
     """
-    infiles = []
+    infiles = list(chain.from_iterable(inputs))
     re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
-    for i in inputs:
-        if os.path.isdir(i):
-            for j in os.listdir(i):
-                if re.search(re_ext, j):
-                    infiles.append(filepath(os.path.join(i, j)))
-        else:
-            if re.search(re_ext, i):
-                infiles.append(filepath(i))
-    if len(infiles) < 1:
-        print_error("no fastq files found", f"There were no files ending with the accepted fastq extensions [blue].fq[dim][.gz][/][/] or [blue].fastq[dim][.gz][/][/] in the provided [green]{param}[/] (case insensitive).")
-        sys.exit(1)
     # check if any names will be clashing
     bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
     uniqs = set()
@@ -74,7 +64,7 @@ def parse_fastq_inputs(inputs: list[str], param: str = None) -> Tuple[list[str],
         click.echo(", ".join(badmatch), file = sys.stderr)
         sys.exit(1)
     if dupes:
-        print_error("clashing sample names", Markdown("Identical filenames were detected in `{param}`, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
+        print_error("clashing sample names", Markdown(f"Identical filenames were detected in `{param}`, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
         print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
         for i in dupes:
             click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
@@ -84,30 +74,12 @@ def parse_fastq_inputs(inputs: list[str], param: str = None) -> Tuple[list[str],
     # return the filenames and # of unique samplenames
     return infiles, n
 
-def parse_alignment_inputs(inputs:list[str], param: str = None) -> Tuple[list[str], int]:
+def parse_alignment_inputs(inputs , param: str = None) -> Tuple[list[str], int]:
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and return the number of unique samples.
     """
-    bam_infiles = []
-    bai_infiles = []
-    re_bam = re.compile(r".*\.(bam|sam)$", flags = re.IGNORECASE)
-    re_bai = re.compile(r".*\.bam\.bai$", flags = re.IGNORECASE)
-    for i in inputs:
-        if os.path.isdir(i):
-            for j in os.listdir(i):
-                if re_bam.match(j):
-                    bam_infiles.append(filepath(os.path.join(i, j)))
-                elif re_bai.match(j):
-                    bai_infiles.append(filepath(os.path.join(i, j)))
-        else:
-            if re_bam.match(i):
-                bam_infiles.append(filepath(i))
-            elif re_bai.match(i):
-                bai_infiles.append(filepath(i))
-    if len(bam_infiles) < 1:
-        print_error("no bam files found", "There were no files ending with the [blue].bam[/] or [blue].sam[/] extensions in the provided {param} (case insensitive).")
-        sys.exit(1)
+    bam_infiles = list(chain.from_iterable(inputs))
     re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
 
     # check if any links will be clashing
