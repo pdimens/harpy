@@ -2,7 +2,8 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok
 from harpy.common.parsers import parse_alignment_inputs, parse_fastq_inputs
 from harpy.common.printing import workflow_info
@@ -54,7 +55,7 @@ docstring = {
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged BAM files
@@ -103,7 +104,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable = True, resolve_path=True), nargs=-1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, container, setup_only):
     """
     Run validity checks on haplotagged FASTQ files.

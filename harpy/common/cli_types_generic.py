@@ -83,39 +83,6 @@ class ContigList(click.ParamType):
             # make it a set as a failsafe against duplicates
             return list(set(i.strip() for i in value.split(',')))
 
-class InputFile(click.ParamType):
-    """A class for a click type that verifies that a file exists and that it has an expected extension. Returns the absolute path"""
-    name = "input_file"
-    def __init__(self, filetype, gzip_ok):
-        super().__init__()
-        self.filetype = filetype
-        self.gzip_ok = gzip_ok
-    def convert(self, value, param, ctx):
-        filedict = {
-            "fasta": [".fasta", ".fas", ".fa", ".fna", ".ffn", ".faa", ".frn"],
-            "vcf": ["vcf", "bcf", "vcf.gz"],
-            "gff": [".gff",".gff3"]
-        }
-        if self.filetype not in filedict:
-            self.fail(f"Extension validation for {self.filetype} is not yet implemented. This error should only appear during development; if you are a user and seeing this, please post an issue on GitHub: https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml")
-        if not os.path.exists(value):
-            self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
-        elif not os.access(value, os.R_OK):
-            self.fail(f"{value} is not readable. Please check file/directory permissions and try again", param, ctx)
-        if os.path.isdir(value):
-            self.fail(f"{value} is a directory, but input should be a file.", param, ctx)
-        valid = False
-        lowercase = value.lower()
-        for ext in filedict[self.filetype]:
-            valid = True if lowercase.endswith(ext) else valid
-            if self.gzip_ok:
-                valid = True if lowercase.endswith(ext + ".gz") else valid
-        if not valid and not self.gzip_ok:
-                self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
-        if not valid and self.gzip_ok:
-            self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
-        return Path(value).resolve().as_posix()
-
 class SnakemakeParams(click.ParamType):
     """A class for a click type which accepts snakemake parameters. Does validations to make sure there isn't doubling up."""
     name = "snakemake_params"
@@ -130,23 +97,6 @@ class SnakemakeParams(click.ParamType):
                     self.fail(f"The dry run option ({i}) is incompatible with the way Harpy launches Snakemake with a progress bar. Please use `harpy diagnose` instead.")
                 if i not in available:
                     self.fail(f"{i} is not a valid Snakemake option. Run \'snakemake --help\' for a list of all Snakemake command line options.", param, ctx)
-        return value
-
-class HPCProfile(click.ParamType):
-    """A class for a click type which accepts a file with a snakemake HPC profile. Does validations to make sure it's the config file and not the directory."""
-    name = "hpc_profile"
-    def convert(self, value, param, ctx):
-        if not os.path.exists(value):
-            self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
-        if os.path.isdir(value):
-            self.fail(f"{value} is a directory, but input should be a yaml file.", param, ctx)
-        if not os.access(value, os.R_OK):
-            self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
-        with open(value, "r") as file:
-            try:
-                yaml.safe_load(file)
-            except yaml.YAMLError as exc:
-                self.fail(f"Formatting error in {value}: {exc}")
         return value
 
 class SNPRegion(click.ParamType):

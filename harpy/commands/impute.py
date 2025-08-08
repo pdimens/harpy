@@ -3,7 +3,8 @@
 import os
 import sys
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.cli_types_params import StitchParams
 from harpy.common.misc import container_ok
 from harpy.common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
@@ -40,8 +41,8 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
-@click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False, resolve_path=True), nargs=1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('vcf', required = True, type = VCFfile(), nargs=1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments

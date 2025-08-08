@@ -1,7 +1,8 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, InputFile, ReadLengths, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTAfile
+from harpy.common.cli_types_generic import ReadLengths, SnakemakeParams
 from harpy.common.cli_types_params import Barcodes
 from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
@@ -58,7 +59,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('barcodes', type = Barcodes())
-@click.argument('fasta', type = InputFile("fasta", gzip_ok = True), nargs = -1, required=True)
+@click.argument('fasta', type = FASTAfile(), nargs = -1, required=True)
 def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,coverage,distance,error,extindels,indels,lengths,mutation,stdev,circular,segments, molecule_attempts,molecule_coverage, molecule_length, molecules_per, singletons, seed, snakemake, quiet, hpc, container, setup_only):
     """
     Create linked reads using genome haplotypes

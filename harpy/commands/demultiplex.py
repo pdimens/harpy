@@ -8,7 +8,8 @@ import sys
 import pysam
 import subprocess
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok, safe_read
 from harpy.common.printing import print_error, print_solution_with_culprits, workflow_info
 from harpy.common.validations import validate_demuxschema
@@ -67,8 +68,8 @@ def gen1():
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
-@click.argument('R12_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=2)
-@click.argument('I12_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=2)
+@click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
+@click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
