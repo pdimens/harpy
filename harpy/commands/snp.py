@@ -156,7 +156,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Call variants from using bcftools mpileup
     

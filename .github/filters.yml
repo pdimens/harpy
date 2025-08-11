@@ -7,7 +7,7 @@ common: &common
   - 'harpy/common/cli_types_params.py'
   - 'harpy/common/printing.py'
   - 'harpy/__main__.py'
-  - 'harpy/validate/**'
+  - 'harpy/validation/**'
   - 'resources/harpy.yaml'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'

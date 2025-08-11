@@ -3,7 +3,6 @@
 import os
 import rich_click as click
 from harpy.validation.fastq import FASTQ
-from harpy.validation.fasta import FASTA
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import FastpParams

@@ -137,7 +137,7 @@ class FASTA():
                             f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(self.file)}[/]). This is the first row triggering this error, but it may not be the only one.",
                             False
                         )
-                        print_solution(
+                        print_solution_offenders(
                             f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(self.file)}[/]",
                             "Row triggering this error",
                             line

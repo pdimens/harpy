@@ -278,7 +278,8 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
                 print_error("barcodes too long", f"Barcodes in [blue]{infile}[/] are [yellow]{length}bp[/] and cannot exceed a length of [bold]{limit}bp[/]. Please use shorter barcodes.")
             lengths.add(length)
             if len(lengths) > 1:
-                print_error("inconsistent length", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]" + ", ".join(lengths) + "[/]")
+                str_len = ", ".join(str(_length) for _length in lengths)
+                print_error("inconsistent length", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]{str_len}[/]")
             progress.advance(task_progress)
     if return_len:
         return lengths.pop()

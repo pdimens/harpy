@@ -24,7 +24,7 @@ class SAMfile(click.ParamType):
                 self.fail(f"Alignment file {value} was not found.", param, ctx)
             if not os.access(value, os.R_OK):
                 self.fail(f"Alignment file {value} does not have reading permission.", param, ctx)
-                infiles = [filepath]
+            infiles = [filepath.resolve().as_posix()]
         else:
             re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
             infiles = []
