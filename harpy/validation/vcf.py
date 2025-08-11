@@ -21,7 +21,7 @@ class VCF():
         Identify which contigs have at least 2 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
-        self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file))).resolve().as_posix()
+        self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
         self.biallelic_contigs = []
         with pysam.VariantFile(self.file) as _vcf:
             header_contigs = list(_vcf.header.contigs)

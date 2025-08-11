@@ -10,9 +10,8 @@ class ImputeParams():
     Validation checks the STITCH parameter file for column names, order, types, missing values, etc.
     '''
     def __init__(self, filename):
-        self.file = filename
-        self.params = {}
-        self.count = 0
+        self.file: str = filename
+
         with open(self.file, "r", encoding="utf-8") as paramfile:
             header = paramfile.readline().rstrip().lower()
             headersplt = header.split()
@@ -47,8 +46,10 @@ class ImputeParams():
             else:
                 # in case the columns are out of order, reorder the columns to match `colnames`
                 col_order = [colnames.index(item) for item in headersplt]
+
             # instantiate dict with colnames
-            self.params = {}
+            self.parameters: dict = {}
+            self.count: int = 0
             while True:
                 # Get next line from file
                 line = paramfile.readline()
@@ -62,7 +63,7 @@ class ImputeParams():
                 # split the line by whitespace and reorder to match expected colname order
                 row_values = [line.rstrip().split()[i] for i in col_order]
                 if len(row_values) == n_cols: 
-                    self.params[row_values[0]] = dict(zip(colnames[1:], row_values[1:]))
+                    self.parameters[row_values[0]] = dict(zip(colnames[1:], row_values[1:]))
                     self.count += 1
                 else:
                     badrows.append(row)
@@ -85,7 +86,7 @@ class ImputeParams():
             errtable.add_column("Columns with Issues", style = "white")
 
             row = 1
-            for k,v in self.params.items():
+            for k,v in self.parameters.items():
                 badcols = []
                 if re.search(r'[^a-z0-9\-_\.]',k, flags = re.IGNORECASE):
                     badcols.append("name")
@@ -108,7 +109,7 @@ class ImputeParams():
                     errtable.add_row(f"{row}", ", ".join(badcols))
                 row += 1
             if row_error:
-                print_error("invalid parameter values", f"Parameter file [bold]{self.file}[/] is formatted incorrectly. Some rows have incorrect values for one or more self.file.", False)
+                print_error("invalid parameter values", f"Parameter file [bold]{self.file}[/] is formatted incorrectly. Some rows have incorrect values for one or more parameters.", False)
                 print_solution_offenders(
                     "Review the table below of which rows/columns are causing issues",
                     "Formatting Errors",

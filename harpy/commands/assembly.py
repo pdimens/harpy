@@ -71,8 +71,7 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(fastq_r1)
-    fastq.files.append(fastq_r2)
+    fastq = FASTQ([fastq_r1,fastq_r2])
     fastq.bc_or_bx(bx_tag)
 
     workflow.config = {

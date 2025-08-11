@@ -10,7 +10,10 @@ class SAM():
     A class to contain and validate SAM input files.
     '''
     def __init__(self, filenames):
-        self.files = list(chain.from_iterable(filenames))
+        if any(isinstance(i, list) for i in filenames):
+            self.files = list(chain.from_iterable(filenames))
+        else:
+            self.files = filenames
         self.count = 0
 
         re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)

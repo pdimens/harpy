@@ -11,7 +11,10 @@ class FASTQ():
     A class to contain and validate FASTQ input files.
     '''
     def __init__(self, filenames):
-        self.files = list(chain.from_iterable(filenames))
+        if any(isinstance(i, list) for i in filenames):
+            self.files = list(chain.from_iterable(filenames))
+        else:
+            self.files = filenames
         self.bx_tag = False
 
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
@@ -62,9 +65,8 @@ class FASTQ():
                     if "BX:Z" in record.comment:
                         self.bx_tag = True
                         return
-                    if records >= 50:
+                    if records >= max_records:
                         break
-    
     def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """
         Parse the list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
@@ -87,7 +89,7 @@ class FASTQ():
                             False
                         )
                         print_solution("Check why your data has both tags in use and remove/rename one of the tags.")
-                    if records >= 50:
+                    if records >= max_records:
                         break
                 # check for one or the other after parsing is done
                 errtext = f" However, [green]{secondary}:Z[/] tags were detected, perhaps you meant those?" if SECONDARY else ""

@@ -83,10 +83,10 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
         "grid_size": grid_size,
-        "stitch_parameters" : params,
+        "stitch_parameters" : params.parameters,
         "inputs" : {
-            "paramfile" : parameters,
-            "vcf" : vcf,
+            "parameters" : params.file,
+            "vcf" : vcffile.file,
             **({"biallelic_contigs" : vcffile.biallelic_file} if not region else {}), 
             "alignments" : alignments.files
         }
