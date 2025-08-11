@@ -1,7 +1,6 @@
 """Harpy imputation workflow"""
 
 import os
-import sys
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile
 from harpy.common.cli_types_generic import SnakemakeParams
@@ -73,10 +72,10 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         if contig not in biallelic_names:
             print_error(
                 "missing contig",
-                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
+                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed.",
+                False
             )
             print_solution(f"Restrict the contigs provided to [bold green]--regions[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/].")
-            sys.exit(1)
 
     workflow.config = {
         "workflow" : workflow.name,

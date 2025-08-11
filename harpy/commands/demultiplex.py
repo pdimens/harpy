@@ -11,7 +11,7 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok, safe_read
-from harpy.common.printing import print_error, print_solution_with_culprits, workflow_info
+from harpy.common.printing import print_error, print_solution_offenders, workflow_info
 from harpy.common.validations import validate_demuxschema
 from harpy.common.workflow import Workflow
 
@@ -52,8 +52,7 @@ def gen1():
     """
     Use `meier2021` instead
     """
-    print("This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
-    sys.exit(1)
+    print_error("deprecated command", "This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-u', '--keep-unknown-samples',  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
@@ -147,7 +146,6 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
     """
     if barcode_map and barcode_style:
         print_error("invalid options", "[blue]--barcode-map[/] and [blue]--barcode-style[/] cannot be used together.")
-        sys.exit(1)
     conv_dict = {}
     if barcode_map:
         with safe_read(barcode_map) as bcmap:
@@ -155,15 +153,11 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                 try:
                     nuc,bx = j.split()
                     if not re.search(r"^[ATCGN]+$", nuc):
-                        print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]")
-                        print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
-                        click.echo(j.strip())
-                        sys.exit(1)
+                        print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]", False)
+                        print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
                 except ValueError:
-                    print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]")
-                    print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
-                    click.echo(j.strip())
-                    sys.exit(1)
+                    print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]", False)
+                    print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
                 conv_dict[nuc] = bx
 
     if barcode_style == "stlfr":

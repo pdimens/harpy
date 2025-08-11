@@ -160,16 +160,12 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     ## checks and validations ##
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
-        sys.exit(1)
     if (not snp_vcf and snp_count == 0) and (not indel_vcf and indel_count == 0):
         print_error("missing option", "You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
-        sys.exit(1)
     if snp_count > 0 and snp_vcf:
         print_error("conflicting arguments", "You can either simulate random SNPs (--snp-count) or known snps (--snp-vcf), but not both.")
-        sys.exit(1)    
     if indel_count > 0 and indel_vcf:
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
-        sys.exit(1)
     check_fasta(genome)
 
     workflow.config = {
@@ -259,10 +255,8 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
-        sys.exit(1)   
     check_fasta(genome)
 
     workflow.config = {
@@ -352,10 +346,8 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
-        sys.exit(1) 
     check_fasta(genome)
 
     workflow.config = {
@@ -436,10 +428,8 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
-        sys.exit(1) 
     check_fasta(genome)
 
     workflow.config = {

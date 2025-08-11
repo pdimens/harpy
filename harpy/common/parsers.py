@@ -3,20 +3,17 @@
 from itertools import chain
 import re
 import os
-import sys
 import subprocess
 from typing import Tuple
 from rich.markdown import Markdown
-import rich_click as click
 from .misc import filepath
-from .printing import print_error, print_solution_with_culprits
+from .printing import print_error, print_solution_offenders
 
 def getnames(directory: str, ext: str) -> list[str]:
     """Find all files in 'directory' that end with 'ext'"""
     samplenames = set([i.split(ext)[0] for i in os.listdir(directory) if i.endswith(ext)])
     if len(samplenames) < 1:
         print_error("no files found", f"No sample files ending with [bold]{ext}[/] found in [bold]{directory}[/].")
-        sys.exit(1)
     return samplenames
 
 def parse_impute_regions(regioninput: str, vcf: str) -> list:
@@ -31,13 +28,15 @@ def parse_impute_regions(regioninput: str, vcf: str) -> list:
     # check if the region is in the genome
     if contig not in contigs:
         print_error("contig not found", f"The contig [bold yellow]{contig}[/] was not found in [blue]{vcf}[/].")
-        sys.exit(1)
     if endpos > contigs[contig]:
-        print_error("invalid region", f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})")
-        sys.exit(1)
+        print_error(
+            "invalid region",
+            f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})",
+            True
+        )
     return contig, startpos, endpos, buffer
 
-def parse_fastq_inputs(inputs, param: str = None) -> Tuple[list[str], int]:
+def parse_fastq_inputs(inputs: list[str], param: str = None) -> Tuple[list[str], int]:
     """
     Parse the command line input FASTQ arguments to generate a clean list of input files. Returns the number of unique samples,
     i.e. forward and reverse reads for one sample = 1 sample.
@@ -59,22 +58,27 @@ def parse_fastq_inputs(inputs, param: str = None) -> Tuple[list[str], int]:
         if re.search(inv_pattern, os.path.basename(i)):
             badmatch.append(os.path.basename(i))
     if badmatch:
-        print_error("invalid characters", f"Invalid characters were detected in the file names for [green]{param}[/].")
-        print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
-        click.echo(", ".join(badmatch), file = sys.stderr)
-        sys.exit(1)
+        print_error("invalid characters", f"Invalid characters were detected in the file names for [green]{param}[/].", False)
+        print_solution_offenders(
+            Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"),
+            "The offending files",
+            ", ".join(badmatch)
+            )
     if dupes:
-        print_error("clashing sample names", Markdown(f"Identical filenames were detected in `{param}`, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
-        print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
+        dupe_out = []
         for i in dupes:
-            click.echo(" ".join([j for j in infiles if i in j]), file = sys.stderr)
-        sys.exit(1)
-
+            dupe_out.append(" ".join([j for j in infiles if i in j]))
+        print_error(
+            "clashing sample names",
+            Markdown(f"Identical filenames were detected in `{param}`, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"),
+            False
+        )
+        print_solution_offenders("Make sure all input files have unique names.", "Files with clashing names", dupe_out)
     n = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
     # return the filenames and # of unique samplenames
     return infiles, n
 
-def parse_alignment_inputs(inputs , param: str = None) -> Tuple[list[str], int]:
+def parse_alignment_inputs(inputs: list[str], param: str = None) -> Tuple[list[str], int]:
     """
     Parse the command line input sam/bam arguments to generate a clean list of input files
     and return the number of unique samples.
@@ -96,16 +100,22 @@ def parse_alignment_inputs(inputs , param: str = None) -> Tuple[list[str], int]:
         if re.search(inv_pattern, os.path.basename(i)):
             badmatch.append(os.path.basename(i))
     if badmatch:
-        print_error("invalid characters", "Invalid characters were detected in the input file names.")
-        print_solution_with_culprits(Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"), "The offending files:")
-        click.echo(", ".join(badmatch), file = sys.stderr)
-        sys.exit(1)
+        print_error("invalid characters", "Invalid characters were detected in the input file names.", False)
+        print_solution_offenders(
+            Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"),
+            "The offending files",
+            ", ".join(badmatch)
+            )
     if dupes:
-        print_error("clashing sample names", Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"))
-        print_solution_with_culprits("Make sure all input files have unique names.", "Files with clashing names:")
+        dupe_out = []
         for i in dupes:
-            click.echo(" ".join([j for j in bam_infiles if i in j]), file = sys.stderr)
-        sys.exit(1)
+            dupe_out.append(" ".join([j for j in bam_infiles if i in j]))
+        print_error(
+            "clashing sample names",
+            Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"),
+            False
+        )
+        print_solution_offenders("Make sure all input files have unique names.", "Files with clashing names", dupe_out)
     return bam_infiles, len(uniqs)
 
 def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
@@ -136,8 +146,7 @@ def biallelic_contigs(vcf: str, workdir: str) -> Tuple[str,list[str], int]:
                 viewcmd.terminate()
                 break
     if not valid:
-        click.echo("No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
-        sys.exit(1)
+        print_error("insufficient data", "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
     with open(f"{workdir}/{vbn}.biallelic", "w", encoding="utf-8") as f:
         f.write("\n".join(valid))
     return filepath(f"{workdir}/{vbn}.biallelic"), valid, len(valid)

@@ -11,17 +11,37 @@ from pathlib import Path
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
     name = "bam_file"
+    def __init__(self, dir_ok: bool = True):
+        super().__init__()
+        self.dir_ok = dir_ok
     def convert(self, value, param, ctx):
         filepath = Path(value)
-        if not filepath.exists():
-            self.fail(f"Alignment file {value} was not found.", param, ctx)
-        if not os.access(value, os.R_OK):
-            self.fail(f"Alignment file {value} does not have reading permission.", param, ctx)
-        try:
-            with pysam.AlignmentFile(value, 'r', require_index=False):
-                return filepath.resolve().as_posix()
-        except ValueError:
-            self.fail(f"File {value} was not recognized as being in BAM/SAM format.", param, ctx)
+        if filepath.is_dir() and not self.dir_ok:
+            self.fail("Alignment input cannot be a directory", param, ctx)
+        if not filepath.is_dir():
+            if not filepath.exists():
+                self.fail(f"Alignment file {value} was not found.", param, ctx)
+            if not os.access(value, os.R_OK):
+                self.fail(f"Alignment file {value} does not have reading permission.", param, ctx)
+                infiles = [filepath]
+        else:
+            re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
+            infiles = []
+            for i in filepath.glob("*"):
+                if i.is_file() and re_ext.search(i.name):
+                    _file = i.resolve().as_posix()
+                    if not os.access(_file, os.R_OK):
+                        self.fail(f"Alignment file {_file} does not have reading permission.", param, ctx)
+                    infiles.append(i)
+            if len(infiles) < 1:
+                self.fail(f"There were no files ending with the accepted alignment extensions .bam/.sam (case insensitive) in {value}.")
+        for i in infiles:
+            try:
+                with pysam.AlignmentFile(i, 'r', require_index=False):
+                    pass
+            except (ValueError, OSError):
+                self.fail(f"File {value} was not recognized as being in BAM/SAM format.", param, ctx)
+        return infiles
 
 class FASTAfile(click.ParamType):
     """A CLI class to validate a FASTA file as input. Checks for presence, format, and returns the absolute path"""
@@ -73,18 +93,16 @@ class FASTQfile(click.ParamType):
             if len(infiles) < 1:
                 self.fail(f"There were no files ending with the accepted FASTQ extensions .fq[.gz] or .fastq[.gz] (case insensitive) in {value}.")
 
-        out_fq = []
         for fastq in infiles:
             try:
                 with pysam.FastxFile(fastq, persist=False) as f:
                     for i in f:
                         if not i.name or not i.quality:
                             raise ValueError
-                        out_fq.append(fastq.resolve().as_posix())
                         break
-            except ValueError:
+            except (ValueError, OSError):
                 self.fail(f"File {fastq} was not recognized as being in FASTQ format.", param, ctx)
-        return out_fq
+        return infiles
 
 class VCFfile(click.ParamType):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
@@ -104,7 +122,7 @@ class VCFfile(click.ParamType):
         try:
             with pysam.VariantFile(value, 'r'):
                 return filepath.resolve().as_posix()
-        except ValueError:
+        except (ValueError, OSError):
             self.fail(f"File {value} was not recognized as being in BCF/VCF[.GZ] format.", param, ctx)
 
 class InputFile(click.ParamType):

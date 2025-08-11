@@ -3,7 +3,6 @@ import sys
 import yaml
 import subprocess
 import rich_click as click
-from rich import print as rprint
 from harpy.common.printing import print_error, CONSOLE
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
@@ -18,10 +17,8 @@ def diagnose(directory):
 
     if not os.path.exists(CONFIG_FILE):
         print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
-        sys.exit(1)
     if not os.path.exists(PROFILE_FILE):
         print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
-        sys.exit(1)
 
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
@@ -44,18 +41,18 @@ def diagnose(directory):
             if not output and not error and process.poll() is not None:
                 break
             if error:
-                rprint(f"[red]{error}", end="", file=sys.stderr)
+                CONSOLE.print(error, end="", style= "red")
                 # error usually prints more than one line, so this will make sure all
                 # consecutive stderr text will be printed together
                 while error:
                     error = process.stderr.readline()
-                    rprint(f"[red]{error}", end="", file=sys.stderr)
+                    CONSOLE.print(error, end="", style = "red")
             if output:
                 if output.startswith("This was a dry-run"):
                     process.terminate()
                     exit(0)
                 else:
-                    rprint(f"[yellow]{output}", end="", file=sys.stderr)
+                    CONSOLE.print(output, end="", style = "yellow")
     except:
         CONSOLE.print("")
         CONSOLE.rule("[bold]End of diagnosis", style = "yellow")

@@ -48,7 +48,6 @@ def parse_file(infile):
             "incorrect permissions",
             f"[blue]{infile}[/] does not have read access. Please check the file permissions."
         )
-        sys.exit(1)
     n_colors = check_terminal_colors()
     if n_colors <= 8:
         from pygments.formatters import TerminalFormatter
@@ -99,13 +98,11 @@ def config(directory, edit):
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
-        sys.exit(1)
     elif not os.path.exists(target_file):
         print_error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
-        sys.exit(1)
     if edit:
         click.edit(filename = target_file, extension = "yaml")
     else:
@@ -137,14 +134,12 @@ def environments(program):
             "directory not found", 
             "No [blue].environments/[/] folder found in the current directory."
         )
-        sys.exit(1)
     files = [i for i in glob.iglob(".environments/*.yaml")]
     if not files:
         print_error(
             "files not found", 
             "No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
-        sys.exit(1)
     console = Console()
 
     for i in files:
@@ -193,14 +188,12 @@ def log(directory):
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
-        sys.exit(1)
     files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
     if not files:
         print_error(
             "files not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
-        sys.exit(1)
     target_file = sorted(files, key = os.path.getmtime)[-1]
     parse_file(target_file)
     rprint(
@@ -230,7 +223,6 @@ def snakefile(directory, edit):
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{workdir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
-        sys.exit(1)
 
     target_file = os.path.join(workdir, "workflow.smk")
     if not os.path.exists(target_file):
@@ -238,7 +230,6 @@ def snakefile(directory, edit):
             "snakefile not found", 
             f"[blue]{target_file}[/] was not found. Please check that you are looking in the correct folder."
         )
-        sys.exit(1)
     if edit:
         click.edit(filename = target_file, extension = "yaml")
     else:
@@ -273,13 +264,11 @@ def snakeparams(directory, edit):
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
-        sys.exit(1)
     elif not os.path.exists(target_file):
         print_error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that you are looking in the the correct folder."
         )
-        sys.exit(1)
     if edit:
         click.edit(filename = target_file, extension = "yaml")
     else:
