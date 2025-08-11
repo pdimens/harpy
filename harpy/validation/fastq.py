@@ -65,20 +65,22 @@ class FASTQ():
                     if records >= 50:
                         break
     
-    def bc_or_bx(self, threads: int, quiet: int, max_records: int = 50) -> None:
+    def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """
         Parse the list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
+        primary = "BX:Z" if tag == "BX" else "BC:Z"
+        secondary = "BC:Z" if tag == "BX" else "BX:Z"
         for fastq in self.files:
-            BX = False
-            BC = False
+            PRIMARY = False
+            SECONDARY = False
             records = 0
             with pysam.FastxFile(fastq, persist=False) as fq:
                 for record in fq:
                     records += 1
-                    BX = True if "BX:Z" in record.comment else BX
-                    BC = True if "BC:Z" in record.comment else BC
-                    if BX and BC:
+                    PRIMARY = True if primary in record.comment else PRIMARY
+                    SECONDARY = True if secondary in record.comment else SECONDARY
+                    if PRIMARY and SECONDARY:
                         print_error(
                             "clashing barcode tags",
                             f"Both [green bold]BC:Z[/] and [green bold]BX:Z[/] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/]. Athena accepts [bold]only[/] one of [green bold]BC:Z[/] or [green bold]BX:Z[/].",
@@ -88,10 +90,11 @@ class FASTQ():
                     if records >= 50:
                         break
                 # check for one or the other after parsing is done
-                if not BX and not BC:
+                errtext = f" However, [green]{secondary}:Z[/] tags were detected, perhaps you meant those?" if SECONDARY else ""
+                if not PRIMARY:
                     print_error(
                         "no barcodes found",
-                        f"No [green bold]BC:Z[/] or [green bold]BX:Z[/] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/] or [green bold]BX:Z[/] tags.",
+                        f"No [green bold]{primary}[/] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/] or [green bold]BX:Z[/] tags.{errtext}",
                         False
                     )
                     print_solution("Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag.")
