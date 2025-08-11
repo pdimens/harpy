@@ -5,7 +5,7 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_fastq_inputs
+from harpy.validation.fastq import FASTQ
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 
@@ -52,7 +52,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     workflow.conda = ["qc"]
 
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
+    fastq = FASTQ(inputs)
     
     workflow.config = {
         "workflow": workflow.name,
@@ -66,11 +66,11 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
             "relative": workflow.snakemake_cmd_relative,
         },
         "conda_environments" : workflow.conda,
-        "inputs": fqlist
+        "inputs": fastq.files
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", sample_count),
+        ("Samples:", fastq.count),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
     

@@ -4,13 +4,14 @@ import os
 import shutil
 from pathlib import Path
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile
+from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
 from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
+from harpy.validation.fasta import FASTA
+from harpy.validation.sam import SAM
+from harpy.validation.populations import Populations
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_alignment_inputs
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta, validate_bam_RG, validate_popfile, validate_popsamples, validate_regions
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -65,7 +66,7 @@ docstring = {
 @click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
+@click.option('-p', '--populations', type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
@@ -98,10 +99,10 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow.conda = ["r", "variants"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    validate_bam_RG(bamlist, threads, quiet)
-    check_fasta(reference)
-    validate_regions(regions, reference)
+    alignments = SAM(inputs)
+    fasta = FASTA(reference)
+    fasta.validate_region(regions)
+
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
     if isinstance(regions, int):
         os.system(f"make_windows -m 1 -w {regions} {reference} > {region}")
@@ -110,10 +111,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     else:
         region = regions
     if populations:
-        # check for delimeter and formatting
-        validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_popsamples(bamlist, populations,quiet)
+        popfile = Populations(populations, alignments.files)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -127,15 +125,15 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
         "inputs" : {
-            "reference" : reference,
+            "reference" : fasta.file,
             "regions" : region,
-            **({'groupings': populations} if populations else {}),
-            "alignments" : bamlist
+            **({'groupings': popfile.file} if populations else {}),
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", n),
+        ("Samples:", alignments.count),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")
@@ -147,7 +145,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`\\<TAB\\>`population`')
+@click.option('-p', '--populations', type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -180,21 +178,19 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
     workflow.conda = ["r"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    validate_bam_RG(bamlist, threads, quiet)
-    check_fasta(reference)
-    validate_regions(regions, reference)
+    alignments = SAM(inputs)
+    fasta = FASTA(reference)
+    fasta.validate_region(regions)
+
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
     if isinstance(regions, int):
         os.system(f"make_windows -m 1 -w {regions} {reference} > {region}")
-    elif os.path.isfile(regions):
+    elif os.path.exists(regions):
         shutil.copy2(regions, region)
     else:
         region = regions
     if populations:
-        validate_popfile(populations)
-        # check that samplenames and populations line up
-        validate_popsamples(bamlist, populations, quiet)
+        popfile = Populations(populations, alignments.files)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -210,15 +206,15 @@ def mpileup(inputs, output_dir, regions, reference, threads, populations, ploidy
             "skip": skip_reports
         },
         "inputs" : {
-            "reference" : reference,
+            "reference" : fasta.file,
             "regions" : region,
-            **({'groupings': populations} if populations else {}),
-            "alignments" : bamlist
+            **({'groupings': popfile.file} if populations else {}),
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", n),
+        ("Samples:", alignments.count),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")

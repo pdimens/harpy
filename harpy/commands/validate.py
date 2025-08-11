@@ -5,7 +5,8 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_alignment_inputs, parse_fastq_inputs
+from harpy.validation.sam import SAM
+from harpy.validation.fastq import FASTQ
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 
@@ -74,7 +75,7 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
     workflow.conda = ["r"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
+    alignments = SAM(inputs)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -85,11 +86,11 @@ def bam(inputs, platform, output_dir, threads, snakemake, quiet, hpc, container,
         },
         "conda_environments" : workflow.conda,
         "platform": platform.lower(),
-        "inputs" : bamlist
+        "inputs" : alignments.files
     }
 
     workflow.start_text = workflow_info(
-        ("Alignment Files:", n),
+        ("Alignment Files:", alignments.count),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
@@ -124,7 +125,7 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
     workflow.conda = ["r"]
 
     ## checks and validations ##
-    fqlist, n = parse_fastq_inputs(inputs, "INPUTS")
+    fastq = FASTQ(inputs)
 
     ## setup workflow ##
 
@@ -137,11 +138,11 @@ def fastq(inputs, output_dir, platform, threads, snakemake, quiet, hpc, containe
         },
         "conda_environments" : workflow.conda,
         "platform": platform.lower(),
-        "inputs" : fqlist
+        "inputs" : fastq.files
     }
 
     workflow.start_text = workflow_info(
-        ("FASTQ Files:", n),
+        ("FASTQ Files:", fastq.count),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 

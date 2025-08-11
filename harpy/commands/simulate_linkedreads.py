@@ -6,7 +6,7 @@ from harpy.common.cli_types_generic import ReadLengths, SnakemakeParams
 from harpy.common.cli_types_params import Barcodes
 from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta
+from harpy.validation.fasta import FASTA
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -102,7 +102,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
 
     ## checks and validations ##
     for i in fasta:
-        check_fasta(i)
+        FASTA(i)
 
     workflow.config = {
         "workflow" : workflow.name,

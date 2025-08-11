@@ -8,11 +8,10 @@ import sys
 import pysam
 import subprocess
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok, safe_read
 from harpy.common.printing import print_error, print_solution_offenders, workflow_info
-from harpy.common.validations import validate_demuxschema
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -66,7 +65,7 @@ def gen1():
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
+@click.argument('schema', required = True, type=DemuxSchema())
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
@@ -83,9 +82,6 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
     
-    ## checks and validations ##
-    multi_id = validate_demuxschema(schema)
-
     workflow.config = {
         "workflow" : workflow.name,
         "retain" : {
@@ -114,7 +110,6 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.start_text = workflow_info(
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
         ("Demultiplex Schema:", os.path.basename(schema)),
-        ("Multi-ID Samples:", "[bold yellow]Yes[/] [dim](assuming this was intentional)[/]" if multi_id else "No"),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )

@@ -1,12 +1,11 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
-import sys
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, VCFfile, InputFile
+from harpy.validation.fasta import FASTA
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok
 from harpy.common.printing import print_error, workflow_info
-from harpy.common.validations import check_fasta
 from harpy.common.workflow import Workflow
 
 commandstring = {
@@ -148,8 +147,8 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     The ratio parameters control different things for snp and indel variants and have special
     meanings when setting the value to either `9999` or `0` :
     
-    | ratio | meaning | `9999` | `0` |
-    |:---- |:---- |:--- |:---- |
+    | ratio           | meaning                     | `9999`        | `0`          |
+    |:----------------|:----------------------------|:--------------|:-------------|
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
@@ -166,7 +165,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         print_error("conflicting arguments", "You can either simulate random SNPs (--snp-count) or known snps (--snp-vcf), but not both.")
     if indel_count > 0 and indel_vcf:
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -196,7 +195,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -257,7 +256,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -280,7 +279,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -334,10 +333,10 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
  
     The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
     
-    | ratio | meaning | `9999` | `0` |
-    |:----|:----|:---|:----|
-    | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
-    | `--gain-ratio` | copy gain / loss | gain only | loss only| 
+    | ratio          | meaning            | `9999`     | `0`        |
+    |:---------------|:-------------------|:-----------|:-----------|
+    | `--dup-ratio`  | tandem / dispersed | tand. only | disp. only |
+    | `--gain-ratio` | copy gain / loss   | gain only  | loss only  |
     """
     workflow = Workflow("simulate_cnv", "simulate_variants.smk", output_dir, quiet, True)
     workflow.setup_snakemake(container, 2, hpc, snakemake)
@@ -348,7 +347,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -374,7 +373,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -430,7 +429,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -451,7 +450,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
