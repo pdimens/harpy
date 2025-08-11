@@ -105,7 +105,7 @@ class FASTA():
             pass
 
         # is a file specifying regions
-        contigs = self.contigs(self.file)
+        contigs = self.contigs()
         if os.path.isfile(regioninput):
             with open(regioninput, "r", encoding="utf-8") as fin:
                 for idx, line in enumerate(fin, 1):

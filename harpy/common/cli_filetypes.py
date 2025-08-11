@@ -1,13 +1,13 @@
 """Module with python-click types for command-line level validations of inputs"""
 
-import os
 import click
+import os
+from pathlib import Path
 import pysam
 import re
+import yaml
 from harpy.common.misc import is_gzip
 from harpy.common.printing import print_error, print_notice, print_solution, print_solution_offenders
-import yaml
-from pathlib import Path
 
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""

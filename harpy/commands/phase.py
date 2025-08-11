@@ -73,7 +73,7 @@ def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, m
     if reference:
         fasta = FASTA(reference)
     if contigs:
-        vcf.match_contigs(contigs)
+        vcffile.match_contigs(contigs)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -109,7 +109,7 @@ def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, m
     }
 
     workflow.start_text = workflow_info(
-        ("Input VCF:", os.path.basename(vcf.file)),
+        ("Input VCF:", os.path.basename(vcffile.file)),
         ("Samples:", min(len(vcffile.samples), alignments.count)),
         ("Phase Indels:", "yes" if reference else "no"),
         ("Reference:", os.path.basename(reference)) if reference else None,

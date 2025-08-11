@@ -121,12 +121,12 @@ def bam(to_,sam, standardize, quiet):
 
     bc_inventory = {}
     with (
-        pysam.AlignmentFile(sam, require_index=False) as SAM,
+        pysam.AlignmentFile(sam, require_index=False) as samfile,
         pysam.AlignmentFile(sys.stdout, "wb", header=HEADER) as OUT,
         harpy_pulsebar(quiet, "Converting") as progress,
     ):
         progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
-        for record in SAM.fetch(until_eof=True):
+        for record in samfile.fetch(until_eof=True):
             if record.has_tag("BX"):
                 bx = record.get_tag("BX")
                 # the standardization is redundant but ensures being written before the BX tag
@@ -319,11 +319,11 @@ def standardize(sam, quiet):
     """
     try:
         with (
-            pysam.AlignmentFile(sam, require_index=False) as SAM, 
-            pysam.AlignmentFile(sys.stdout, "wb", template=SAM),
+            pysam.AlignmentFile(sam, require_index=False) as samfile, 
+            pysam.AlignmentFile(sys.stdout, "wb", template=samfile),
             harpy_pulsebar(quiet, "Standardizing", True),
         ):
-            for record in SAM.fetch(until_eof=True):
+            for record in samfile.fetch(until_eof=True):
                 if record.has_tag("BX") and record.has_tag("VX"):
                     print_error("BX/VX tags present", f"The BX:Z and VX:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
                 if record.has_tag("BX"):

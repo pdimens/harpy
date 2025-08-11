@@ -94,7 +94,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
 
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcf)),
-        ("Samples:", min(len(vcf.samples), alignments.count)),
+        ("Samples:", min(len(vcffile.samples), alignments.count)),
         ("Parameter File:", os.path.basename(parameters)),
         ("Contigs:", f"{len(vcffile.biallelic_contigs)} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
         ("Output Folder:", os.path.basename(output_dir) + "/")

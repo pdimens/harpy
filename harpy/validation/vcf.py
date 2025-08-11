@@ -117,7 +117,7 @@ class VCF():
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
-        contigs = self.get_contigs(self.file)
+        contigs = self.get_contigs()
         contig, positions = region.split(":")
         startpos,endpos,buffer = [int(i) for i in positions.split("-")]
         # check if the region is in the genome
