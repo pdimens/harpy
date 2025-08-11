@@ -82,7 +82,7 @@ class FASTQfile(click.ParamType):
                 self.fail(f"FASTQ file {value} was not found.", param, ctx)
             if not os.access(value, os.R_OK):
                 self.fail(f"FASTQ file {value} does not have reading permission.", param, ctx)
-            infiles = [filepath]
+            infiles = [filepath.resolve().as_posix()]
         else:
             infiles = []
             for i in filepath.glob("*"):
@@ -207,9 +207,10 @@ class DemuxSchema(click.ParamType):
     name = "demultiplex_schema"
 
     def convert(self, value, param, ctx):
-        if not os.path.exists(value):
+        filepath = Path(value)
+        if not filepath.exists():
             self.fail(f"{value} does not exist. Please check the spelling and try again.", param, ctx)
-        if os.path.isdir(value):
+        if filepath.is_dir():
             self.fail(f"{value} is a directory, but should be a file.", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
@@ -220,7 +221,7 @@ class DemuxSchema(click.ParamType):
         samples = set()
         duplicates = False
         segment_pattern = re.compile(r'^[A-D]\d{2}$')
-        with open(value, 'r') as file:
+        with open(filepath, 'r') as file:
             for line in file:
                 try:
                     sample, segment_id = line.rstrip().split()
@@ -254,4 +255,4 @@ class DemuxSchema(click.ParamType):
             )
         if duplicates:
             print_notice("Sample names appear more than once, assuming this was intentional")
-        return Path(value).resolve().as_posix()
+        return filepath.resolve().as_posix()

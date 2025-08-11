@@ -67,7 +67,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     alignments = SAM(inputs)
     vcffile = VCF(vcf, workflow.workflow_directory)
     vcffile.find_biallelic_contigs()
-
+    vcffile.match_samples(alignments.files, vcf_samples)
     if region:
         vcffile.validate_region(region)
 

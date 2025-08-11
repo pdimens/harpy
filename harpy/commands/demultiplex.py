@@ -81,7 +81,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, quiet) 
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
-    
+
     workflow.config = {
         "workflow" : workflow.name,
         "retain" : {
@@ -100,10 +100,10 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         },
         "inputs" : {
             "demultiplex_schema" : schema,
-            "R1": r12_fq[0],
-            "R2": r12_fq[1],
-            "I1": i12_fq[0],
-            "I2": i12_fq[1]
+            "R1": r12_fq[0][0],
+            "R2": r12_fq[1][0],
+            "I1": i12_fq[0][0],
+            "I2": i12_fq[1][0]
         }
     }
     
