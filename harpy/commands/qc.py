@@ -2,12 +2,12 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, MultiInt, SnakemakeParams
+from harpy.validation.fastq import FASTQ
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile
+from harpy.common.cli_types_generic import MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import FastpParams
 from harpy.common.misc import container_ok, filepath
-from harpy.common.parsers import parse_fastq_inputs
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -41,7 +41,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Adapter removal and other FASTQ preprocessing
@@ -68,14 +68,13 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     workflow.conda = ["qc", "r"]
 
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
+    fastq = FASTQ(inputs)
     if trim_adapters:
         if trim_adapters != "auto":
             if not os.path.exists(trim_adapters):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not exist. Please check the spelling or verify the location of the file.")
             if not os.access(trim_adapters, os.R_OK):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
-            check_fasta(trim_adapters)
             trim_adapters = filepath(trim_adapters)
     else:
         trim_adapters = False
@@ -101,11 +100,11 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
         },
         "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
-        "inputs" : fqlist
+        "inputs" : fastq.files
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", sample_count),
+        ("Samples:", fastq.count),
         ("Trim Adapters:", "yes" if trim_adapters else "no"),
         ("Deduplicate:", "yes" if deduplicate else "no"),
         ("Deconvolve:", "yes" if deconvolve else "no"),

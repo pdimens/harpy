@@ -3,7 +3,8 @@
 import os
 import re
 import rich_click as click
-from harpy.common.cli_types_generic import SnakemakeParams, HPCProfile
+from harpy.common.cli_filetypes import HPCProfile
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 
@@ -68,7 +69,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
         for i in input:
             if not re.search(re_ext, i):
-                raise click.BadParameter('inputs must be 1 BAM (.bam) file or 2 FASTQ (.fastq|.fq) files. The FASTQ files can be gzipped.', param_hint="INPUT")            
+                raise click.BadParameter('inputs must be 1 BAM (.bam) file or 2 FASTQ (.fastq|.fq) files. The FASTQ files can be gzipped.', param_hint="INPUT")  
     if len(barcode_tag) != 2:
         raise click.BadParameter('The barcode tag must be 2 chracters from the English alphabet (A-Z)', param_hint="--barcode-tag/-b")            
 

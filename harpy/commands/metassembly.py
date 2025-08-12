@@ -1,11 +1,12 @@
 """Perform a linked-read aware metassembly"""
 
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, KParam, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile
+from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams
 from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
-from harpy.common.validations import validate_fastq_bx
+from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -55,7 +56,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
     workflow.conda = ["align", "assembly", "metassembly", "qc", "spades"]
 
     ## checks and validations ##
-    validate_fastq_bx([fastq_r1, fastq_r2], threads, quiet)
+    fastq = FASTQ([fastq_r1,fastq_r2])
+    fastq.bc_or_bx(bx_tag)
+
 
     workflow.config = {
         "workflow" : workflow.name,

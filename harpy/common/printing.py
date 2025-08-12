@@ -2,7 +2,6 @@
 
 import os
 import sys
-from rich import print as rprint
 from rich.console import Console
 from rich import box
 from rich.table import Table
@@ -10,60 +9,67 @@ from rich.panel import Panel
 
 CONSOLE = Console(stderr=True)
 
-def print_error(errortitle: str, errortext: str) -> None:
-    """Print a yellow panel with error text"""
-    rprint(
+def print_error(errortitle: str, errortext: str, _exit: bool = True) -> None:
+    """Print a yellow panel with error text, exits with error code 1 by default"""
+    CONSOLE.print(
         Panel(
             errortext,
             title = f"[bold]Error: {errortitle}",
             title_align = "left",
             border_style = "yellow",
             width = 75
-            ),
-        file = sys.stderr
+            )
     )
+    if _exit:
+        sys.exit(1)
 
-def print_solution(solutiontext: str) -> None:
+def print_solution(solutiontext: str, _exit: bool = True) -> None:
     """Print a blue panel with solution text"""
-    rprint(
+    CONSOLE.print(
         Panel(solutiontext,
             title = "[bold]Solution",
             title_align = "left",
             border_style = "blue",
             width = 75
-            ),
-        file = sys.stderr
+            )
     )
+    if _exit:
+        sys.exit(1)
 
-def print_solution_with_culprits(solutiontext: str, culprittext: str) -> None:
-    """Print a blue panel with solution text and culprittext as the subtitle to introducethe list of offenders below it."""
-    rprint(
+def print_solution_offenders(solutiontext: str, culprittext: str, offenders: list[str]|str) -> None:
+    """
+    Print a blue panel with solution text and culprittext as the subtitle to introduce the list of offenders below it. Terminates
+    with exit code 1
+    """
+    CONSOLE.print(
         Panel(solutiontext,
             title = "[bold]Solution",
             title_align = "left",
-            subtitle = culprittext,
+            subtitle = culprittext + ":",
             border_style = "blue",
             width = 75
             ),
-        file = sys.stderr
+        offenders if isinstance(offenders, str) else "\n".join(offenders),
+        sep = "\n",
+        highlight= False
     )
+    sys.exit(1)
 
 def print_notice(noticetext: str) -> None:
     """Print a white panel with information text text"""
-    rprint(
+    CONSOLE.print(
         Panel(
             noticetext,
             title = "[dim]Notice",
             title_align = "left",
             border_style = "dim",
             width = 75
-            ),
-        file = sys.stderr
+            )
     )
 
 def print_onstart(text: str, title: str) -> None:
     """Print a panel of info on workflow run"""
-    rprint("")
+    CONSOLE.print("")
     CONSOLE.rule(f"[bold]harpy {title}", style = "light_steel_blue")
     CONSOLE.print(text)
 

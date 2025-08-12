@@ -1,7 +1,6 @@
 """custom classes and functions for convert"""
 
 import os
-import sys
 import pysam
 from .printing import print_error
 
@@ -101,4 +100,3 @@ def compress_fq(fq: str):
         os.remove(fq)
     except Exception as e:
         print_error("compression error", f"Failed to compress {fq}: {str(e)}")
-        sys.exit(1)

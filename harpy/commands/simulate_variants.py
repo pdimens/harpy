@@ -1,11 +1,11 @@
 """Harpy workflows to simulate genomic variants and linked reads"""
 import os
-import sys
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, InputFile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTAfile, VCFfile, InputFile
+from harpy.validation.fasta import FASTA
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok
 from harpy.common.printing import print_error, workflow_info
-from harpy.common.validations import check_fasta
 from harpy.common.workflow import Workflow
 
 commandstring = {
@@ -109,8 +109,8 @@ docstring = {
 }
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-s', '--snp-vcf', type=InputFile("vcf", gzip_ok = False), help = 'VCF file of known snps to simulate')
-@click.option('-i', '--indel-vcf', type=InputFile("vcf", gzip_ok = False), help = 'VCF file of known indels to simulate')
+@click.option('-s', '--snp-vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known snps to simulate')
+@click.option('-i', '--indel-vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
 @click.option('-m', '--indel-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random indels to simluate")
 @click.option('-r', '--titv-ratio', type = click.FloatRange(min=0), default= 0.5, show_choices=True, show_default=True, help = "Transition/Transversion ratio for snps")
@@ -131,7 +131,7 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
+@click.argument('genome', required=True, type=FASTAfile(), nargs=1)
 def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count, indel_count, titv_ratio, indel_ratio, indel_size_alpha, indel_size_constant, centromeres, genes, snp_gene_constraints, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
     Introduce snps and/or indels into a genome
@@ -147,8 +147,8 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     The ratio parameters control different things for snp and indel variants and have special
     meanings when setting the value to either `9999` or `0` :
     
-    | ratio | meaning | `9999` | `0` |
-    |:---- |:---- |:--- |:---- |
+    | ratio           | meaning                     | `9999`        | `0`          |
+    |:----------------|:----------------------------|:--------------|:-------------|
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
@@ -159,17 +159,13 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     ## checks and validations ##
     if (snp_gene_constraints and not genes) or (genes and not snp_gene_constraints):
         print_error("missing option", "The options `--genes` and `--snp-coding-partition` must be used together for SNP variants.")
-        sys.exit(1)
     if (not snp_vcf and snp_count == 0) and (not indel_vcf and indel_count == 0):
         print_error("missing option", "You must either provide a vcf file of known variants to simulate or a count of that variant to randomly simulate.")
-        sys.exit(1)
     if snp_count > 0 and snp_vcf:
         print_error("conflicting arguments", "You can either simulate random SNPs (--snp-count) or known snps (--snp-vcf), but not both.")
-        sys.exit(1)    
     if indel_count > 0 and indel_vcf:
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
-        sys.exit(1)
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -199,7 +195,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -222,7 +218,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known inversions to simulate')
+@click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum inversion size (bp)")
@@ -239,7 +235,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
+@click.argument('genome', required=True, type=FASTAfile(), nargs=1)
 def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_size, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
     Introduce inversions into a genome
@@ -258,11 +254,9 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known variants to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
-        sys.exit(1)   
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -285,7 +279,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -305,7 +299,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known copy number variants to simulate')
+@click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
 @click.option('-x', '--max-size', type = click.IntRange(min = 1), default = 100000, show_default= True, help = "Maximum variant size (bp)")
@@ -325,7 +319,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
+@click.argument('genome', required=True, type=FASTAfile(), nargs=1)
 def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, dup_ratio, max_copy, gain_ratio, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
     Introduce copy number variants into a genome
@@ -339,10 +333,10 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
  
     The two ratio parameters control different things and have special meanings when setting their value to either `9999` or `0`:
     
-    | ratio | meaning | `9999` | `0` |
-    |:----|:----|:---|:----|
-    | `--dup-ratio` | tandem / dispersed | tand. only | disp. only |
-    | `--gain-ratio` | copy gain / loss | gain only | loss only| 
+    | ratio          | meaning            | `9999`     | `0`        |
+    |:---------------|:-------------------|:-----------|:-----------|
+    | `--dup-ratio`  | tandem / dispersed | tand. only | disp. only |
+    | `--gain-ratio` | copy gain / loss   | gain only  | loss only  |
     """
     workflow = Workflow("simulate_cnv", "simulate_variants.smk", output_dir, quiet, True)
     workflow.setup_snakemake(container, 2, hpc, snakemake)
@@ -351,11 +345,9 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
-        sys.exit(1) 
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -381,7 +373,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
@@ -401,7 +393,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'VCF file of known translocations to simulate')
+@click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
 @click.option('-g', '--genes', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of genes to avoid when simulating")
@@ -416,7 +408,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--random-seed', type = click.IntRange(min = 1), help = "Random seed for simulation")
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('genome', required=True, type=InputFile("fasta", gzip_ok = True), nargs=1)
+@click.argument('genome', required=True, type=FASTAfile(), nargs=1)
 def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres, genes, heterozygosity, exclude_chr, random_seed, snakemake, quiet, hpc, container, setup_only):
     """
     Introduce translocations into a genome
@@ -435,11 +427,9 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     ## checks and validations ##
     if not vcf and count == 0:
         print_error("missing option", "Provide either a `--count` of cnv to randomly simulate or a `--vcf` of known cnv to simulate.")
-        sys.exit(1)
     if vcf and count > 0:
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
-        sys.exit(1) 
-    check_fasta(genome)
+    fasta = FASTA(genome)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -460,7 +450,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         },
         "conda_environments" : workflow.conda,
         "inputs" : {
-            "genome" : genome,
+            "genome" : fasta.file,
             **({"centromeres" : centromeres} if centromeres else {}),
             **({"genes" : genes} if genes else {}),
             **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})

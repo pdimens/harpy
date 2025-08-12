@@ -12,7 +12,7 @@ import pysam
 from harpy.common.misc import safe_read, harpy_pulsebar
 from harpy.common.convert import FQRecord, compress_fq
 from harpy.common.printing import print_error
-from harpy.common.validations import validate_barcodefile
+from harpy.common.misc import validate_barcodefile
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
@@ -57,7 +57,7 @@ def bam(to_,sam, standardize, quiet):
     try:
         with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
             progress.add_task("[dim]Determining barcode type", total = None)
-            HEADER = alnfile.header
+            #HEADER = alnfile.header
             for record in alnfile.fetch(until_eof = True):
                 try:
                     bx = record.get_tag("BX")
@@ -75,16 +75,17 @@ def bam(to_,sam, standardize, quiet):
                 except KeyError:
                     continue
             if not from_:
-                print_error("unrecognized barcode", f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified.")
-                sys.exit(1)
+                print_error(
+                    "unrecognized barcode",
+                    f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified.",
+                    True    
+                )
     except ValueError:
         print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
-        sys.exit(1)
 
     to_ = to_.lower()
     if from_ == to_:
         print_error("invalid to/from", f"The barcode formats between [green]{from_}[/] (detected from input) and [green]{to_}[/] (user-specified) must be different from each other.")
-        sys.exit(1)
 
     # for barcodes, use sample() so the barcodes don't all start with AAAAAAAAAAAAA (or 1)
     # it's not functionally important, but it does make the barcodes *look* more distinct
@@ -120,12 +121,12 @@ def bam(to_,sam, standardize, quiet):
 
     bc_inventory = {}
     with (
-        pysam.AlignmentFile(sam, require_index=False) as SAM,
-        pysam.AlignmentFile(sys.stdout, "wb", header=HEADER) as OUT,
+        pysam.AlignmentFile(sam, require_index=False) as samfile,
+        pysam.AlignmentFile("-", "wb", template=samfile) as OUT,
         harpy_pulsebar(quiet, "Converting", True) as progress,
     ):
         progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
-        for record in SAM.fetch(until_eof=True):
+        for record in samfile.fetch(until_eof=True):
             if record.has_tag("BX"):
                 bx = record.get_tag("BX")
                 # the standardization is redundant but ensures being written before the BX tag
@@ -141,7 +142,6 @@ def bam(to_,sam, standardize, quiet):
                         record.set_tag("BX", bc_inventory[bx] ,"Z")
                     except StopIteration:
                         print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
-                        sys.exit(1)
             OUT.write(record)
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
@@ -172,13 +172,10 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
     """
     if from_ == to_:
         print_error("invalid to/from", "The file formats between [green]TO[/] and [green]FROM[/] must be different from each other.")
-        sys.exit(1)
     if from_ in ["haplotagging", "standard"] and to_ in ["haplotagging", "standard"]:
         print_error("redundant conversion", "The [green]haplotagging[/] and [green]standard[/] formats are functionally identical and this conversion won\'t do anything.")
-        sys.exit(1)
     if from_ == "10x" and not barcodes:
         print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x.")
-        sys.exit(1)
     # check that the file is fastq
     with pysam.FastxFile(fq1, persist=False) as R1:
         try:
@@ -188,7 +185,6 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
                 break
         except ValueError:
             print_error("Unrecognized file type", f"[blue]{os.path.basename(fq1)}[/] was unable to be processed as a FASTQ file by samtools, suggesting it is not a FASTQ file.")
-            sys.exit(1)
     with pysam.FastxFile(fq2, persist=False) as R2:
         try:
             for i in R2:
@@ -197,7 +193,6 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
                 break
         except ValueError:
             print_error("Unrecognized file type", f"[blue]{os.path.basename(fq2)}[/] was unable to be processed as a FASTQ by samtools, suggesting it is not a FASTQ file.")
-            sys.exit(1)
 
     # just make sure it's all lowercase
     from_ = from_.lower()
@@ -274,7 +269,6 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
                                 bc_inventory[_r1.barcode] = format_bc(next(bc_generator))
                             except StopIteration:
                                 print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
-                                sys.exit(1)
                         else:
                             bc_inventory[_r1.barcode] = invalid
                     bc_out.write(f"{_r1.barcode}\t{bc_inventory[_r1.barcode]}\n")
@@ -300,7 +294,6 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
                                 bc_inventory[_r2.barcode] = format_bc(next(bc_generator))
                             except StopIteration:
                                 print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
-                                sys.exit(1)
                         else:
                             bc_inventory[_r2.barcode] = invalid
                     bc_out.write(f"{_r2.barcode}\t{bc_inventory[_r2.barcode]}\n")
@@ -326,14 +319,13 @@ def standardize(sam, quiet):
     """
     try:
         with (
-            pysam.AlignmentFile(sam, require_index=False) as SAM, 
-            pysam.AlignmentFile(sys.stdout, "wb", template=SAM),
+            pysam.AlignmentFile(sam, require_index=False) as samfile, 
+            pysam.AlignmentFile(sys.stdout, "wb", template=samfile),
             harpy_pulsebar(quiet, "Standardizing", True),
         ):
-            for record in SAM.fetch(until_eof=True):
+            for record in samfile.fetch(until_eof=True):
                 if record.has_tag("BX") and record.has_tag("VX"):
                     print_error("BX/VX tags present", f"The BX:Z and VX:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
-                    sys.exit(1)
                 if record.has_tag("BX"):
                     bx = record.get_tag("BX")
                     if "0" in bx.split("_") or re.search(r"(?:N|[ABCD]00)", bx):
@@ -354,7 +346,6 @@ def standardize(sam, quiet):
                     record.set_tag("BX", bx_sanitized, "Z")
     except ValueError:
         print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
-        sys.exit(1)
 
 @click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map',  is_flag = True, default = False, help = 'Write a map of the barcode-to-nucleotide conversion')
@@ -412,8 +403,7 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
                     NUCLEOTIDE_FMT = True
                 break
             if n > scan:
-                print(f"Scanned the first {scan} reads of {os.path.basename(r1_fq)} and was unable to locate barcodes in the BX:Z field nor as a TELLseq or stLFR suffix in the read ID.")
-                sys.exit(1)
+                print_error("unknown barcode format", f"Scanned the first {scan} reads of {os.path.basename(r1_fq)} and was unable to locate barcodes in the BX:Z field nor as a TELLseq or stLFR suffix in the read ID.")
 
     bc_inventory = {}
     bc_iter = product(*["ATCG" for i in range(18)])

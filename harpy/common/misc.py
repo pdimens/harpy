@@ -1,10 +1,10 @@
 """Module with helper function to set up Harpy workflows"""
 
 import os
-import sys
 import glob
 import gzip
 import shutil
+import subprocess
 import rich_click as click
 from rich.markdown import Markdown
 from pathlib import Path
@@ -12,7 +12,7 @@ import importlib.resources as resources
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
-from .printing import print_error, print_notice, print_solution, CONSOLE
+from .printing import CONSOLE, print_error, print_notice, print_solution, print_solution_offenders
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
     """Returns a nicely formatted live-panel with the progress bar in it"""
@@ -71,9 +71,8 @@ def fetch_snakefile(workdir: str, target: str) -> None:
         with resources.as_file(source_file) as _source:
             shutil.copy2(_source, dest_file)
     except (FileNotFoundError, KeyError):
-        print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.")
+        print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.", False)
         print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
-        sys.exit(1)
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -213,3 +212,74 @@ def container_ok(ctx, param, value):
             raise click.BadParameter(
                 "Container software management requires apptainer, which wasn't detected in this environment.", ctx, param
             )
+
+def is_gzip(file_path: str) -> bool:
+    """helper function to determine if a file is gzipped"""
+    try:
+        with gzip.open(file_path, 'rt') as f:
+            f.read(10)
+        return True
+    except (gzip.BadGzipFile, UnicodeDecodeError):
+        return False
+
+# not currently used, but keeping it here for posterity
+def is_bgzipped(file_path: str) -> bool:
+    """Check if a file is truly BGZF-compressed (not just GZIP) by looking for the BGZF EOF marker."""
+    try:
+        # Try reading the BGZF EOF marker (last 28 bytes)
+        with open(file_path, 'rb') as f:
+            f.seek(-28, 2)  # Seek to 28 bytes before end
+            eof_block = f.read()
+            # BGZF EOF marker signature
+            bgzf_eof = b"\x1f\x8b\x08\x04\x00\x00\x00\x00\x00\xff\x06\x00\x42\x43\x02\x00\x1b\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            return eof_block == bgzf_eof
+    except (IOError, OSError):
+        return False
+
+def is_plaintext(file_path: str) -> bool:
+    """helper function to determine if a file is plaintext"""
+    try:
+        with open(file_path, 'r') as f:
+            f.read(10)
+        return True
+    except UnicodeDecodeError:
+        return False
+
+def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60, gzip_ok: bool = True, haplotag_only: bool = False, check_dups: bool = True) -> None | int:
+    """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
+    if is_gzip(infile) and not gzip_ok:
+        print_error("incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/] and try again.")
+    lengths = set()
+    nucleotides = {'A','C','G','T'}
+    def validate(line_num, bc_line):
+        barcode = bc_line.rstrip()
+        if len(barcode.split()) > 1:
+            print_error("incorrect format", f"There must be one barcode per line, but multiple entries were detected on [bold]line {line_num}[/] in [blue]{infile}[/]")
+        if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
+            print_error("incorrect format", f"Invalid barcode format on [bold]line {line_num }[/]: [yellow]{barcode}[/].\nBarcodes in [blue]{infile}[/] must be captial letters and only contain standard nucleotide characters [green]ATCG[/].")
+        return len(barcode)
+    progress = harpy_progressbar(quiet)
+    with safe_read(infile) as bc_file, harpy_progresspanel(progress, title= "Validating barcodes", quiet=quiet):
+        out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
+        linenum = int(out.partition(b' ')[0])
+        if linenum > 96**4 and haplotag_only:
+            print_error("Too many barcodes", f"The maximum number of barcodes possible with haplotagging is [bold]96^4 (84,934,656)[/], but there are [yellow]{linenum}[/] barcodes in [blue]{infile}[/]. Please use fewer barcodes.")
+        task_progress = progress.add_task("[dim]Progress", total=linenum)
+        # check for duplicates
+        if check_dups:
+            sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
+            dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
+            if dup_out.stdout:
+                print_error("duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.", False)
+                print_solution_offenders("Check that you remove duplicate barcodes from your input file.", "Duplicates identified", dup_out.stdout)
+        for line,bc in enumerate(bc_file, 1):
+            length = validate(line, bc)
+            if length > limit:
+                print_error("barcodes too long", f"Barcodes in [blue]{infile}[/] are [yellow]{length}bp[/] and cannot exceed a length of [bold]{limit}bp[/]. Please use shorter barcodes.")
+            lengths.add(length)
+            if len(lengths) > 1:
+                str_len = ", ".join(str(_length) for _length in lengths)
+                print_error("inconsistent length", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]{str_len}[/]")
+            progress.advance(task_progress)
+    if return_len:
+        return lengths.pop()

@@ -2,12 +2,14 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import ContigList, HPCProfile, InputFile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, FASTAfile
+from harpy.validation.fasta import FASTA
+from harpy.validation.sam import SAM
+from harpy.validation.vcf import VCF
+from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import HapCutParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_alignment_inputs
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta, vcf_sample_match, validate_bam_RG, vcf_contig_match
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -27,7 +29,7 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
 @click.option('-x', '--extra-params', type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
-@click.option('-r', '--reference', type=InputFile("fasta", gzip_ok = True), help = 'Path to reference genome if wanting to also extract reads spanning indels')
+@click.option('-r', '--reference', type=FASTAfile(), help = 'Path to reference genome if wanting to also extract reads spanning indels')
 @click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-q', '--min-map-quality', default = 20, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality for phasing')
 @click.option('-m', '--min-base-quality', default = 13, show_default = True, type = click.IntRange(0, 100, clamp = True), help = 'Minimum base quality for phasing')
@@ -44,8 +46,8 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
-@click.argument('vcf', required = True, type = InputFile("vcf", gzip_ok = False), nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, molecule_distance, platform, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
@@ -64,13 +66,14 @@ def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, m
     workflow.conda = ["phase", "r"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    validate_bam_RG(bamlist, threads, quiet)
+    alignments = SAM(inputs)
+    vcffile = VCF(vcf, workflow.workflow_directory)
+    vcffile.match_samples(alignments.files, vcf_samples)
+
     if reference:
-        check_fasta(reference)
+        fasta = FASTA(reference)
     if contigs:
-        vcf_contig_match(contigs, vcf)
+        vcffile.match_contigs(contigs)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -97,18 +100,17 @@ def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, m
         },
         "inputs" : {
             "vcf" : {
-                "file": vcf,
+                "file": vcffile.file,
                 "prioritize_samples" : vcf_samples
             },
-            **({'reference': reference} if reference else {}),
-            "alignments" : bamlist
+            **({'reference': fasta.file} if reference else {}),
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Input VCF:", os.path.basename(vcf)),
-        ("Samples in VCF:", len(samplenames)),
-        ("Alignment Files:", n),
+        ("Input VCF:", os.path.basename(vcffile.file)),
+        ("Samples:", min(len(vcffile.samples), alignments.count)),
         ("Phase Indels:", "yes" if reference else "no"),
         ("Reference:", os.path.basename(reference)) if reference else None,
         ("Output Folder:", os.path.basename(output_dir) + "/")

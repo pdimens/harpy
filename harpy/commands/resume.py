@@ -3,7 +3,6 @@
 from datetime import datetime
 import os
 import re
-import sys
 import yaml
 import rich_click as click
 from harpy.common.conda import check_environments, create_conda_recipes
@@ -33,11 +32,9 @@ def resume(directory, conda, relative, threads, quiet):
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
     if not os.path.exists(PROFILE_FILE):
-        print_error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
-        sys.exit(1)
+        print_error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/config.yaml[/]")
     if not os.path.exists(CONFIG_FILE):
-        print_error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
-        sys.exit(1)
+        print_error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
     
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)

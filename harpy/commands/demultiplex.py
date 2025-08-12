@@ -8,10 +8,10 @@ import sys
 import pysam
 import subprocess
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok, safe_read
-from harpy.common.printing import print_error, print_solution_with_culprits, workflow_info
-from harpy.common.validations import validate_demuxschema
+from harpy.common.printing import print_error, print_solution_offenders, workflow_info
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -51,8 +51,7 @@ def gen1():
     """
     Use `meier2021` instead
     """
-    print("This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
-    sys.exit(1)
+    print_error("deprecated command", "This workflow has been renamed \"meier2021\"-- please use that instead. This warning will be removed in the next minor Harpy version and will only return an error.")
 
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
 @click.option('-u', '--keep-unknown-samples',  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
@@ -66,9 +65,9 @@ def gen1():
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('schema', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True))
-@click.argument('R12_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=2)
-@click.argument('I12_FQ', required=True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=2)
+@click.argument('schema', required = True, type=DemuxSchema())
+@click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
+@click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
@@ -82,9 +81,6 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, quiet) 
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
-    
-    ## checks and validations ##
-    multi_id = validate_demuxschema(schema)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -104,17 +100,16 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         },
         "inputs" : {
             "demultiplex_schema" : schema,
-            "R1": r12_fq[0],
-            "R2": r12_fq[1],
-            "I1": i12_fq[0],
-            "I2": i12_fq[1]
+            "R1": r12_fq[0][0],
+            "R2": r12_fq[1][0],
+            "I1": i12_fq[0][0],
+            "I2": i12_fq[1][0]
         }
     }
     
     workflow.start_text = workflow_info(
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
         ("Demultiplex Schema:", os.path.basename(schema)),
-        ("Multi-ID Samples:", "[bold yellow]Yes[/] [dim](assuming this was intentional)[/]" if multi_id else "No"),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
@@ -146,7 +141,6 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
     """
     if barcode_map and barcode_style:
         print_error("invalid options", "[blue]--barcode-map[/] and [blue]--barcode-style[/] cannot be used together.")
-        sys.exit(1)
     conv_dict = {}
     if barcode_map:
         with safe_read(barcode_map) as bcmap:
@@ -154,15 +148,19 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                 try:
                     nuc,bx = j.split()
                     if not re.search(r"^[ATCGN]+$", nuc):
-                        print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]")
-                        print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
-                        click.echo(j.strip())
-                        sys.exit(1)
+                        print_error(
+                            "bad file format",
+                            f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]",
+                            False
+                        )
+                        print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
                 except ValueError:
-                    print_error("Bad file format", f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]")
-                    print_solution_with_culprits("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}")
-                    click.echo(j.strip())
-                    sys.exit(1)
+                    print_error(
+                        "bad file format",
+                        f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]",
+                        False
+                    )
+                    print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
                 conv_dict[nuc] = bx
 
     if barcode_style == "stlfr":

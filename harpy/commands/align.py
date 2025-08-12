@@ -2,12 +2,13 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import ContigList, InputFile, HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTQfile, FASTAfile
+from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import BwaParams, StrobeAlignParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_fastq_inputs
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta, fasta_contig_match, fastq_has_bx
+from harpy.validation.fasta import FASTA
+from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -72,8 +73,8 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using BWA MEM
@@ -92,14 +93,13 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
     workflow.conda = ["align", "r", "qc"]
 
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
-    check_fasta(reference)
+    fastq = FASTQ(inputs)
+    fasta = FASTA(reference)
+    #check_fasta(reference)
     if contigs:
-        fasta_contig_match(contigs, reference)
-    if ignore_bx:
-        is_standardized = False
-    else:
-        is_standardized = fastq_has_bx(fqlist, threads, quiet)
+        fasta.match_contigs(contigs)
+    if not ignore_bx:
+        fastq.has_bx_tag()
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -108,7 +108,7 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
         "depth_windowsize" : depth_window,
         "barcodes": {
             "ignore" : ignore_bx,
-            "standardized": is_standardized,
+            "standardized": fastq.bx_tag,
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
@@ -123,13 +123,13 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference": reference,
-            "fastq": fqlist
+            "reference": fasta.file,
+            "fastq": fastq.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:",sample_count),
+        ("Samples:",fastq.count),
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
@@ -152,8 +152,8 @@ def bwa(reference, inputs, output_dir, depth_window, ignore_bx, threads, keep_un
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('reference', type=FASTAfile(), nargs = 1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Align sequences to reference genome using strobealign
@@ -171,14 +171,13 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
     workflow.conda = ["align", "r", "qc"]
 
     ## checks and validations ##
-    fqlist, sample_count = parse_fastq_inputs(inputs, "INPUTS")
-    check_fasta(reference)
+    fastq = FASTQ(inputs)
+    fasta = FASTA(reference)
+
     if contigs:
-        fasta_contig_match(contigs, reference)
-    if ignore_bx:
-        is_standardized = False
-    else:
-        is_standardized = fastq_has_bx(fqlist, threads, quiet)
+        fasta.match_contigs(contigs)
+    if not ignore_bx:
+        fastq.has_bx_tag()
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -187,7 +186,7 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
         "depth_windowsize" : depth_window,
         "barcodes": {
             "ignore" : ignore_bx,
-            "standardized": is_standardized,
+            "standardized": fastq.bx_tag,
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
@@ -202,13 +201,13 @@ def strobe(reference, inputs, output_dir, ignore_bx, keep_unmapped, depth_window
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference": reference,
-            "fastq": fqlist
+            "reference": fasta.file,
+            "fastq": fastq.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:",sample_count),
+        ("Samples:", fastq.count),
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )

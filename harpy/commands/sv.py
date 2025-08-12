@@ -2,13 +2,15 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_types_generic import ContigList, HPCProfile, InputFile, MultiInt, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile, VCFfile
+from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_alignment_inputs
 from harpy.common.printing import workflow_info
-from harpy.common.validations import check_fasta, check_phase_vcf
-from harpy.common.validations import validate_popfile, validate_popsamples, fasta_contig_match
+from harpy.validation.fasta import FASTA
+from harpy.validation.vcf import VCF
+from harpy.validation.sam import SAM
+from harpy.validation.populations import Populations
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -79,8 +81,8 @@ docstring = {
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
@@ -102,13 +104,12 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.conda = ["align", "r", "variants"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    check_fasta(reference)
+    alignments = SAM(inputs)
+    fasta = FASTA(reference)
     if contigs:
-        fasta_contig_match(contigs, reference)
+        fasta.match_contigs(contigs)
     if populations:
-        validate_popfile(populations)
-        validate_popsamples(bamlist, populations, quiet)
+        popfile = Populations(populations, alignments.files)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -133,14 +134,14 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            "reference" : reference,
-            **({'groupings': populations} if populations else {}),
-            "alignments" : bamlist
+            "reference" : fasta.file,
+            **({'groupings': popfile.file} if populations else {}),
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", n),
+        ("Samples:", alignments.count),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Output Folder:", os.path.basename(output_dir) + "/")
@@ -157,7 +158,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/naibr", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True),  help = 'Path to phased bcf/vcf file')
+@click.option('-v', '--vcf', type=VCFfile(),  help = 'Path to phased bcf/vcf file')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -165,8 +166,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('reference', type=InputFile("fasta", gzip_ok = True), required = True, nargs = 1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True), nargs=-1)
+@click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using NAIBR
@@ -192,15 +193,15 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflow.conda = ["phase", "r", "variants"]
 
     ## checks and validations ##
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    check_fasta(reference)
+    alignments = SAM(inputs)
+    fasta =  FASTA(reference)
     if contigs:
-        fasta_contig_match(contigs, reference)
+        fasta.match_contigs(contigs)
     if populations:
-        validate_popfile(populations)
-        validate_popsamples(bamlist, populations, quiet)
+        popfile = Populations(populations, alignments.files)
     if vcf:
-        check_phase_vcf(vcf)
+        vcffile = VCF(vcf, workflow.workflow_directory)
+        vcffile.check_phase()
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -220,15 +221,15 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
         },
         "inputs" : {
-            **({'reference': reference} if reference else {}),
-            **({'vcf': vcf} if vcf else {}),
-            **({'groupings': populations} if populations else {}),
-            "alignments" : bamlist
+            **({'reference': fasta.file} if reference else {}),
+            **({'vcf': vcffile.file} if vcf else {}),
+            **({'groupings': popfile.file} if populations else {}),
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", n),
+        ("Samples:", alignments.count),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),

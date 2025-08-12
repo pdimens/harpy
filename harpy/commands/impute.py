@@ -1,15 +1,16 @@
 """Harpy imputation workflow"""
 
 import os
-import sys
 import rich_click as click
-from harpy.common.cli_types_generic import HPCProfile, SnakemakeParams
+from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.cli_types_params import StitchParams
 from harpy.common.misc import container_ok
-from harpy.common.parsers import parse_alignment_inputs, biallelic_contigs, parse_impute_regions
-from harpy.common.printing import workflow_info, print_error, print_solution
-from harpy.common.validations import vcf_sample_match, check_impute_params, validate_bam_RG
+from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
+from harpy.validation.impute_parameters import ImputeParams
+from harpy.validation.sam import SAM
+from harpy.validation.vcf import VCF
 
 docstring = {
         "harpy impute": [
@@ -40,8 +41,8 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found the inputs')
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
-@click.argument('vcf', required = True, type = click.Path(exists=True, readable=True, dir_okay = False, resolve_path=True), nargs=1)
-@click.argument('inputs', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=-1)
+@click.argument('vcf', required = True, type = VCFfile(), nargs=1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Impute genotypes using variants and alignments
@@ -62,20 +63,13 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     workflow.conda = ["r", "stitch"]
 
     ## checks and validations ##
-    params = check_impute_params(parameters)
-    bamlist, n = parse_alignment_inputs(inputs, "INPUTS")
-    validate_bam_RG(bamlist, threads, quiet)
-    samplenames = vcf_sample_match(vcf, bamlist, vcf_samples)
-    biallelic_file, biallelic_names, n_biallelic = biallelic_contigs(vcf, workflow.workflow_directory)
+    params = ImputeParams(parameters)
+    alignments = SAM(inputs)
+    vcffile = VCF(vcf, workflow.workflow_directory)
+    vcffile.find_biallelic_contigs()
+    vcffile.match_samples(alignments.files, vcf_samples)
     if region:
-        contig, start,end, buffer = parse_impute_regions(region, vcf)
-        if contig not in biallelic_names:
-            print_error(
-                "missing contig",
-                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed."
-            )
-            print_solution(f"Restrict the contigs provided to [bold green]--regions[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{biallelic_file}[/].")
-            sys.exit(1)
+        vcffile.validate_region(region)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -89,21 +83,20 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
         "grid_size": grid_size,
-        "stitch_parameters" : params,
+        "stitch_parameters" : params.parameters,
         "inputs" : {
-            "paramfile" : parameters,
-            "vcf" : vcf,
-            **({"biallelic_contigs" : biallelic_file} if not region else {}), 
-            "alignments" : bamlist
+            "parameters" : params.file,
+            "vcf" : vcffile.file,
+            **({"biallelic_contigs" : vcffile.biallelic_file} if not region else {}), 
+            "alignments" : alignments.files
         }
     }
 
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcf)),
-        ("Samples in VCF:", len(samplenames)),
-        ("Alignment Files:", n),
+        ("Samples:", min(len(vcffile.samples), alignments.count)),
         ("Parameter File:", os.path.basename(parameters)),
-        ("Contigs:", f"{n_biallelic} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
+        ("Contigs:", f"{len(vcffile.biallelic_contigs)} [dim](with at least 2 biallelic SNPs)") if not region else ("Target Region:", region),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
