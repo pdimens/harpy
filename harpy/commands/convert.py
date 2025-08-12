@@ -57,7 +57,7 @@ def bam(to_,sam, standardize, quiet):
     try:
         with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
             progress.add_task("[dim]Determining barcode type", total = None)
-            HEADER = alnfile.header
+            #HEADER = alnfile.header
             for record in alnfile.fetch(until_eof = True):
                 try:
                     bx = record.get_tag("BX")
@@ -122,8 +122,8 @@ def bam(to_,sam, standardize, quiet):
     bc_inventory = {}
     with (
         pysam.AlignmentFile(sam, require_index=False) as samfile,
-        pysam.AlignmentFile(sys.stdout, "wb", header=HEADER) as OUT,
-        harpy_pulsebar(quiet, "Converting") as progress,
+        pysam.AlignmentFile("-", "wb", template=samfile) as OUT,
+        harpy_pulsebar(quiet, "Converting", True) as progress,
     ):
         progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
         for record in samfile.fetch(until_eof=True):
