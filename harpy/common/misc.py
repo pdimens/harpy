@@ -12,7 +12,7 @@ import importlib.resources as resources
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
-from .printing import CONSOLE, print_error, print_notice, print_solution, print_solution_offenders
+from .printing import CONSOLE, print_error, print_notice
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
     """Returns a nicely formatted live-panel with the progress bar in it"""
@@ -71,8 +71,11 @@ def fetch_snakefile(workdir: str, target: str) -> None:
         with resources.as_file(source_file) as _source:
             shutil.copy2(_source, dest_file)
     except (FileNotFoundError, KeyError):
-        print_error("snakefile missing", f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.", False)
-        print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+        print_error(
+            "snakefile missing",
+            f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.",
+            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+        )
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -270,8 +273,13 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
             sort_out = subprocess.Popen(["sort", infile], stdout=subprocess.PIPE)
             dup_out = subprocess.run(["uniq", "-d"], stdin=sort_out.stdout, capture_output=True, text=True)
             if dup_out.stdout:
-                print_error("duplicate barcodes", f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.", False)
-                print_solution_offenders("Check that you remove duplicate barcodes from your input file.", "Duplicates identified", dup_out.stdout)
+                print_error(
+                    "duplicate barcodes",
+                    f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data."
+                    "Check that you remove duplicate barcodes from your input file.",
+                    "Duplicates identified",
+                    dup_out.stdout
+                )
         for line,bc in enumerate(bc_file, 1):
             length = validate(line, bc)
             if length > limit:

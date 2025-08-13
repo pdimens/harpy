@@ -1,5 +1,5 @@
 from pathlib import Path
-from harpy.common.printing import print_notice, print_error, print_solution_offenders
+from harpy.common.printing import print_notice, print_error
 
 class Populations():
     '''
@@ -19,9 +19,6 @@ class Populations():
             print_error(
                 "mismatched inputs",
                 f"There are [bold]{len(missing_samples)}[/] samples included in [blue]{self.file}[/] that weren\'t found in in the inputs. Terminating Harpy to avoid downstream errors.",
-                False
-            )
-            print_solution_offenders(
                 f"Make sure the spelling of these samples is identical in the inputs and [blue]{self.file}[/], or remove them from [blue]{self.file}[/].",
                 "The samples causing this error are",
                 ", ".join(sorted(missing_samples))

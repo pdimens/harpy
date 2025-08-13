@@ -11,7 +11,7 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.misc import container_ok, safe_read
-from harpy.common.printing import print_error, print_solution_offenders, workflow_info
+from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
@@ -151,16 +151,19 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                         print_error(
                             "bad file format",
                             f"The file provided to [blue]--barcode-map[/] requires nucleotide barcodes in the first column, but characters other than [green]ATCGN[/] were found in row [bold]{i}[/]",
-                            False
-                        )
-                        print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
+                            "Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]",
+                            f"Contents of row {i}",
+                            j.strip()
+                            )
+
                 except ValueError:
                     print_error(
                         "bad file format",
                         f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]",
-                        False
+                        "Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]",
+                        f"Contents of row {i}",
+                        j.strip
                     )
-                    print_solution_offenders("Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]", f"Contents of row {i}", j.strip())
                 conv_dict[nuc] = bx
 
     if barcode_style == "stlfr":

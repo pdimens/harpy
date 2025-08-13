@@ -7,7 +7,7 @@ import pysam
 import re
 import yaml
 from harpy.common.misc import is_gzip
-from harpy.common.printing import print_error, print_notice, print_solution, print_solution_offenders
+from harpy.common.printing import print_error, print_notice
 
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
@@ -143,9 +143,6 @@ class PopulationFile(click.ParamType):
                 print_error(
                     "invalid format",
                     f"There are [bold]{len(invalids)}[/] rows in [bold]{value}[/] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.",
-                    False
-                )
-                print_solution_offenders(
                     f"Make sure every entry in [bold]{value}[/] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green bold]#[/] to have Harpy ignore them.",
                     "The rows and values causing this error are",
                     [f"{i[0]+1}\t{i[1]}" for i in invalids]
@@ -226,15 +223,19 @@ class DemuxSchema(click.ParamType):
                 try:
                     sample, segment_id = line.rstrip().split()
                     if not segment_pattern.match(segment_id):
-                        print_error("invalid segment format", f"Segment ID [green]{segment_id}[/] does not follow the expected format.", False)
-                        print_solution("This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design.")
+                        print_error(
+                            "invalid segment format",
+                            f"Segment ID [green]{segment_id}[/] does not follow the expected format.",
+                            "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design."
+                        )
                     code_letters.add(segment_id[0])
                     if sample in samples:
                         duplicates = True
                     samples.add(sample)
                     if segment_id in segment_ids:
-                        print_error("ambiguous segment ID", "An ID segment must only be associated with a single sample.", False)
-                        print_solution_offenders(
+                        print_error(
+                            "ambiguous segment ID",
+                            "An ID segment must only be associated with a single sample.",                        
                             "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/] cannot identify both [green]sample_01[/] and [green]sample_2[/]. In other words, a segment can only appear once.",
                             "The segment triggering this error is",
                             segment_id
@@ -247,8 +248,9 @@ class DemuxSchema(click.ParamType):
         if not code_letters:
             print_error("incorrect schema format", f"Schema file [blue]{os.path.basename(value)}[/] has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
         if len(code_letters) > 1:
-            print_error("invalid schema", f"Schema file [blue]{os.path.basename(value)}[/] has sample IDs occurring in different barcode segments.", False)
-            print_solution_offenders(
+            print_error(
+                "invalid schema",
+                f"Schema file [blue]{os.path.basename(value)}[/] has sample IDs occurring in different barcode segments.",
                 "All sample IDs for this barcode design should be in a single segment, such as [bold green]C[/] or [bold green]D[/]. Make sure the schema contains only one segment.",
                 "The segments identified in the schema",
                 ", ".join(code_letters)

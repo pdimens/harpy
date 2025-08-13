@@ -77,8 +77,7 @@ def bam(to_,sam, standardize, quiet):
             if not from_:
                 print_error(
                     "unrecognized barcode",
-                    f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified.",
-                    True    
+                    f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified."   
                 )
     except ValueError:
         print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")

@@ -4,7 +4,7 @@ import os
 import re
 import pysam
 from rich.markdown import Markdown
-from harpy.common.printing import print_error, print_solution, print_solution_offenders
+from harpy.common.printing import print_error
 
 class FASTQ():
     '''
@@ -33,8 +33,9 @@ class FASTQ():
             if re.search(inv_pattern, os.path.basename(i)):
                 badmatch.append(os.path.basename(i))
         if badmatch:
-            print_error("invalid characters", "Invalid characters were detected in the input FASTQ file names.", False)
-            print_solution_offenders(
+            print_error(
+                "invalid characters",
+                "Invalid characters were detected in the input FASTQ file names.",
                 Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"),
                 "The offending files",
                 ", ".join(badmatch)
@@ -46,9 +47,10 @@ class FASTQ():
             print_error(
                 "clashing sample names",
                 Markdown("Identical sample names were detected in the inputs, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"),
-                False
+                "Make sure all input files have unique names.",
+                "Files with clashing names",
+                dupe_out
             )
-            print_solution_offenders("Make sure all input files have unique names.", "Files with clashing names", dupe_out)
         
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
     
@@ -86,9 +88,8 @@ class FASTQ():
                         print_error(
                             "clashing barcode tags",
                             f"Both [green bold]BC:Z[/] and [green bold]BX:Z[/] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/]. Athena accepts [bold]only[/] one of [green bold]BC:Z[/] or [green bold]BX:Z[/].",
-                            False
+                            "Check why your data has both tags in use and remove/rename one of the tags."
                         )
-                        print_solution("Check why your data has both tags in use and remove/rename one of the tags.")
                     if records >= max_records:
                         break
                 # check for one or the other after parsing is done
@@ -97,6 +98,5 @@ class FASTQ():
                     print_error(
                         "no barcodes found",
                         f"No [green bold]{primary}[/] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/] or [green bold]BX:Z[/] tags.{errtext}",
-                        False
+                        "Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag."
                     )
-                    print_solution("Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag.")
