@@ -5,8 +5,7 @@ import sys
 import yaml
 from rich import box
 from rich.table import Table
-from rich import print as rprint
-from .printing import print_error, print_solution_offenders
+from .printing import print_error
 
 def create_conda_recipes(outdir: str, envs: list= []) -> None:
     """Create the YAML files of the workflow conda dependencies"""
@@ -124,8 +123,9 @@ def check_environments(dirpath: str, envs: list) -> None:
             errcount += 1
             errtable.add_row(f"[yellow bold]{i}.yaml", "[yellow bold]missing")
     if errcount > 0:
-        print_error("missing environment files", f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.", False)
-        print_solution_offenders(
+        print_error(
+            "missing environment files",
+            f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.",
             "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",
             "Expected environment files",
             errtable

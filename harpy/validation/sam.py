@@ -3,7 +3,7 @@ from itertools import chain
 import os
 import re
 from rich.markdown import Markdown
-from harpy.common.printing import print_error, print_solution_offenders
+from harpy.common.printing import print_error
 
 class SAM():
     '''
@@ -32,8 +32,9 @@ class SAM():
                 badmatch.append(os.path.basename(i))
         
         if badmatch:
-            print_error("invalid characters", "Invalid characters were detected in the input file names.", False)
-            print_solution_offenders(
+            print_error(
+                "invalid characters",
+                "Invalid characters were detected in the input file names.",
                 Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"),
                 "The offending files",
                 ", ".join(badmatch)
@@ -45,7 +46,8 @@ class SAM():
             print_error(
                 "clashing sample names",
                 Markdown("Identical filenames were detected, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"),
-                False
+                "Make sure all input files have unique names.",
+                "Files with clashing names",
+                dupe_out
             )
-            print_solution_offenders("Make sure all input files have unique names.", "Files with clashing names", dupe_out)
 

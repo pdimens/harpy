@@ -4,7 +4,7 @@ from pathlib import Path
 import pysam
 import pysam.bcftools
 import subprocess
-from harpy.common.printing import print_error, print_solution, print_solution_offenders
+from harpy.common.printing import print_error
 
 class VCF():
     '''
@@ -56,8 +56,9 @@ class VCF():
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)
-            print_error("vcf not phased", "The input variant file needs to be phased into haplotypes, but no [green]FORMAT/PS[/] or [green]FORMAT/HP[/] fields were found.", False)
-            print_solution(
+            print_error(
+                "vcf not phased",
+                "The input variant file needs to be phased into haplotypes, but no [green]FORMAT/PS[/] or [green]FORMAT/HP[/] fields were found.",
                 f"Phase [bold]{bn}[/] into haplotypes using [blue bold]harpy phase[/] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/] or [green]FORMAT/HP[/] tags."
             )
 
@@ -77,9 +78,6 @@ class VCF():
             print_error(
                 "mismatched inputs",
                 f"There are [bold]{len(missing_samples)}[/] samples found in [blue]{fromthis}[/] that are not in [blue]{inthis}[/]. Terminating Harpy to avoid downstream errors.",
-                False
-            )
-            print_solution_offenders(
                 f"[blue]{fromthis}[/] cannot contain samples that are absent in [blue]{inthis}[/]. Check the spelling or remove those samples from [blue]{fromthis}[/] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/] to aggregate the sample list from the input files or [blue]{self.file}[/].",
                 "The samples causing this error are",
                 ", ".join(sorted(missing_samples)) + "\n"
@@ -96,8 +94,9 @@ class VCF():
                 bad_names.append(i)
         if bad_names:
             shortname = os.path.basename(self.file)
-            print_error("contigs absent", f"Some of the provided contigs were not found in [blue]{shortname}[/]. This will definitely cause plotting errors in the workflow.", False)
-            print_solution_offenders(
+            print_error(
+                "contigs absent",
+                f"Some of the provided contigs were not found in [blue]{shortname}[/]. This will definitely cause plotting errors in the workflow.",
                 "Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.",
                 f"Contigs absent in {shortname}",
                 ",".join([i for i in bad_names])
@@ -125,13 +124,11 @@ class VCF():
             print_error(
                 "missing contig",
                 f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed.",
-                False
+                f"Restrict the contig provided to [bold green]--region[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{self.biallelic_file}[/]."
             )
-            print_solution(f"Restrict the contig provided to [bold green]--region[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{self.biallelic_file}[/].")
         if endpos > contigs[contig]:
             print_error(
                 "invalid region",
-                f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})",
-                True
+                f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})"
             )
         return contig, startpos, endpos, buffer

@@ -12,7 +12,7 @@ from rich import box
 from rich.table import Table
 from .conda import create_conda_recipes
 from .misc import filepath, gzip_file, fetch_snakefile, purge_empty_logs
-from .printing import CONSOLE, print_error, print_solution
+from .printing import CONSOLE, print_error
 from .launch import launch_snakemake
 
 class Workflow():
@@ -69,9 +69,6 @@ class Workflow():
             print_error(
                 "unsupported path name",
                 "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors.",
-                False
-            )
-            print_solution(
                 f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
             )
         self.profile = {
@@ -117,8 +114,11 @@ class Workflow():
             with resources.as_file(source_file) as _source:
                 shutil.copy2(_source, dest_file)
         except (FileNotFoundError, KeyError):
-            print_error("report script missing", f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.", False)
-            print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+            print_error(
+                "report script missing",
+                f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.",
+                "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+            )
 
     def fetch_report_configs(self):
         """
@@ -139,13 +139,8 @@ class Workflow():
             except (FileNotFoundError, KeyError):
                 print_error(
                     "report configuration missing",
-                    "The required quarto configuration could not be downloaded from the Harpy repository, "
-                    "nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.",
-                    False
-                )
-                print_solution(
-                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. "
-                    "Alternatively, there may be an issue with your conda/mamba environment or configuration."
+                    "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.",
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
                 )
 
         # same for the scss file
@@ -163,9 +158,8 @@ class Workflow():
                 print_error(
                     "report configuration missing",
                     "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.",
-                    False
-                )
-                print_solution("There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration.")
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+                    )
 
     def fetch_snakefile(self):
          """
@@ -186,12 +180,7 @@ class Workflow():
             print_error(
                 "snakefile missing",
                 f"The required script [blue bold]{target}[/] was not found in the Harpy installation.",
-                False
-            )
-            print_solution(
-                "There may be an issue with your Harpy installation, which would require "
-                "reinstalling Harpy. Alternatively, there may be an issue with your "
-                "conda/mamba environment or configuration."
+                "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
             )
 
     def fetch_hpc(self):

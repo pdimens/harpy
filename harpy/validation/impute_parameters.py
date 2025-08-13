@@ -2,7 +2,7 @@
 import re
 from rich.table import Table
 from rich import box
-from harpy.common.printing import print_error, print_solution_offenders
+from harpy.common.printing import print_error
 
 class ImputeParams():
     '''
@@ -36,9 +36,6 @@ class ImputeParams():
                 print_error(
                     "incorrect columns",
                     f"Parameter file [bold]{self.file}[/] has incorrect column names" + "".join(errtext) + "\nValid names are: [green bold]" + " ".join(colnames) + "[/]",
-                    False
-                )
-                print_solution_offenders(
                     f"Fix the headers in [bold]{self.file}[/] or use [blue bold]harpy template[/] to generate a valid parameter file and modify it with appropriate values.",
                     "Column causing this error",
                     "\n".join(culprit_text)
@@ -72,8 +69,9 @@ class ImputeParams():
                 _outrows = []
                 for i in zip(badrows, badlens):
                     _outrows.append(f"{i[0]}\t{i[1]}")
-                print_error("invalid rows", f"Parameter file [blue]{self.file}[/] is formatted incorrectly. Not all rows have the expected {n_cols} columns.", False)
-                print_solution_offenders(
+                print_error(
+                    "invalid rows",
+                    f"Parameter file [blue]{self.file}[/] is formatted incorrectly. Not all rows have the expected {n_cols} columns.",
                     f"See the problematic rows below. Check that you are using a whitespace (space or tab) delimeter in [blue]{self.file}[/] or use [blue green]harpy template[/blue green] to generate a valid parameter file and modify it with appropriate values.",
                     "Rows causing this error and their column count",
                     _outrows
@@ -109,8 +107,9 @@ class ImputeParams():
                     errtable.add_row(f"{row}", ", ".join(badcols))
                 row += 1
             if row_error:
-                print_error("invalid parameter values", f"Parameter file [bold]{self.file}[/] is formatted incorrectly. Some rows have incorrect values for one or more parameters.", False)
-                print_solution_offenders(
+                print_error(
+                    "invalid parameter values",
+                    f"Parameter file [bold]{self.file}[/] is formatted incorrectly. Some rows have incorrect values for one or more parameters.",
                     "Review the table below of which rows/columns are causing issues",
                     "Formatting Errors",
                     errtable

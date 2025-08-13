@@ -2,15 +2,26 @@
 
 import os
 import sys
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich import box
 from rich.table import Table
 from rich.panel import Panel
 
 CONSOLE = Console(stderr=True)
 
-def print_error(errortitle: str, errortext: str, _exit: bool = True) -> None:
-    """Print a yellow panel with error text, exits with error code 1 by default"""
+def print_error(
+    errortitle: str,
+    errortext: RenderableType|str,
+    solutiontext: RenderableType|str|None = None,
+    offendertitle: str|None = None,
+    offenders: RenderableType|list|str|None = None,
+    _exit: bool = True
+    ) -> None:
+    """
+    Print a yellow panel with error text, exits with error code 1 by default, but exit
+    can be disabled with _exit = False. Prints a blue-panel solution if `solutiontext` is provided,
+    prints `offenders` after solution if proivded.    
+    """
     CONSOLE.print(
         Panel(
             errortext,
@@ -20,40 +31,25 @@ def print_error(errortitle: str, errortext: str, _exit: bool = True) -> None:
             width = 75
             )
     )
-    if _exit:
-        sys.exit(1)
-
-def print_solution(solutiontext: str, _exit: bool = True) -> None:
-    """Print a blue panel with solution text"""
-    CONSOLE.print(
-        Panel(solutiontext,
-            title = "[bold]Solution",
-            title_align = "left",
-            border_style = "blue",
-            width = 75
+    if solutiontext:
+        CONSOLE.print(
+            Panel(solutiontext,
+                title = "[bold]Solution",
+                title_align = "left",
+                border_style = "blue",
+                subtitle= offendertitle,
+                width = 75
             )
-    )
+        )
+        if offenders:
+            offenders = offenders if isinstance(offenders, str) else "\n".join([str(i) for i in offenders])
+            CONSOLE.print(
+                offenders,
+                sep = "\n",
+                highlight= False
+            )
     if _exit:
         sys.exit(1)
-
-def print_solution_offenders(solutiontext: str, culprittext: str, offenders: list[str]|str) -> None:
-    """
-    Print a blue panel with solution text and culprittext as the subtitle to introduce the list of offenders below it. Terminates
-    with exit code 1
-    """
-    CONSOLE.print(
-        Panel(solutiontext,
-            title = "[bold]Solution",
-            title_align = "left",
-            subtitle = culprittext + ":",
-            border_style = "blue",
-            width = 75
-            ),
-        offenders if isinstance(offenders, str) else "\n".join(offenders),
-        sep = "\n",
-        highlight= False
-    )
-    sys.exit(1)
 
 def print_notice(noticetext: str) -> None:
     """Print a white panel with information text text"""
