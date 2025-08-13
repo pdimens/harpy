@@ -275,7 +275,7 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
             if dup_out.stdout:
                 print_error(
                     "duplicate barcodes",
-                    f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data."
+                    f"Duplicate barcodes were detected in {infile}, which will result in misleading simulated data.",
                     "Check that you remove duplicate barcodes from your input file.",
                     "Duplicates identified",
                     dup_out.stdout

@@ -162,7 +162,7 @@ def ncbi(prefix, r1_fq, r2_fq, barcode_map, barcode_style):
                         f"The file provided to [blue]--barcode-map[/] expects two entries per row separated by a whitespace, but a different amount was found in row [bold]{i}[/]",
                         "Make sure the mapping file you are providing is in the format:\n[green]nucleotides[/][dim]<tab or space>[/][green]new_barcode[/]",
                         f"Contents of row {i}",
-                        j.strip
+                        j.strip()
                     )
                 conv_dict[nuc] = bx
 

@@ -2,7 +2,7 @@
 
 import os
 import sys
-from rich.console import Console
+from rich.console import Console, RenderableType
 from rich import box
 from rich.table import Table
 from rich.panel import Panel
@@ -11,10 +11,10 @@ CONSOLE = Console(stderr=True)
 
 def print_error(
     errortitle: str,
-    errortext: str,
-    solutiontext: str|None = None,
+    errortext: RenderableType|str,
+    solutiontext: RenderableType|str|None = None,
     offendertitle: str|None = None,
-    offenders: list|None = None,
+    offenders: RenderableType|list|str|None = None,
     _exit: bool = True
     ) -> None:
     """
@@ -32,8 +32,6 @@ def print_error(
             )
     )
     if solutiontext:
-        if offenders:
-            offenders = offenders if isinstance(offenders, str) else "\n".join(offenders)
         CONSOLE.print(
             Panel(solutiontext,
                 title = "[bold]Solution",
@@ -41,11 +39,15 @@ def print_error(
                 border_style = "blue",
                 subtitle= offendertitle,
                 width = 75
-                ),
-        offenders,
-        sep = "\n",
-        highlight= False
-    )
+            )
+        )
+        if offenders:
+            offenders = offenders if isinstance(offenders, str) else "\n".join([str(i) for i in offenders])
+            CONSOLE.print(
+                offenders,
+                sep = "\n",
+                highlight= False
+            )
     if _exit:
         sys.exit(1)
 
