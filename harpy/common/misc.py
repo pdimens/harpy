@@ -74,7 +74,7 @@ def fetch_snakefile(workdir: str, target: str) -> None:
         print_error(
             "snakefile missing",
             f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.",
-            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
         )
 
 def filepath(infile: str) -> str:
