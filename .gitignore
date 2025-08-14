@@ -9,6 +9,7 @@ src/
 build/
 Preflight/
 Demultiplex/
+deprecated/
 QC/
 SNP/
 Impute/
