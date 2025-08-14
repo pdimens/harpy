@@ -87,7 +87,7 @@ quickly and easily, but **do not do this**. The [!badge corners="pill" text="har
 workflows will intelligently concatenate files and will make sure
 every individual will have unique `MI` values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside
-of a workflow, use [concatenate_bam.py](/Getting_Started/Resources/utilities.md#concatenate_bampy) shipped with Harpy
+of a workflow, use [concatenate_bam.py](/Getting_Started/Resources/utilities.md#concatenate_bam) shipped with Harpy
  instead of `samtools cat` or other similar tools. 
 ==- technical explanation
 The reason is, samples aligned

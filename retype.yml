@@ -15,7 +15,7 @@ theme:
     base-link-weight: 500
     nav-item-text-active-weight: 700
     image-rounded: 0.75rem
-    nav-item-text-stack: "#8ABB6C"
+    nav-item-text-stack: "#1e66f5"
 branding:
   title: Harpy
   label: v2.6
@@ -36,7 +36,7 @@ links:
   target: blank
 - text: Cornell GIH
   link: https://www.genomicsinnovation.cornell.edu/
-  icon: https://cdn.pixabay.com/photo/2018/02/27/02/01/gene-icon-3184531_1280.png
+  icon: static/biotech.png
   target: blank
 
 - text: Source
