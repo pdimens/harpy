@@ -14,7 +14,8 @@ fqlist       = config["inputs"]
 min_len 	 = config["min_len"]
 max_len 	 = config["max_len"]
 extra 	     = config.get("extra", "") 
-ignore_bx    = config["ignore_bx"]
+lr_type    = config["linkedread_type"]
+ignore_bx = lr_type == "none"
 trim_adapters = config.get("trim_adapters", None)
 dedup        = config["deduplicate"]
 deconvolve   = config.get("deconvolve", False)
@@ -137,10 +138,12 @@ rule barcode_stats:
         "{sample}.R1.fq.gz"
     output: 
         temp("logs/bxcount/{sample}.count.log")
+    params:
+        lr_type
     container:
         None
     shell:
-        "count_bx {input} > {output}"
+        "count_bx {params} {input} > {output}"
 
 rule configure_report:
     input:
@@ -159,7 +162,7 @@ rule barcode_report:
         "reports/_quarto.yml",
         "reports/_harpy.scss",
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"workflow/report/bx_count.qmd"
+        qmd = f"workflow/report/qc_bx_stats.qmd"
     output:
         report = "reports/barcode.summary.html",
         qmd = temp("reports/barcode.summary.qmd")

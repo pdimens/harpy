@@ -12,6 +12,7 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 bc_type = config["barcodes"]["platform"]
+
 if bc_type == "haplotagging":
     invalid_bc = "'$4 !~ /[ABCD]00/'"
 elif bc_type == "stlfr":
@@ -30,7 +31,7 @@ skip_reports      = config["reports"]["skip"]
 plot_contigs      = config["reports"]["plot_contigs"]
 bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-if config["barcodes"]["ignore"]:
+if bc_type == "none":
     fragfile = "extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
 else:
@@ -302,8 +303,11 @@ rule workflow_summary:
         summary.append(hetsplit)
         phase = "Phasing was performed using the components of HapCut2:\n"
         phase += "\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
-        phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
-        phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
+        if bc_type != "none":
+            phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
+            phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
+        else:
+            phase += f"\tHAPCUT2 --fragments sample.unlinked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
         summary.append(phase)
         annot = "Variant annotation was performed using:\n"
         annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"

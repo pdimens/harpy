@@ -1,0 +1,405 @@
+---
+title: "QC Linked-Read Bardcode Summary"
+params:
+  indir: 'logs/bxcount'
+---
+`r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
+
+```{r package_imports}
+using<-function(...) {
+    libs<-unlist(list(...))
+    req<-unlist(lapply(libs,require,character.only=TRUE))
+    need<-libs[req==FALSE]
+    if(length(need)>0){ 
+        install.packages(need, repos = "https://cloud.r-project.org/")
+        lapply(need,require,character.only=TRUE)
+    }
+}
+using("dplyr","tidyr","DT","highcharter","scales")
+```
+# Overview
+##
+<h2> General Per-Sample Barcode Statistics </h2>
+
+This report details the counts of valid and invalid linked-read barcodes in the 
+sample read headers. Validation varies between linked-read technologies; expand
+the technologies below for an explanation of barcode format and what an invalidation
+would look like. More exhaustive explanations can be found in 
+[Harpy's documentation](https://pdimens.github.io/harpy/getting_started/linked_read_data/#linked-read-data-types).
+
+<details>
+<summary>Haplotagging</summary>
+The correct haplotagging format is `BX:Z:AXXCXXBXXDXX`, where 
+there is a tab before (and possibly after) `BX:Z` and `XX` are 2-digit numbers
+between `00` and `96`. Additional tags (e.g. `QX:Z` or `VX:i`) are fine as long as they conform to the 
+[SAM comment spec (section 1.5)](https://samtools.github.io/hts-specs/SAMv1.pdf) 
+of `TAG:TYPE:VALUE`.
+
+![haplotagging FASTQ record](https://pdimens.github.io/harpy/static/lr_haplotagging.svg)
+
+</details>
+
+<details>
+<summary>stLFR</summary>
+The correct stLFR format is `#X_Y_Z` at the end of the sequence ID, where `X`, `Y`, and `Z` are
+integers of any value, with `0` being considered invalid.
+
+![stLFR FASTQ record](https://pdimens.github.io/harpy/static/lr_stlfr.svg)
+
+</details>
+
+<details>
+<summary>TELLseq</summary>
+The correct TELLseq format is `:ATCGN` at the end of the sequence ID, where `ATCGN` are
+uppercase nucleotides (`A`, `T`, `C`, `G`, `N`), with `0` being considered invalid. TELLseq
+uses 18bp barcodes, so the barcodes are generally expected to be 18bp long and the presence
+of `N` would make the barcode considered invalid.
+
+![TELLseq FASTQ record](https://pdimens.github.io/harpy/static/lr_tellseq.svg)
+
+</details>
+
+```{r prepare_dataframes}
+indir <- params$indir
+
+infiles <- list.files(indir, ".count.log", full.names = TRUE)
+for (j in seq_along(infiles)) {
+  i <- infiles[j]
+  samplename <- gsub(".count.log", "", basename(i))
+  s_df <- read.table(i, header = F)
+  total <- s_df$V2[1]
+  bc_total <- s_df$V2[2]
+  bc_ok <- s_df$V2[3]
+  bc_invalid <- s_df$V2[4]
+  if (bc_total == 0) {
+    bc_percent <- 0
+    ig_percent <- 0
+  } else {
+    bc_percent <- round((bc_ok / bc_total) * 100, digits = 3)
+    ig_percent <- round((bc_invalid / bc_total) * 100, digits = 3)
+  }
+  if(j == 1){
+      BXstats <- data.frame(
+        Sample = samplename,
+        TotalReads = total,
+        TotalBarcodes = bc_total,
+        ValidBarcodes = bc_ok,
+        ValidPercent = bc_percent,
+        InvalidBarcodes = bc_invalid,
+        InvalidPercent = ig_percent
+      )
+      .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", total),s_df[5:nrow(s_df),]))
+      invalids <- data.frame(t(.invalid[2,]))
+      names(invalids) <- .invalid[1,]
+      invalids <- invalids %>% mutate_at(-1, as.numeric)
+  } else {
+    BXstats <- rbind(
+      BXstats,
+      data.frame(
+        Sample = samplename,
+        TotalReads = total,
+        TotalBarcodes = bc_total,
+        ValidBarcodes = bc_ok,
+        ValidPercent = bc_percent,
+        InvalidBarcodes = bc_invalid,
+        InvalidPercent = ig_percent
+      )
+    )
+    .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", total), s_df[5:nrow(s_df),]))
+    .inv <- data.frame(t(.invalid[2,]))
+    names(.inv) <- .invalid[1,]
+    .inv <- .inv %>% mutate_at(2:ncol(.inv), as.numeric)
+    invalids <- rbind(invalids, .inv)
+    }
+}
+
+figheight <- 3 + (0.6 * nrow(BXstats))
+```
+
+##
+```{r}
+#| content: valuebox
+#| title: "Samples"
+list(
+  icon = "files",
+  color = "light",
+  value = prettyNum(nrow(BXstats), big.mark = ",")
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Min % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = min(BXstats$ValidPercent)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Max % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = max(BXstats$ValidPercent)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Mean % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = round(mean(BXstats$ValidPercent),3)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Stdv % Valid"
+list(
+  icon = "check2-circle",
+  color = "#dde6d5",
+  value = round(sd(BXstats$ValidPercent),3)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Min BX Absent"
+absent <- BXstats$TotalReads-BXstats$TotalBarcodes
+list(
+  icon = "question-circle",
+  color = "#f6e698ff",
+  value = min(absent)
+)
+```
+
+```{r}
+#| content: valuebox
+#| title: "Max BX Absent"
+list(
+  icon = "question-circle",
+  color = "#f6e698ff",
+  value = max(absent)
+)
+```
+
+
+## persamp
+###
+::: {.card}
+<h3> General Per-Sample haplotagging Barcode Statistics </h3>
+
+Below is a table listing all the samples Harpy processed and their associated
+haplotagging barcode statistics as determined by the reads in the **forward read only**.
+If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
+the format of your FASTQ headers.
+
+```{r per_sample_tables}
+plotdata <- BXstats %>%
+  select(Sample, ValidBarcodes, InvalidBarcodes) %>% 
+  rename(Valid = ValidBarcodes, Invalid = InvalidBarcodes)
+
+percdata <- BXstats %>%
+  select(Sample, ValidPercent, InvalidPercent) %>% 
+  rename(Valid= ValidPercent, Invalid = InvalidPercent)
+```
+
+```{r sample_bx_qual}
+column_description <- c(
+  "name of the sample",
+  "total number of reads",
+  "total number of barcodes present",
+  "number of valid linked-read barcodes",
+  "percent of valid linked-read barcodes"
+  )
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<tooltips.length; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
+DT::datatable(
+  BXstats[,1:5],
+  rownames = FALSE,
+  filter = "top",
+  extensions = "Buttons",
+  caption = "Overall barcode quality per sample",
+  fillContainer = T,
+  options = list(
+    dom = "Brtp",
+    buttons = c("csv"),
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
+  )
+)
+```
+:::
+
+# General Invalidations
+## table desc
+<h2> Percent Barcode Invalidations by Position </h2>
+Below is information describing linked-read barcord invalidations across all **forward reads**
+within samples. The term "positions" refers to the combinatorial `A`, `B`, 
+`C`, `D` segments that make up a complete haplotagging barcode, the `X`,`Y`,`Z` segments of stFLR
+barcodes, or `N` nucleotide positions in TELLseq barcodes.
+
+##
+###
+```{r invalid_positions_processing}
+invalids_percent <- invalids %>% mutate_at(c(-1,-2), function(x){round(x/.$TotalBarcodes * 100, 3)})
+invalids_percent$Sample <- as.factor(invalids$Sample)
+invalids_long <- pivot_longer(invalids_percent, -1, names_to = "Position", values_to = "Count")
+invalids_long$Position <- as.factor(paste0("position " , invalids_long$Position))
+```
+
+::: {.card}
+This figure shows the distribution of percent invalid barcode positions
+across all samples. This should help you assess whether some positions have a 
+higher incidence of failure than others.
+
+```{r invalid_postion_dist}
+position_names <- names(invalids)[3:ncol(invalids)]
+# a 19-color distribution of the Turbo palette
+palette <- c("#30123B", "#3F3B97", "#4661D6", "#4685FA", "#37A8FA", "#1FC9DD", "#19E3B9", "#38F491", "#6DFE62", "#9FFD3F", "#C3F134", "#E3DB38", "#F8BE39", "#FE9B2D", "#F8721C", "#E84B0C", "#D02F05", "#AF1801", "#850702") 
+selected_colors <- palette[seq(1,length(palette),length(palette)%/%(length(position_names)-1))]
+
+if (length(unique(invalids_long$Count)) > 2) {
+  
+  inv_hist <- data.frame(Position = character(), Bin = numeric(), Count = numeric())
+  inv_breaks <- hist(invalids_long$Count, plot = F)
+  inv_breaks <- inv_breaks$breaks
+  for(j in position_names){
+    h <- hist(invalids_percent[, j], inv_breaks, plot = F)
+    position <- paste0("position ", j)
+    inv_hist <- rbind(inv_hist, data.frame(Position = rep(position, length(inv_breaks)-1), Bin = h$breaks[-1], Count = h$counts))
+  }
+
+  hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Position), stack = "overlap", marker = list(enabled = FALSE)) |>
+    hc_colors(selected_colors) |>
+    hc_title(text = "Distribution of Percent Invalid Barcode Positions") |>
+    hc_xAxis(title = list(text = "Percent Invalid"), type = "linear") |>
+    hc_yAxis(title = list(text = "Count")) |>
+    hc_tooltip(crosshairs = TRUE, animation = FALSE,
+      formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Count: <b>' + this.y + '</b>';}") 
+    ) |>
+    hc_exporting(enabled = T, filename = "invalid.barcodes.distribution",
+      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+} else {
+  print("Too few invalid barcodes to create a plot with, which is a very good thing!")
+}
+```
+
+:::
+
+###
+::: {.card}
+This table details the number of invalid barcode positions as a 
+percent of total linked-read barcodes within a sample.
+It's likely that percentages will have greater diagnostic value than the total counts
+because the number of reads and barcodes will vary between individual samples.
+
+```{r invalid_segment_table}
+column_description <- c("name of the sample", "total number of barcodes a sample has")
+for(pos in position_names){
+  column_description <- c(column_description, paste("number of invalidations at position", pos))
+}
+
+headerCallback <- c(
+  "function(thead, data, start, end, display){",
+  paste0(" var tooltips = ['", paste(column_description, collapse = "','"), "'];"),
+  "  for(var i=0; i<tooltips.length; i++){",
+  "    $('th:eq('+i+')',thead).attr('title', tooltips[i]);",
+  "  }",
+  "}"
+)
+
+DT::datatable(
+  invalids_percent,
+  rownames = FALSE,
+  extensions = "Buttons",
+  fillContainer = T,
+  colnames = names(invalids_percent)[-1],
+  caption = "Invalid positions relative to total barcodes",
+  options = list(
+    dom = "Brtp",
+    buttons = c("csv"),
+    scrollX = TRUE,
+    headerCallback = JS(headerCallback)
+  )
+)
+```
+:::
+
+# Per-Sample Invalidations
+## Segment viz description
+<h2> Per-Sample Barcode and Position Invalidations </h2>
+These three visualizations show the occurrence of invalid barcodes.
+The leftmost figure shows this as the count of valid vs. invalid barcodes 
+per individual, whereas the middle figure shows this in finer detail as
+the percent invalid barcodes per individual. The rightmost figure shows
+the proportion of invalid barcode positions per individual.
+Together, these three figures should help you assess if any individuals have an unusually
+high amount of barcode invalidations and if any particular barcode position appears to be more prone to
+failure than others.
+
+## validity plots
+### {.flow}
+```{r valid_plot, fig.height=figheight}
+tb<-plotdata %>%
+  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
+
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_caption(text = "Given as counts") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "count")) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE) |>
+  hc_exporting(enabled = T, filename = "valid_barcodes.counts.per_sample",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+  )
+```
+
+### {.flow}
+```{r valid_proportion_plot, fig.height=figheight}
+hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
+  hc_colors(c("#707070", "#b88ace")) |>
+  hc_title(text = "Valid vs Invalid Barcodes") |>
+  hc_caption(text = "Given as percents") |>
+  hc_xAxis(title = list(text = "")) |>
+  hc_yAxis(title = list(text = "percent")) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE) |>
+  hc_exporting(enabled = T, filename = "valid_barcodes.percent.per_sample",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+
+### {.flow}
+```{r invalid_position_plot, fig.height=figheight}
+invalids_long <- filter(invalids_long, Position != "position TotalBarcodes")
+highchart() |>
+  hc_chart(inverted=TRUE) |>
+  hc_add_series(data = invalids_long,  type = "scatter", hcaes(x = Sample, y = Count, group = Position), marker = list(symbol = "circle")) |>
+  hc_colors(selected_colors) |>
+  hc_title(text = "Percent Invalid Barcode Positions") |>
+  hc_xAxis(type = "category", title = list(text = ""), categories = unique(invalids_long$Sample)) |>
+  hc_yAxis(title = list(text = "percent invalid"), min = 0, max = 100) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return '<b>' + this.x + '</b><br><b>' + this.series.name + '</b><br/>Percent: <b>' + this.y + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "invalid.positions.per_sample",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+
+
