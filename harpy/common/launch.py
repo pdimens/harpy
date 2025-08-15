@@ -53,7 +53,7 @@ def print_shellcmd(text: str, _process):
     if _text.strip().startswith("Logfile"):
         merged_text = ""
         _log = _text.rstrip().split()[1]
-        CONSOLE.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
+        CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
         lines = 0
         while lines < 2:
             _text = _process.stderr.readline()
@@ -251,7 +251,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                     output = process.stderr.readline()
                 if output.strip().startswith("Logfile"):
                     _log = output.rstrip().split()[1]
-                    CONSOLE.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
+                    CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
                     lines = 0
                     while lines < 2:
                         output = process.stderr.readline()
