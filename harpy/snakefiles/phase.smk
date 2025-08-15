@@ -11,7 +11,7 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-bc_type = config["barcodes"]["platform"]
+bc_type = config["barcodes"]["linkedread_type"]
 
 if bc_type == "haplotagging":
     invalid_bc = "'$4 !~ /[ABCD]00/'"
