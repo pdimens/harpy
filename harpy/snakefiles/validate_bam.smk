@@ -11,7 +11,7 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["platform"]
+lr_platform = config["linkedread_type"]
 bamlist = config["inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}

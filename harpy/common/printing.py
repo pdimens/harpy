@@ -1,5 +1,6 @@
 """Module of pretty-printing for errors and prompts"""
 
+import time as _time
 import os
 import sys
 from rich.console import Console, RenderableType
@@ -88,27 +89,9 @@ def print_setup_error(exitcode: int) -> None:
                 errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
         except ModuleNotFoundError:
             pass
-    CONSOLE.rule(f"[bold]{errortype}", style = "red")
+    CONSOLE.rule(f"[bold]{errortype}[/] [dim]" + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print(errortext)
     CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
-
-def print_onsuccess(outdir: str, summary:str|None = None, logfile:str|None = None, time = None) -> None:
-    """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
-    days = time.days
-    seconds = time.seconds
-    hours = seconds // 3600
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
-    time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-    datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-    datatable.add_column("detail", justify="left", style="green", no_wrap=True)
-    datatable.add_column("value", justify="left")
-    datatable.add_row("Duration:", time_text)
-    if summary:
-        datatable.add_row("Summary: ", f"{os.path.basename(outdir)}/{summary}")
-    datatable.add_row("Workflow Log:", f"{os.path.basename(outdir)}/{logfile}.gz")
-    CONSOLE.rule("[bold]Workflow Finished!", style="green")
-    CONSOLE.print(datatable)
 
 def print_onerror(logfile: str, time = None) -> None:
     """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
@@ -123,7 +106,7 @@ def print_onerror(logfile: str, time = None) -> None:
     datatable.add_column("value", justify="left")
     datatable.add_row("Duration:", time_text)
     datatable.add_row("Workflow Log: ", logfile + ".gz")
-    CONSOLE.rule("[bold]Workflow Error", style = "red")
+    CONSOLE.rule("[bold]Workflow Error[/][dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print("The workflow stopped because of an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")

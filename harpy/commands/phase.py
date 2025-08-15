@@ -16,7 +16,7 @@ docstring = {
         "harpy phase": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--ignore-bx", "--min-map-quality", "--min-base-quality", "--molecule-distance", "--platform", "--prune-threshold", "--vcf-samples"],
+            "options": ["--extra-params", "--reference", "--lr-type", "--min-map-quality", "--min-base-quality", "--molecule-distance", "--prune-threshold", "--vcf-samples"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -30,12 +30,11 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
 @click.option('-x', '--extra-params', type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-r', '--reference', type=FASTAfile(), help = 'Path to reference genome if wanting to also extract reads spanning indels')
-@click.option('-b', '--ignore-bx',  is_flag = True, show_default = True, default = False, help = 'Ignore barcodes when phasing')
 @click.option('-q', '--min-map-quality', default = 20, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality for phasing')
 @click.option('-m', '--min-base-quality', default = 13, show_default = True, type = click.IntRange(0, 100, clamp = True), help = 'Minimum base quality for phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
-@click.option('-P', '--platform', type = click.Choice(['haplotagging', 'tellseq', 'stlfr'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[haplotagging, stlfr, tellseq]")
+@click.option('-L', '--lr-type', type = click.Choice(['none', 'haplotagging', 'tellseq', 'stlfr'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[none, haplotagging, stlfr, tellseq]")
 @click.option('-p', '--prune-threshold', default = 30, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
@@ -48,15 +47,15 @@ docstring = {
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found the inputs')
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, molecule_distance, platform, prune_threshold, vcf_samples, reference, snakemake, extra_params, ignore_bx, skip_reports, quiet, hpc, container, contigs, setup_only):
+def phase(vcf, inputs, output_dir, threads, lr_type, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
 
     Provide the vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
     
-    You may choose to omit barcode information with `--ignore-bx`, although it's usually
-    better to include that information. Use `--vcf-samples` to phase only
+    You may choose to omit barcode information with `-L none`, although it's usually
+    better to include that information if it's linked-read data. Use `--vcf-samples` to phase only
     the samples present in your input `VCF` file rather than all the samples present in
     the `INPUT` alignments.
     """
@@ -83,8 +82,7 @@ def phase(vcf, inputs, output_dir, threads, min_map_quality, min_base_quality, m
             "min_base_quality": min_base_quality
         },
         "barcodes": {
-            "platform" : platform.lower(),
-            "ignore" : ignore_bx,
+            "linkedread_type" : lr_type.lower(),
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),

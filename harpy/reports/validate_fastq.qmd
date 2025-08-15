@@ -1,5 +1,5 @@
 ---
-title: "FASTQ Format Validation"
+title: "FASTQ Linked-Read Format Validation"
 params:
   infile: 'test.tsv'
   platform: 'haplotagging'

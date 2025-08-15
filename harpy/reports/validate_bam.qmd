@@ -1,5 +1,5 @@
 ---
-title: "BAM Format Validation"
+title: "BAM Linked-Read Format Validation"
 params:
   infile: 'test.tsv'
   platform: 'haplotagging'

@@ -16,7 +16,7 @@ def main():
         and the counts of: total alignments, alignments with an MI:i: tag,
         alignments without BX:Z: tag, incorrect BX:Z: tag.
         """,
-        usage = "check_bam platform input.bam > output.txt",
+        usage = "check_bam lr_type input.bam > output.txt",
         exit_on_error = False
         )
 
@@ -30,7 +30,7 @@ def main():
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
     if args.platform not in ["10x","tellseq", "stlfr", "haplotagging"]:
-        parser.error("Invalid option for --platform\nMust be one of: 10x, haplotagging, stlfr, tellseq")
+        parser.error("Invalid option for `lr_type`\nMust be one of: 10x, haplotagging, stlfr, tellseq")
 
     if args.platform == "haplotagging":
         bc_pattern = re.compile(r'^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
