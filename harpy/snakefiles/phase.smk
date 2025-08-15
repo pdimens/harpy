@@ -302,7 +302,7 @@ rule workflow_summary:
         hetsplit += "\tbcftools view -s SAMPLE | bcftools view -m 2 -M 2 -i \'GT=\"het\"\'"
         summary.append(hetsplit)
         phase = "Phasing was performed using the components of HapCut2:\n"
-        phase += "\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
+        phase += f"\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
         if bc_type != "none":
             phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
             phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"

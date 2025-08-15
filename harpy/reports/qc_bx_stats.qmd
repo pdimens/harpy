@@ -1,5 +1,5 @@
 ---
-title: "QC Linked-Read Bardcode Summary"
+title: "QC Linked-Read Barcode Summary"
 params:
   indir: 'logs/bxcount'
 ---
@@ -15,7 +15,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplyr","tidyr","DT","highcharter","scales")
+using("dplXXyr","tidyr","DT","highcharter","scales")
 ```
 # Overview
 ##
@@ -51,7 +51,7 @@ integers of any value, with `0` being considered invalid.
 <details>
 <summary>TELLseq</summary>
 The correct TELLseq format is `:ATCGN` at the end of the sequence ID, where `ATCGN` are
-uppercase nucleotides (`A`, `T`, `C`, `G`, `N`), with `0` being considered invalid. TELLseq
+uppercase nucleotides (`A`, `T`, `C`, `G`, `N`), with `N` being considered invalid. TELLseq
 uses 18bp barcodes, so the barcodes are generally expected to be 18bp long and the presence
 of `N` would make the barcode considered invalid.
 
@@ -88,7 +88,7 @@ for (j in seq_along(infiles)) {
         InvalidBarcodes = bc_invalid,
         InvalidPercent = ig_percent
       )
-      .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", total),s_df[5:nrow(s_df),]))
+      .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", bc_total),s_df[5:nrow(s_df),]))
       invalids <- data.frame(t(.invalid[2,]))
       names(invalids) <- .invalid[1,]
       invalids <- invalids %>% mutate_at(-1, as.numeric)
@@ -105,7 +105,7 @@ for (j in seq_along(infiles)) {
         InvalidPercent = ig_percent
       )
     )
-    .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", total), s_df[5:nrow(s_df),]))
+    .invalid <- t(rbind(c("Sample", samplename), c("TotalBarcodes", bc_total), s_df[5:nrow(s_df),]))
     .inv <- data.frame(t(.invalid[2,]))
     names(.inv) <- .invalid[1,]
     .inv <- .inv %>% mutate_at(2:ncol(.inv), as.numeric)
@@ -247,7 +247,7 @@ DT::datatable(
 # General Invalidations
 ## table desc
 <h2> Percent Barcode Invalidations by Position </h2>
-Below is information describing linked-read barcord invalidations across all **forward reads**
+Below is information describing linked-read barcode invalidations across all **forward reads**
 within samples. The term "positions" refers to the combinatorial `A`, `B`, 
 `C`, `D` segments that make up a complete haplotagging barcode, the `X`,`Y`,`Z` segments of stFLR
 barcodes, or `N` nucleotide positions in TELLseq barcodes.

@@ -37,6 +37,8 @@ def print_shellcmd(text: str, _process):
     _text = text
     while "(command exited" not in _text or not _text:
         _text = _process.stderr.readline()
+        if not _text:
+            break
         text += _text
 
     text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
@@ -281,8 +283,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                         if output.strip().startswith("Trying to restart job"):
                             break
                         if output.strip().startswith("shell:"):
-                            output = process.stderr.readline()
-                            print_shellcmd(output, process)
+                            output = print_shellcmd(process.stderr.readline(), process)
                         if "(command exited with non-zero" in output or output.startswith("Removing temporary output"):
                             output = process.stderr.readline()
                             continue
