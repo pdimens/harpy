@@ -50,18 +50,18 @@ of calling the module. These runtime parameters are listed in the modules' help 
 configured using these arguments:
 
 {.compact}
-| argument            | type              | default | description                                                                                                                                           |
-|:--------------------|:------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                           |
-| `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                      |
-| `--help` `-h`       |                   |         | Show the module docstring                                                                                                                             |
-| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                         |
-| `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                              |
-| `--quiet`           | toggle            |         | Suppress the progress bars and other status text when running                                                                                         |
+| argument            | type              | default | description                                                                                                                                            |
+|:--------------------|:------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                            |
+| `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                       |
+| `--help` `-h`       |                   |         | Show the module docstring                                                                                                                              |
+| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
+| `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                               |
+| `--quiet`           | integer [0,1,2]   |    0    | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                                 |
 | `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](/Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
-| `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                      |
-| `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                                      |
-| `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                              |
+| `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                       |
+| `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
+| `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                               |
 
 ### --contigs
 Some of the workflows (like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)) plot per-contig information in their reports.
@@ -90,7 +90,7 @@ exceed that number.
 You could call [!badge corners="pill" text="align strobe"](/Workflows/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
-harpy align strobe --threads 20 --quiet genome.fasta samples/trimmedreads
+harpy align strobe --threads 20 --quiet 2 genome.fasta samples/trimmedreads
 
 # identical to #
 
