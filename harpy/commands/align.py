@@ -178,7 +178,7 @@ def strobe(reference, inputs, output_dir, lr_type, keep_unmapped, depth_window, 
 
     if contigs:
         fasta.match_contigs(contigs)
-    if lr_type.lower() != "none":
+    if not lr_type:
         fastq.has_bx_tag()
 
     workflow.config = {
