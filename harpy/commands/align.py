@@ -86,7 +86,7 @@ def bwa(reference, inputs, output_dir, depth_window, lr_type, threads, keep_unma
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Harpy will post-processes the alignments using the specified `--molecule-distance`
     to assign alignments to unique molecules. A `--molecule-distance` that is `>0` activates
-    alignment-distance based barcode deconvolution. Ignore linked-read information using\
+    alignment-distance based barcode deconvolution. Ignore linked-read information using
     `-L none` (specifying a technology doesn't matter here).
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, quiet)
