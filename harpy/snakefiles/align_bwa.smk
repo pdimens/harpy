@@ -13,7 +13,7 @@ wildcard_constraints:
 fqlist       = config["inputs"]["fastq"]
 molecule_distance = config["barcodes"]["distance_threshold"]
 ignore_bx = config["barcodes"]["ignore"]
-is_standardized = config["barcodes"]["standardized"]
+is_standardized = config["barcodes"]["standard_format"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]

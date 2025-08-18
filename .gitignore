@@ -38,5 +38,5 @@ _Inline
 pixi*
 .gitattributes
 *.egg-info
-deprecated/
+.deprecated/
 test/

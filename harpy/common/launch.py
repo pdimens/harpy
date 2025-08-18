@@ -22,7 +22,7 @@ def iserror(text: str):
     """logical check for erroring trigger words in snakemake output"""
     return "Exception" in text or "Error" in text or "MissingOutputException" in text
 
-def print_shellcmd(text: str):
+def print_shellcmd(text: str, _process):
     _table = Table(
         show_header=False,
         pad_edge=False,
@@ -33,9 +33,38 @@ def print_shellcmd(text: str):
     _table.add_column("Lpadding", justify="left")
     _table.add_column("shell", justify="left")
     _table.add_column("Rpadding", justify="left")
+
+    _text = text
+    while "(command exited" not in _text or not _text:
+        _text = _process.stderr.readline()
+        if not _text:
+            break
+        text += _text
+
+    text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
+    text = re.sub(r' {2,}|\t+', '  ', text)
     cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
     _table.add_row("  ", cmd, "  ")
     CONSOLE.print("[bold default]shell:", _table)
+
+    # if there's a logfile
+    _text = _process.stderr.readline()
+
+    if _text.strip().startswith("Logfile"):
+        merged_text = ""
+        _log = _text.rstrip().split()[1]
+        CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
+        lines = 0
+        while lines < 2:
+            _text = _process.stderr.readline()
+            if "====" in _text:
+                lines += 1
+                continue
+            merged_text += _text
+        if "====" in _text:
+            CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text), overflow = "ignore", crop = False)
+            return _process.stderr.readline()
+
 
 def highlight_params(text: str):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
@@ -199,7 +228,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                 print_setup_error(exitcode)
             elif exitcode == 3:
                 print_onerror(os.path.join(os.path.basename(outdir), sm_logfile), datetime.now() - sm_start)
-            #CONSOLE = CONSOLE(stderr = True, tab_size = 4, highlight=False)
+
             CONSOLE.tab_size = 4
             CONSOLE._highlight = False
             while output and not output.endswith("]") and not output.startswith("Shutting down"):                   
@@ -222,7 +251,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                     output = process.stderr.readline()
                 if output.strip().startswith("Logfile"):
                     _log = output.rstrip().split()[1]
-                    CONSOLE.rule(f"[bold]Logfile: {_log.rstrip(':')}", style = "yellow")
+                    CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
                     lines = 0
                     while lines < 2:
                         output = process.stderr.readline()
@@ -254,9 +283,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                         if output.strip().startswith("Trying to restart job"):
                             break
                         if output.strip().startswith("shell:"):
-                            output = process.stderr.readline()
-                            print_shellcmd(output)
-                            output = process.stderr.readline()
+                            output = print_shellcmd(process.stderr.readline(), process)
                         if "(command exited with non-zero" in output or output.startswith("Removing temporary output"):
                             output = process.stderr.readline()
                             continue

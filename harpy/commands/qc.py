@@ -14,12 +14,12 @@ docstring = {
     "harpy qc": [
         {
             "name": "Parameters",
-            "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters"],
+            "options": ["--deconvolve", "--deconvolve-params", "--deduplicate", "--extra-params", "--lr-type", "--min-length", "--max-length", "--trim-adapters"],
             "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--ignore-bx", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
             "panel_styles": {"border_style": "dim"}
         },
     ]
@@ -29,6 +29,7 @@ docstring = {
 @click.option('-c', '--deconvolve', type = MultiInt(4), help = "`k` `w` `d` `a` QuickDeconvolution parameters, comma-separated")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
+@click.option('-L', '--lr-type', type = click.Choice(['none', 'haplotagging', 'stlfr','tellseq'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[none, haplotagging, stlfr, tellseq]")
 @click.option('-M', '--max-length', default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')
 @click.option('-m', '--min-length', default = 30, show_default = True, type=click.IntRange(min = 5), help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
@@ -37,17 +38,17 @@ docstring = {
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--ignore-bx',  is_flag = True, default = False, help = 'Ignore parts of the workflow specific to linked-read sequences')
-@click.option('--quiet', show_default = True, default = 0, type = click.Choice([0, 1, 2]), help = '`0` all output, `1` show one progress bar, `2` no output')
+@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, ignore_bx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Adapter removal and other FASTQ preprocessing
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
+    Disable linked-read specific parts of the workflow with `-L none`.
     
     **Standard trimming**
     - a sliding window from front to tail
@@ -55,8 +56,8 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     **Optional quality checks**
     - `-a` remove adapters
-      - accepts `auto` to automatically detect adapters or a FASTA file of adapters to remove
-    - `-d` finds and removes optical PCR duplicates
+      - accepts `auto` for automatic detection or a `FASTA file` of adapters to remove
+    - `-d` removes optical PCR duplicates
       - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     - `-c` resolves barcodes shared between unrelated sequences
       - off by default, activated with [4 integers](https://github.com/RolandFaure/QuickDeconvolution?tab=readme-ov-file#usage), separated by commas. `21,40,3,0` would be the QuickDeconvolution defaults
@@ -64,7 +65,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
     """
     workflow = Workflow("qc", "qc.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
-    workflow.reports = ["bx_count.qmd"]
+    workflow.reports = ["qc_bx_stats.qmd"]
     workflow.conda = ["qc", "r"]
 
     ## checks and validations ##
@@ -81,7 +82,7 @@ def qc(inputs, output_dir, min_length, max_length, trim_adapters, deduplicate, d
 
     workflow.config = {
         "workflow" : workflow.name,
-        "ignore_bx" : ignore_bx,
+        "linkedread_type" : lr_type.lower(),
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
         "min_len" : min_length,

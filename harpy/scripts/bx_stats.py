@@ -52,8 +52,6 @@ def main():
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
 
-
-
     with pysam.AlignmentFile(args.input) as alnfile:
         gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout)
         gzip.stdin.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")

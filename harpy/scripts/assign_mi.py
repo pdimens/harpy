@@ -111,6 +111,7 @@ def main():
                     MISSING = "A00C00B00D00"
                 break
             except KeyError:
+                MISSING = "A00C00B00D00"
                 continue
 
     # initialize the dict

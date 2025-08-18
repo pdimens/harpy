@@ -48,7 +48,7 @@ def main():
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
     if args.platform not in ["haplotagging","stlfr","tellseq"]:
-        parser.error("Invalid option for --platform\nMust be one of: haplotagging, stlfr, tellseq")
+        parser.error("Invalid option for `lr_type`\nMust be one of: haplotagging, stlfr, tellseq")
 
     if args.platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
