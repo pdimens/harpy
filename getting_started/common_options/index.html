@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.808859205589">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.808859520190">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.808859205589" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.808859520190" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.808859205589" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.808859520190" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.808859205589" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.808859205589" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.808859520190" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.808859520190" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -396,9 +396,9 @@ configured using these arguments:</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--quiet</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;">Suppress the progress bars and other status text when running</td>
+<td style="text-align: left;">integer [0,1,2]</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><code v-pre>0</code> prints all progress information, <code v-pre>1</code> prints unified progress bar, <code v-pre>2</code> suppressess all console output except errors</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--setup-only</code></td>
@@ -482,7 +482,7 @@ exceed that number.</p>
     <span>align strobe</span>
 </a> and specify 20 threads with no output to console:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align strobe --threads 20 --quiet genome.fasta samples/trimmedreads
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align strobe --threads 20 --quiet 2 genome.fasta samples/trimmedreads
 
 # identical to #
 
