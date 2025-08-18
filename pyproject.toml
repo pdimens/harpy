@@ -46,7 +46,7 @@ Homepage = "https://github.com/pdimens/harpy"
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = ["test/*", "deprecated/*", "resources/*", ".github/*"]
+exclude = ["test/*", ".deprecated/*", "resources/*", ".github/*"]
 
 [tool.setuptools.package-data]
 harpy = ["**/*"]
