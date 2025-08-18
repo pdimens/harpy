@@ -9,7 +9,8 @@ src/
 build/
 Preflight/
 Demultiplex/
-deprecated/
+.deprecated/
+settings.json
 resources/
 QC/
 SNP/

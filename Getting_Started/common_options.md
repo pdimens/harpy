@@ -56,7 +56,6 @@ configured using these arguments:
 | `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                      |
 | `--help` `-h`       |                   |         | Show the module docstring                                                                                                                             |
 | `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                         |
-| `--ignore-bx`       | toggle            |         | Ignore parts of the workflow specific to linked-read data                                                                                             |
 | `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                              |
 | `--quiet`           | toggle            |         | Suppress the progress bars and other status text when running                                                                                         |
 | `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](/Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |

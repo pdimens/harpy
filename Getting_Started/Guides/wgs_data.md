@@ -12,12 +12,13 @@ image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
 ## TL;DR
-- Most of Harpy's workflow have a `--ignore-bx` switch to adjust the workflows to ignore linked-read specific things
+- When available, use `--lr-type none` to ignore linked-read specific things
 
 As of version `2.0`, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,
-align sequences, call SNPs and small indels, phase, and impute genotypes. All of that is done with the flick of
-the `--ignore-bx` switch. RADseq data may also work, however the SNP calling workflows
+align sequences, call SNPs and small indels, phase, and impute genotypes. All of that is done setting
+`--lr-type none` for workflows where `--lr-type` is available (`--ignore-bx` toggle in versions <2.7).
+RADseq data may also work, however the SNP calling workflows
 probably won't be very computationally efficient for a highly fragmented RAD assembly. 
 There is also another consideration for RADseq regarding marking duplicates (described below).
 
@@ -29,16 +30,16 @@ Using [!badge corners="pill" text="harpy qc"](/Workflows/qc.md), you are able to
 quality, bases, detect duplicates with UMIs, etc. You **cannot** use `--deconvolve` when ignoring
 linked-read information.
 ```bash qc example
-harpy qc --ignore-bx --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
+harpy qc --lr-type none --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
 ```
 
 ## Sequence Alignment
 Likewise, you can use either [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md) or [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md) to align
 your sequences onto a reference genome. The `--molecule-distance` will be ignored when
-using `--ignore-bx`.
+using `--lr-type none`.
 
 ```bash align example
-harpy align bwa --ignore-bx --min-quality 25 genome.fasta data/WGS/trimmed 
+harpy align bwa --lr-type none --min-quality 25 genome.fasta data/WGS/trimmed 
 ```
 
 !!!warning RADseq data
@@ -71,8 +72,8 @@ harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam
 ```
 
 ## Phase Genotypes
-Like most of the other workflows, use `--ignore-bx` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
-information. When using this flag, the value for `--molecule-distance/-d` will be ignored:
+Like most of the other workflows, use `--lr-type none` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
+information. When using this option, the value for `-d`/`--molecule-distance` will be ignored:
 ```bash phase example
 harpy phase -t 10 variants.bcf data/*.bam 
 ```

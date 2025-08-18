@@ -18,7 +18,7 @@ Neither of these are linked-read aware aligners, but Harpy transfers the barcode
 assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../Getting_Started/linked_read_data.md#barcode-thresholds).
 
 ## Non linked-read WGS data
-Starting with Harpy `v2.x`, the `--ignore-bx` option lets you skip the workflow
+Starting with Harpy `v2.x`, the `--lr-type none` option (`--ignore-bx` toggle in versions <2.7) lets you skip the workflow
 routines that do things specific to linked reads, meaning you can comfortably use
 [!badge corners="pill" text="harpy align bwa"](bwa.md) and [!badge corners="pill" text="harpy align strobe"](strobe.md) to align your WGS sequence data. 
 

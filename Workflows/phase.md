@@ -38,20 +38,20 @@ harpy phase --threads 20 Variants/variants.raw.bcf Align/bwa
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
 {.compact}
-| argument                   |     default     | description                                                                                                                                   |
-|:---------------------------|:---------------:|:----------------------------------------------------------------------------------------------------------------------------------------------|
-| `VCF`                      |                 | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                                  |
-| `INPUTS`                   |                 | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                |                 | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
-| `--extra-params` `-x`      |                 | Additional Hapcut2 arguments, in quotes                                                                                                       |
-| `--reference` `-r`         |                 | Path to reference genome if wanting to also use reads spanning indels                                                                         |
-| `--ignore-bx` `-b`         |                 | Ignore linked-read barcodes for phasing                                                                                                       |
-| `--min-map-qual` `-q`      |      `20`       | Minimum mapping quality score to be considered for phasing                                                                                    |
-| `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                  |
-| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                            |
-| `--platform` `-P`          | `haplotgagging` | linked-read type: [`haplotgagging`, `stlfr`, `tellseq`]                                                                                       |
-| `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                     |
-| `--vcf-samples`            |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory                              |
+| argument                   |     default     | description                                                                                                                                                                                       |
+|:---------------------------|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `VCF`                      |                 | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                                                                                      |
+| `INPUTS`                   |                 | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)                                                     |
+| `--contigs`                |                 | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                                                                     |
+| `--extra-params` `-x`      |                 | Additional Hapcut2 arguments, in quotes                                                                                                                                                           |
+| `--reference` `-r`         |                 | Path to reference genome if wanting to also use reads spanning indels                                                                                                                             |
+| `--lr-type` `-L`           |                 | Type of linked-read barcode technology. Will filter out reads with invalid barcodes based on this option. Ignore linked-read information with `none` [`none`, `haplotagging`, `stlfr`, `tellseq`] |
+| `--min-map-qual` `-q`      |      `20`       | Minimum mapping quality score to be considered for phasing                                                                                                                                        |
+| `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                                                                      |
+| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                                                                                |
+| `--platform` `-P`          | `haplotgagging` | linked-read type: [`haplotgagging`, `stlfr`, `tellseq`]                                                                                                                                           |
+| `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                                                                         |
+| `--vcf-samples`            |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory                                                                                  |
 
 ### Prioritize the vcf file
 Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
