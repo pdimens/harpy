@@ -11,16 +11,16 @@ def bx_search(rec):
         if not rec.has_tag("VX"):
             rec.set_tag("VX", 0 if "00" in rec.get_tag("BX") else 1, value_type="i")
         return rec
-    bx_pattern = r"(?:#\d+_\d+_\d+|\:[ATCGN]+)$"
-    bx = re.search(bx_pattern, rec.query_name)
+    bx_pattern = re.compile(r"[#\:](\d+_\d+_\d+|[ATCGN]+)$")
+    bx = bx_pattern.search(rec.query_name)
     if bx:
-        barcode = bx[0]
+        barcode = bx.group(1)
         # set validation tag VX:i
-        if barcode.startswith("#"):
+        if "_" in barcode:
             rec.set_tag("VX", 0 if "0" in barcode.split("_") else 1, value_type="i")
         else:
             rec.set_tag("VX", 0 if "N" in barcode else 1, value_type="i")
-        rec.set_tag("BX", barcode[1:])
+        rec.set_tag("BX", barcode)
         rec.query_name = rec.query_name.removesuffix(barcode)
     return rec
 
