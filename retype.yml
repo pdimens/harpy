@@ -6,7 +6,7 @@ input: .
 output: .retype
 url: pdimens.github.io/harpy/
 meta:
-  title: " | Harpy haplotag"
+  title: " | Harpy"
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 showSidebarFilter: false
@@ -18,7 +18,7 @@ theme:
     nav-item-text-stack: "#1e66f5"
 branding:
   title: Harpy
-  label: v2.6
+  label: v2.7
   logo: static/logo_navbar.png
   logoDark: static/logo_navbar.png
   logoAlign: left
