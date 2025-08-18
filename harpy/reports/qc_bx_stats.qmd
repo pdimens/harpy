@@ -15,7 +15,7 @@ using<-function(...) {
         lapply(need,require,character.only=TRUE)
     }
 }
-using("dplXXyr","tidyr","DT","highcharter","scales")
+using("dplyr","tidyr","DT","highcharter","scales")
 ```
 # Overview
 ##
