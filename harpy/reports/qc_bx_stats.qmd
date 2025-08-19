@@ -218,9 +218,9 @@ highchart() |>
   hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#90cb8cff", name = "Valid Barcodes", marker = list(enabled = FALSE)) |>
   hc_title(text = "Distribution of Percent Valid Barcodes") |>
   hc_xAxis(title = list(text = "Percent Valid"), type = "linear") |>
-  hc_yAxis(title = list(text = "Count")) |>
+  hc_yAxis(title = list(text = "Number of Samples")) |>
   hc_tooltip(crosshairs = TRUE, animation = FALSE,
-    formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% valid</b><br/>Count: <b>' + this.y + '</b>';}") 
+    formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% valid</b><br/>Samples: <b>' + this.y + '</b>';}") 
   ) |>
   hc_exporting(enabled = T, filename = "valid.barcodes.distribution",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
