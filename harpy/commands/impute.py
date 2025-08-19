@@ -45,7 +45,7 @@ docstring = {
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Impute genotypes using variants and alignments
+    Impute variant genotypes from alignments
     
     Provide the parameter file followed by the input VCF and the input alignment files/directories (`.bam`) at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.

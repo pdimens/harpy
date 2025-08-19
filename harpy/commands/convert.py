@@ -17,7 +17,7 @@ from harpy.common.misc import validate_barcodefile
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
     """
-    Convert data between linked-read types
+    Convert between linked-read data formats
     """
 
 module_docstring = {

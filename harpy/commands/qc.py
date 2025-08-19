@@ -44,7 +44,7 @@ docstring = {
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, deduplicate, deconvolve, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
-    Adapter removal and other FASTQ preprocessing
+    FASTQ adapter removal, quality filtering, etc.
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.

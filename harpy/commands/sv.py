@@ -16,7 +16,7 @@ from harpy.common.workflow import Workflow
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():
     """
-    Call large structural variants from alignments
+    Call inversions, deletions, and duplications from alignments
  
     | caller | inversions | duplications | deletions | breakends |
     |:-------|:----------:|:------------:|:---------:|:---------:|
