@@ -190,12 +190,9 @@ list(
 
 
 ## persamp
-###
-::: {.card}
-<h3> General Per-Sample haplotagging Barcode Statistics </h3>
-
+<h3> General Barcode Statistics </h3>
 Below is a table listing all the samples Harpy processed and their associated
-haplotagging barcode statistics as determined by the reads in the **forward read only**.
+barcode statistics as determined by the reads in the **forward read only**.
 If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
 the format of your FASTQ headers.
 
@@ -208,6 +205,32 @@ percdata <- BXstats %>%
   select(Sample, ValidPercent, InvalidPercent) %>% 
   rename(Valid= ValidPercent, Invalid = InvalidPercent)
 ```
+
+##
+###
+::: {.card}
+```{r valid_histogram}
+hs <- hist(percdata$Valid, breaks = seq(0, 100, 5), plot = F)
+#hs$counts <- round(hs$counts / sum(hs$counts) * 100, 1)
+hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
+
+highchart() |>
+  hc_chart(type = "area", animation = F) |>
+  hc_add_series(data = hs, type = "areaspline", hcaes(x = val, y = freq), color = "#90cb8cff", name = "Valid Barcodes", marker = list(enabled = FALSE)) |>
+  hc_title(text = "Distribution of Percent Valid Barcodes") |>
+  hc_xAxis(title = list(text = "Percent Valid"), type = "linear") |>
+  hc_yAxis(title = list(text = "Count")) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% valid</b><br/>Count: <b>' + this.y + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "valid.barcodes.distribution",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+```
+:::
+
+###
+::: {.card}
 
 ```{r sample_bx_qual}
 column_description <- c(
@@ -248,9 +271,13 @@ DT::datatable(
 ## table desc
 <h2> Percent Barcode Invalidations by Position </h2>
 Below is information describing linked-read barcode invalidations across all **forward reads**
-within samples. The term "positions" refers to the combinatorial `A`, `B`, 
-`C`, `D` segments that make up a complete haplotagging barcode, the `X`,`Y`,`Z` segments of stFLR
-barcodes, or `N` nucleotide positions in TELLseq barcodes.
+within samples. The term "positions" refers to:
+
+| linked-read type | definition                                               |
+|:-----------------|:---------------------------------------------------------|
+| haplotagging     | the `A`, `B`, `C`, `D` segments of haplotagging barcodes |
+| stLFR            | the `X`,`Y`,`Z` segments of stFLR barcodes               |
+| TELLseq          | `N` nucleotide positions in TELLseq barcodes             |
 
 ##
 ###
@@ -356,6 +383,9 @@ position appears to be more prone to failure than others.
 ## validity plots
 ### {.flow}
 ```{r valid_proportion_plot, fig.height=figheight}
+tb<-plotdata %>%
+  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
+
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
   hc_colors(c("#707070", "#b88ace")) |>
   hc_title(text = "Valid vs Invalid Barcodes") |>
