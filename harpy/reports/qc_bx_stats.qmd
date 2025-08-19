@@ -192,7 +192,7 @@ list(
 ## persamp
 <h3> General Barcode Statistics </h3>
 Below is a table listing all the samples Harpy processed and their associated
-barcode statistics as determined by the reads in the **forward read only**.
+barcode statistics as determined by the sequences in the **forward-read file (R1) only**.
 If for some reason `TotalBarcodes` equals `0`, then there may be an issue with
 the format of your FASTQ headers.
 
