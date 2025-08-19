@@ -347,32 +347,13 @@ DT::datatable(
 ## Segment viz description
 <h2> Per-Sample Barcode and Position Invalidations </h2>
 These three visualizations show the occurrence of invalid barcodes.
-The leftmost figure shows this as the count of valid vs. invalid barcodes 
-per individual, whereas the middle figure shows this in finer detail as
-the percent invalid barcodes per individual. The rightmost figure shows
-the proportion of invalid barcode positions per individual.
-Together, these three figures should help you assess if any individuals have an unusually
-high amount of barcode invalidations and if any particular barcode position appears to be more prone to
-failure than others.
+The left figure shows this in finer detail as the percent invalid barcodes per 
+individual. The rightmost figure shows the proportion of invalid barcode positions 
+per individual. Together, these two figures should help you assess if any individuals 
+have an unusually high amount of barcode invalidations and if any particular barcode 
+position appears to be more prone to failure than others.
 
 ## validity plots
-### {.flow}
-```{r valid_plot, fig.height=figheight}
-tb<-plotdata %>%
-  pivot_longer(-Sample, names_to = "Barcode", values_to = "Count")
-
-hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "normal") |>
-  hc_colors(c("#707070", "#b88ace")) |>
-  hc_title(text = "Valid vs Invalid Barcodes") |>
-  hc_caption(text = "Given as counts") |>
-  hc_xAxis(title = list(text = "")) |>
-  hc_yAxis(title = list(text = "count")) |>
-  hc_tooltip(crosshairs = TRUE, animation = FALSE) |>
-  hc_exporting(enabled = T, filename = "valid_barcodes.counts.per_sample",
-    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
-```
-
 ### {.flow}
 ```{r valid_proportion_plot, fig.height=figheight}
 hchart(tb, "bar", hcaes(x = Sample, y = Count, group = Barcode), stacking = "percent") |>
