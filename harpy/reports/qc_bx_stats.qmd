@@ -211,7 +211,6 @@ percdata <- BXstats %>%
 ::: {.card}
 ```{r valid_histogram}
 hs <- hist(percdata$Valid, breaks = seq(0, 100, 5), plot = F)
-#hs$counts <- round(hs$counts / sum(hs$counts) * 100, 1)
 hs <- data.frame(val = hs$breaks[-1], freq = hs$counts)
 
 highchart() |>
@@ -302,31 +301,55 @@ selected_colors <- palette[seq(1,length(palette),length(palette)%/%(length(posit
 ```
 
 ```{r invalid_position_dist}
-if (length(unique(invalids_long$Count)) > 2) {
-  
-  inv_hist <- data.frame(Position = character(), Bin = numeric(), Count = numeric())
-  inv_breaks <- hist(invalids_long$Count, plot = F)
-  inv_breaks <- inv_breaks$breaks
-  for(j in position_names){
-    h <- hist(invalids_percent[, j], inv_breaks, plot = F)
-    position <- paste0("position ", j)
-    inv_hist <- rbind(inv_hist, data.frame(Position = rep(position, length(inv_breaks)-1), Bin = h$breaks[-1], Count = h$counts))
-  }
-
-  hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Position), stack = "overlap", marker = list(enabled = FALSE)) |>
-    hc_colors(selected_colors) |>
-    hc_title(text = "Distribution of Percent Invalid Barcode Positions") |>
-    hc_xAxis(title = list(text = "Percent Invalid"), type = "linear") |>
-    hc_yAxis(title = list(text = "Count")) |>
-    hc_tooltip(crosshairs = TRUE, animation = FALSE,
-      formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Count: <b>' + this.y + '</b>';}") 
-    ) |>
-    hc_exporting(enabled = T, filename = "invalid.barcodes.distribution",
-      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+percent_breaks <- seq(0, 100, 5)
+total_barcodes <- sum(invalids_percent$TotalBarcodes)
+inv_hist <- data.frame(Position = character(), Bin = numeric(), Count = numeric())
+for(pos in position_names){
+  h <- hist(invalids_percent[,pos], breaks = percent_breaks, plot = F)
+  inv_hist <- rbind(
+    inv_hist,
+    data.frame(Position = rep(paste("position", pos), length(percent_breaks)-1), Bin = h$breaks[-1], Count = h$count)
   )
-} else {
-  print("Too few invalid barcodes to create a plot with, which is a very good thing!")
 }
+
+hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Position), stack = "overlap", marker = list(enabled = FALSE)) |>
+  hc_colors(selected_colors) |>
+  hc_title(text = "Distribution of Percent Invalid Barcode Positions") |>
+  hc_xAxis(title = list(text = "Percent Invalid"), type = "linear", max = 100) |>
+  hc_yAxis(title = list(text = "Number of Samples")) |>
+  hc_tooltip(crosshairs = TRUE, animation = FALSE,
+    formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Samples: <b>' + this.y + '</b>';}") 
+  ) |>
+  hc_exporting(enabled = T, filename = "invalid.barcodes.distribution",
+    buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+)
+
+
+#if (length(unique(invalids_long$Count)) > 2) {
+#  
+#  inv_hist <- data.frame(Position = character(), Bin = numeric(), Count = numeric())
+#  inv_breaks <- hist(invalids_long$Count, plot = F)
+#  inv_breaks <- inv_breaks$breaks
+#  for(j in position_names){
+#    h <- hist(invalids_percent[, j], inv_breaks, plot = F)
+#    position <- paste0("position ", j)
+#    inv_hist <- rbind(inv_hist, data.frame(Position = rep(position, length(inv_breaks)-1), Bin = h$breaks[-1], Count = h$counts))
+#  }
+#
+#  hchart(inv_hist, "areaspline", hcaes(x = Bin, y = Count, group = Position), stack = "overlap", marker = list(enabled = FALSE)) |>
+#    hc_colors(selected_colors) |>
+#    hc_title(text = "Distribution of Percent Invalid Barcode Positions") |>
+#    hc_xAxis(title = list(text = "Percent Invalid"), type = "linear") |>
+#    hc_yAxis(title = list(text = "Count")) |>
+#    hc_tooltip(crosshairs = TRUE, animation = FALSE,
+#      formatter = JS("function () {return '<b>' + this.series.name + '</b><br><b>' + this.x + '% invalid</b><br/>Count: <b>' + this.y + '</b>';}") 
+#    ) |>
+#    hc_exporting(enabled = T, filename = "invalid.barcodes.distribution",
+#      buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
+#  )
+#} else {
+#  print("Too few invalid barcodes to create a plot with, which is a very good thing!")
+#}
 ```
 
 :::
