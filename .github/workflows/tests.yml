@@ -731,7 +731,7 @@ jobs:
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --ignore-bx --quiet 2 -r 4000 test/fastq/sample1.* && \
+          harpy metassembly --lr-type none --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
 
   other:
