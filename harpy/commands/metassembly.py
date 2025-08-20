@@ -13,7 +13,7 @@ docstring = {
     "harpy metassembly": [
         {
             "name": "Metassembly Parameters",
-            "options": ["--bx-tag", "--extra-params", "--ignore-bx","--kmer-length", "--max-memory", "--metassembly", "--organism-type"],
+            "options": ["--bx-tag", "--extra-params","--kmer-length", "--lr-type", "--max-memory", "--metassembly", "--organism-type"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -29,7 +29,7 @@ docstring = {
 @click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
-@click.option('--ignore-bx', is_flag = True, show_default = True, default = False, help = 'Ignore linked-read info for initial spades assembly')
+@click.option('-L', '--lr-type', type = click.Choice(['none'], case_sensitive=False), show_default=False, help = "Ignore linked-read information by setting this to `none`")
 @click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # Common Workflow
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
@@ -43,7 +43,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
+def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, lr_type, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
     Assemble linked reads into a metagenome
 
@@ -63,7 +63,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, ignore_bx, 
         "workflow" : workflow.name,
         "barcode_tag" : bx_tag.upper(),
         "spades" : {
-            'ignore_barcodes' : ignore_bx,
+            'ignore_barcodes' : isinstance(lr_type, str),
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
