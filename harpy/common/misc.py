@@ -252,7 +252,7 @@ def is_plaintext(file_path: str) -> bool:
 
 def which_linkedread(fastq: str) -> str|None:
     """
-    Scans the first 100 records for a FASTQ file and tries to determine the barcode technology
+    Scans the first 100 records of a FASTQ file and tries to determine the barcode technology
     Returns one of: "haplotagging", "stlfr", "tellseq" or None
     """
     haplotagging = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
@@ -270,6 +270,33 @@ def which_linkedread(fastq: str) -> str|None:
             elif tellseq.search(i.name):
                 return "tellseq"
             recs += 1
+
+def which_linkedread_sam(file_path: str) -> str|None:
+    """
+    Scans the first 100 records of a SAM/BAM file and tries to determine the barcode technology
+    Returns one of: "haplotagging", "stlfr", "tellseq" or None
+    """
+    recs = 1
+    with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+        for record in alnfile.fetch(until_eof = True):
+            if recs >= 100:
+                break
+            try:
+                bx = record.get_tag("BX")
+                if re.search(r"^[ATCGN]+$", bx):
+                    return "tellseq"
+                elif re.search(r"^\d+_\d+_\d+$", bx):
+                    return "stlfr"
+                elif re.search(r"^A\d{2}C\d{2}B\d{2}D\d{2}$", bx):
+                    return "haplotagging"
+                else:
+                    recs += 1
+                    continue
+                break
+            except KeyError:
+                recs += 1
+                continue
+    return None
 
 def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60, gzip_ok: bool = True, haplotag_only: bool = False, check_dups: bool = True) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""

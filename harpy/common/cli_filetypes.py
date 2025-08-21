@@ -12,9 +12,11 @@ from harpy.common.printing import print_error, print_notice
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
     name = "bam_file"
-    def __init__(self, dir_ok: bool = True):
+    def __init__(self, dir_ok: bool = True, single: bool = False):
         super().__init__()
         self.dir_ok = dir_ok
+        self.single = single
+
     def convert(self, value, param, ctx):
         filepath = Path(value)
         if filepath.is_dir() and not self.dir_ok:
@@ -42,7 +44,10 @@ class SAMfile(click.ParamType):
                     pass
             except (ValueError, OSError):
                 self.fail(f"File {value} was not recognized as being in BAM/SAM format.", param, ctx)
-        return infiles
+        if self.single:
+            return infiles[0]
+        else:
+            return infiles
 
 class FASTAfile(click.ParamType):
     """A CLI class to validate a FASTA file as input. Checks for presence, format, and returns the absolute path"""
@@ -66,11 +71,15 @@ class FASTAfile(click.ParamType):
             self.fail(f"File {value} was not recognized as being in FASTA format.", param, ctx)
         
 class FASTQfile(click.ParamType):
-    """A CLI class to validate a FASTQ file as input. Checks for presence, format, and returns the absolute path"""
+    """
+    A CLI class to validate a FASTQ file as input. Checks for presence, format, and returns the absolute path.
+    Setting single to True returns a str, otherwise returns a list.
+    """
     name = "fastq_file"
-    def __init__(self, dir_ok: bool = True):
+    def __init__(self, dir_ok: bool = True, single: bool = False):
         super().__init__()
         self.dir_ok = dir_ok
+        self.single = single
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
@@ -103,7 +112,11 @@ class FASTQfile(click.ParamType):
                         break
             except (ValueError, OSError):
                 self.fail(f"File {fastq} was not recognized as being in FASTQ format.", param, ctx)
-        return infiles
+        if self.single:
+            return infiles[0]
+        else:
+            return infiles
+
 
 class VCFfile(click.ParamType):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
