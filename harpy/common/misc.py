@@ -241,29 +241,6 @@ def is_bgzipped(file_path: str) -> bool:
     except (IOError, OSError):
         return False
 
-def is_xam(file_path: str) -> bool:
-    try:
-        with pysam.AlignmentFile(file_path, require_index=False) as xam:
-            for i in xam:
-                if not i.query_qualities:
-                    raise ValueError
-                break
-    except ValueError:
-            return False
-    return True
-
-
-def is_fastq(file_path: str) -> bool:
-    try:
-        with pysam.FastxFile(file_path, persist=False) as fq:
-            for i in fq:
-                if not i.quality:
-                    raise ValueError
-                break
-    except ValueError:
-            return False
-    return True
-
 def is_plaintext(file_path: str) -> bool:
     """helper function to determine if a file is plaintext"""
     try:

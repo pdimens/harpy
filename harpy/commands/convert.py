@@ -10,9 +10,10 @@ import sys
 import rich_click as click
 import pysam
 from harpy.common.misc import safe_read, harpy_pulsebar
+from harpy.common.cli_filetypes import SAMfile, FASTQfile
 from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
-from harpy.common.misc import validate_barcodefile, is_xam, is_fastq, which_linkedread
+from harpy.common.misc import validate_barcodefile, which_linkedread
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
@@ -34,7 +35,7 @@ module_docstring = {
 @click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `VX:i` to output')
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
-@click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+@click.argument('sam', metavar="BAM", type = SAMfile(), required = True, nargs=1)
 def bam(to_,sam, standardize, quiet):
     """
     Convert between barcode formats in alignments
@@ -49,9 +50,6 @@ def bam(to_,sam, standardize, quiet):
     # to assess what kind of linked read tech it is and set
     # the appropriate kind of MISSING barcode
     from_ = None
-    if not is_xam(sam):
-        print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
-
     with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
         progress.add_task("[dim]Determining barcode type", total = None)
         for record in alnfile.fetch(until_eof = True):
@@ -143,8 +141,8 @@ def bam(to_,sam, standardize, quiet):
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
 @click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
-@click.argument('fq1', metavar="R1_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
-@click.argument('fq2', metavar="R2_FASTQ", type = click.Path(exists=True, readable=True, dir_okay=False), required=True, nargs= 1)
+@click.argument('fq1', metavar="R1_FASTQ", type = FASTQfile(), required = True, nargs=1)
+@click.argument('fq2', metavar="R2_FASTQ", type = FASTQfile(), required=True, nargs= 1)
 def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
     """
     Convert between linked-read FASTQ formats
@@ -169,10 +167,6 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
         print_error("redundant conversion", "The [green]haplotagging[/] and [green]standard[/] formats are functionally identical and this conversion won\'t do anything.")
     if from_ == "10x" and not barcodes:
         print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x.")
-    # check that the file is fastq
-    for i in [fq1, fq2]:
-        if not is_fastq(i):
-            print_error("Unrecognized file type", f"[blue]{os.path.basename(i)}[/] was unable to be processed as a FASTQ file by samtools, suggesting it is not a FASTQ file.")
 
     # just make sure it's all lowercase
     from_ = from_.lower()
@@ -287,7 +281,7 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('sam', metavar="BAM", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+@click.argument('sam', metavar="BAM", type = SAMfile(), required = True, nargs=1)
 def standardize_bam(sam, quiet):
     """
     Move barcode to BX:Z/VX:i tags in alignments
@@ -297,9 +291,6 @@ def standardize_bam(sam, quiet):
     for tellseq and stlfr data, which encode the barcode in the read name. Also writes a `VX:i` tag
     to describe barcode validation `0` (invalid) or `1` (valid). Writes to `stdout`.
     """
-    if not is_xam(sam):
-        print_error("Unrecognized file type", f"[blue]{os.path.basename(sam)}[/] was unable to be processed by samtools, suggesting it is not a SAM/BAM file.")
-
     with (
         pysam.AlignmentFile(sam, require_index=False) as samfile, 
         pysam.AlignmentFile(sys.stdout, "wb", template=samfile),
@@ -331,8 +322,8 @@ def standardize_bam(sam, quiet):
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
 @click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('prefix', metavar="output_prefix", type = str, required = True, nargs=1)
-@click.argument('r1_fastq', metavar="R1_fastq", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
-@click.argument('r2_fastq', metavar="R1_fastq", type = click.Path(exists=True, readable=True, dir_okay=False), required = True, nargs=1)
+@click.argument('r1_fastq', metavar="R1_fastq", type = FASTQfile(), required = True, nargs=1)
+@click.argument('r2_fastq', metavar="R1_fastq", type = FASTQfile(), required = True, nargs=1)
 def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     """
     Move barcodes to BX:Z/VX:i tags in sequence headers
@@ -350,9 +341,6 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
     | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
-    for i in [r1_fastq, r2_fastq]:
-        if not is_fastq(i):
-            print_error("Unrecognized file type", f"[blue]{os.path.basename(i)}[/] was unable to be processed by samtools, suggesting it is not a FASTQ file.")
     logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
 
     BC_TYPE = which_linkedread(r1_fastq)
@@ -446,8 +434,8 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
 @click.option('-p', '--prefix', required=True, type = str, help = "Output file name prefix")
 @click.option('-i', '--preserve-invalid',  is_flag = True, default = False, help = 'Retain the uniqueness of invalid barcodes')
 @click.option('-s', '--scan', show_default = True, default = 100, type = click.IntRange(min=1), help = 'Number of reads to scan to identify barcode location and format')
-@click.argument('r1_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
-@click.argument('r2_fq', required=True, type=click.Path(exists=True, readable=True, resolve_path=True), nargs=1)
+@click.argument('r1_fq', required=True, type=FASTQfile(), nargs=1)
+@click.argument('r2_fq', required=True, type=FASTQfile(), nargs=1)
 def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
     """
     Convert FASTQ files for NCBI submission
