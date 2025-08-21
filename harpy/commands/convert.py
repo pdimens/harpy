@@ -13,143 +13,37 @@ from harpy.common.misc import safe_read, harpy_pulsebar
 from harpy.common.cli_filetypes import SAMfile, FASTQfile
 from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
-from harpy.common.misc import validate_barcodefile, which_linkedread
+from harpy.common.misc import validate_barcodefile, which_linkedread, which_linkedread_sam
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
     """
-    Convert between linked-read data formats
+    Convert between linked-read formats and barcode styles
     """
 
 module_docstring = {
     "harpy convert": [
         {
             "name": "Commands",
-            "commands": ["bam", "fastq", "standardize-bam", "standardize-fastq"],
+            "commands": ["fastq", "standardize-bam", "standardize-fastq"],
             "panel_styles": {"border_style" : "blue"}
         }
     ]
 }
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
-@click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `VX:i` to output')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('to_', metavar = 'TO', type = click.Choice(["10x","haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
-@click.argument('sam', metavar="BAM", type = SAMfile(), required = True, nargs=1)
-def bam(to_,sam, standardize, quiet):
-    """
-    Convert between barcode formats in alignments
-
-    This conversion changes the barcode type of the alignment file (SAM/BAM), expecting
-    the barcode to be in the `BX:Z` tag of the alignment. The barcode type is automatically
-    detected and the resulting barcode will be in the `BX:Z` tag. Use `--standardize` to 
-    optionally standardize the output file (recommended), meaning a `VX:i` tag is added to describe
-    barcode validation with `0` (invalid) and `1` (valid). Writes to `stdout`.
-    """
-    # Do a quick scan of the file until the first barcode
-    # to assess what kind of linked read tech it is and set
-    # the appropriate kind of MISSING barcode
-    from_ = None
-    with pysam.AlignmentFile(sam, require_index=False) as alnfile, harpy_pulsebar(quiet, "Determining barcode type", True) as progress:
-        progress.add_task("[dim]Determining barcode type", total = None)
-        for record in alnfile.fetch(until_eof = True):
-            try:
-                bx = record.get_tag("BX")
-                if re.search(r"^[ATCGN]+$", bx):
-                    # tellseq
-                    from_ = "tellseq"
-                elif re.search(r"^\d+_\d+_\d+$", bx):
-                    # stlfr
-                    from_ = "stlfr"
-                elif re.search(r"^A\d{2}C\d{2}B\d{2}D\d{2}$", bx):
-                    from_ = "haplotagging"
-                else:
-                    continue
-                break
-            except KeyError:
-                continue
-        if not from_:
-            print_error(
-                "unrecognized barcode",
-                f"After scanning {os.path.basename(sam)}, either no BX:Z fields were found, or no barcodes conforming to haplotagging,stlfr, or tellseq/10x were identified."   
-            )
-
-    to_ = to_.lower()
-    if from_ == to_:
-        print_error("invalid to/from", f"The barcode formats between [green]{from_}[/] (detected from input) and [green]{to_}[/] (user-specified) must be different from each other.")
-
-    # for barcodes, use sample() so the barcodes don't all start with AAAAAAAAAAAAA (or 1)
-    # it's not functionally important, but it does make the barcodes *look* more distinct
-    if to_ == "10x":
-        bc_generator = product(*[sample("ATCG", 4) for i in range(16)])
-        def is_valid(bc):
-            return "N" not in bc
-        def format_bc(bc):
-            return "".join(bc)
-    elif to_ == "tellseq":
-        bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
-        def is_valid(bc):
-            return "N" not in bc
-        def format_bc(bc):
-            return "".join(bc)
-    elif to_ == "stlfr":
-        bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
-        def is_valid(bc):
-            return "0" not in bc.split("_")
-        def format_bc(bc):
-            return "_".join(str(i) for i in bc)
-    elif to_ == "haplotagging":
-        bc_generator = product(
-            ["A" + str(i).zfill(2) for i in sample(range(1,97), 96)],
-            ["C" + str(i).zfill(2) for i in sample(range(1,97), 96)],
-            ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
-            ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
-        )
-        def is_valid(bc):
-            return "00" not in bc
-        def format_bc(bc):
-            return "".join(bc)
-
-    bc_inventory = {}
-    with (
-        pysam.AlignmentFile(sam, require_index=False) as samfile,
-        pysam.AlignmentFile("-", "wb", template=samfile) as OUT,
-        harpy_pulsebar(quiet, "Converting", True) as progress,
-    ):
-        progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
-        for record in samfile.fetch(until_eof=True):
-            if record.has_tag("BX"):
-                bx = record.get_tag("BX")
-                # the standardization is redundant but ensures being written before the BX tag
-                if bx in bc_inventory:
-                    if standardize:
-                        record.set_tag("VX", int(is_valid(bx)), "i")
-                    record.set_tag("BX", bc_inventory[bx] ,"Z")
-                else:
-                    try:
-                        bc_inventory[bx] = format_bc(next(bc_generator))
-                        if standardize:
-                            record.set_tag("VX", int(is_valid(bx)), "i")
-                        record.set_tag("BX", bc_inventory[bx] ,"Z")
-                    except StopIteration:
-                        print_error("too many barcodes", f"There are more {from_} barcodes in the input data than it is possible to generate {to_} barcodes from.")
-            OUT.write(record)
-
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('from_', metavar = 'FROM', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs=1)
-@click.argument('to_', metavar = 'TO', type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
-@click.argument('fq1', metavar="R1_FASTQ", type = FASTQfile(), required = True, nargs=1)
-@click.argument('fq2', metavar="R2_FASTQ", type = FASTQfile(), required=True, nargs= 1)
-def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
+@click.argument('target', metavar = "TARGET", type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
+@click.argument('fq1', metavar="R1_FASTQ", type = FASTQfile(single=True), required = True, nargs=1)
+@click.argument('fq2', metavar="R2_FASTQ", type = FASTQfile(single=True), required=True, nargs= 1)
+def fastq(target,fq1,fq2,output,barcodes, quiet):
     """
     Convert between linked-read FASTQ formats
     
-    Takes the positional arguments `FROM` to indicate input data format and `TO` is the
-    target data format. Both of these arguments allow the formats provided in the table below. `10x`
-    input data requires a `--barcodes` file containing one nucleotide barcode per line to
+    Autodetects the input data format and takes the positional argument `TARGET` specifying the target data format.
+    10X input data requires a `--barcodes` file containing one nucleotide barcode per line to
     determine which barcodes are valid/invalid. In all cases, a file will be created with
     the barcode conversion map. Requires 2 threads.
     
@@ -161,16 +55,16 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
     | stlfr        | `#1_2_3` format appended to the sequence ID        | `@SEQID#1_2_3`              |
     | tellseq      | `:ATCG` format appended to the sequence ID         | `@SEQID:GGCAAATATCGAGAAGTC` |
     """
-    if from_ == to_:
-        print_error("invalid to/from", "The file formats between [green]TO[/] and [green]FROM[/] must be different from each other.")
-    if from_ in ["haplotagging", "standard"] and to_ in ["haplotagging", "standard"]:
-        print_error("redundant conversion", "The [green]haplotagging[/] and [green]standard[/] formats are functionally identical and this conversion won\'t do anything.")
-    if from_ == "10x" and not barcodes:
-        print_error("missing required file", "A [green]--barcodes[/] file must be provided if the input data is 10x.")
+    from_ = which_linkedread(fq1)
+    if not from_ and not barcodes:
+        print_error("missing barcodes file", "The input data was inferred to be 10X format because neither haplotagging, stlfr, nor tellseq barcodes were detected in their appropriate locations in the first 100 fastq records of the forward reads. A [green]--barcodes[/] file must be provided if the input data is 10x. If the input data is not 10X, then it is formatted incorrectly for whatever technology it was generated with.")
+    if from_ and barcodes:
+        print_error("unsupported process", f"The input data was inferred to be {from_} format, but a [green]--barcodes[/] file was provided, suggesting it's 10X format data. If the input data is not {from_}, then it is formatted incorrectly for whatever technology it was generated with.")
+    if from_ == target:
+        print_error("identical conversion target", f"The input file was inferred to be[green]{from_}[/], which is identical to the conversion target [green]{target}[/]. The formats must be different from each other. If the input data is not {from_}, then it is formatted incorrectly for whatever technology it was generated with.")
 
     # just make sure it's all lowercase
-    from_ = from_.lower()
-    to_ = to_.lower()
+    to_ = target.lower()
     # for barcodes, use sample() so the barcodes don't all start with AAAAAAAAAAAAA (or 1)
     # it's not functionally important, but it does make the barcodes *look* more distinct
     if to_ == "10x":
@@ -280,61 +174,20 @@ def fastq(from_,to_,fq1,fq2,output,barcodes, quiet):
         executor.submit(compress_fq, f"{output}.R2.fq")
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
+@click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Convert the barcode style')
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('sam', metavar="BAM", type = SAMfile(), required = True, nargs=1)
-def standardize_bam(sam, quiet):
+@click.argument('sam', metavar="BAM", type = SAMfile(single=True), required = True, nargs=1)
+def standardize_bam(sam, convert, quiet):
     """
     Move barcode to BX:Z/VX:i tags in alignments
 
-    This conversion moves the barcode from the sequence name in to the `BX:Z` tag of the alignment,
-    maintaining the same barcode type (i.e. there is no linked-read format conversion). It is intended
-    for tellseq and stlfr data, which encode the barcode in the read name. Also writes a `VX:i` tag
-    to describe barcode validation `0` (invalid) or `1` (valid). Writes to `stdout`.
-    """
-    with (
-        pysam.AlignmentFile(sam, require_index=False) as samfile, 
-        pysam.AlignmentFile(sys.stdout, "wb", template=samfile),
-        harpy_pulsebar(quiet, "Standardizing", True),
-    ):
-        for record in samfile.fetch(until_eof=True):
-            if record.has_tag("BX") and record.has_tag("VX"):
-                print_error("BX/VX tags present", f"The BX:Z and VX:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
-            if record.has_tag("BX"):
-                bx = record.get_tag("BX")
-                if "0" in bx.split("_") or re.search(r"(?:N|[ABCD]00)", bx):
-                    record.set_tag("VX", 0, "i")
-                else:
-                    record.set_tag("VX", 1, "i")
-                continue
-            # matches either tellseq or stlfr   
-            bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", record.query_name)
-            if bx:
-                # the 1:0 ignores the first character, which will either be : or #
-                bx_sanitized = bx[0][1:]
-                record.query_name = record.query_name.remove_suffix(bx[0])
-                if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
-                    record.set_tag("VX", 0, "i")
-                else:
-                    record.set_tag("VX", 1, "i")
-                record.set_tag("BX", bx_sanitized, "Z")
-
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('prefix', metavar="output_prefix", type = str, required = True, nargs=1)
-@click.argument('r1_fastq', metavar="R1_fastq", type = FASTQfile(), required = True, nargs=1)
-@click.argument('r2_fastq', metavar="R1_fastq", type = FASTQfile(), required = True, nargs=1)
-def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
-    """
-    Move barcodes to BX:Z/VX:i tags in sequence headers
-
-    This conversion moves the barcode to the `BX:Z` tag in fastq records, maintaining the same barcode type by default (auto-detected).
-    Also writes a `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid). Use `harpy convert fastq`
-    if your data is in 10X format, as this command will not work on 10X format (i.e. barcode is the first 16 bases of read 1).
+    If barcodes are present in the sequence name (stlfr, tellseq), this method moves the barcode to the `BX:Z`
+    tag of the alignment, maintaining the same barcode style by default. If moved to or already in a `BX:Z` tag,
+    will then write a complementary `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid).
     Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
+    Writes to `stdout`.
 
-    **Barcode Styles for --convert**
-    | Option         | Format                                         |
+    | Option         | Style                                          |
     |:---------------|:-----------------------------------------------|
     | `haplotagging` | : AxxCxxBxxDxx                                 |
     | `stlfr`        | : 1_2_3                                        |
@@ -343,17 +196,9 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     """
     logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
 
-    BC_TYPE = which_linkedread(r1_fastq)
-    if not BC_TYPE:
-        print_error("undertermined file type", f"Unable to determine the linked-read barcode type after scanning the first 100 records of {os.path.basename(r1_fastq)}. Please make sure the format is one of haplotagging, stlfr, or tellseq. 10X-style with the barcode as the first 16 nucleotides of read 1 is not supported here.")
-    
-    # create the output directory in case it doesn't exist
-    if os.path.dirname(prefix):
-        os.makedirs(os.path.dirname(prefix), exist_ok=True)
-
     if convert:
-        bc_out = open(f"{prefix}.bc", "w")
-
+        bc_out = open(f"conversion.bc", "w")
+        convert = convert.lower()
         if convert == "tellseq":
             bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
             invalid = INVALID_TELLSEQ
@@ -379,8 +224,120 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
             invalid = INVALID_HAPLOTAGGING
             def format_bc(bc):
                 return "".join(bc)
+        bc_inventory = {}
 
-    bc_inventory = {}
+    with (
+        pysam.AlignmentFile(sam, require_index=False) as samfile, 
+        pysam.AlignmentFile(sys.stdout, "wb", template=samfile) as outfile,
+        harpy_pulsebar(quiet, "Standardizing", True) as progress,
+    ):
+        progress.add_task(logtext, total = None)
+        for record in samfile.fetch(until_eof=True):
+            if record.has_tag("BX") and record.has_tag("VX"):
+                print_error("BX/VX tags present", f"The BX:Z and VX:i tags are already present in {os.path.basename(sam)} and does not need to be standardized.")
+            if record.has_tag("BX"):
+                bx_sanitized = record.get_tag("BX")
+                if "0" in bx_sanitized.split("_") or re.search(r"(?:N|[ABCD]00)", bx_sanitized):
+                    record.set_tag("VX", 0, "i")
+                    vx = 0
+                else:
+                    record.set_tag("VX", 1, "i")
+                    vx = 1
+            else:
+                # matches either tellseq or stlfr   
+                bx = re.search(r"(?:\:[ATCGN]+$|#\d+_\d+_\d+$)", record.query_name)
+                if bx:
+                    # the 1:0 ignores the first character, which will either be : or #
+                    bx_sanitized = bx[0][1:]
+                    record.query_name = record.query_name.remove_suffix(bx[0])
+                    if "0" in bx_sanitized.split("_") or "N" in bx_sanitized:
+                        record.set_tag("VX", 0, "i")
+                        vx = 0
+                    else:
+                        record.set_tag("VX", 1, "i")
+                        vx = 1
+                    record.set_tag("BX", bx_sanitized, "Z")
+                else:
+                    outfile.write(record)
+            if convert:
+                if bx_sanitized not in bc_inventory:
+                    if bool(vx):
+                        try:
+                            bc_inventory[bx_sanitized] = format_bc(next(bc_generator))
+                        except StopIteration:
+                            print_error("too many barcodes", f"There are more barcodes in the input data than it is possible to generate {convert} barcodes from.")
+                    else:
+                        bc_inventory[bx_sanitized] = invalid
+                    bc_out.write(f"{bx_sanitized}\t{bc_inventory[bx_sanitized]}\n")
+                    record.set_tag("BX", bc_inventory[bx_sanitized], "Z")
+            outfile.write(record)
+    if convert:
+        bc_out.close()
+
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
+@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
+@click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Convert the barcode style')
+@click.argument('prefix', metavar="output_prefix", type = str, required = True, nargs=1)
+@click.argument('r1_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
+@click.argument('r2_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
+def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
+    """
+    Move barcodes to BX:Z/VX:i tags in sequence headers
+
+    This conversion moves the barcode to the `BX:Z` tag in fastq records, maintaining the same barcode type by default (auto-detected).
+    See `harpy convert fastq` for the location and format expectations for different linked-read technologies.
+    Also writes a `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid). Use `harpy convert fastq`
+    if your data is in 10X format, as this command will not work on 10X format (i.e. barcode is the first 16 bases of read 1).
+    Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
+
+    **Barcode Styles for --convert**
+    | Option         | Style                                          |
+    |:---------------|:-----------------------------------------------|
+    | `haplotagging` | : AxxCxxBxxDxx                                 |
+    | `stlfr`        | : 1_2_3                                        |
+    | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
+    | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
+    """
+    logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
+
+    BC_TYPE = which_linkedread(r1_fastq)
+    if not BC_TYPE:
+        print_error("undertermined file type", f"Unable to determine the linked-read barcode type after scanning the first 100 records of {os.path.basename(r1_fastq)}. Please make sure the format is one of haplotagging, stlfr, or tellseq. 10X-style with the barcode as the first 16 nucleotides of read 1 is not supported here.")
+    
+    # create the output directory in case it doesn't exist
+    if os.path.dirname(prefix):
+        os.makedirs(os.path.dirname(prefix), exist_ok=True)
+
+    if convert:
+        bc_out = open(f"{prefix}.bc", "w")
+        convert = convert.lower()
+        if convert == "tellseq":
+            bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
+            invalid = INVALID_TELLSEQ
+            def format_bc(bc):
+                return "".join(bc)
+        if convert == "10x":
+            bc_generator = product(*[sample("ATCG", 4) for i in range(16)])
+            invalid = INVALID_10x
+            def format_bc(bc):
+                return "".join(bc)
+        elif convert == "stlfr":
+            bc_generator = product(*[sample(range(1,1538), 1537) for i in range(3)])
+            invalid = INVALID_STLFR
+            def format_bc(bc):
+                return "_".join(str(i) for i in bc)
+        elif convert == "haplotagging":
+            bc_generator = product(
+                ["A" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+                ["C" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+                ["B" + str(i).zfill(2) for i in sample(range(1,97), 96)],
+                ["D" + str(i).zfill(2) for i in sample(range(1,97), 96)]
+            )
+            invalid = INVALID_HAPLOTAGGING
+            def format_bc(bc):
+                return "".join(bc)
+        bc_inventory = {}
+
     with (
         pysam.FastxFile(r1_fastq, persist=False) as R1,
         pysam.FastxFile(r2_fastq, persist=False) as R2,
@@ -434,8 +391,8 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
 @click.option('-p', '--prefix', required=True, type = str, help = "Output file name prefix")
 @click.option('-i', '--preserve-invalid',  is_flag = True, default = False, help = 'Retain the uniqueness of invalid barcodes')
 @click.option('-s', '--scan', show_default = True, default = 100, type = click.IntRange(min=1), help = 'Number of reads to scan to identify barcode location and format')
-@click.argument('r1_fq', required=True, type=FASTQfile(), nargs=1)
-@click.argument('r2_fq', required=True, type=FASTQfile(), nargs=1)
+@click.argument('r1_fq', required=True, type=FASTQfile(single=True), nargs=1)
+@click.argument('r2_fq', required=True, type=FASTQfile(single=True), nargs=1)
 def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
     """
     Convert FASTQ files for NCBI submission
@@ -526,7 +483,6 @@ def ncbi(prefix, r1_fq, r2_fq, scan, preserve_invalid, barcode_map):
                 bc_out.write(f"{nuc}\t{bx}\n")
 
 convert.add_command(fastq)
-convert.add_command(bam)
 convert.add_command(ncbi)
 convert.add_command(standardize_bam)
 convert.add_command(standardize_fastq)
