@@ -13,7 +13,7 @@ from harpy.common.misc import safe_read, harpy_pulsebar
 from harpy.common.cli_filetypes import SAMfile, FASTQfile
 from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
-from harpy.common.misc import validate_barcodefile, which_linkedread, which_linkedread_sam
+from harpy.common.misc import validate_barcodefile, which_linkedread
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
@@ -184,8 +184,8 @@ def standardize_bam(sam, convert, quiet):
     If barcodes are present in the sequence name (stlfr, tellseq), this method moves the barcode to the `BX:Z`
     tag of the alignment, maintaining the same barcode style by default. If moved to or already in a `BX:Z` tag,
     will then write a complementary `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid).
-    Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
-    Writes to `stdout`.
+    Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`),
+    which also writes a `conversion.bc` file to the working directory mapping the barcode conversions. Writes to `stdout`.
 
     | Option         | Style                                          |
     |:---------------|:-----------------------------------------------|
@@ -197,7 +197,7 @@ def standardize_bam(sam, convert, quiet):
     logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
 
     if convert:
-        bc_out = open(f"conversion.bc", "w")
+        bc_out = open("conversion.bc", "w")
         convert = convert.lower()
         if convert == "tellseq":
             bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
