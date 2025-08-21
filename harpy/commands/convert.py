@@ -10,7 +10,7 @@ import sys
 import rich_click as click
 import pysam
 from harpy.common.misc import safe_read, harpy_pulsebar
-from harpy.common.convert import FQRecord, compress_fq
+from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
 from harpy.common.misc import validate_barcodefile, is_xam, is_fastq, which_linkedread
 
@@ -29,11 +29,6 @@ module_docstring = {
         }
     ]
 }
-
-INVALID_10x = "N" * 16
-INVALID_HAPLOTAGGING = "A00C00B00D00"
-INVALID_STLFR = "0_0_0"
-INVALID_TELLSEQ = "N" * 18
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('--standardize',  is_flag = True, default = False, help = 'Add barcode validation tag `VX:i` to output')
@@ -348,7 +343,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
 
     **Barcode Styles for --convert**
-    | Style          | Format                                         |
+    | Option         | Format                                         |
     |:---------------|:-----------------------------------------------|
     | `haplotagging` | : AxxCxxBxxDxx                                 |
     | `stlfr`        | : 1_2_3                                        |
@@ -358,7 +353,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     for i in [r1_fastq, r2_fastq]:
         if not is_fastq(i):
             print_error("Unrecognized file type", f"[blue]{os.path.basename(i)}[/] was unable to be processed by samtools, suggesting it is not a FASTQ file.")
-    logtext = f"Standardizing [->[magenta]{convert.lower()}[/]]" if convert else "Standardizing"
+    logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
 
     BC_TYPE = which_linkedread(r1_fastq)
     if not BC_TYPE:
@@ -445,9 +440,6 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
         with ThreadPoolExecutor(max_workers=2) as executor:
             executor.submit(compress_fq, f"{prefix}.R1.fq")
             executor.submit(compress_fq, f"{prefix}.R2.fq")
-
-    
-
 
 @click.command(hidden = True, no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map',  is_flag = True, default = False, help = 'Write a map of the barcode-to-nucleotide conversion')

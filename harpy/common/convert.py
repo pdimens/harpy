@@ -5,9 +5,10 @@ import pysam
 import re
 from .printing import print_error
 
+INVALID_10x = "N" * 16
+INVALID_HAPLOTAGGING = "A00C00B00D00"
 INVALID_STLFR = "0_0_0"
 INVALID_TELLSEQ = "N" * 18
-INVALID_HAPLOTAGGING = "A00C00B00D00"
 
 stlfrINVALID = re.compile("^0_|_0_|_0$")
 
