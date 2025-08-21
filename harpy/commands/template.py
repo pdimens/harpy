@@ -31,7 +31,7 @@ def template():
     All subcommands write to `stdout`.
     """
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def groupings(inputdir):
     """
@@ -70,7 +70,7 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-@click.command(context_settings=dict(allow_interspersed_args=False), epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 def impute():
     """
     Create a template imputation parameter file

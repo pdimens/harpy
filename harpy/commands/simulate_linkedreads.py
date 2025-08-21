@@ -29,7 +29,7 @@ docstring = {
     ]
 }
 
-@click.command(epilog = "Documentation: https://pdimens.github.io/mimick/", no_args_is_help = True)
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/mimick/")
 #Paired-end FASTQ simulation using pywgsim
 @click.option('--coverage', help='mean coverage (depth) target for simulated data', show_default=True, default=30, type=click.FloatRange(min=0.05))
 @click.option('--distance', help='outer distance between the two read ends in bp', default=500, show_default=True, type=click.IntRange(min=0))

@@ -79,7 +79,7 @@ def view():
     file, workflow config file in a directory that was used for the output of a Harpy run.
     """
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def config(directory, edit):
@@ -164,7 +164,7 @@ def environments(program):
             console.print()
     return
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def log(directory):
     """
@@ -207,7 +207,7 @@ def log(directory):
         file = sys.stderr
     )
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakefile(directory, edit):
@@ -245,7 +245,7 @@ def snakefile(directory, edit):
         file = sys.stderr
     )
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory, edit):
