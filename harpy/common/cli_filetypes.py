@@ -14,8 +14,8 @@ class SAMfile(click.ParamType):
     name = "bam_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
         super().__init__()
-        self.dir_ok = dir_ok
         self.single = single
+        self.dir_ok = False if single else dir_ok
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
@@ -78,8 +78,8 @@ class FASTQfile(click.ParamType):
     name = "fastq_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
         super().__init__()
-        self.dir_ok = dir_ok
         self.single = single
+        self.dir_ok = False if single else dir_ok
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
