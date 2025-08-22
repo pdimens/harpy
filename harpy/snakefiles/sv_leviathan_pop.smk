@@ -255,7 +255,7 @@ rule group_reports:
         cp -f {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
         """
 
 rule aggregate_report:
@@ -282,7 +282,7 @@ rule aggregate_report:
         cp -f {input.qmd} {output.qmd}
         FAIDX=$(realpath {input.faidx})
         INPATH=$(realpath {params.statsdir})
-        quarto render {output.qmd} --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
         """
 
 rule workflow_summary:

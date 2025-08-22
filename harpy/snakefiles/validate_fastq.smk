@@ -97,7 +97,7 @@ rule create_report:
         """
         cp -f {input.qmd} {output.qmd}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
         """
 
 rule workflow_summary:
