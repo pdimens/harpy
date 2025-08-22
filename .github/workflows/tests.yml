@@ -814,7 +814,8 @@ jobs:
           harpy convert fastq --quiet 2 -o convert/stlfr stlfr test/fastq/sample1.*gz && \
           harpy convert fastq --quiet 2 -o convert/tellseq tellseq test/fastq/sample1.*gz && \
           harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz
-      - name: convert fastq stlfr to haplotag
+      - name: convert fastq from stlfr
+        shell: micromamba-shell {0}
         run: |
           harpy convert fastq --quiet 2 -o convert_stlfr/haptag haplotagging convert/stlfr.*gz && \
           harpy convert fastq --quiet 2 -o convert_stlfr/tellseq tellseq convert/stlfr.*gz && \
@@ -828,6 +829,7 @@ jobs:
           harpy convert fastq --quiet 2 -o convert_tellseq/haptag haplotagging convert/tellseq.*gz && \
           rm -rf convert_tellseq
       - name: convert fastq from 10x
+        shell: micromamba-shell {0}
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes && \
           harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes standard convert/10x*gz && \
@@ -836,12 +838,14 @@ jobs:
           harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes stlfr convert/10x*gz && \
           rm -rf convert_10x
       - name: standardize bam from haplotagging
+        shell: micromamba-shell {0}
         run: |
           harpy convert standardize-bam --quiet 2 --convert tellseq test/bam/sample1.bam > tellseq.bam && \
           samtools view tellseq.bam | head -3 && \
           harpy convert standardize-bam --quiet 2 --convert stlfr test/bam/sample1.bam > stlfr.bam && \
           samtools view stlfr.bam | head -3
       - name: standardize bam from stlfr
+        shell: micromamba-shell {0}
         run: |
           samtools view -h -Ob -x VX stlfr.bam > test.stlfr.bam
           harpy convert standardize-bam --quiet 2 --convert haplotagging test.stlfr.bam > test.bam && \
