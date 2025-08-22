@@ -5,7 +5,7 @@ import subprocess
 import rich_click as click
 from harpy.common.printing import print_error, CONSOLE
 
-@click.command(no_args_is_help = True, context_settings=dict(allow_interspersed_args=False))
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def diagnose(directory):
     """

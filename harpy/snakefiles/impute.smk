@@ -189,7 +189,7 @@ rule contig_report:
         cp -f {input.qmd} {output.qmd}
         STATS=$(realpath {input.statsfile})
         PLOTDIR=$(realpath {input.plotdir})
-        quarto render {output.qmd} --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
         """
 
 rule concat_list:
@@ -315,7 +315,7 @@ rule impute_reports:
         cp -f {input.qmd} {output.qmd}
         COMPARE=$(realpath {input.comparison})
         INFOSCORE=$(realpath {input.infoscore})
-        quarto render {output.qmd} --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
         """
 
 rule workflow_summary:

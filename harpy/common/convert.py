@@ -2,14 +2,19 @@
 
 import os
 import pysam
+import re
 from .printing import print_error
 
+INVALID_10x = "N" * 16
+INVALID_HAPLOTAGGING = "A00C00B00D00"
 INVALID_STLFR = "0_0_0"
 INVALID_TELLSEQ = "N" * 18
-INVALID_HAPLOTAGGING = "A00C00B00D00"
+
+stlfrINVALID = re.compile("^0_|_0_|_0$")
 
 class FQRecord():
     def __init__(self, pysamfq, FORWARD: bool, bc: str, length: int):
+        """Initialize a FASTQ record. FORWARD denotes if it's a forward read, bc is the barcode type, length is the length"""
         self.forward = FORWARD
         fr = "1:N:" if self.forward else "2:N:"
         comments = pysamfq.comment.strip().split()
@@ -33,7 +38,7 @@ class FQRecord():
                 _id = pysamfq.name.split("#")
                 self.barcode = _id.pop(-1)
                 self.id = "#".join(_id)
-                self.valid = "_0" not in self.barcode
+                self.valid = not bool(stlfrINVALID.search(self.barcode))
         elif bc == "10x":
             # identify the first N bases and remove it from the seq and qual of R1
             if self.forward:
@@ -90,7 +95,11 @@ class FQRecord():
             self.id += f"#{BC} {self.illumina_new}"
         elif _type in ["haplotagging", "standard"]:
             self.id += self.illumina_old
-            self.comment += f"\tBX:Z:{BC}"
+            if not self.comment:
+                self.comment = f"VX:i:{int(self.valid)}\tBX:Z:{BC}"
+            else:
+                _comments = [i for i in self.comment.split() if not i.startswith("BX") and not i.startswith("VX")] + [f"VX:i:{int(self.valid)}", f"BX:Z:{BC}"]
+                self.comment = "\t".join(_comments)
         return self
 
 def compress_fq(fq: str):
