@@ -178,12 +178,12 @@ def standardize_bam(sam, style, quiet):
     Use `--style` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`),
     which also writes a `conversion.bc` file to the working directory mapping the barcode conversions. Writes to `stdout`.
 
-    | Option         | Style                                          |
-    |:---------------|:-----------------------------------------------|
-    | `haplotagging` | : AxxCxxBxxDxx                                 |
-    | `stlfr`        | : 1_2_3                                        |
-    | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
-    | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
+    | Option         | Style                                        |
+    |:---------------|:---------------------------------------------|
+    | `haplotagging` | AxxCxxBxxDxx                                 |
+    | `stlfr`        | 1_2_3                                        |
+    | `tellseq`      | 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
+    | `10X`          | 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
     logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
     convert = None
@@ -281,12 +281,12 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
     if your data is in 10X format, as this command will not work on 10X format (i.e. barcode is the first 16 bases of read 1).
     Use `--style` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
 
-    | Option         | Style                                          |
-    |:---------------|:-----------------------------------------------|
-    | `haplotagging` | : AxxCxxBxxDxx                                 |
-    | `stlfr`        | : 1_2_3                                        |
-    | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
-    | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
+    | Option         | Style                                        |
+    |:---------------|:---------------------------------------------|
+    | `haplotagging` | AxxCxxBxxDxx                                 |
+    | `stlfr`        | 1_2_3                                        |
+    | `tellseq`      | 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
+    | `10X`          | 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
     logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
     convert = None
