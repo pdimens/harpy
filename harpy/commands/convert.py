@@ -186,7 +186,7 @@ def standardize_bam(sam, style, quiet):
     | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
     logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
-
+    convert = None
     if style:
         bc_out = open("conversion.bc", "w")
         convert = style.lower()
@@ -279,7 +279,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
     See `harpy convert fastq` for the location and format expectations for different linked-read technologies.
     Also writes a `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid). Use `harpy convert fastq`
     if your data is in 10X format, as this command will not work on 10X format (i.e. barcode is the first 16 bases of read 1).
-    Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
+    Use `--style` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
 
     | Option         | Style                                          |
     |:---------------|:-----------------------------------------------|
@@ -289,7 +289,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
     | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
     logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
-
+    convert = None
     BC_TYPE = which_linkedread(r1_fastq)
     if not BC_TYPE:
         print_error("undertermined file type", f"Unable to determine the linked-read barcode type after scanning the first 100 records of {os.path.basename(r1_fastq)}. Please make sure the format is one of haplotagging, stlfr, or tellseq. 10X-style with the barcode as the first 16 nucleotides of read 1 is not supported here.")

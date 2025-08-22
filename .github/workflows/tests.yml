@@ -876,7 +876,7 @@ jobs:
           echo "==== HAPLOTAGGING ===="
           harpy convert standardize-bam --quiet 2 --style haplotagging test.stlfr.bam > test.bam && \
           samtools view test.bam | head -3 && \
-          echo "==== TELLSEQ ====" & \
+          echo "==== TELLSEQ ====" && \
           harpy convert standardize-bam --quiet 2 --style tellseq test.stlfr.bam > test.bam && \
           samtools view test.bam | head -3
       - name: standardize bam from tellseq
