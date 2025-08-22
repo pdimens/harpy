@@ -20,12 +20,12 @@ will refer to haplotagging specifically as we either forgot to update parts of t
 to do a data conversion for some parts of Harpy to work with non-haplotagging linked-read data. As always, feel free to drop
 an [Issue](https://github.com/pdimens/harpy/issues/new/choose) or open a [Discussion](https://github.com/pdimens/harpy/discussions) on GitHub.
 
-## Harpy Modules
+## Harpy Commands
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?
 Great! Only want to call variants? Awesome! All modules are called by `harpy <workflow>`. For example, use `harpy align` to align reads.
 
 {.compact}
-| Workflow                                                                | Description                                                          |
+| Command                                                                | Description                                                          |
 |:------------------------------------------------------------------------|:---------------------------------------------------------------------|
 | [!badge corners="pill" text="align"](Workflows/Align/Align.md)          | Align sample sequences to a reference genome                         |
 | [!badge corners="pill" text="assembly"](Workflows/assembly.md)          | Create a genome assembly from linked-reads                           |
@@ -54,31 +54,30 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
                                                                 
  Documentation: https://pdimens.github.io/harpy/                
                                                                 
-╭─ Data Processing ────────────────────────────────────────────╮
-│ align        Align sample sequences to a reference genome    │
-│ assembly     Create an assembly from linked-reads            │
-│ demultiplex  Demultiplex haplotagged FASTQ files             │
-│ impute       Impute genotypes using variants and alignments  │
-│ metassembly  Create a metassembly from linked-reads          │
-│ phase        Phase SNPs into haplotypes                      │
-│ qc           Remove adapters and quality-control sequences   │
-│ simulate     Simulate variants or linked-reads from a genome │
-│ snp          Call SNPs and small indels on alignments        │
-│ sv           Call large structural variants on alignments    │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Other Commands ─────────────────────────────────────────────╮
-│ convert     Convert data between linked-read types           │
-│ deconvolve  Resolve barcode sharing in unrelated molecules   │
-│ downsample  Downsample data by barcode                       │
-│ template    Create template files and HPC configs for        │
-│             workflows                                        │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Troubleshoot ───────────────────────────────────────────────╮
-│ diagnose  Run the Snakemake debugger to identify hang-ups    │
-│ resume    Resume a Harpy workflow from an existing directory │
-│ validate  File format checks for linked-read data            │
-│ view      View a workflow's components                       │
-╰──────────────────────────────────────────────────────────────╯
+╭─ Data Processing ───────────────────────────────────────────────╮
+│ align        Align sample sequences to a reference genome       │
+│ assembly     Create an assembly from linked-reads               │
+│ demultiplex  Demultiplex haplotagged FASTQ files                │
+│ impute       Impute genotypes using variants and alignments     │
+│ metassembly  Create a metassembly from linked-reads             │
+│ phase        Phase SNPs into haplotypes                         │
+│ qc           Remove adapters and quality-control sequences      │
+│ simulate     Simulate variants or linked-reads from a genome    │
+│ snp          Call SNPs and small indels on alignments           │
+│ sv           Call large structural variants on alignments       │
+╰─────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ────────────────────────────────────────────────╮
+│ convert     Convert data between linked-read types              │
+│ deconvolve  Resolve barcode sharing in unrelated molecules      │
+│ downsample  Downsample data by barcode                          │
+│ template    Create template files and HPC configs for workflows │
+╰─────────────────────────────────────────────────────────────────╯
+╭─ Troubleshoot ──────────────────────────────────────────────────╮
+│ diagnose  Run the Snakemake debugger to identify hang-ups       │
+│ resume    Resume a Harpy workflow from an existing directory    │
+│ validate  File format checks for linked-read data               │
+│ view      View a workflow's components                          │
+╰─────────────────────────────────────────────────────────────────╯
 ```
 
 ## Typical Linked-Read Workflows

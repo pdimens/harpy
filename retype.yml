@@ -18,11 +18,11 @@ theme:
     nav-item-text-stack: "#1e66f5"
 branding:
   title: Harpy
-  label: v2.7
+  label: v2.8
   logo: static/logo_navbar.png
   logoDark: static/logo_navbar.png
   logoAlign: left
-favicon: static/favicon.png
+favicon: static/logo_navbar.png
 search:
   mode: partial
 edit:
