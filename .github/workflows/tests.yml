@@ -808,98 +808,90 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install --no-deps dist/*.whl
-      - name: convert haplotag to stlfr
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert/stlfr stlfr test/fastq/sample1.*gz
-      - name: convert haplotag to tellseq
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert/tellseq tellseq test/fastq/sample1.*gz
-      - name: convert haplotag to 10x
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz
-      - name: convert stlfr to haplotag
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_stlfr/haptag haplotagging convert/stlfr.*gz
-      - name: convert stlfr to tellseq
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_stlfr/tellseq tellseq convert/stlfr.*gz
-      - name: convert stlfr to 10x
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_stlfr/10x 10x convert/stlfr.*gz
-      - name: convert stlfr to standard
+      - name: convert fastq from haplotag
         shell: micromamba-shell {0}
         run: |
-          harpy convert fastq --quiet 2 -o convert_stlfr/standard standard convert/stlfr.*gz
+          harpy convert fastq --quiet 2 -o convert/stlfr stlfr test/fastq/sample1.*gz && \
+          harpy convert fastq --quiet 2 -o convert/tellseq tellseq test/fastq/sample1.*gz && \
+          harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz
+      - name: convert fastq stlfr to haplotag
+        run: |
+          harpy convert fastq --quiet 2 -o convert_stlfr/haptag haplotagging convert/stlfr.*gz && \
+          harpy convert fastq --quiet 2 -o convert_stlfr/tellseq tellseq convert/stlfr.*gz && \
+          harpy convert fastq --quiet 2 -o convert_stlfr/10x 10x convert/stlfr.*gz && \
+          harpy convert fastq --quiet 2 -o convert_stlfr/standard standard convert/stlfr.*gz && \
           rm -rf convert_stlfr
-      - name: convert tellseq to 10x
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_tellseq/10x 10x convert/tellseq.*gz
-      - name: convert tellseq to stlfr
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_tellseq/stlfr stlfr convert/tellseq.*gz
-      - name: convert tellseq to haplotag
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_tellseq/haptag haplotagging convert/tellseq.*gz
-      - name: convert tellseq to standard
+      - name: convert fastq from tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert fastq --quiet 2 -o convert_tellseq/standard standard convert/tellseq.*gz
+          harpy convert fastq --quiet 2 -o convert_tellseq/10x 10x convert/tellseq.*gz && \
+          harpy convert fastq --quiet 2 -o convert_tellseq/stlfr stlfr convert/tellseq.*gz && \
+          harpy convert fastq --quiet 2 -o convert_tellseq/haptag haplotagging convert/tellseq.*gz && \
+          harpy convert fastq --quiet 2 -o convert_tellseq/standard standard convert/tellseq.*gz && \
           rm -rf convert_tellseq
-      - name: convert standard to 10x
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_standard/10x 10x test/fastq/sample1.*gz
-      - name: convert standard to stlfr
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_standard/stlfr stlfr test/fastq/sample1.*gz
-      - name: convert standard to tellseq
-        shell: micromamba-shell {0}
+      - name: convert fastq from standard
         run: |
-          harpy convert fastq --quiet 2 -o convert_standard/haptag tellseq test/fastq/sample1.*gz
+          harpy convert fastq --quiet 2 -o convert_standard/10x 10x test/fastq/sample1.*gz && \
+          harpy convert fastq --quiet 2 -o convert_standard/stlfr stlfr test/fastq/sample1.*gz && \
+          harpy convert fastq --quiet 2 -o convert_standard/haptag tellseq test/fastq/sample1.*gz && \
           rm -rf convert_standard
-      - name: convert 10x to standard
-        shell: micromamba-shell {0}
+      - name: convert fastq from 10x
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes && \
-          harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes standard convert/10x*gz
-      - name: convert 10x to haplotagging
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_10x/haptag -b 10x.barcodes haplotagging convert/10x*gz
-      - name: convert 10x to tellseq
-        shell: micromamba-shell {0}
-        run: harpy convert fastq --quiet 2 -o convert_10x/tellseq -b 10x.barcodes tellseq convert/10x*gz
-      - name: convert 10x to stlfr
-        shell: micromamba-shell {0}
-        run: |
-          harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes stlfr convert/10x*gz
+          harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes standard convert/10x*gz && \
+          harpy convert fastq --quiet 2 -o convert_10x/haptag -b 10x.barcodes haplotagging convert/10x*gz && \
+          harpy convert fastq --quiet 2 -o convert_10x/tellseq -b 10x.barcodes tellseq convert/10x*gz && \
+          harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes stlfr convert/10x*gz && \
           rm -rf convert_10x
-
-      - name: convert BAM haplotagging to tellseq
-        shell: micromamba-shell {0}
+      - name: standardize bam from haplotagging
         run: |
           harpy convert standardize-bam --quiet 2 --convert tellseq test/bam/sample1.bam > tellseq.bam && \
-          samtools view tellseq.bam | head -3
-      - name: convert BAM haplotagging to stlfr
-        shell: micromamba-shell {0}
-        run: |
+          samtools view tellseq.bam | head -3 && \
           harpy convert standardize-bam --quiet 2 --convert stlfr test/bam/sample1.bam > stlfr.bam && \
           samtools view stlfr.bam | head -3
-      - name: convert BAM stlfr to haplotagging
+      - name: standardize bam from stlfr
+        run: |
+          samtools view -h -Ob -x VX stlfr.bam > test.stlfr.bam
+          harpy convert standardize-bam --quiet 2 --convert haplotagging test.stlfr.bam > test.bam && \
+          samtools view test.bam | head -3 && \
+          harpy convert standardize-bam --quiet 2 --convert tellseq test.stlfr.bam > test.bam && \
+          samtools view test.bam | head -3
+      - name: standardize bam from tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert standardize-bam --quiet 2 --convert haplotagging stlfr.bam > test.bam && \
+          samtools view -h -Ob -x VX tellseq.bam > test.tellseq.bam
+          harpy convert standardize-bam --quiet 2 --convert haplotagging test.tellseq.bam > test.bam && \
+          samtools view test.bam | head -3 && \
+          harpy convert standardize-bam --quiet 2 --convert stlfr test.tellseq.bam > test.bam && \
           samtools view test.bam | head -3
-      - name: convert BAM stlfr to tellseq
+      - name: standardize fastq from haplotagging
         shell: micromamba-shell {0}
         run: |
-          harpy convert standardize-bam --quiet 2 --convert tellseq stlfr.bam > test.bam && \
-          samtools view test.bam | head -3
-      - name: convert BAM tellseq to haplotagging
+          harpy convert standardize-fastq --quiet 2 --convert stlfr haptag.stlfr test/fastq/sample1.*.fq.gz && \
+          zcat haptag.stlfr.R1.fq.gz | head -4 && zcat haptag.stlfr.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert tellseq haptag.tellseq test/fastq/sample1.*.fq.gz && \
+          zcat haptag.tellseq.R1.fq.gz | head -4 && zcat haptag.tellseq.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert 10x haptag.10x test/fastq/sample1.*.fq.gz && \
+          zcat haptag.10x.R1.fq.gz | head -4 && zcat haptag.10x.R2.fq.gz | head -4
+      - name: standardize fastq from stlfr
         shell: micromamba-shell {0}
         run: |
-          harpy convert standardize-bam --quiet 2 --convert haplotagging tellseq.bam > test.bam && \
-          samtools view test.bam | head -3
-      - name: convert BAM tellseq to stlfr
+          zcat haptag.stlfr.R1.fq.gz | sed 's/\s*VX:i:[01]//g' | gzip > stlfr.R1.fq.gz
+          zcat haptag.stlfr.R2.fq.gz | sed 's/\s*VX:i:[01]//g' | gzip > stlfr.R2.fq.gz
+          harpy convert standardize-fastq --quiet 2 --convert haplotagging stlfr.haptag stlfr.R*.fq.gz && \
+          zcat stlfr.haptag.R1.fq.gz | head -4 && zcat stlfr.haptag.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert tellseq stlfr.tellseq stlfr.R*.fq.gz && \
+          zcat stlfr.tellseq.R1.fq.gz | head -4 && zcat stlfr.tellseq.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert 10x stlfr.10x stlfr.R*.fq.gz && \
+          zcat stlfr.10x.R1.fq.gz | head -4 && zcat stlfr.10x.R2.fq.gz | head -4
+      - name: standardize fastq from tellseq
         shell: micromamba-shell {0}
         run: |
-          harpy convert standardize-bam --quiet 2 --convert stlfr tellseq.bam > test.bam && \
-          samtools view test.bam | head -3
+          zcat haptag.tellseq.R1.fq.gz | sed 's/\s*VX:i:[01]//g' | gzip > tellseq.R1.fq.gz
+          zcat haptag.tellseq.R2.fq.gz | sed 's/\s*VX:i:[01]//g' | gzip > tellseq.R2.fq.gz
+          harpy convert standardize-fastq --quiet 2 --convert haplotagging tellseq.haptag tellseq.R*.fq.gz && \
+          zcat tellseq.haptag.R1.fq.gz | head -4 && zcat tellseq.haptag.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert stlfr tellseq.stlfr tellseq.R*.fq.gz && \
+          zcat tellseq.stlfr.R1.fq.gz | head -4 && zcat tellseq.stlfr.R2.fq.gz | head -4 && \
+          harpy convert standardize-fastq --quiet 2 --convert 10x stlfr.10x tellseq.R*.fq.gz && \
+          zcat tellseq.10x.R1.fq.gz | head -4 && zcat tellseq.10x.R2.fq.gz | head -4

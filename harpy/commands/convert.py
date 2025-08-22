@@ -35,7 +35,7 @@ module_docstring = {
 @click.option('-o','--output', type = str, metavar= "PREFIX", help='file prefix for output fastq files', required=True)
 @click.option('-b','--barcodes', type = click.Path(exists=True, readable=True, dir_okay=False), help='barcodes file [from 10x only]', required=False)
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.argument('target', metavar = "TARGET", type = click.Choice(["10x", "haplotagging", "standard", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
+@click.argument('target', metavar = "TARGET", type = click.Choice(["10x", "haplotagging", "stlfr", "tellseq"], case_sensitive=False), nargs = 1)
 @click.argument('fq1', metavar="R1_FASTQ", type = FASTQfile(single=True), required = True, nargs=1)
 @click.argument('fq2', metavar="R2_FASTQ", type = FASTQfile(single=True), required=True, nargs= 1)
 def fastq(target,fq1,fq2,output,barcodes, quiet):
@@ -51,7 +51,6 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
     |:-------------|:---------------------------------------------------|:----------------------------|
     | 10x          | the first N base pairs of R1, given `--barcodes`   |                             |
     | haplotagging | a `BX:Z:ACBD` SAM tag in the sequence header       | `@SEQID BX:Z:A01C93B56D11`  |
-    | standard     | a `BX:Z` SAM tag in the sequence header, any style | `@SEQID BX:Z:ATAGCAC_AGGA`  |
     | stlfr        | `#1_2_3` format appended to the sequence ID        | `@SEQID#1_2_3`              |
     | tellseq      | `:ATCG` format appended to the sequence ID         | `@SEQID:GGCAAATATCGAGAAGTC` |
     """
@@ -92,15 +91,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
         invalid = INVALID_HAPLOTAGGING
         def format_bc(bc):
             return "".join(bc)
-    elif to_ == "standard":
-        if from_ == "10x":
-            invalid = INVALID_10x
-        elif from_ == "tellseq":
-            invalid = INVALID_TELLSEQ
-        elif from_ == "haplotagging":
-            invalid = INVALID_HAPLOTAGGING
-        elif from_ == "stlfr":
-            invalid = INVALID_STLFR
+
     if from_ == "10x":
         bc_len = validate_barcodefile(barcodes, return_len=True, quiet=quiet, check_dups=False)
         with safe_read(barcodes) as b:
@@ -129,7 +120,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
                     _r1.valid = _r1.barcode in barcodelist
                 if _r1.barcode not in bc_inventory:
                     # if it's just tellseq<->10x, keep the existing nucleotide barcode
-                    if (from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]) or to_ == "standard":
+                    if (from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]):
                         bc_inventory[_r1.barcode] = _r1.barcode
                     else:
                         if _r1.valid:
@@ -154,7 +145,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
                 # check the inventory for existing barcode match
                 if _r2.barcode not in bc_inventory:
                     # if it's just tellseq<->10x, keep the existing nucleotide barcode
-                    if (from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]) or to_ == "standard":
+                    if (from_ in ["tellseq", "10x"] and to_ in ["tellseq", "10x"]):
                         bc_inventory[_r2.barcode] = _r2.barcode
                     else:
                         if _r2.valid:
@@ -379,12 +370,12 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
                     # overwrite the record's barcode
                     _r2.barcode = bc_inventory[_r2.barcode]
                 R2_out.write(str(_r2.convert("standard", _r2.barcode)))
-        if convert:
-            bc_out.close()
-            # bgzip compress the output, one file per thread
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            executor.submit(compress_fq, f"{prefix}.R1.fq")
-            executor.submit(compress_fq, f"{prefix}.R2.fq")
+    if convert:
+        bc_out.close()
+        # bgzip compress the output, one file per thread
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        executor.submit(compress_fq, f"{prefix}.R1.fq")
+        executor.submit(compress_fq, f"{prefix}.R2.fq")
 
 @click.command(hidden = True, no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/ncbi")
 @click.option('-m', '--barcode-map',  is_flag = True, default = False, help = 'Write a map of the barcode-to-nucleotide conversion')
