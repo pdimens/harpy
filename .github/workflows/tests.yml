@@ -737,7 +737,7 @@ jobs:
   other:
     needs: [changes,build]
     if: ${{ needs.changes.outputs.other == 'true' }}
-    name: harpy other
+    name: miscellaneous
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -785,7 +785,7 @@ jobs:
   convert:
     needs: [changes,build]
     if: ${{ needs.changes.outputs.convert == 'true' }}
-    name: harpy convert
+    name: convert
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
