@@ -858,7 +858,7 @@ jobs:
       - name: standardize bam from stlfr
         shell: micromamba-shell {0}
         run: |
-          samtools view -h -Ob -x VX stlfr.bam > test.stlfr.bam
+          samtools view -h -O BAM -x VX stlfr.bam > test.stlfr.bam
           harpy convert standardize-bam --quiet 2 --convert haplotagging test.stlfr.bam > test.bam && \
           samtools view test.bam | head -3 && \
           harpy convert standardize-bam --quiet 2 --convert tellseq test.stlfr.bam > test.bam && \
@@ -866,7 +866,7 @@ jobs:
       - name: standardize bam from tellseq
         shell: micromamba-shell {0}
         run: |
-          samtools view -h -Ob -x VX tellseq.bam > test.tellseq.bam
+          samtools view -h -O BAM -x VX tellseq.bam > test.tellseq.bam
           harpy convert standardize-bam --quiet 2 --convert haplotagging test.tellseq.bam > test.bam && \
           samtools view test.bam | head -3 && \
           harpy convert standardize-bam --quiet 2 --convert stlfr test.tellseq.bam > test.bam && \
