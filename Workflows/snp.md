@@ -49,7 +49,7 @@ You can call SNPs with the [!badge corners="pill" text="snp"] module:
 harpy snp method OPTIONS... REFERENCE INPUTS...
 ```
 
-```bash examples
+```bash examples | calling variants with default settings
 # call variants with mpileup
 harpy snp mpileup --threads 20 genome.fasta Align/bwa
 

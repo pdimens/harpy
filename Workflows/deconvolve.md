@@ -10,7 +10,7 @@ order: 10
 # :icon-tag: Resolve barcodes shared by different molecules
 
 ===  :icon-checklist: You will need
-- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
     - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text=".1"] [!badge variant="success" text="_1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
     - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text=".2"] [!badge variant="success" text="_2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
@@ -33,6 +33,10 @@ This method of deconvolution is also available as an option in the [!badge corne
 
 ```bash usage
 harpy deconvolve OPTIONS... INPUTS...
+```
+
+```bash example | deconvolve with default parameters
+harpy deconvolve path/to/data/*.fq
 ```
 
 ## :icon-terminal: Running Options

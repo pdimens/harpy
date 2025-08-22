@@ -12,7 +12,7 @@ order: 8
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
 - a tab-delimited [parameter file](#parameter-file) 
-- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" icon=":exclamation:" text="coordinate-sorted"]
     - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".vcf.gz"] [!badge variant="success" text=".bcf"]
 ==- :icon-codescan: Curation of input VCF file
@@ -45,12 +45,12 @@ You can impute genotypes with Harpy using the [!badge corners="pill" text="imput
 harpy impute OPTIONS... PARAMETERS VCF INPUTS...
 ```
 
-```bash example
+```bash example | impute only the samples in a vcf file, regardless of how many bams were supplied
 # create a STITCH parameter file
 harpy template impute > stitch.params
 
 # run imputation
-harpy impute --threads 20 stitch.params data/variants.bcf data/*.bam
+harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.bam
 ```
 
 ## :icon-terminal: Running Options

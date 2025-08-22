@@ -11,7 +11,7 @@ order: 9
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
 ===
 
 When pooling samples and sequencing them in parallel on an Illumina sequencer, you will be given large multiplexed FASTQ
@@ -23,7 +23,7 @@ haplotagging technology you are using (read [Haplotagging Types](#haplotagging-t
 ```bash usage
 harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 ```
-```bash example using wildcards
+```bash example | using wildcards instead of manually writing each file name
 harpy demultiplex meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options

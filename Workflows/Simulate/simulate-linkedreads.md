@@ -34,7 +34,7 @@ head over to [the Mimick documentation](https://pdimens.github.io/mimick/#/usage
 ```bash usage
 harpy simulate linkedreads OPTIONS... BARCODES FASTA...
 ```
-```bash example
+```bash example | simulate linked reads using 96 randomly-generated 18bp barcodes
 harpy simulate linkedreads -t 4 18,96 data/genome.hap1.fasta data/genome.hap2.fasta
 ```
 

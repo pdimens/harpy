@@ -54,30 +54,31 @@ You can call `harpy` without any arguments (or with `--help`) to print the docst
                                                                 
  Documentation: https://pdimens.github.io/harpy/                
                                                                 
-╭─ Data Processing ───────────────────────────────────────────────╮
-│ align        Align sample sequences to a reference genome       │
-│ assembly     Create an assembly from linked-reads               │
-│ demultiplex  Demultiplex haplotagged FASTQ files                │
-│ impute       Impute genotypes using variants and alignments     │
-│ metassembly  Create a metassembly from linked-reads             │
-│ phase        Phase SNPs into haplotypes                         │
-│ qc           Remove adapters and quality-control sequences      │
-│ simulate     Simulate variants or linked-reads from a genome    │
-│ snp          Call SNPs and small indels on alignments           │
-│ sv           Call large structural variants on alignments       │
-╰─────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ────────────────────────────────────────────────╮
-│ convert     Convert data between linked-read types              │
-│ deconvolve  Resolve barcode sharing in unrelated molecules      │
-│ downsample  Downsample data by barcode                          │
-│ template    Create template files and HPC configs for workflows │
-╰─────────────────────────────────────────────────────────────────╯
-╭─ Troubleshoot ──────────────────────────────────────────────────╮
-│ diagnose  Run the Snakemake debugger to identify hang-ups       │
-│ resume    Resume a Harpy workflow from an existing directory    │
-│ validate  File format checks for linked-read data               │
-│ view      View a workflow's components                          │
-╰─────────────────────────────────────────────────────────────────╯
+╭─ Data Processing ────────────────────────────────────────────╮
+│ align        Align sequences to a reference genome           │
+│ assembly     Assemble linked reads into a genome             │
+│ demultiplex  Demultiplex haplotagged FASTQ files             │
+│ impute       Impute variant genotypes from alignments        │
+│ metassembly  Assemble linked reads into a metagenome         │
+│ phase        Phase SNPs into haplotypes                      │
+│ qc           FASTQ adapter removal, quality filtering, etc.  │
+│ simulate     Simulate genomic variants or linked reads       │
+│ snp          Call SNPs and small indels                      │
+│ sv           Call inversions, deletions, and duplications    │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Other Commands ─────────────────────────────────────────────╮
+│ convert     Convert between linked-read formats and barcode  │
+│             styles                                           │
+│ deconvolve  Resolve barcode sharing in unrelated molecules   │
+│ downsample  Downsample data by barcode                       │
+│ template    Create files and HPC configs for workflows       │
+╰──────────────────────────────────────────────────────────────╯
+╭─ Troubleshoot ───────────────────────────────────────────────╮
+│ diagnose  Run the Snakemake debugger to identify hang-ups    │
+│ resume    Continue an incomplete Harpy workflow              │
+│ validate  File format checks for linked-read data            │
+│ view      View a workflow's components                       │
+╰──────────────────────────────────────────────────────────────╯
 ```
 
 ## Typical Linked-Read Workflows

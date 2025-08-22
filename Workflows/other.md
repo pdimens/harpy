@@ -36,7 +36,7 @@ Creates a sample grouping file for variant calling
 harpy template groupings INPUTS > output
 ```
 
-```bash usage example
+```bash example | generate a grouping file from folder of fastq/bam files
 harpy template groupings data/ > samples.groups
 ```
 #### arguments
@@ -68,31 +68,30 @@ be provided to the `--hpc` option for workflows.
 harpy template hpc-system > out.yaml
 ```
 
-```bash example
+```bash example | create SLURM submission template
 harpy template hpc-slurm > slurm.yaml
 ```
 
 ### impute
 Create a template parameter file for the [!badge corners="pill" text="impute"](/Workflows/impute.md) module. 
 The file is formatted correctly and serves as a starting point for using parameters that make sense for your study.
-
-```bash usage
-harpy template impute > output
-```
-
-```bash example
-harpy template impute > params.stitch
-```
-
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
 rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Workflows/impute.md)
-module for details on these parameters. The template file will look like:
+module for details on these parameters.
 
-```text params.stitch
+```bash usage
+harpy template impute > output
+```
+
+```bash example | create imputation parameter template
+harpy template impute > params.stitch
+```
+
+```text resulting params.stitch file
 name model	usebx	bxlimit	k	s	ngen
 k10_ng50 diploid	TRUE	50000	3	2	10
 k1_ng30 diploid	TRUE	50000	3	1	5
@@ -137,7 +136,7 @@ without having to fish around for the right files.
 harpy view MODE DIRECTORY
 ```
 
-```bash example
+```bash example | view the workflow configuration of an existing harpy-generated folder
 harpy view config Align/bwa
 ```
 

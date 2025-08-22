@@ -12,7 +12,7 @@ order: 10
 ===  :icon-checklist: You will need
 - One of either:
   - one alignment file [!badge variant="success" text=".bam"] [!badge variant="success" text=".sam"] [!badge variant="secondary" text="case insensitive"]
-  - one set of paired-end reads in FASTQ format [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="gzip recommended"] [!badge variant="secondary" text="case insensitive"]
+  - one set of paired-end reads in FASTQ format [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" icon=":heart:" text="gzipped recommended"] [!badge variant="secondary" text="case insensitive"]
 - Barcodes in a SAM tag (e.g. `BX:Z:`) for both BAM and FASTQ inputs
   - See [Section 1 of the SAM Spec here](https://samtools.github.io/hts-specs/SAMtags.pdf) for details
 ===
@@ -29,11 +29,11 @@ harpy downsample OPTIONS... BAM
 harpy downsample OPTIONS... FASTQ1 FASTQ2
 ```
 
-```bash example
-# BAM file
+```bash example | downsample bam file, allowing only 30% invalid barcodes to be sampled 
 harpy downsample -d 1000 -b BC -i 0.3 -p sample1.sub1000 sample1.bam
+```
 
-# FASTQ files
+```bash example | downsample fastq pair, skipping invalid barcodes
 harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz
 ```
 

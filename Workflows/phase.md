@@ -11,7 +11,7 @@ order: 6
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" icon=":exclamation:" text="coordinate-sorted"]
     - **sample name**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
 - a variant call format file of genotypes: [!badge variant="success" text=".vcf"] [!badge variant="success" text=".bcf"]
 - [!badge variant="ghost" text="optional"] a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
@@ -30,8 +30,8 @@ Harpy using the [!badge corners="pill" text="phase"] module:
 ```bash usage
 harpy phase OPTIONS... VCF INPUTS...
 ```
-```bash example
-harpy phase --threads 20 Variants/variants.raw.bcf Align/bwa 
+```bash example | phase variants whose barcodes are tellseq style
+harpy phase --threads 20 -P tellseq Variants/variants.raw.bcf alignments/ 
 ```
 
 ## :icon-terminal: Running Options

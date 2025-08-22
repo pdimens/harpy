@@ -24,8 +24,8 @@ most common FASTQ naming styles are supported:
 - **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_1"] [!badge variant="success" text=".1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
 - **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_2"] [!badge variant="success" text=".2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
 - **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="case insensitive"]
-- **gzipped**: supported and recommended
-- **not gzipped**: supported
+- **gzipped**: [!badge variant="info" icon=":thumbsup:" text="supported"] [!badge variant="info" icon=":heart:" text="recommended"]
+- **not gzipped**: [!badge variant="info" icon=":thumbsup:" text="supported"]
 
 You can also mix and match different formats and styles within a given directory, although again, **this isn't recommended**.
 As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.

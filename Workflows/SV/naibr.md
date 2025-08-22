@@ -11,7 +11,7 @@ order: 1
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
-- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" text="coordinate-sorted"]
+- sequence alignments: [!badge variant="success" text=".bam"] [!badge variant="secondary" icon=":exclamation:" text="coordinate-sorted"]
 - genome assembly in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]
 - [!badge variant="ghost" text="optional"] phased VCF file
 - [!badge variant="ghost" text="optional"] sample grouping file ([see below](#pooled-sample-variant-calling))
@@ -52,11 +52,11 @@ then you will need to do a little extra work for NAIBR to work best with your da
 harpy sv naibr OPTIONS... REFERENCE INPUTS...
 ```
 
-```bash examples
+```bash examples | calling variants when alignments are (or aren't) already phased
 # input bams already phased
 harpy sv naibr --threads 20 genome.fasta Align/bwa
 
-# input bams require phasing
+# input bams require phasing using a phased vcf
 harpy sv naibr --threads 20 --vcf Variants/data.vcf.gz genome.fasta Align/bwa
 ```
 
@@ -75,7 +75,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--min-size` `-m`          |  `1000`  | Minimum size of SV to detect                                                                                                  |
 | `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
 | `--populations` `-p`       |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
-| `--vcf` `-v`               |          | [!badge variant="info" text="conditionally required"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
+| `--vcf` `-v`               |          | [!badge variant="info" text="required"] [!badge variant="secondary" text="conditional"] Phased vcf file for phasing bam files ([see below](#optional-vcf-file)) |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same

@@ -11,7 +11,7 @@ order: 8
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" text="gzip recommended"]
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
     - deconvolved with [!badge corners="pill" text="deconvolve"](deconvolve.md) (QuickDeconvolution) or equivalent [!badge variant="warning" text="IMPORTANT"]
 ===
 
@@ -23,8 +23,8 @@ assemble the most contiguous sequences for multi-sample (or multi-species) data.
 harpy metassembly OPTIONS... FASTQ_R1 FASTQ_R2
 ```
 
-```bash example
-harpy metassembly --threads 20 -u prokaryote -k 13,51,75,83 FASTQ_R1 FASTQ_R2
+```bash example | create a prokaryote metassembly with designated kmer lengths
+harpy metassembly --threads 20 -u prokaryote -k 13,51,75,83 reads.R1.fq reads.R2.fq
 ```
 
 ## :icon-terminal: Running Options

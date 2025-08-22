@@ -27,7 +27,7 @@ for simulating variants is:
 ```bash usage
 harpy simulate variant OPTIONS... INPUT_GENOME
 ```
-```bash example
+```bash example | simulate 10 random inversions with mix/max sizes
 harpy simulate inversion -n 10 --min-size 1000 --max-size 50000  path/to/genome.fasta
 ```
 ## Modules
