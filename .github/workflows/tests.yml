@@ -812,30 +812,41 @@ jobs:
         shell: micromamba-shell {0}
         run: |
           harpy convert fastq --quiet 2 -o convert/stlfr stlfr test/fastq/sample1.*gz && \
+          zcat convert/stlfr.R1.fq.gz | head -4 && zcat convert/stlfr.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert/tellseq tellseq test/fastq/sample1.*gz && \
-          harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz
+          zcat convert/tellseq.R1.fq.gz | head -4 && zcat convert/tellseq.R2.fq.gz | head -4 && \
+          harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz && \
+          zcat convert/10x.R1.fq.gz | head -4 && zcat convert/10x.R2.fq.gz | head -4 && \
       - name: convert fastq from stlfr
         shell: micromamba-shell {0}
         run: |
           harpy convert fastq --quiet 2 -o convert_stlfr/haptag haplotagging convert/stlfr.*gz && \
+          zcat convert_stlfr/haptag.R1.fq.gz | head -4 && zcat convert_stlfr/haptag.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_stlfr/tellseq tellseq convert/stlfr.*gz && \
+          zcat convert_stlfr/tellseq.R1.fq.gz | head -4 && zcat convert_stlfr/tellseq.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_stlfr/10x 10x convert/stlfr.*gz && \
+          zcat convert_stlfr/10x.R1.fq.gz | head -4 && zcat convert_stlfr/10x.R2.fq.gz | head -4 && \
           rm -rf convert_stlfr
       - name: convert fastq from tellseq
         shell: micromamba-shell {0}
         run: |
           harpy convert fastq --quiet 2 -o convert_tellseq/10x 10x convert/tellseq.*gz && \
+          zcat convert_tellseq/haptag.R1.fq.gz | head -4 && zcat convert_tellseq/haptag.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_tellseq/stlfr stlfr convert/tellseq.*gz && \
+          zcat convert_tellseq/haptag.R1.fq.gz | head -4 && zcat convert_tellseq/haptag.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_tellseq/haptag haplotagging convert/tellseq.*gz && \
+          zcat convert_tellseq/haptag.R1.fq.gz | head -4 && zcat convert_tellseq/haptag.R2.fq.gz | head -4 && \
           rm -rf convert_tellseq
       - name: convert fastq from 10x
         shell: micromamba-shell {0}
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes && \
-          harpy convert fastq --quiet 2 -o convert_10x/standard -b 10x.barcodes standard convert/10x*gz && \
           harpy convert fastq --quiet 2 -o convert_10x/haptag -b 10x.barcodes haplotagging convert/10x*gz && \
+          zcat convert_10x/haptag.R1.fq.gz | head -4 && zcat convert_10x/haptag.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_10x/tellseq -b 10x.barcodes tellseq convert/10x*gz && \
+          zcat convert_10x/haptag.R1.fq.gz | head -4 && zcat convert_10x/haptag.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert_10x/stlfr -b 10x.barcodes stlfr convert/10x*gz && \
+          zcat convert_10x/haptag.R1.fq.gz | head -4 && zcat convert_10x/haptag.R2.fq.gz | head -4 && \
           rm -rf convert_10x
       - name: standardize bam from haplotagging
         shell: micromamba-shell {0}
