@@ -270,7 +270,7 @@ def standardize_bam(sam, style, quiet):
 @click.option('-s', '--style', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Change the barcode style')
 @click.argument('prefix', metavar="output_prefix", type = str, required = True, nargs=1)
 @click.argument('r1_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
-@click.argument('r2_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
+@click.argument('r2_fastq', metavar="R2_fastq", type = FASTQfile(single=True), required = True, nargs=1)
 def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
     """
     Move barcodes to BX:Z/VX:i tags in sequence headers
