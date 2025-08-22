@@ -165,17 +165,17 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
         executor.submit(compress_fq, f"{output}.R2.fq")
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
-@click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Convert the barcode style')
+@click.option('-s', '--style', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Change the barcode style')
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
 @click.argument('sam', metavar="BAM", type = SAMfile(single=True), required = True, nargs=1)
-def standardize_bam(sam, convert, quiet):
+def standardize_bam(sam, style, quiet):
     """
     Move barcode to BX:Z/VX:i tags in alignments
 
     If barcodes are present in the sequence name (stlfr, tellseq), this method moves the barcode to the `BX:Z`
     tag of the alignment, maintaining the same barcode style by default. If moved to or already in a `BX:Z` tag,
     will then write a complementary `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid).
-    Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`),
+    Use `--style` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`),
     which also writes a `conversion.bc` file to the working directory mapping the barcode conversions. Writes to `stdout`.
 
     | Option         | Style                                          |
@@ -185,11 +185,11 @@ def standardize_bam(sam, convert, quiet):
     | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
     | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
-    logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
+    logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
 
-    if convert:
+    if style:
         bc_out = open("conversion.bc", "w")
-        convert = convert.lower()
+        convert = style.lower()
         if convert == "tellseq":
             bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
             invalid = INVALID_TELLSEQ
@@ -267,11 +267,11 @@ def standardize_bam(sam, convert, quiet):
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/convert")
 @click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` `1` (all) or `2` (no) output')
-@click.option('-c', '--convert', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Convert the barcode style')
+@click.option('-s', '--style', type = click.Choice(["haplotagging", "stlfr", "tellseq", "10x"], case_sensitive=False), help = 'Change the barcode style')
 @click.argument('prefix', metavar="output_prefix", type = str, required = True, nargs=1)
 @click.argument('r1_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
 @click.argument('r2_fastq', metavar="R1_fastq", type = FASTQfile(single=True), required = True, nargs=1)
-def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
+def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
     """
     Move barcodes to BX:Z/VX:i tags in sequence headers
 
@@ -281,7 +281,6 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     if your data is in 10X format, as this command will not work on 10X format (i.e. barcode is the first 16 bases of read 1).
     Use `--convert` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`).
 
-    **Barcode Styles for --convert**
     | Option         | Style                                          |
     |:---------------|:-----------------------------------------------|
     | `haplotagging` | : AxxCxxBxxDxx                                 |
@@ -289,7 +288,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     | `tellseq`      | : 18-base nucleotide (e.g. AGCCATGTACGTATGGTA) |
     | `10X`          | : 16-base nucleotide (e.g. GGCTGAACACGTGCAG)   |
     """
-    logtext = f"Standardizing [dim][-> [magenta]{convert.lower()}[/]][/]" if convert else "Standardizing"
+    logtext = f"Standardizing [dim][-> [magenta]{style.lower()}[/]][/]" if style else "Standardizing"
 
     BC_TYPE = which_linkedread(r1_fastq)
     if not BC_TYPE:
@@ -299,9 +298,9 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, convert, quiet):
     if os.path.dirname(prefix):
         os.makedirs(os.path.dirname(prefix), exist_ok=True)
 
-    if convert:
+    if style:
         bc_out = open(f"{prefix}.bc", "w")
-        convert = convert.lower()
+        convert = style.lower()
         if convert == "tellseq":
             bc_generator = product(*[sample("ATCG", 4) for i in range(18)])
             invalid = INVALID_TELLSEQ
