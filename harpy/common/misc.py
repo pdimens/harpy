@@ -261,9 +261,9 @@ def which_linkedread(fastq: str) -> str|None:
     recs = 1
     with pysam.FastxFile(fastq, persist=False) as fq:
         for i in fq:
-            if recs >= 100:
+            if recs > 100:
                 break
-            if haplotagging.search(i.comment):
+            if i.comment and haplotagging.search(i.comment):
                 return "haplotagging"
             elif stlfr.search(i.name):
                 return "stlfr"
@@ -279,7 +279,7 @@ def which_linkedread_sam(file_path: str) -> str|None:
     recs = 1
     with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
         for record in alnfile.fetch(until_eof = True):
-            if recs >= 100:
+            if recs > 100:
                 break
             try:
                 bx = record.get_tag("BX")
@@ -292,7 +292,6 @@ def which_linkedread_sam(file_path: str) -> str|None:
                 else:
                     recs += 1
                     continue
-                break
             except KeyError:
                 recs += 1
                 continue

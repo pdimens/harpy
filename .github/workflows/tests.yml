@@ -816,7 +816,7 @@ jobs:
           harpy convert fastq --quiet 2 -o convert/tellseq tellseq test/fastq/sample1.*gz && \
           zcat convert/tellseq.R1.fq.gz | head -4 && zcat convert/tellseq.R2.fq.gz | head -4 && \
           harpy convert fastq --quiet 2 -o convert/10x 10x test/fastq/sample1.*gz && \
-          zcat convert/10x.R1.fq.gz | head -4 && zcat convert/10x.R2.fq.gz | head -4 && \
+          zcat convert/10x.R1.fq.gz | head -4 && zcat convert/10x.R2.fq.gz | head -4
       - name: convert fastq from stlfr
         shell: micromamba-shell {0}
         run: |
