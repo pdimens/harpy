@@ -808,7 +808,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade build && python3 -m build
           pip install --no-deps dist/*.whl
-      - name: convert fastq from haplotag
+      - name: convert fastq from haplotagging
         shell: micromamba-shell {0}
         run: |
           harpy convert fastq --quiet 2 -o convert/stlfr stlfr test/fastq/sample1.*gz && \
@@ -819,7 +819,6 @@ jobs:
           harpy convert fastq --quiet 2 -o convert_stlfr/haptag haplotagging convert/stlfr.*gz && \
           harpy convert fastq --quiet 2 -o convert_stlfr/tellseq tellseq convert/stlfr.*gz && \
           harpy convert fastq --quiet 2 -o convert_stlfr/10x 10x convert/stlfr.*gz && \
-          harpy convert fastq --quiet 2 -o convert_stlfr/standard standard convert/stlfr.*gz && \
           rm -rf convert_stlfr
       - name: convert fastq from tellseq
         shell: micromamba-shell {0}
@@ -827,14 +826,7 @@ jobs:
           harpy convert fastq --quiet 2 -o convert_tellseq/10x 10x convert/tellseq.*gz && \
           harpy convert fastq --quiet 2 -o convert_tellseq/stlfr stlfr convert/tellseq.*gz && \
           harpy convert fastq --quiet 2 -o convert_tellseq/haptag haplotagging convert/tellseq.*gz && \
-          harpy convert fastq --quiet 2 -o convert_tellseq/standard standard convert/tellseq.*gz && \
           rm -rf convert_tellseq
-      - name: convert fastq from standard
-        run: |
-          harpy convert fastq --quiet 2 -o convert_standard/10x 10x test/fastq/sample1.*gz && \
-          harpy convert fastq --quiet 2 -o convert_standard/stlfr stlfr test/fastq/sample1.*gz && \
-          harpy convert fastq --quiet 2 -o convert_standard/haptag tellseq test/fastq/sample1.*gz && \
-          rm -rf convert_standard
       - name: convert fastq from 10x
         run: |
           cut -f2 convert/10x.bc | grep -v "N" > 10x.barcodes && \
