@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809106124548">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809209042568">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -31,13 +31,13 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809106124548" rel="stylesheet">
+    <link href="../../static/logo_navbar.png" rel="icon">
+    <link href="../../resources/css/retype.css?v=3.11.0.809209042568" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809106124548" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809106124548" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809106124548" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809209042568" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.7</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.8</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -317,7 +317,7 @@ generate a specific file and write to <code v-pre>stdout</code>.</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template groupings INPUTS &gt; output</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">usage example</div>
+<div class="codeblock-title">example | generate a grouping file from folder of fastq/bam files</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template groupings data/ &gt; samples.groups</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="arguments">
@@ -383,7 +383,7 @@ be provided to the <code v-pre>--hpc</code> option for workflows.</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template hpc-system &gt; out.yaml</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example</div>
+<div class="codeblock-title">example | create SLURM submission template</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template hpc-slurm &gt; slurm.yaml</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="impute">
@@ -395,16 +395,8 @@ be provided to the <code v-pre>--hpc</code> option for workflows.</p>
 <p>Create a template parameter file for the <a href="../impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>impute</span>
 </a> module.
-The file is formatted correctly and serves as a starting point for using parameters that make sense for your study.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">usage</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; output</code></pre>
-</doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; params.stitch</code></pre>
-</doc-codeblock></div>
-<p>Typically, one runs STITCH multiple times, exploring how results vary with
+The file is formatted correctly and serves as a starting point for using parameters that make sense for your study.
+Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model
 parameters and the rows are the values for those parameters. To make formatting
@@ -412,9 +404,17 @@ easier, a template file is generated for you, just replace the values and add/re
 rows as necessary. See the section for the <a href="../impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>impute</span>
 </a>
-module for details on these parameters. The template file will look like:</p>
+module for details on these parameters.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">params.stitch</div>
+<div class="codeblock-title">usage</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; output</code></pre>
+</doc-codeblock></div>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">example | create imputation parameter template</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; params.stitch</code></pre>
+</doc-codeblock></div>
+<div class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">resulting params.stitch file</div>
 <pre translate="no" class="language-none"><code v-pre class="language-none">name model	usebx	bxlimit	k	s	ngen
 k10_ng50 diploid	TRUE	50000	3	2	10
 k1_ng30 diploid	TRUE	50000	3	1	5
@@ -492,7 +492,7 @@ without having to fish around for the right files.</p>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view MODE DIRECTORY</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example</div>
+<div class="codeblock-title">example | view the workflow configuration of an existing harpy-generated folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view config Align/bwa</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="arguments-2">

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809106124548">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809209042568">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -31,13 +31,15 @@
 
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
-    <link href="../../static/favicon.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809106124548" rel="stylesheet">
+    <link href="../../static/logo_navbar.png" rel="icon">
+    <link href="../../resources/css/retype.css?v=3.11.0.809209042568" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809106124548" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809106124548" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809106124548" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809209042568" defer></script>
+    <link href="../../resources/css/katex.css?v=3.11.0" rel="stylesheet">
+    <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.11.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -58,7 +60,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.7</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.8</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -268,8 +270,8 @@ that are specific to a narrow set of linked-read data formats. Until such a day 
 the means to convert between the various popular linked-read data formats.</p>
 <doc-panel id="creating-order-in-chaos" collapsed>
     <template #title>Creating order in chaos <span class="docs-emoji">&#x26A0;&#xFE0F;</span></template>
-<p>You will notice one of the formats is called
-<code v-pre>standard</code>, and that is our attempt to <em>encourage</em> linked-read practioners to consider a unified and practical data format
+<p>You will notice Harpy offers the &quot;standardize&quot; option, which suggests there is a &quot;standard&quot; format.
+That is our attempt to <em>encourage</em> linked-read practioners to consider a unified and practical data format
 in which a barcode <strong>of any format</strong> is encoded is in the <code v-pre>BX:Z</code> tag of a FASTQ/BAM file (a standard SAM-compliant tag) and the validation for the barcode
 (whether it is valid or not according to the technology) is encoded in the <code v-pre>VX:i</code> tag as either <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid).</p>
 <p>As an example, if you have stLFR barcoded data, whose barcodes take the form <code v-pre>1_2_3</code>, the barcode <code v-pre>54_0_1123</code> would be considered
@@ -282,24 +284,34 @@ regardless of FASTQ or BAM, would have the barcoded as <code v-pre>BX:Z:54_0_112
         <span>Convert FASTQ formats</span>
     </h2>
 </doc-anchor-target>
+<p>In the event you need your linked-read data converted into a different linked-read format to use outside of Harpy:
+don&#x27;t worry, we got you covered. We might disagree on the fragmented format landscape, but that doesn&#x27;t mean you
+shouldn&#x27;t be able to use your data how and where you want to. This command converts a paired-end read set of FASTQ
+files between the common linked-read FASTQ types.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert fastq -o &lt;output&gt; -b &lt;barcodes&gt; FROM TO FQ1 FQ2</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert fastq -o &lt;output&gt; -b &lt;barcodes&gt; TARGET FQ1 FQ2</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example (tellseq to stlfr)</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert fastq -o data/orcs_tellseq tellseq stlfr data/orcs.R1.fq.gz data/orcs.R2.fq.gz</code></pre>
+<div class="codeblock-title">example | tellseq → stlfr</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert fastq -o data/orcs_stlfr stlfr data/orcs.R1.fq.gz data/orcs.R2.fq.gz</code></pre>
 </doc-codeblock></div>
-<p>Takes the positional arguments <code v-pre>FROM</code> to indicate input data format and <code v-pre>TO</code> is the
-target data format. Both of these arguments allow the formats provided in the table below. <code v-pre>10x</code>
-input data requires a <code v-pre>--barcodes</code> file containing one nucleotide barcode per line to
+<p>Auto-detects the input format as one of haplotagging, TELLseq, stLFR, or 10X (if <code v-pre>--barcodes</code> are provided),
+and converts it to the format provided as the <code v-pre>TARGET</code> positional argument. If the input data is
+10X format, the <code v-pre>--barcodes</code> file must contain one nucleotide barcode per line to
 determine which barcodes are valid/invalid. In all cases, a file will be created with
-the barcode conversion map. Requires 2 threads.</p>
+the barcode conversion map.</p>
+<doc-anchor-target id="conversion-targets">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#conversion-targets">#</doc-anchor-trigger>
+        <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M11.22 5.22a.749.749 0 0 1 1.06 0l6.25 6.25a.749.749 0 0 1 0 1.06l-6.25 6.25a.749.749 0 1 1-1.06-1.06l4.969-4.97H1.75a.75.75 0 0 1 0-1.5h14.439L11.22 6.28a.749.749 0 0 1 0-1.06Zm10.03-1.47a.75.75 0 0 1 .75.75v15a.75.75 0 0 1-1.5 0v-15a.75.75 0 0 1 .75-.75Z"/></g></g></svg> Conversion targets</span>
+    </h3>
+</doc-anchor-target>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: left;"><code v-pre>FROM</code>/<code v-pre>TO</code></th>
+<th style="text-align: left;"><code v-pre>TARGET</code></th>
 <th style="text-align: left;">barcode format</th>
 <th style="text-align: left;">example</th>
 </tr>
@@ -314,11 +326,6 @@ the barcode conversion map. Requires 2 threads.</p>
 <td style="text-align: left;"><code v-pre>haplotagging</code></td>
 <td style="text-align: left;">a <code v-pre>BX:Z:ACBD</code> SAM tag in the sequence header</td>
 <td style="text-align: left;"><code v-pre>@SEQID BX:Z:A01C93B56D11</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>standard</code></td>
-<td style="text-align: left;">a <code v-pre>BX:Z</code> SAM tag in the sequence header, any style</td>
-<td style="text-align: left;"><code v-pre>@SEQID BX:Z:ATAGCAC_AGGA</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>stlfr</code></td>
@@ -350,18 +357,11 @@ the barcode conversion map. Requires 2 threads.</p>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>FROM</code></td>
+<td style="text-align: left;"><code v-pre>TARGET</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
-</span> current format of the input FASTQ files</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>TO</code></td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
-    <span>required</span>
-</span> target format for output FASTQ files:</td>
+</span> target format for output FASTQ files</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>FQ1</code></td>
@@ -397,64 +397,80 @@ the barcode conversion map. Requires 2 threads.</p>
 </tbody>
 </table>
 </div>
-<doc-anchor-target id="convert-bam-formats">
+<doc-anchor-target id="standardize">
     <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#convert-bam-formats">#</doc-anchor-trigger>
-        <span>Convert BAM formats</span>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#standardize">#</doc-anchor-trigger>
+        <span>Standardize</span>
     </h2>
 </doc-anchor-target>
-<p>This function converts between linked-read barcode formats in alignments, that is, it
-changes the barcode type of the alignment file (SAM/BAM), expecting the barcode to be
-in the <code v-pre>BX:Z</code> tag of the alignment. The barcode type is automatically detected and the
-resulting barcode will be in the <code v-pre>BX:Z</code> tag. Use <code v-pre>--standardize</code> to optionally standardize
-the output file (recommended), meaning a <code v-pre>VX:i</code> tag is added to describe
-barcode validation with <code v-pre>0</code> (invalid) and <code v-pre>1</code> (valid). Writes to <code v-pre>stdout</code>.</p>
+<p>In the effort of making it painless to have your data in the preferred standard format, Harpy provides <code v-pre>convert standardize-*</code>
+to quickly standardize FASTQ and BAM files. By default, standardization just moves the barcode (wherever it may be)
+into a <code v-pre>BX:Z</code> SAM tag as-is and does a technology-appropriate validation of the barcode value, which it writes to the
+<code v-pre>VX:i</code> tag. However, you can use <code v-pre>--style</code> to also convert the barcode style between formats. Keep in mind that each
+barcode style has a different upper limit as to how many unique barcodes it can support, which may prevent successful conversions.
+The styles are given as:</p>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: left;">to</th>
-<th style="text-align: left;">barcode format</th>
-<th style="text-align: left;">example</th>
+<th style="text-align: left;">Style</th>
+<th style="text-align: center;">Maximum Unique</th>
+<th style="text-align: left;">What they look like</th>
+<th style="text-align: left;">Example</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">10x</td>
-<td style="text-align: left;">nucleotides</td>
-<td style="text-align: left;"><code v-pre>BX:Z:GGCAAATATCGAGAAGTC</code></td>
-</tr>
-<tr>
-<td style="text-align: left;">haplotagging</td>
+<td style="text-align: left;"><code v-pre>haplotagging</code></td>
+<td style="text-align: center;"><span class="math">96^4</span></td>
 <td style="text-align: left;">AxxCxxBxxDxx</td>
-<td style="text-align: left;"><code v-pre>BX:Z:A01C44B81D35</code></td>
+<td style="text-align: left;">A41C22B70D93</td>
 </tr>
 <tr>
-<td style="text-align: left;">stlfr</td>
-<td style="text-align: left;"><code v-pre>1_2_3</code></td>
-<td style="text-align: left;"><code v-pre>BX:Z:911_327_27</code></td>
+<td style="text-align: left;"><code v-pre>stlfr</code></td>
+<td style="text-align: center;"><span class="math">1537^3</span></td>
+<td style="text-align: left;">1_2_3</td>
+<td style="text-align: left;">901_3_1121</td>
 </tr>
 <tr>
-<td style="text-align: left;">tellseq</td>
-<td style="text-align: left;">nucleotides</td>
-<td style="text-align: left;"><code v-pre>BX:Z:GGCAAATATCGAGAAGTC</code></td>
+<td style="text-align: left;"><code v-pre>tellseq</code></td>
+<td style="text-align: center;"><span class="math">4^{18}</span></td>
+<td style="text-align: left;">18-base nucleotide</td>
+<td style="text-align: left;">AGCCATGTACGTATGGTA</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>10X</code></td>
+<td style="text-align: center;"><span class="math">4^{16}</span></td>
+<td style="text-align: left;">16-base nucleotide</td>
+<td style="text-align: left;">GGCTGAACACGTGCAG</td>
 </tr>
 </tbody>
 </table>
 </div>
+<doc-anchor-target id="bam">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#bam">#</doc-anchor-trigger>
+        <span>BAM</span>
+    </h3>
+</doc-anchor-target>
+<p>If barcodes are present in the sequence name (stlfr, tellseq), this method moves the barcode to the <code v-pre>BX:Z</code>
+tag of the alignment, maintaining the same barcode style by default (auto-detected). If moved to or already in a <code v-pre>BX:Z</code> tag,
+will then write a complementary <code v-pre>VX:i</code> tag to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid).
+Use <code v-pre>--style</code> to also convert the barcode to a different style (<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>, <code v-pre>10X</code>),
+which also writes a <code v-pre>conversion.bc</code> file to the working directory mapping the barcode conversions. Writes to <code v-pre>stdout</code>.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert bam [--standardize] TO SAM &gt; output.bam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize-bam [--quiet --style] SAM &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example (tellseq to stlfr)</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert bam --standardize haplotagging pomegranate.tellseq.bam &gt; pomegranate.haptag.bam</code></pre>
+<div class="codeblock-title">example | standardize a bam and change the barcodes to stLFR style</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize-bam --style stflr yucca.bam &gt; yucca.std.stlfr.bam</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options-1">
-    <h3>
+    <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#running-options-1">#</doc-anchor-trigger>
         <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53Zm2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5h-5Z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> Running Options</span>
-    </h3>
+    </h4>
 </doc-anchor-target>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -467,13 +483,6 @@ barcode validation with <code v-pre>0</code> (invalid) and <code v-pre>1</code> 
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>TO</code></td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
-    <span>required</span>
-</span> barcode format for output BAM file: [<code v-pre>10x</code>,<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>]</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code v-pre>SAM</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
@@ -481,41 +490,63 @@ barcode validation with <code v-pre>0</code> (invalid) and <code v-pre>1</code> 
 </span> input SAM/BAM alignment file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--standardize</code></td>
-<td style="text-align: center;"><code v-pre>False</code></td>
-<td style="text-align: left;">whether to standardize the output BAM with a <code v-pre>VX:i</code> validation tag</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code v-pre>--quiet</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;"><code v-pre>0</code> and <code v-pre>1</code> (all) or <code v-pre>2</code> (no) output</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>-s</code>/<code v-pre>--style</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">change barcode style in the output BAM: [<code v-pre>10x</code>,<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>]</td>
+</tr>
 </tbody>
 </table>
 </div>
-<doc-anchor-target id="standardize-barcodes">
-    <h2>
-        <doc-anchor-trigger class="header-anchor-trigger" to="#standardize-barcodes">#</doc-anchor-trigger>
-        <span>Standardize barcodes</span>
-    </h2>
+<doc-anchor-target id="fastq">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#fastq">#</doc-anchor-trigger>
+        <span>FASTQ</span>
+    </h3>
 </doc-anchor-target>
-<p>This conversion moves the barcode from the sequence name into the <code v-pre>BX:Z</code> tag of the alignment,
-maintaining the same barcode type (i.e. there is no format conversion). It is intended
-for tellseq and stlfr data, which encode the barcode in the read name. Also writes a <code v-pre>VX:i</code> tag
-to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid). Writes to <code v-pre>stdout</code>.</p>
+<p>This conversion moves the barcode to the <code v-pre>BX:Z</code> tag in fastq records, maintaining the same barcode type by default (auto-detected).
+See <a href="../../getting_started/linked_read_data/#linked-read-data-types">this section</a> for the location and format expectations for different linked-read technologies.
+Also writes a <code v-pre>VX:i</code> tag to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid),
+which also writes a <code v-pre>conversion.bc</code> file to the working directory mapping the barcode conversions.
+Use <code v-pre>--style</code> to also convert the barcode to a different style (<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>, <code v-pre>10X</code>),</p>
+<div class="flex mb-6">
+    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
+    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
+        <div class="flex items-center ml-4 h-7">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mb-px text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+                <g fill="currentColor"><g>
+                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                </g></g>
+            </svg>
+        </div>
+        <div class="pr-5 ml-3 w-full">
+            <h5>Incompatible with 10X data</h5>
+<p>Standardization will <strong>not</strong> work with the 10X FASTQ format, where the barcodes are the first 16 bases of read 1.
+Instead, use <doc-anchor-trigger to="#convert-fastq-formats" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+    <span>convert fastq</span>
+</doc-anchor-trigger> to first convert
+it into another format like TELLseq. You can standardize it into a barcode style of your liking afterwards.</p>
+        </div>
+    </div>
+</div>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize [--quiet] SAM &gt; output.bam</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize-fastq [--quiet --style] PREFIX R1.fq R2.fq</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize yucca.bam &gt; yucca.std.bam</code></pre>
+<div class="codeblock-title">example | standardize a fastq pair and change the barcodes to stLFR style</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy convert standardize-fastq --style stflr myotis.stlfr myotis.R1.fq.gz myotis.R2.fq.gz</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options-2">
-    <h3>
+    <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#running-options-2">#</doc-anchor-trigger>
         <span><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53Zm2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5h-5Z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> Running Options</span>
-    </h3>
+    </h4>
 </doc-anchor-target>
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
@@ -528,20 +559,40 @@ to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code v-pre>SAM</code></td>
+<td style="text-align: left;"><code v-pre>R1.fq</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
-</span> input SAM/BAM alignment file</td>
+</span> input FASTQ forward-read file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>R1.fq</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
+    <span>required</span>
+</span> input FASTQ reverse-read file</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>PREFIX</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
+    <span>required</span>
+</span> prefix for output filenames</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--quiet</code></td>
 <td style="text-align: center;"><code v-pre>0</code></td>
 <td style="text-align: left;"><code v-pre>0</code> and <code v-pre>1</code> (all) or <code v-pre>2</code> (no) output</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>-s</code>/<code v-pre>--style</code></td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">change barcode style in the output FASTQ: [<code v-pre>10x</code>,<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>]</td>
+</tr>
 </tbody>
 </table>
 </div>
+<hr>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-info"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -556,7 +607,7 @@ to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>Useless trivia</h5>
-<p>This module was written while Pavel was waiting at a mechanic shop for his car to be repaired. During development,
+<p>The original version of this command was written while Pavel was waiting at a mechanic shop for his car to be repaired. During development,
 it was called <code v-pre>lr-switcheroo</code>.</p>
         </div>
     </div>
@@ -643,6 +694,6 @@ it was called <code v-pre>lr-switcheroo</code>.</p>
 
     <div id="retype-overlay-target"></div>
 
-    <script data-cfasync="false">window.__DOCS__ = { "title": "Convert", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: false, tocDepth: 23 }</script>
+    <script data-cfasync="false">window.__DOCS__ = { "title": "Convert", level: 2, icon: "file", hasPrism: true, hasMermaid: false, hasMath: true, tocDepth: 23 }</script>
 </body>
 </html>
