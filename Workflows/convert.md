@@ -110,9 +110,9 @@ harpy convert standardize-bam --style stflr yucca.bam > yucca.std.stlfr.bam
 ### FASTQ
 This conversion moves the barcode to the `BX:Z` tag in fastq records, maintaining the same barcode type by default (auto-detected).
 See [this section](/Getting_Started/linked_read_data.md#linked-read-data-types) for the location and format expectations for different linked-read technologies.
-Also writes a `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid),
-which also writes a `conversion.bc` file to the working directory mapping the barcode conversions.
+Also writes a `VX:i` tag to describe barcode validation `0` (invalid) or `1` (valid).
 Use `--style` to also convert the barcode to a different style (`haplotagging`, `stlfr`, `tellseq`, `10X`),
+which will also write a `conversion.bc` file to the working directory mapping the barcode conversions.
 
 !!!warning Incompatible with 10X data
 Standardization will **not** work with the 10X FASTQ format, where the barcodes are the first 16 bases of read 1.
