@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809209042568">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809468749516">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/logo_navbar.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809209042568" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.809468749516" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809468749516" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809209042568" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809468749516" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809468749516" defer></script>
     <link href="../../resources/css/katex.css?v=3.11.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.11.0" defer></script>
 </head>
@@ -510,9 +510,9 @@ which also writes a <code v-pre>conversion.bc</code> file to the working directo
 </doc-anchor-target>
 <p>This conversion moves the barcode to the <code v-pre>BX:Z</code> tag in fastq records, maintaining the same barcode type by default (auto-detected).
 See <a href="../../getting_started/linked_read_data/#linked-read-data-types">this section</a> for the location and format expectations for different linked-read technologies.
-Also writes a <code v-pre>VX:i</code> tag to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid),
-which also writes a <code v-pre>conversion.bc</code> file to the working directory mapping the barcode conversions.
-Use <code v-pre>--style</code> to also convert the barcode to a different style (<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>, <code v-pre>10X</code>),</p>
+Also writes a <code v-pre>VX:i</code> tag to describe barcode validation <code v-pre>0</code> (invalid) or <code v-pre>1</code> (valid).
+Use <code v-pre>--style</code> to also convert the barcode to a different style (<code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>, <code v-pre>10X</code>),
+which will also write a <code v-pre>conversion.bc</code> file to the working directory mapping the barcode conversions.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">

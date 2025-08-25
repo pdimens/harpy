@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809209042568">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809468749516">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/logo_navbar.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809209042568" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.809468749516" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809468749516" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809209042568" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809468749516" data-turbo-eval="false" defer></script>
     <link href="../../resources/css/katex.css?v=3.11.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.11.0" defer></script>
 </head>
@@ -298,16 +298,12 @@ barcode originated from <strong>a single DNA fragment from a single homologous c
 linked-read data is demultiplexing to split the raw Illumina-generated batch FASTQ file into samples (if multisample)
 and identify/validate the linked-read barcode on every sequence. For 10X data, the barcode would <em>stay</em> inline with
 the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stLFR, etc.) you would also
-remove the barcode from the sequence and preserve it using the <code v-pre>BX:Z</code> tag in the sequence headers. The demultiplexing process
-is generally similar between non-10X linked-read technologies: a nucleotide barcode gets identified and moved from the sequence
-to the read header under the <code v-pre>BX:Z</code> tag. The diagram below preserves the nucleotide barcode under the <code v-pre>OX:Z</code> tag and recodes
-it under <code v-pre>BX:Z</code> using the haplotagging &quot;ACBD&quot; segment-aware format, however it would also be valid to just keep the nucleotide
-barcode under <code v-pre>BX:Z</code>. Linked-read software is variable in its flexibility towards barcode formatting.
-<figure class="content-center">
-    <img src="../../static/lr_conversion.png" alt="10X linked read data before and after demultiplexing" class="rounded-image-rounded border-image-border border-image-border-width" />
-    <figcaption class="caption">10X linked read data before and after demultiplexing</figcaption>
-</figure>
-</p>
+remove the barcode from the sequence and preserve it <em>somewhere</em> in the read header. The demultiplexing process
+is generally similar between non-10X linked-read technologies: a nucleotide barcode sequence gets identified and moved from
+the sequence line to the read header with some kind of platform-specific notation. The diagram below preserves the nucleotide
+barcode under the <code v-pre>OX:Z</code> tag and recodes it under <code v-pre>BX:Z</code> using the haplotagging &quot;ACBD&quot; segment format, however it would
+also be valid to just keep the nucleotide barcode under <code v-pre>BX:Z</code>. Linked-read software is variable in its flexibility towards barcode
+formatting. <img src="../../static/lr_conversion.png" alt="10X linked read data before and after demultiplexing" /></p>
 <doc-anchor-target id="deconvolution">
     <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#deconvolution">#</doc-anchor-trigger>
