@@ -110,7 +110,7 @@ rule barcode_report:
         INPATH=$(realpath {params})
         quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
         """
-   
+
 rule qc_report:
     input: 
         collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames)
