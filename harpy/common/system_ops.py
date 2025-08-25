@@ -121,11 +121,13 @@ def is_arm(allowed: bool) -> None:
     """
     Check if the system uses ARM architecture, for which some workflows or their deps might not work. 
     """
-    _arm = 'arm' in platform.machine().lower()
-    if not _arm or (_arm and allowed):
+    arch = platform.machine().lower()
+    # Common ARM identifiers across Linux/macOS: armv7l, armv8l, arm64, aarch64
+    _arm = arch.startswith(("arm", "aarch64")) or "arm64" in arch
+    if not _arm or allowed:
         return
     else:
         print_error(
-                "incompatible architecture",
-                "Your system was detected to use an ARM-based processor, for which not all of the software required by this workflow is compatible with and therefore conda will be unable to install. If possible, please try this command again on an x86-based machine (i.e. [blue]Intel[/] or [red]AMD[/] processors)."
-            )
+            "incompatible architecture",
+            "Your system was detected to use an ARM-based processor, for which not all of the software required by this workflow is compatible with and therefore conda will be unable to install. If possible, please try this command again on an x86-based machine (i.e. [blue]Intel[/] or [red]AMD[/] processors)."
+        )

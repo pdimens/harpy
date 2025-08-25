@@ -50,9 +50,10 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
                 str_len = ", ".join(str(_length) for _length in lengths)
                 print_error("inconsistent length", f"Barcodes in [blue]{infile}[/] must all be a single length, but multiple lengths were detected: [yellow]{str_len}[/]")
             progress.advance(task_progress)
+    if not lengths:
+        print_error("no barcodes detected", f"No barcodes were found in [blue]{infile}[/]. Please check the input file.")
     if return_len:
         return lengths.pop()
-
 
 def which_linkedread(fastq: str) -> str|None:
     """
