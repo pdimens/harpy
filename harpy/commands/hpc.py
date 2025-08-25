@@ -2,7 +2,7 @@
 
 import sys
 import rich_click as click
-from harpy.common.misc import package_absent
+from harpy.common.system_ops import package_absent
 
 @click.command()
 def hpc_generic():

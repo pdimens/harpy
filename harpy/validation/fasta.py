@@ -1,7 +1,7 @@
 
 import os
 import pysam
-from harpy.common.misc import safe_read
+from harpy.common.file_ops import safe_read
 from harpy.common.printing import print_error
 
 class FASTA():

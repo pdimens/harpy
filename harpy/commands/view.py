@@ -13,11 +13,11 @@ from rich.console import Console
 from rich.panel import Panel
 from rich import print as rprint
 from harpy.common.printing import print_error
-from harpy.common.misc import is_gzip
+from harpy.common.file_ops import is_gzip
 
 def check_terminal_colors():
     # Initialize curses
-    stdscr = curses.initscr()
+    _ = curses.initscr()
     # Check if the terminal supports colors
     if not curses.has_colors():
         curses.endwin()

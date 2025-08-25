@@ -9,11 +9,12 @@ import subprocess
 import sys
 import rich_click as click
 import pysam
-from harpy.common.misc import safe_read, harpy_pulsebar
+from harpy.common.file_ops import safe_read
 from harpy.common.cli_filetypes import SAMfile, FASTQfile
 from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
-from harpy.common.misc import validate_barcodefile, which_linkedread
+from harpy.common.progress import harpy_pulsebar
+from harpy.validation.barcodes import validate_barcodefile, which_linkedread
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():

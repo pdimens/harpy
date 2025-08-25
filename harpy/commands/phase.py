@@ -8,8 +8,8 @@ from harpy.validation.sam import SAM
 from harpy.validation.vcf import VCF
 from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import HapCutParams
-from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
 docstring = {

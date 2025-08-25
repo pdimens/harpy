@@ -8,8 +8,9 @@ import subprocess
 from rich.table import Table
 from rich import box
 from rich.syntax import Syntax
-from .misc import harpy_progressbar, harpy_pulsebar, harpy_progresspanel, gzip_file, purge_empty_logs
-from .printing import CONSOLE, print_onerror, print_setup_error
+from harpy.common.file_ops import gzip_file, purge_empty_logs
+from harpy.common.printing import CONSOLE, print_onerror, print_setup_error
+from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1

@@ -11,10 +11,10 @@ import yaml
 from rich import print as rprint
 from rich import box
 from rich.table import Table
-from .conda import create_conda_recipes
-from .misc import filepath, gzip_file, fetch_snakefile, purge_empty_logs
-from .printing import CONSOLE, print_error
-from .launch import launch_snakemake
+from harpy.common.conda import create_conda_recipes
+from harpy.common.file_ops import filepath, gzip_file, fetch_snakefile, purge_empty_logs
+from harpy.common.printing import CONSOLE, print_error
+from harpy.common.launch import launch_snakemake
 
 class Workflow():
     '''

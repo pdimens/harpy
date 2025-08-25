@@ -10,8 +10,9 @@ import subprocess
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.misc import container_ok, safe_read
+from harpy.common.file_ops import safe_read
 from harpy.common.printing import print_error, workflow_info
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})

@@ -5,13 +5,13 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile, VCFfile
 from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
-from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
-from harpy.validation.fasta import FASTA
-from harpy.validation.vcf import VCF
-from harpy.validation.sam import SAM
-from harpy.validation.populations import Populations
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
+from harpy.validation.fasta import FASTA
+from harpy.validation.populations import Populations
+from harpy.validation.sam import SAM
+from harpy.validation.vcf import VCF
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def sv():

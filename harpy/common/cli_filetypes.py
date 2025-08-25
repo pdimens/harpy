@@ -6,7 +6,7 @@ from pathlib import Path
 import pysam
 import re
 import yaml
-from harpy.common.misc import is_gzip
+from harpy.common.file_ops import is_gzip
 from harpy.common.printing import print_error, print_notice
 
 class SAMfile(click.ParamType):

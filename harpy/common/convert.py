@@ -3,7 +3,7 @@
 import os
 import pysam
 import re
-from .printing import print_error
+from harpy.common.printing import print_error
 
 INVALID_10x = "N" * 16
 INVALID_HAPLOTAGGING = "A00C00B00D00"
