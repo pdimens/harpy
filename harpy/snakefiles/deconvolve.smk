@@ -54,7 +54,7 @@ rule deconvolve:
     threads:
         2
     conda:
-        "envs/qc.yaml"
+        "envs/deconvolution.yaml"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -89,8 +89,8 @@ rule workflow_summary:
         deconv += f"\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}"
         summary.append(deconv)
         recover = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
-        recover += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
-        recover += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
+        recover += "\tseqtk seq -1 interleaved.fq | gzip > file.R1.fq.gz\n"
+        recover += "\tseqtk seq -2 interleaved.fq | gzip > file.R2.fq.gz"
         summary.append(recover)
         sm = "Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"

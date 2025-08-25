@@ -4,9 +4,9 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.misc import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.printing import workflow_info
+from harpy.common.system_ops import container_ok, is_arm
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -47,9 +47,10 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
+    is_arm(allowed = False)
     workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
-    workflow.conda = ["qc"]
+    workflow.conda = ["deconvolution"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs)
