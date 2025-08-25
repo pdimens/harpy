@@ -46,11 +46,15 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--trim-adapters` `-a` |                | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                                                                                         |
 
 By default, this workflow will only quality-trim the sequences.
-#### deduplicate reads [!badge variant="warning" text="not recommended"]
+### Deduplicate reads
+[!badge variant="warning" text="not recommended"]
+
 You can opt-in to have `fastp` deduplicate optical (PCR) duplicates. It's generally not recommended to perform deduplication during quality-checking,
 as the [!badge corners="pill" text="align"](Align/Align.md) workflows use the linked-read barcode to more accurately tag reads as duplicates.
 
-#### trimming adapters [!badge variant="secondary" text="recommended"]
+### Trim adapters
+[!badge variant="secondary" text="recommended"]
+
 You can opt-in to find and remove adapter content in sequences.
 - accepts `auto` for automatic adapter detection and removal
 - accepts a FASTA file of adapter sequences

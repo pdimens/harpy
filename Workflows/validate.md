@@ -56,7 +56,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 
 ## Workflow
 
-+++ fastq checks
++++ fastq files
 Below is a table of the format specifics [!badge corners="pill" text="validate fastq"] checks for FASTQ files. Since 10X data doesn't use
 the haplotagging data format, you will find little value in running [!badge corners="pill" text="validate fastq"] on 10X FASTQ files. Take note
 of the language such as when "any" and "all" are written.
@@ -69,7 +69,7 @@ of the language such as when "any" and "all" are written.
  | BX:Z: last comment | **all** reads have `BX:Z`: as final comment                                              | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
  | BX:Z: tag          | any `BX:Z:` tags present                                                                 | **all** reads lack `BX:Z:` tag                                |
 
-+++ bam checks
++++ bam files
 Below is a table of the format specifics [!badge corners="pill" text="validate bam"] checks for SAM/BAM files. Take note
 of the language such as when "any" and "all" are written.
 
