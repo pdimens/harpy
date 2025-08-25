@@ -4,10 +4,10 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams, ArcsParams
-from harpy.common.misc import container_ok
 from harpy.common.printing import workflow_info
-from harpy.validation.fastq import FASTQ
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
+from harpy.validation.fastq import FASTQ
 
 docstring = {
     "harpy assembly": [

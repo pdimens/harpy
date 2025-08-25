@@ -31,6 +31,10 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
+        "deconvolution" : [
+            "bioconda::quickdeconvolution"
+        ],
+
         "demultiplex": [
             "bioconda::dmox>=0.2"
         ],
@@ -46,8 +50,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::multiqc=1.30",
-            "bioconda::pysam=0.23",
-            "bioconda::quickdeconvolution"
+            "bioconda::pysam=0.23"
         ],
         "r" : [
             "conda-forge::quarto",

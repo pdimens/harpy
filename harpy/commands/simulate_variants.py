@@ -4,8 +4,8 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, VCFfile, InputFile
 from harpy.validation.fasta import FASTA
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.misc import container_ok
 from harpy.common.printing import print_error, workflow_info
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
 commandstring = {

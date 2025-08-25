@@ -18,12 +18,6 @@ lr_type    = config["linkedread_type"]
 ignore_bx = lr_type == "none"
 trim_adapters = config.get("trim_adapters", None)
 dedup        = config["deduplicate"]
-deconvolve   = config.get("deconvolve", False)
-if deconvolve:
-    decon_k = deconvolve["kmer_length"]
-    decon_w = deconvolve["window_size"]
-    decon_d = deconvolve["density"]
-    decon_a = deconvolve["dropout"]
 skip_reports  = config["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -42,96 +36,32 @@ def get_fq2(wildcards):
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
-if not deconvolve:
-    rule fastp:
-        priority: 100
-        input:
-            fw   = get_fq1,
-            rv   = get_fq2
-        output:
-            fw   = "{sample}.R1.fq.gz",
-            rv   = "{sample}.R2.fq.gz",
-            html = "reports/{sample}.html",
-            json = "reports/data/fastp/{sample}.fastp.json"
-        log:
-            serr = "logs/fastp/{sample}.log"
-        params:
-            static = "--trim_poly_g --cut_right",
-            minlen = f"--length_required {min_len}",
-            maxlen = f"--max_len1 {max_len}",
-            trim_adapters = trim_arg,
-            dedup = "-D" if dedup else "--dont_eval_duplication",
-            title = lambda wc: f"-R \"{wc.sample} QC Report\"",
-            extra = extra
-        threads:
-            workflow.cores
-        conda:
-            "envs/qc.yaml"
-        shell: 
-            "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
-else:
-    rule fastp:
-        priority: 100
-        input:
-            fw   = get_fq1,
-            rv   = get_fq2
-        output:
-            fq   = temp("fastp/{sample}.fastq"),
-            html = "reports/{sample}.html",
-            json = "reports/data/fastp/{sample}.fastp.json"
-        log:
-            serr = "logs/fastp/{sample}.log"
-        params:
-            static = "--trim_poly_g --cut_right",
-            minlen = f"--length_required {min_len}",
-            maxlen = f"--max_len1 {max_len}",
-            trim_adapters = trim_arg,
-            dedup = "-D" if dedup else "",
-            title = lambda wc: f"-R \"{wc.sample} QC Report\"",
-            extra = extra
-        threads:
-            workflow.cores
-        conda:
-            "envs/qc.yaml"
-        shell: 
-            "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} --stdout -h {output.html} -j {output.json} 2> {log.serr} > {output.fq}"
-
-    rule deconvolve:
-        input:
-            "fastp/{sample}.fastq"
-        output:
-            temp("{sample}.fastq")
-        log:
-            "logs/deconvolve/{sample}.deconvolve.log"
-        params:
-            kmer    = f"-k {decon_k}",
-            windows = f"-w {decon_w}",
-            density = f"-d {decon_d}",
-            dropout = f"-a {decon_a}"
-        threads:
-            workflow.cores
-        conda:
-            "envs/qc.yaml"
-        shell:
-            "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
-
-    rule extract_forward:
-        input:
-            "{sample}.fastq"
-        output:
-            "{sample}.R1.fq.gz"
-        params:
-            "-1"
-        container:
-            None
-        shell:
-            "seqtk seq {params} {input} | gzip > {output}"
-
-    use rule extract_forward as extract_reverse with:
-        output:
-            "{sample}.R2.fq.gz"
-        params:
-            "-2"
+rule fastp:
+    priority: 100
+    input:
+        fw   = get_fq1,
+        rv   = get_fq2
+    output:
+        fw   = "{sample}.R1.fq.gz",
+        rv   = "{sample}.R2.fq.gz",
+        html = "reports/{sample}.html",
+        json = "reports/data/fastp/{sample}.fastp.json"
+    log:
+        serr = "logs/fastp/{sample}.log"
+    params:
+        static = "--trim_poly_g --cut_right",
+        minlen = f"--length_required {min_len}",
+        maxlen = f"--max_len1 {max_len}",
+        trim_adapters = trim_arg,
+        dedup = "-D" if dedup else "--dont_eval_duplication",
+        title = lambda wc: f"-R \"{wc.sample} QC Report\"",
+        extra = extra
+    threads:
+        workflow.cores
+    conda:
+        "envs/qc.yaml"
+    shell: 
+        "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 
 rule barcode_stats:
     input:
@@ -180,7 +110,7 @@ rule barcode_report:
         INPATH=$(realpath {params})
         quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
         """
-   
+
 rule qc_report:
     input: 
         collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames)
@@ -216,14 +146,6 @@ rule workflow_summary:
         fastp = "fastp ran using:\n"
         fastp += f"\tfastp --trim_poly_g --cut_right {params}"
         summary.append(fastp)
-        if deconvolve:
-            deconv = "Deconvolution occurred using QuickDeconvolution:\n"
-            deconv += "\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {decon_k} -w {decon_w} -d {decon_d} -a {decon_a}"
-            summary.append(deconv)
-            interlv = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
-            interlv += "\tseqtk -1 interleaved.fq | gzip > file.R1.fq.gz\n"
-            interlv += "\tseqtk -2 interleaved.fq | gzip > file.R2.fq.gz"
-            summary.append(interlv)
         sm = "The Snakemake workflow was called via command line:\n"
         sm += f"\t{config['snakemake']['relative']}"
         summary.append(sm)

@@ -2,7 +2,7 @@
 
 import sys
 import rich_click as click
-from harpy.common.misc import package_absent
+from harpy.common.system_ops import package_absent
 
 @click.command()
 def hpc_generic():
@@ -10,7 +10,7 @@ def hpc_generic():
     Create a template config for a generic scheduler
     
     This command creates a configuration for a generic HPC scheduler. Writes to `stdout`.
-    You will also need to install `snakemake-executor-plugin-generic` for the HPC job submission to work.
+    You will also need to install `snakemake-executor-plugin-cluster-generic` for the HPC job submission to work.
     """
     sys.stdout.write("__use_yte__: true\n")
     sys.stdout.write("executor: cluster-generic\n")
@@ -104,7 +104,7 @@ def hpc_googlebatch():
     """
     Create a template config for Google Batch
     
-    This command creates a configuration (`hpc/googlebatch.yaml`) for the Google Batch scheduler.
+    This command creates a configuration for the Google Batch scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-googlebatch` for the HPC job submission to work.
     """
     sys.stdout.write("__use_yte__: true\n")

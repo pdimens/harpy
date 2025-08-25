@@ -13,30 +13,33 @@ from rich.console import Console
 from rich.panel import Panel
 from rich import print as rprint
 from harpy.common.printing import print_error
-from harpy.common.misc import is_gzip
+from harpy.common.file_ops import is_gzip
 
 def check_terminal_colors():
-    # Initialize curses
-    stdscr = curses.initscr()
-    # Check if the terminal supports colors
-    if not curses.has_colors():
-        curses.endwin()
+    # Initialize curses and always tear down
+    try:
+        _ = curses.initscr()
+        # Check if the terminal supports colors
+        if not curses.has_colors():
+            return 0
+        curses.start_color()
+        num_colors = curses.COLORS
+        # Determine the color type based on the number of colors
+        if num_colors <= 8:
+            return 8
+        if num_colors == 256:
+            return 256
+        if num_colors > 256:  # Truecolor (24-bit)
+            return 999
+        return 256
+    except curses.error:
+        # Non-interactive/unsupported terminals
         return 0
-    # Start color mode
-    curses.start_color()
-    # Get the number of colors supported
-    num_colors = curses.COLORS
-    # Determine the color type based on the number of colors
-    if num_colors <= 8:
-        ncol = 8
-    elif num_colors == 256:
-        ncol = 256
-    elif num_colors > 256:  # Truecolor (24-bit)
-        ncol = 999
-    else:
-        ncol = 256
-    curses.endwin()
-    return ncol
+    finally:
+        try:
+            curses.endwin()
+        except curses.error:
+            pass
 
 def parse_file(infile):
     '''

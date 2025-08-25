@@ -9,11 +9,12 @@ import subprocess
 import sys
 import rich_click as click
 import pysam
-from harpy.common.misc import safe_read, harpy_pulsebar
+from harpy.common.file_ops import safe_read
 from harpy.common.cli_filetypes import SAMfile, FASTQfile
 from harpy.common.convert import FQRecord, compress_fq, INVALID_10x, INVALID_HAPLOTAGGING, INVALID_STLFR, INVALID_TELLSEQ
 from harpy.common.printing import print_error
-from harpy.common.misc import validate_barcodefile, which_linkedread
+from harpy.common.progress import harpy_pulsebar
+from harpy.validation.barcodes import validate_barcodefile, which_linkedread
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def convert():
@@ -109,7 +110,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
         open(f"{output}.R1.fq", "w") as R1_out,
         open(f"{output}.R2.fq", "w") as R2_out,
         open(f"{output}.bc", "w") as bc_out,
-        harpy_pulsebar(quiet, "Converting") as progress,
+        harpy_pulsebar(quiet) as progress,
     ):
         progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
         for r1,r2 in zip_longest(R1,R2):
@@ -220,7 +221,7 @@ def standardize_bam(sam, style, quiet):
     with (
         pysam.AlignmentFile(sam, require_index=False) as samfile, 
         pysam.AlignmentFile(sys.stdout, "wb", template=samfile) as outfile,
-        harpy_pulsebar(quiet, "Standardizing", True) as progress,
+        harpy_pulsebar(quiet, True) as progress,
     ):
         progress.add_task(logtext, total = None)
         for record in samfile.fetch(until_eof=True):
@@ -333,7 +334,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
         pysam.FastxFile(r2_fastq, persist=False) as R2,
         open(f"{prefix}.R1.fq", "w") as R1_out,
         open(f"{prefix}.R2.fq", "w") as R2_out,
-        harpy_pulsebar(quiet, "Standardizing" + (f" {convert}" if convert else ""), True) as progress,
+        harpy_pulsebar(quiet, True) as progress,
     ):
         progress.add_task(logtext, total = None)
         for r1,r2 in zip_longest(R1,R2):

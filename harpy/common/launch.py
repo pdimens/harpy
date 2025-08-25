@@ -8,8 +8,9 @@ import subprocess
 from rich.table import Table
 from rich import box
 from rich.syntax import Syntax
-from .misc import harpy_progressbar, harpy_pulsebar, harpy_progresspanel, gzip_file, purge_empty_logs
-from .printing import CONSOLE, print_onerror, print_setup_error
+from harpy.common.file_ops import gzip_file, purge_empty_logs
+from harpy.common.printing import CONSOLE, print_onerror, print_setup_error
+from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
@@ -143,7 +144,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                 output = process.stderr.readline()
             # if dependency text present, print pulsing progress bar
             if deps:
-                progress = harpy_pulsebar(quiet, "Working...")
+                progress = harpy_pulsebar(quiet)
                 with harpy_progresspanel(progress, quiet=quiet, title = deploy_text):
                     progress.add_task("[dim]Working...", total = None)
                     while not output.startswith("Job stats:"):

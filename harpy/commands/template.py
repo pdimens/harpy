@@ -6,7 +6,7 @@ import sys
 import glob
 import rich_click as click
 from harpy.common.printing import print_error, print_notice, CONSOLE
-from .hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
+from harpy.commands.hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
 
 docstring = {
     "harpy template": [

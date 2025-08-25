@@ -4,9 +4,9 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.misc import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.printing import workflow_info
+from harpy.common.system_ops import container_ok, is_arm
 from harpy.common.workflow import Workflow
 
 docstring = {
@@ -24,7 +24,7 @@ docstring = {
     ]
 }
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/deconvolve")
 @click.option('-k', '--kmer-length', default = 21, show_default = True, type=click.IntRange(min = 1), help = 'Size of kmers')
 @click.option('-w', '--window-size', default = 40, show_default = True, type=click.IntRange(min = 3), help = 'Size of window guaranteed to contain at least one kmer')
 @click.option('-d', '--density', default = 3, show_default = True, type = click.IntRange(min = 1), help = 'On average, 1/2^d kmers are indexed')
@@ -47,9 +47,10 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
+    is_arm(allowed = False)
     workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
-    workflow.conda = ["qc"]
+    workflow.conda = ["deconvolution"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs)

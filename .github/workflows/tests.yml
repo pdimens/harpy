@@ -237,11 +237,6 @@ jobs:
         run: |
           harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
           ls -lh  QC
-      - name: harpy qc all options
-        shell: micromamba-shell {0}
-        run: |
-          harpy qc -o QC/auto -a auto -d -c 21,40,3,0 --quiet 2 test/fastq && \
-          ls -lh QC/auto
 
   deconvolve:
     needs: [changes,build]

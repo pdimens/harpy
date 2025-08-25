@@ -1,7 +1,6 @@
 """Module with python-click types for command-line level validations of inputs"""
 
 import os
-import yaml
 import click
 from pathlib import Path
 

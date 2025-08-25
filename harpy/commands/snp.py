@@ -7,12 +7,12 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
 from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
-from harpy.validation.fasta import FASTA
-from harpy.validation.sam import SAM
-from harpy.validation.populations import Populations
-from harpy.common.misc import container_ok
+from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
+from harpy.validation.fasta import FASTA
+from harpy.validation.populations import Populations
+from harpy.validation.sam import SAM
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
 def snp():
