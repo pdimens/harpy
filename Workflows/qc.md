@@ -21,7 +21,7 @@ order: 4
 Raw sequences are not suitable for downstream analyses. They have sequencing adapters,
 index sequences, regions of poor quality, etc. The first step of any genetic sequence
 analyses is to remove these adapters and trim poor quality data. You can remove adapters,
-remove duplicates, deconvolve, and quality trim sequences using the [!badge corners="pill" text="qc"] module:
+remove duplicates, and quality trim sequences using the [!badge corners="pill" text="qc"] module:
 
 ```bash usage
 harpy qc OPTIONS... INPUTS...
@@ -38,7 +38,6 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument               |    default     | description                                                                                                                                                                                                  |
 |:-----------------------|:--------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `INPUTS`               |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments)                                                              |
-| `--deconvolve` `-c`    |                | Resolve barcode clashes between reads from different molecules. Accepts the [QuickDeconvolution parameters](/Workflows/deconvolve.md/#running-options) for `k`,`w`,`d`,`a`, in that order (e.g. `21 40 3 0`) |
 | `--deduplicate` `-d`   |                | Identify and remove PCR duplicates                                                                                                                                                                           |
 | `--extra-params` `-x`  |                | Additional fastp arguments, in quotes                                                                                                                                                                        |
 | `--lr-type` `-L`       | `haplotagging` | Type of linked-read barcode technology. Ignore linked-read information with `none` [`none`, `haplotagging`, `stlfr`, `tellseq`]                                                                              |
@@ -50,11 +49,6 @@ By default, this workflow will only quality-trim the sequences.
 #### deduplicate reads [!badge variant="warning" text="not recommended"]
 You can opt-in to have `fastp` deduplicate optical (PCR) duplicates. It's generally not recommended to perform deduplication during quality-checking,
 as the [!badge corners="pill" text="align"](Align/Align.md) workflows use the linked-read barcode to more accurately tag reads as duplicates.
-
-#### deconvolve reads [!badge variant="secondary" text="conditionally recommended"]
-You can opt-in to resolve situations where reads from different molecules have the same barcode (see [!badge corners="pill" text="deconvolve"](deconvolve.md)).
-Performing deconvolution during the quality-checking stage of ones work would be most useful for [!badge corners="pill" text="assembly"](assembly.md)
-and [!badge corners="pill" text="metassembly"](metassembly.md) workflows, but might hinder variant-detection workflows.
 
 #### trimming adapters [!badge variant="secondary" text="recommended"]
 You can opt-in to find and remove adapter content in sequences.
@@ -84,7 +78,6 @@ harpy qc -M 150 -x "--max_len2 125" -a data/fastq/
 [Fastp](https://github.com/OpenGene/fastp) is an ultra-fast all-in-one adapter remover, deduplicator, 
 and quality trimmer. Harpy uses it to remove adapters, low-quality bases, and trim sequences down to a particular
 length (default 150bp). Harpy uses the fastp overlap analysis to identify adapters for removal and a sliding window
-approach (`--cut-right`) to identify low quality bases. The workflow is quite simple.
 
 ```mermaid
 graph LR
@@ -93,7 +86,6 @@ graph LR
     end
     Inputs-->A:::clean
     A([fastp]) --> B([count barcodes]):::clean
-    A-->|--deconvolve|C([QuickDeconvolution]):::clean
     style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
 ```

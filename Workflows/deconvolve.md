@@ -27,10 +27,6 @@ deconvolve barcodes and assign `MI` tags (Molecular Identifier). This workflow u
 and decide which ones likely originate from different molecules. Regardless of whether you run 
 this workflow or not, [!badge corners="pill" text="harpy align"](Align/Align.md) will still perform its own deconvolution.
 
-!!! Also in harpy qc
-This method of deconvolution is also available as an option in the [!badge corners="pill" text="qc"](qc.md) workflow
-!!!
-
 ```bash usage
 harpy deconvolve OPTIONS... INPUTS...
 ```

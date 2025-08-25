@@ -30,12 +30,12 @@ Linked-read data is sequence data as you would expect it, encoded in a FASTQ fil
 linked-read data is demultiplexing to split the raw Illumina-generated batch FASTQ file into samples (if multisample)
 and identify/validate the linked-read barcode on every sequence. For 10X data, the barcode would _stay_ inline with
 the sequence (to make it LongRanger compatible), but for other varieties (haplotagging, stLFR, etc.) you would also
-remove the barcode from the sequence and preserve it using the `BX:Z` tag in the sequence headers. The demultiplexing process
-is generally similar between non-10X linked-read technologies: a nucleotide barcode gets identified and moved from the sequence
-to the read header under the `BX:Z` tag. The diagram below preserves the nucleotide barcode under the `OX:Z` tag and recodes
-it under `BX:Z` using the haplotagging "ACBD" segment-aware format, however it would also be valid to just keep the nucleotide
-barcode under `BX:Z`. Linked-read software is variable in its flexibility towards barcode formatting.
-![10X linked read data before and after demultiplexing](/static/lr_conversion.png)
+remove the barcode from the sequence and preserve it _somewhere_ in the read header. The demultiplexing process
+is generally similar between non-10X linked-read technologies: a nucleotide barcode sequence gets identified and moved from
+the sequence line to the read header with some kind of platform-specific notation. The diagram below preserves the nucleotide
+barcode under the `OX:Z` tag and recodes it under `BX:Z` using the haplotagging "ACBD" segment format, however it would
+also be valid to just keep the nucleotide barcode under `BX:Z`. Linked-read software is variable in its flexibility towards barcode 
+formatting. ![10X linked read data before and after demultiplexing](/static/lr_conversion.png)
 
 #### Deconvolution
 There are approaches to deconvolve linked read data (or "deconvolute", if you're indifferent to the burden of an extra syllable).
