@@ -1,5 +1,5 @@
 """
-Processes and validations relatingt to identifying barcodes and/or linkd-read types
+Processes and validations relating to identifying barcodes and/or linkd-read types
 """
 
 import pysam

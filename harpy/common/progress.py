@@ -37,7 +37,7 @@ def harpy_progressbar(quiet: int) -> Progress:
         expand=True
     )
 
-def harpy_pulsebar(quiet: int, desc_text: str, stderr: bool = False) -> Progress:
+def harpy_pulsebar(quiet: int, stderr: bool = False) -> Progress:
     """
     The pre-configured transient pulsing progress bar that workflows use, typically for
     installing the software dependencies/container

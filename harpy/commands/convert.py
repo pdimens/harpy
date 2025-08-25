@@ -110,7 +110,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
         open(f"{output}.R1.fq", "w") as R1_out,
         open(f"{output}.R2.fq", "w") as R2_out,
         open(f"{output}.bc", "w") as bc_out,
-        harpy_pulsebar(quiet, "Converting") as progress,
+        harpy_pulsebar(quiet) as progress,
     ):
         progress.add_task(f"[blue]{from_}[/] -> [magenta]{to_}[/]", total = None)
         for r1,r2 in zip_longest(R1,R2):
@@ -221,7 +221,7 @@ def standardize_bam(sam, style, quiet):
     with (
         pysam.AlignmentFile(sam, require_index=False) as samfile, 
         pysam.AlignmentFile(sys.stdout, "wb", template=samfile) as outfile,
-        harpy_pulsebar(quiet, "Standardizing", True) as progress,
+        harpy_pulsebar(quiet, True) as progress,
     ):
         progress.add_task(logtext, total = None)
         for record in samfile.fetch(until_eof=True):
@@ -334,7 +334,7 @@ def standardize_fastq(prefix, r1_fastq, r2_fastq, style, quiet):
         pysam.FastxFile(r2_fastq, persist=False) as R2,
         open(f"{prefix}.R1.fq", "w") as R1_out,
         open(f"{prefix}.R2.fq", "w") as R2_out,
-        harpy_pulsebar(quiet, "Standardizing" + (f" {convert}" if convert else ""), True) as progress,
+        harpy_pulsebar(quiet, True) as progress,
     ):
         progress.add_task(logtext, total = None)
         for r1,r2 in zip_longest(R1,R2):

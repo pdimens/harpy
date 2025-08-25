@@ -144,7 +144,7 @@ def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CON
                 output = process.stderr.readline()
             # if dependency text present, print pulsing progress bar
             if deps:
-                progress = harpy_pulsebar(quiet, "Working...")
+                progress = harpy_pulsebar(quiet)
                 with harpy_progresspanel(progress, quiet=quiet, title = deploy_text):
                     progress.add_task("[dim]Working...", total = None)
                     while not output.startswith("Job stats:"):

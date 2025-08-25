@@ -59,9 +59,7 @@ def is_pixi_shell() -> bool:
         'PIXI_ENVIRONMENT_NAME'
     ]
 
-    if any(var in os.environ for var in pixi_indicators):
-        return True
-    return False
+    return any(var in os.environ for var in pixi_indicators)
 
 def package_absent(pkg: str, executor: bool = True) -> bool:
     """helper function to search for a package in the active conda environment"""
@@ -81,9 +79,9 @@ def package_absent(pkg: str, executor: bool = True) -> bool:
             if is_pixi_shell():
                 out_text += f"\n\n```bash\npixi add {pkg}\n```"
             else:
-                out_text += f"\n\n```bash\nconda install bioconda::{pkg}\n```"
+                out_text += f"\n\n```bash\nconda install -c bioconda {pkg}\n```"
         elif conda_check == 1:
-            out_text += f"\n\n```bash\nmamba install bioconda::{pkg}\n```"
+            out_text += f"\n\n```bash\nmamba install -c bioconda {pkg}\n```"
         if conda_check in [1,2]:
             if executor:
                 print_notice(Markdown(out_text))
@@ -108,7 +106,7 @@ def container_ok(ctx, param, value) -> bool:
     if value:
         if os.sys.platform != 'linux':
             raise click.BadParameter(
-                "Snakemake uses Singularity to manage containers, which is only available for Linux systems.", ctx, param
+                "Snakemake uses Apptainer (formerly Singularity) to manage containers, which is only available for Linux systems.", ctx, param
             )
         if shutil.which("apptainer"):
             return value
@@ -116,6 +114,7 @@ def container_ok(ctx, param, value) -> bool:
             raise click.BadParameter(
                 "Container software management requires apptainer, which wasn't detected in this environment.", ctx, param
             )
+    return value
 
 def is_arm(allowed: bool) -> None:
     """

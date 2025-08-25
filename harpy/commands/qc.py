@@ -69,7 +69,7 @@ def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, dedup
     fastq = FASTQ(inputs)
     if trim_adapters:
         if trim_adapters != "auto":
-            if not os.path.exists(trim_adapters):
+            if not os.path.isfile(trim_adapters):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not exist. Please check the spelling or verify the location of the file.")
             if not os.access(trim_adapters, os.R_OK):
                 raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
