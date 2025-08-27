@@ -22,7 +22,7 @@ class FQRecord():
         self.illumina_new = designation[0] if designation else f"{fr}0:CAGATC"
         self.illumina_old = "/1" if self.forward else "/2"
         self.id = pysamfq.name.rstrip(self.illumina_old)
-        self.comment = "\t".join(i for i in comments if not i.startswith("1:N:"))
+        self.comment = "\t".join(i for i in comments if not i.startswith(fr))
         self.seq = pysamfq.sequence
         self.qual = pysamfq.quality
         self.valid = True
