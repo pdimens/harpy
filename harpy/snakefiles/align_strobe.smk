@@ -18,9 +18,9 @@ if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
 windowsize  = config["depth_windowsize"]
-molecule_distance = config["barcodes"]["distance_threshold"]
-ignore_bx = config["barcodes"]["ignore"]
-is_standardized = config["barcodes"]["standard_format"]
+molecule_distance = config["linkedreads"]["distance_threshold"]
+ignore_bx = config["linkedreads"]["type"] == "none"
+is_standardized = config["linkedreads"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
 skip_reports = config["reports"]["skip"]
 plot_contigs = config["reports"]["plot_contigs"]    

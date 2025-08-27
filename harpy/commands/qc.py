@@ -15,7 +15,7 @@ docstring = {
     "harpy qc": [
         {
             "name": "Parameters",
-            "options": ["--deduplicate", "--extra-params", "--lr-type", "--min-length", "--max-length", "--trim-adapters"],
+            "options": ["--deduplicate", "--extra-params", "--min-length", "--max-length", "--trim-adapters", "--unlinked"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -29,12 +29,12 @@ docstring = {
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-d', '--deduplicate', is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
-@click.option('-L', '--lr-type', type = click.Choice(['none', 'haplotagging', 'stlfr','tellseq'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[none, haplotagging, stlfr, tellseq]")
 @click.option('-M', '--max-length', default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')
 @click.option('-m', '--min-length', default = 30, show_default = True, type=click.IntRange(min = 5), help = 'Discard reads shorter than this length')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', type = str, help = 'Detect and trim adapters')
+@click.option('-U','--unlinked', is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -42,13 +42,14 @@ docstring = {
 @click.option('--skip-reports',  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     FASTQ adapter removal, quality filtering, etc.
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
-    Disable linked-read specific parts of the workflow with `-L none`.
+    Linked-read presence and type is auto-detected, but you may use `-U` to disable the parts
+    of the workflow specific to linked-read data.
     
     **Standard trimming**
     - a sliding window from front to tail
@@ -66,7 +67,7 @@ def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, dedup
     workflow.conda = ["qc", "r"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs)
+    fastq = FASTQ(inputs, detect_bc = not unlinked)
     if trim_adapters:
         if trim_adapters != "auto":
             if not os.path.isfile(trim_adapters):
@@ -79,7 +80,9 @@ def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, dedup
 
     workflow.config = {
         "workflow" : workflow.name,
-        "linkedread_type" : lr_type.lower(),
+        "linkedreads" : {
+            "type" : fastq.lr_type
+        },
         "trim_adapters" : trim_adapters,
         "deduplicate" : deduplicate,
         "min_len" : min_length,
@@ -97,6 +100,7 @@ def qc(inputs, output_dir, lr_type, min_length, max_length, trim_adapters, dedup
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
+        ("Linked-Read Type:", fastq.lr_type),
         ("Trim Adapters:", "yes" if trim_adapters else "no"),
         ("Deduplicate:", "yes" if deduplicate else "no"),
         ("Output Folder:", f"{output_dir}/"),

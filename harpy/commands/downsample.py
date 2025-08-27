@@ -76,8 +76,10 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
     workflow.config = {
         "workflow": workflow.name,
         "prefix" :  prefix,
+        "linkedreads" : {
+            "barcode-tag" : barcode_tag.upper()
+        },
         "downsample" :  int(downsample) if downsample >= 1 else downsample,
-        "barcode-tag" : barcode_tag.upper(),
         "invalid_proportion" : invalid,       
         **({"random_seed" : random_seed} if random_seed else {}),
         "snakemake" : {

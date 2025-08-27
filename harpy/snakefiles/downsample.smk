@@ -12,7 +12,7 @@ inputs      = config["inputs"]
 invalids    = config["invalid_proportion"]
 random_seed = config.get("random_seed", None)
 downsample  = config["downsample"]
-bc_tag      = config["barcode-tag"]
+bc_tag      = config["linkedreads"]["barcode-tag"]
 prefix      = config["prefix"]
 infiles     = dict(zip(inputs, inputs))
 is_fastq    = True if len(inputs) == 2 else False

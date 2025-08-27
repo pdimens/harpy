@@ -9,7 +9,7 @@ onstart:
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]
-BX_TAG = config["barcode_tag"].upper()
+BX_TAG = config["linkedreads"]["barcode_tag"]
 max_mem = config["spades"]["max_memory"]
 k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
