@@ -40,7 +40,7 @@ class SAM():
             print_error(
                 "invalid characters",
                 "Invalid characters were detected in the input file names.",
-                "Valid file names may contain only:\n  - [green]A-Z[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
+                "Valid file names may contain only:\n  - [green]A-Z 0-9[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
                 "The offending files",
                 ", ".join(badmatch)
                 )
