@@ -61,7 +61,7 @@ class FASTQ():
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
-            for i in range(min(6, self.count), 2):
+            for i in range(0, min(6, self.count), 2):
                 self.lr_type = which_linkedread(self.files[i])
                 if self.lr_type != "none":
                     break
@@ -72,8 +72,6 @@ class FASTQ():
                     "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard."
                 )
-
-
 
     def has_bx_tag(self, max_records: int = 50):
         """
@@ -90,6 +88,7 @@ class FASTQ():
                         return
                     if records >= max_records:
                         break
+
     def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
