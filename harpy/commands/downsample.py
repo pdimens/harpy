@@ -77,7 +77,7 @@ def downsample(input, invalid, output_dir, prefix, barcode_tag, downsample, rand
         "workflow": workflow.name,
         "prefix" :  prefix,
         "linkedreads" : {
-            "barcode-tag" : barcode_tag.upper()
+            "barcode_tag" : barcode_tag.upper()
         },
         "downsample" :  int(downsample) if downsample >= 1 else downsample,
         "invalid_proportion" : invalid,       

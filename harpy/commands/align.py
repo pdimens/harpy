@@ -47,7 +47,7 @@ docstring = {
     "harpy align strobe": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--keep-unmapped", "--molecule-distance", "--min-quality", "--read-length", "--unlinked"],
+            "options": ["--extra-params", "--keep-unmapped", "--molecule-distance", "--min-quality", "--unlinked"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -104,7 +104,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
         "linkedreads": {
-            "type" : fastq.lr_type == "none",
+            "type" : fastq.lr_type,
             "standardized": fastq.bx_tag,
             "distance_threshold" : molecule_distance,
         },
@@ -182,7 +182,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
         "keep_unmapped" : keep_unmapped,
         "depth_windowsize" : depth_window,
         "linkedreads": {
-            "type" : fastq.lr_type == "none",
+            "type" : fastq.lr_type,
             "standardized": fastq.bx_tag,
             "distance_threshold" : molecule_distance,
         },

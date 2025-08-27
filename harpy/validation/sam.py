@@ -58,7 +58,7 @@ class SAM():
             )
         if detect_bc:
             for i in range(min(6, self.count)):
-                self.lr_type = which_linkedread_sam(self.files[0])
+                self.lr_type = which_linkedread_sam(self.files[i])
                 if self.lr_type != "none":
                     break
             if not nonlinked_ok and self.lr_type == "none":

@@ -82,7 +82,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 
     workflow.start_text = workflow_info(
         ("Alignment Files:", alignments.count),
-        ("Barcode Type:", fastq.lr_type),
+        ("Barcode Type:", alignments.lr_type),
         ("Output Folder:", os.path.basename(output_dir) + "/")
     )
 
