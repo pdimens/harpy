@@ -9,7 +9,7 @@ class SAM():
     """
     A class to contain and validate SAM input files. If detect_bc is True, will scan the first 100
     records of the first [up to] 5 files to determine barcode type, stopping at the first detection of a
-    recognizable barcode technology and occupies the SAM.lr_type field with one of
+    recognizable barcode technology and sets the SAM.lr_type field with one of
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     """
