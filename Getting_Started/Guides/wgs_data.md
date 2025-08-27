@@ -11,8 +11,12 @@ image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 ---
 
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
-## TL;DR
+Harpy will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`
+
+==- Harpy 2
 - When available, use `--lr-type none` to ignore linked-read specific things
+- This option was named `--ignore-bx` in versions <2.7
+===
 
 As of version `2.0`, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,

@@ -62,6 +62,7 @@ configured using these arguments:
 | `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                       |
 | `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
 | `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                               |
+| `--unlinked` `-U`   | toggle            |         | Treat the input as non linked-read data                                                                                                                |
 
 ### --contigs
 Some of the workflows (like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)) plot per-contig information in their reports.
