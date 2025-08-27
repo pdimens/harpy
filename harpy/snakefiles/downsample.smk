@@ -12,7 +12,7 @@ inputs      = config["inputs"]
 invalids    = config["invalid_proportion"]
 random_seed = config.get("random_seed", None)
 downsample  = config["downsample"]
-bc_tag      = config["barcode-tag"]
+bc_tag      = config["linkedreads"]["barcode_tag"]
 prefix      = config["prefix"]
 infiles     = dict(zip(inputs, inputs))
 is_fastq    = True if len(inputs) == 2 else False
@@ -107,7 +107,7 @@ rule workflow_summary:
         if is_fastq:
             summary.append(convs)
         extraction = "Barcodes were extracted and sampled using:\n"
-        extraction += f"\textract_bxtags -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
+        extraction += f"\textract_bxtags -i {invalids} -b {bc_tag} -d {downsample} {params.random_seed} input.bam"
         summary.append(extraction)
         downsampled = "The inputs were indexed and downsampled using:\n"
         downsampled += f"\tsamtools view -O BAM -h -D {bc_tag}:barcodes.txt input.bam"

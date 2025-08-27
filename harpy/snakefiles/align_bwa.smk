@@ -11,9 +11,9 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist       = config["inputs"]["fastq"]
-molecule_distance = config["barcodes"]["distance_threshold"]
-ignore_bx = config["barcodes"]["ignore"]
-is_standardized = config["barcodes"]["standard_format"]
+molecule_distance = config["linkedreads"]["distance_threshold"]
+ignore_bx = config["linkedreads"]["type"] == "none"
+is_standardized = config["linkedreads"]["standardized"]
 keep_unmapped = config["keep_unmapped"]
 extra 		= config.get("extra", "") 
 genomefile 	= config["inputs"]["reference"]

@@ -10,14 +10,13 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist       = config["inputs"]
-min_len 	 = config["min_len"]
-max_len 	 = config["max_len"]
-extra 	     = config.get("extra", "") 
-lr_type    = config["linkedread_type"]
-ignore_bx = lr_type == "none"
+fqlist        = config["inputs"]
+min_len 	  = config["min_len"]
+max_len 	  = config["max_len"]
+extra 	      = config.get("extra", "") 
+lr_type       = config["linkedreads"]["type"]
 trim_adapters = config.get("trim_adapters", None)
-dedup        = config["deduplicate"]
+dedup         = config["deduplicate"]
 skip_reports  = config["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -133,7 +132,7 @@ rule workflow_summary:
     default_target: True
     input:
         fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = "reports/barcode.summary.html" if not skip_reports and not ignore_bx else [],
+        bx_report = "reports/barcode.summary.html" if not skip_reports and lr_type != "none" else [],
         agg_report = "reports/qc.report.html" if not skip_reports else []    
     params:
         minlen = f"--length_required {min_len}",

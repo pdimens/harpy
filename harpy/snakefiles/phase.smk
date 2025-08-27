@@ -11,26 +11,23 @@ onstart:
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-bc_type = config["barcodes"]["linkedread_type"]
-
-if bc_type == "haplotagging":
-    invalid_bc = "'$4 !~ /[ABCD]00/'"
-elif bc_type == "stlfr":
-    invalid_bc = "'$4 !~ /^0_|_0_|_0$/'"
-else:
-    invalid_bc = "'$4 !~ /N/'"
-
+bc_type           = config["linkedreads"]["type"]
 pruning           = config["phasing"]["prune"]
 map_qual          = config["phasing"]["min_map_quality"]
 base_qual         = config["phasing"]["min_base_quality"]
-molecule_distance = config["barcodes"]["distance_threshold"]
+molecule_distance = config["linkedreads"]["distance_threshold"]
 extra             = config.get("extra", "") 
 samples_from_vcf  = config["inputs"]["vcf"]["prioritize_samples"]
 variantfile       = config["inputs"]["vcf"]["file"]
 skip_reports      = config["reports"]["skip"]
 plot_contigs      = config["reports"]["plot_contigs"]
-bamlist     = config["inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
+bamlist           = config["inputs"]["alignments"]
+bamdict           = dict(zip(bamlist, bamlist))
+invalid_regex = {
+    "haplotagging" : "'$4 !~ /[ABCD]00/'",
+    "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
+    "tellseq": "'$4 !~ /N/'"
+}
 if bc_type == "none":
     fragfile = "extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
@@ -136,7 +133,7 @@ rule extract_hairs:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
         static = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000",
-        purge_invalid = invalid_bc
+        purge_invalid = invalid_regex.get(bc_type, "'$4 !~ /N/'")
     conda:
         "envs/phase.yaml"
     shell:
@@ -304,7 +301,8 @@ rule workflow_summary:
         phase = "Phasing was performed using the components of HapCut2:\n"
         phase += f"\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
         if bc_type != "none":
-            phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.unlinked.frags --out sample.linked.frags -d {molecule_distance}\n"
+            phase += f"\t awk " + invalid_regex.get(bc_type, "'$4 !~ /N/'") + " sample.unlinked.frags > sample.frags.filt"
+            phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.frags.filt --out sample.linked.frags -d {molecule_distance}\n"
             phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
         else:
             phase += f"\tHAPCUT2 --fragments sample.unlinked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"

@@ -55,50 +55,48 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
     if return_len:
         return lengths.pop()
 
-def which_linkedread(fastq: str) -> str|None:
+HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
+STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
+TELLSEQ_RX = re.compile(r':([ATCGN]+)(\s|$)')
+
+def which_linkedread(fastq: str) -> str:
     """
     Scans the first 100 records of a FASTQ file and tries to determine the barcode technology
-    Returns one of: "haplotagging", "stlfr", "tellseq" or None
+    Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
     """
-    haplotagging = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
-    stlfr = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
-    tellseq = re.compile(r':([ATCGN]+)(\s|$)')
-    recs = 1
     with pysam.FastxFile(fastq, persist=False) as fq:
-        for i in fq:
-            if recs > 100:
+        for i,record in enumerate(fq, 1):
+            if i > 100:
                 break
-            if i.comment and haplotagging.search(i.comment):
+            if record.comment and HAPLOTAGGING_RX.search(record.comment):
                 return "haplotagging"
-            elif stlfr.search(i.name):
+            if STLFR_RX.search(record.name):
                 return "stlfr"
-            elif tellseq.search(i.name):
+            if TELLSEQ_RX.search(record.name):
                 return "tellseq"
-            recs += 1
+    return "none"
 
-def which_linkedread_sam(file_path: str) -> str|None:
+HAPLOTAGGING_RX_SAM = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
+STLFR_RX_SAM = re.compile(r"^\d+_\d+_\d+$")
+TELLSEQ_RX_SAM = re.compile(r"^[ATCGN]+$")
+
+def which_linkedread_sam(file_path: str) -> str:
     """
     Scans the first 100 records of a SAM/BAM file and tries to determine the barcode technology
-    Returns one of: "haplotagging", "stlfr", "tellseq" or None
+    Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
     """
-    recs = 1
     with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
-        for record in alnfile.fetch(until_eof = True):
-            if recs > 100:
+        for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
+            if i > 100:
                 break
-            try:
-                bx = record.get_tag("BX")
-                if re.search(r"^[ATCGN]+$", bx):
-                    return "tellseq"
-                elif re.search(r"^\d+_\d+_\d+$", bx):
-                    return "stlfr"
-                elif re.search(r"^A\d{2}C\d{2}B\d{2}D\d{2}$", bx):
-                    return "haplotagging"
-                else:
-                    recs += 1
-                    continue
-            except KeyError:
-                recs += 1
+            if not record.has_tag("BX"):
                 continue
-    return None
+            bx = record.get_tag("BX")
+            if TELLSEQ_RX_SAM.search(bx):
+                return "tellseq"
+            if STLFR_RX_SAM.search(bx):
+                return "stlfr"
+            if HAPLOTAGGING_RX_SAM.search(bx):
+                return "haplotagging"
+    return "none"
 

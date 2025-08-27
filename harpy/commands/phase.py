@@ -16,12 +16,12 @@ docstring = {
         "harpy phase": [
         {
             "name": "Parameters",
-            "options": ["--extra-params", "--reference", "--lr-type", "--min-map-quality", "--min-base-quality", "--molecule-distance", "--prune-threshold", "--vcf-samples"],
+            "options": ["--extra-params", "--reference", "--min-map-quality", "--min-base-quality", "--molecule-distance", "--prune-threshold", "--unlinked"],
             "panel_styles": {"border_style": "blue"}
         },
         {
             "name": "Workflow Options",
-            "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
+            "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads",  "--vcf-samples", "--help"],
             "panel_styles": {"border_style": "dim"}
         }
     ]
@@ -34,9 +34,9 @@ docstring = {
 @click.option('-m', '--min-base-quality', default = 13, show_default = True, type = click.IntRange(0, 100, clamp = True), help = 'Minimum base quality for phasing')
 @click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
-@click.option('-L', '--lr-type', type = click.Choice(['none', 'haplotagging', 'tellseq', 'stlfr'], case_sensitive=False), default = "haplotagging", show_default=True, help = "Linked read type\n[none, haplotagging, stlfr, tellseq]")
 @click.option('-p', '--prune-threshold', default = 30, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-U','--unlinked', is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -47,17 +47,16 @@ docstring = {
 @click.option('--vcf-samples',  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def phase(vcf, inputs, output_dir, threads, lr_type, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, container, contigs, setup_only):
+def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Phase SNPs into haplotypes
 
     Provide the vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
     individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
     
-    You may choose to omit barcode information with `-L none`, although it's usually
-    better to include that information if it's linked-read data. Use `--vcf-samples` to phase only
-    the samples present in your input `VCF` file rather than all the samples present in
-    the `INPUT` alignments.
+    Presence and type of linked-read data is auto-detected, but you may choose to omit barcode
+    information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
+    `VCF` file rather than all the samples present in the `INPUT` alignments.
     """
     workflow = Workflow("phase", "phase.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
@@ -65,7 +64,7 @@ def phase(vcf, inputs, output_dir, threads, lr_type, min_map_quality, min_base_q
     workflow.conda = ["phase", "r"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
+    alignments = SAM(inputs, detect_bc= not unlinked)
     vcffile = VCF(vcf, workflow.workflow_directory)
     vcffile.match_samples(alignments.files, vcf_samples)
 
@@ -81,8 +80,8 @@ def phase(vcf, inputs, output_dir, threads, lr_type, min_map_quality, min_base_q
             "min_map_quality": min_map_quality,
             "min_base_quality": min_base_quality
         },
-        "barcodes": {
-            "linkedread_type" : lr_type.lower(),
+        "linkedreads": {
+            "type" : alignments.lr_type,
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
@@ -109,6 +108,7 @@ def phase(vcf, inputs, output_dir, threads, lr_type, min_map_quality, min_base_q
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcffile.file)),
         ("Samples:", min(len(vcffile.samples), alignments.count)),
+        ("Barcode Type:", alignments.lr_type),
         ("Phase Indels:", "yes" if reference else "no"),
         ("Reference:", os.path.basename(reference)) if reference else None,
         ("Output Folder:", os.path.basename(output_dir) + "/")

@@ -13,7 +13,7 @@ docstring = {
     "harpy assembly": [
         {
             "name": "Assembly Parameters",
-            "options": ["--bx-tag", "--extra-params", "--kmer-length", "--max-memory", "--organism-type"],
+            "options": ["--extra-params", "--kmer-length", "--max-memory", "--organism-type"],
             "panel_styles": {"border_style": "blue"}
         },
         {
@@ -31,13 +31,12 @@ docstring = {
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/assembly")
 # SPADES
-@click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode [`BX`,`BC`]")
 @click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory',  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
 # TIGMINT/ARCS/LINKS
 @click.option('-y', '--arcs-extra', type = ArcsParams(), help = 'Additional ARCS parameters, in quotes (`option=arg` format)')
-@click.option("-c","--contig-length", type = click.IntRange(min = 10), default = 500, show_default = True, help = "Minimum contig length")
+@click.option("-c", "--contig-length", type = click.IntRange(min = 10), default = 500, show_default = True, help = "Minimum contig length")
 @click.option("-n", "--links", type = click.IntRange(min = 1), default = 5, show_default = True, help = "Minimum number of links to compute scaffold")
 @click.option("-a", "--min-aligned", type = click.IntRange(min = 1), default = 5, show_default = True, help = "Minimum aligned read pairs per barcode")
 @click.option("-q", "--min-quality", type = click.IntRange(0,40, clamp = True), default = 0, show_default = True, help = "Minimum mapping quality")
@@ -58,7 +57,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
+def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
     """
     Assemble linked reads into a genome
 
@@ -72,11 +71,9 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
 
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])
-    fastq.bc_or_bx(bx_tag)
 
     workflow.config = {
         "workflow" : workflow.name,
-        "barcode_tag" : bx_tag.upper(),
         "spades" : {
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
             "max_memory" : max_memory,
@@ -109,13 +106,12 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "organism_type": organism_type
         },
         "inputs": {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
+            "fastq_r1" : fastq.files[0],
+            "fastq_r2" : fastq.files[1]
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Barcode Tag: ", bx_tag.upper()),
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
         ("Output Folder:", f"{output_dir}/")
     )

@@ -77,7 +77,7 @@ def print_setup_error(exitcode: int) -> None:
         errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
     else:
         errortype = "Software Environment Error"
-        errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Singularity environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+        errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Apptainer environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         # Check if this is the `base` conda environment
         current_env = os.environ.get('CONDA_DEFAULT_ENV')
         if current_env == 'base':
