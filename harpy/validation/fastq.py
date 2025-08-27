@@ -3,7 +3,6 @@ from itertools import chain
 import os
 import re
 import pysam
-from rich.markdown import Markdown
 from harpy.common.printing import print_error
 from harpy.validation.barcodes import which_linkedread
 
@@ -42,7 +41,7 @@ class FASTQ():
             print_error(
                 "invalid characters",
                 "Invalid characters were detected in the input FASTQ file names.",
-                Markdown("Valid file names may contain only:\n- **A-Z** characters (case insensitive)\n- **.** (period)\n- **_** (underscore)\n- **-** (dash)"),
+                "Valid file names may contain only:\n  - [green]A-Z[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
                 "The offending files",
                 ", ".join(badmatch)
                 )
@@ -52,7 +51,7 @@ class FASTQ():
                 dupe_out.append(" ".join([j for j in self.files if i in j]))
             print_error(
                 "clashing sample names",
-                Markdown("Identical sample names were detected in the inputs, which will cause unexpected behavior and results.\n- files with identical names but different-cased extensions are treated as identical\n- files with the same name from different directories are also considered identical"),
+                "Identical sample names were detected in the inputs, which will cause unexpected behavior and results.\n  - files with identical names but different-cased extensions are treated as identical\n  - files with the same name from different directories are also considered identical",
                 "Make sure all input files have unique names.",
                 "Files with clashing names",
                 dupe_out
@@ -61,12 +60,14 @@ class FASTQ():
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
+            scanned = []
             for i,fq in enumerate(self.files, 1):
                 if i > 10:
                     break
                 # skip the reverse-reads file
                 if i % 2 == 0:
                     continue
+                scanned.append(os.path.basename(fq))
                 self.lr_type = which_linkedread(fq)
                 if self.lr_type != "none":
                     break
@@ -75,7 +76,9 @@ class FASTQ():
                 print_error(
                     "incompatible data",
                     "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
-                    "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard."
+                    "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
+                    "Files scanned",
+                    "\n".join(scanned)
                 )
 
     def has_bx_tag(self, max_records: int = 50):
