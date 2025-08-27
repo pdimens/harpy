@@ -55,25 +55,30 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
     if return_len:
         return lengths.pop()
 
+HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
+STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
+TELLSEQ_RX = re.compile(r':([ATCGN]+)(\s|$)')
+
 def which_linkedread(fastq: str) -> str:
     """
     Scans the first 100 records of a FASTQ file and tries to determine the barcode technology
     Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
     """
-    haplotagging = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
-    stlfr = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
-    tellseq = re.compile(r':([ATCGN]+)(\s|$)')
     with pysam.FastxFile(fastq, persist=False) as fq:
         for recs,i in enumerate(fq, 1):
             if recs > 100:
                 break
-            if i.comment and haplotagging.search(i.comment):
+            if i.comment and HAPLOTAGGING_RX.search(i.comment):
                 return "haplotagging"
-            elif stlfr.search(i.name):
+            elif STLFR_RX.search(i.name):
                 return "stlfr"
-            elif tellseq.search(i.name):
+            elif TELLSEQ_RX.search(i.name):
                 return "tellseq"
     return "none"
+
+HAPLOTAGGING_RX_SAM = r"^A\d{2}C\d{2}B\d{2}D\d{2}$"
+STLFR_RX_SAM = r"^\d+_\d+_\d+$"
+TELLSEQ_RX_SAM = r"^[ATCGN]+$"
 
 def which_linkedread_sam(file_path: str) -> str:
     """
@@ -87,11 +92,11 @@ def which_linkedread_sam(file_path: str) -> str:
                 break
             try:
                 bx = record.get_tag("BX")
-                if re.search(r"^[ATCGN]+$", bx):
+                if TELLSEQ_RX_SAM.search(bx):
                     return "tellseq"
-                elif re.search(r"^\d+_\d+_\d+$", bx):
+                elif STLFR_RX_SAM.search(bx):
                     return "stlfr"
-                elif re.search(r"^A\d{2}C\d{2}B\d{2}D\d{2}$", bx):
+                elif HAPLOTAGGING_RX_SAM.search(bx):
                     return "haplotagging"
                 else:
                     recs += 1
