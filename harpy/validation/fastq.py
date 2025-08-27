@@ -75,7 +75,7 @@ class FASTQ():
             if not nonlinked_ok and self.lr_type == "none":
                 print_error(
                     "incompatible data",
-                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                     "Files Scanned",
                     "\n".join(scanned)
