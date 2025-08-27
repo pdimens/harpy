@@ -76,9 +76,9 @@ def which_linkedread(fastq: str) -> str:
                 return "tellseq"
     return "none"
 
-HAPLOTAGGING_RX_SAM = r"^A\d{2}C\d{2}B\d{2}D\d{2}$"
-STLFR_RX_SAM = r"^\d+_\d+_\d+$"
-TELLSEQ_RX_SAM = r"^[ATCGN]+$"
+HAPLOTAGGING_RX_SAM = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
+STLFR_RX_SAM = re.compile(r"^\d+_\d+_\d+$")
+TELLSEQ_RX_SAM = re.compile(r"^[ATCGN]+$")
 
 def which_linkedread_sam(file_path: str) -> str:
     """
