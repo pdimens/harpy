@@ -108,8 +108,9 @@ class FASTQ():
                 for i,record in enumerate(fq, 1):
                     if i > max_records:
                         break
-                    PRIMARY = True if primary in record.comment else PRIMARY
-                    SECONDARY = True if secondary in record.comment else SECONDARY
+                    cmt = record.comment or ""
+                    PRIMARY = (primary in cmt) or PRIMARY
+                    SECONDARY = (secondary in cmt) or SECONDARY
                     if PRIMARY and SECONDARY:
                         print_error(
                             "clashing barcode tags",
