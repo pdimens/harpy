@@ -126,7 +126,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     }
 
     workflow.start_text = workflow_info(
-        ("Samples:", fastq.count),\
+        ("Samples:", fastq.count),
         ("Linked-Read Type:", fastq.lr_type),
         ("Reference:", os.path.basename(reference)),
         ("Output Folder:", os.path.basename(output_dir) + "/")

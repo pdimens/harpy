@@ -9,7 +9,7 @@ from harpy.validation.barcodes import which_linkedread_sam
 class SAM():
     """
     A class to contain and validate SAM input files. If detect_bc is True, will scan the first 100
-    records of the first 5 files to determine barcode type, stoping at the first detection of a
+    records of the first [up to] 5 files to determine barcode type, stopping at the first detection of a
     recognizable barcode technology and occupies the SAM.lr_type field with one of
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
@@ -64,6 +64,6 @@ class SAM():
             if not nonlinked_ok and self.lr_type == "none":
                 print_error(
                     "incompatible data",
-                    "This command requires linked-read data, but harpy was unable to associate the input data as being 10X, haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard."
                 )

@@ -57,7 +57,7 @@ docstring = {
 @click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
+def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
     """
     Assemble linked reads into a genome
 
@@ -71,7 +71,6 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
 
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])
-    fastq.bc_or_bx(bx_tag)
 
     workflow.config = {
         "workflow" : workflow.name,
@@ -107,13 +106,12 @@ def assembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, output_dir, ex
             "organism_type": organism_type
         },
         "inputs": {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
+            "fastq_r1" : fastq.files[0],
+            "fastq_r2" : fastq.files[1]
         }
     }
 
     workflow.start_text = workflow_info(
-        ("Barcode Tag: ", bx_tag.upper()),
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
         ("Output Folder:", f"{output_dir}/")
     )

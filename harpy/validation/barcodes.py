@@ -63,9 +63,8 @@ def which_linkedread(fastq: str) -> str:
     haplotagging = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
     stlfr = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
     tellseq = re.compile(r':([ATCGN]+)(\s|$)')
-    recs = 1
     with pysam.FastxFile(fastq, persist=False) as fq:
-        for i in fq:
+        for recs,i in enumerate(fq, 1):
             if recs > 100:
                 break
             if i.comment and haplotagging.search(i.comment):
@@ -74,7 +73,6 @@ def which_linkedread(fastq: str) -> str:
                 return "stlfr"
             elif tellseq.search(i.name):
                 return "tellseq"
-            recs += 1
     return "none"
 
 def which_linkedread_sam(file_path: str) -> str:

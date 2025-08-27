@@ -25,7 +25,8 @@ bamlist           = config["inputs"]["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 invalid_regex = {
     "haplotagging" : "'$4 !~ /[ABCD]00/'",
-    "stlfr" : "'$4 !~ /^0_|_0_|_0$/'"
+    "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
+    "tellseq": "'$4 !~ /N/'"
 }
 if bc_type == "none":
     fragfile = "extract_hairs/{sample}.unlinked.frags"

@@ -56,7 +56,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
     | tellseq      | `:ATCG` format appended to the sequence ID         | `@SEQID:GGCAAATATCGAGAAGTC` |
     """
     from_ = which_linkedread(fq1)
-    if not from_ and not barcodes:
+    if from_ == "none" and not barcodes:
         print_error("missing barcodes file", "The input data was inferred to be 10X format because neither haplotagging, stlfr, nor tellseq barcodes were detected in their appropriate locations in the first 100 fastq records of the forward reads. A [green]--barcodes[/] file must be provided if the input data is 10x. If the input data is not 10X, then it is formatted incorrectly for whatever technology it was generated with.")
     if from_ and barcodes:
         print_error("unsupported process", f"The input data was inferred to be {from_} format, but a [green]--barcodes[/] file was provided, suggesting it's 10X format data. If the input data is not {from_}, then it is formatted incorrectly for whatever technology it was generated with.")

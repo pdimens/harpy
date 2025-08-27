@@ -107,7 +107,7 @@ rule workflow_summary:
         if is_fastq:
             summary.append(convs)
         extraction = "Barcodes were extracted and sampled using:\n"
-        extraction += f"\textract_bxtags -i {invalids} -b BX -d {downsample} {params.random_seed} input.bam"
+        extraction += f"\textract_bxtags -i {invalids} -b {bc_tag} -d {downsample} {params.random_seed} input.bam"
         summary.append(extraction)
         downsampled = "The inputs were indexed and downsampled using:\n"
         downsampled += f"\tsamtools view -O BAM -h -D {bc_tag}:barcodes.txt input.bam"

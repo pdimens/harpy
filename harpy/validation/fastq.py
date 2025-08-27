@@ -10,8 +10,8 @@ from harpy.validation.barcodes import which_linkedread
 class FASTQ():
     '''
     A class to contain and validate FASTQ input files. If detect_bc is True, will scan the first 100
-    records of the first 5 files to determine barcode type, stoping at the first detection of a
-    recognizable barcode technology and occupies the SAM.lr_type field with one of
+    records of the first [up to] 5 forward-read files to determine barcode type, stopping at the first
+    detection of a recognizable barcode technology and occupies the FASTQ.lr_type field with one of
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     '''
