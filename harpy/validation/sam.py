@@ -41,7 +41,7 @@ class SAM():
                 "invalid characters",
                 "Invalid characters were detected in the input file names.",
                 "Valid file names may contain only:\n  - [green]A-Z 0-9[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
-                "The offending files",
+                "Offending files",
                 ", ".join(badmatch)
                 )
         if dupes:
@@ -52,7 +52,7 @@ class SAM():
                 "clashing sample names",
                 "Identical filenames were detected, which will cause unexpected behavior and results.\n  - files with identical names but different-cased extensions are treated as identical\n  - files with the same name from different directories are also considered identical",
                 "Make sure all input files have unique names.",
-                "Files with clashing names",
+                "Files with Clashing Names",
                 dupe_out
             )
         if detect_bc:
@@ -69,6 +69,6 @@ class SAM():
                     "incompatible data",
                     "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
-                    "Files scanned",
+                    "Files Scanned",
                     "\n".join(scanned)
                 )
