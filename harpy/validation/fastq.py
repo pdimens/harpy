@@ -61,8 +61,13 @@ class FASTQ():
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
-            for i in range(0, min(6, self.count), 2):
-                self.lr_type = which_linkedread(self.files[i])
+            for i,fq in enumerate(self.files, 1):
+                if i > 10:
+                    break
+                # skip the reverse-reads file
+                if i % 2 == 0:
+                    continue
+                self.lr_type = which_linkedread(fq)
                 if self.lr_type != "none":
                     break
             self.bx_tag = self.lr_type == "haplotagging"

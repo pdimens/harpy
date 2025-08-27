@@ -65,14 +65,14 @@ def which_linkedread(fastq: str) -> str:
     Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
     """
     with pysam.FastxFile(fastq, persist=False) as fq:
-        for recs,i in enumerate(fq, 1):
-            if recs > 100:
+        for i,record in enumerate(fq, 1):
+            if i > 100:
                 break
-            if i.comment and HAPLOTAGGING_RX.search(i.comment):
+            if record.comment and HAPLOTAGGING_RX.search(record.comment):
                 return "haplotagging"
-            elif STLFR_RX.search(i.name):
+            if STLFR_RX.search(record.name):
                 return "stlfr"
-            elif TELLSEQ_RX.search(i.name):
+            if TELLSEQ_RX.search(record.name):
                 return "tellseq"
     return "none"
 
@@ -85,24 +85,18 @@ def which_linkedread_sam(file_path: str) -> str:
     Scans the first 100 records of a SAM/BAM file and tries to determine the barcode technology
     Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
     """
-    recs = 1
     with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
-        for record in alnfile.fetch(until_eof = True):
-            if recs > 100:
+        for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
+            if i > 100:
                 break
-            try:
-                bx = record.get_tag("BX")
-                if TELLSEQ_RX_SAM.search(bx):
-                    return "tellseq"
-                elif STLFR_RX_SAM.search(bx):
-                    return "stlfr"
-                elif HAPLOTAGGING_RX_SAM.search(bx):
-                    return "haplotagging"
-                else:
-                    recs += 1
-                    continue
-            except KeyError:
-                recs += 1
+            if not record.has_tag("BX"):
                 continue
+            bx = record.get_tag("BX")
+            if TELLSEQ_RX_SAM.search(bx):
+                return "tellseq"
+            if STLFR_RX_SAM.search(bx):
+                return "stlfr"
+            if HAPLOTAGGING_RX_SAM.search(bx):
+                return "haplotagging"
     return "none"
 

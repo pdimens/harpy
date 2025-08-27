@@ -57,8 +57,10 @@ class SAM():
                 dupe_out
             )
         if detect_bc:
-            for i in range(min(6, self.count)):
-                self.lr_type = which_linkedread_sam(self.files[i])
+            for i,samfile in enumerate(self.files):
+                if i > 5:
+                    break
+                self.lr_type = which_linkedread_sam(samfile)
                 if self.lr_type != "none":
                     break
             if not nonlinked_ok and self.lr_type == "none":
