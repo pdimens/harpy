@@ -87,15 +87,13 @@ class FASTQ():
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
         for i in self.files:
-            records = 0
             with pysam.FastxFile(i, persist=False) as fq:
-                for record in fq:
-                    records += 1
+                for i,record in enumerate(fq, 1):
+                    if i > max_records:
+                        break
                     if "BX:Z" in record.comment:
                         self.bx_tag = True
                         return
-                    if records >= max_records:
-                        break
 
     def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """
@@ -106,10 +104,10 @@ class FASTQ():
         for fastq in self.files:
             PRIMARY = False
             SECONDARY = False
-            records = 0
             with pysam.FastxFile(fastq, persist=False) as fq:
-                for record in fq:
-                    records += 1
+                for i,record in enumerate(fq, 1):
+                    if i > max_records:
+                        break
                     PRIMARY = True if primary in record.comment else PRIMARY
                     SECONDARY = True if secondary in record.comment else SECONDARY
                     if PRIMARY and SECONDARY:
@@ -118,8 +116,6 @@ class FASTQ():
                             f"Both [green bold]BC:Z[/] and [green bold]BX:Z[/] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/]. Athena accepts [bold]only[/] one of [green bold]BC:Z[/] or [green bold]BX:Z[/].",
                             "Check why your data has both tags in use and remove/rename one of the tags."
                         )
-                    if records >= max_records:
-                        break
                 # check for one or the other after parsing is done
                 errtext = f" However, [green]{secondary}:Z[/] tags were detected, perhaps you meant those?" if SECONDARY else ""
                 if not PRIMARY:
