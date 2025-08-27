@@ -58,7 +58,7 @@ def fastq(target,fq1,fq2,output,barcodes, quiet):
     from_ = which_linkedread(fq1)
     if from_ == "none" and not barcodes:
         print_error("missing barcodes file", "The input data was inferred to be 10X format because neither haplotagging, stlfr, nor tellseq barcodes were detected in their appropriate locations in the first 100 fastq records of the forward reads. A [green]--barcodes[/] file must be provided if the input data is 10x. If the input data is not 10X, then it is formatted incorrectly for whatever technology it was generated with.")
-    if from_ and barcodes:
+    if from_ != "none" and barcodes:
         print_error("unsupported process", f"The input data was inferred to be {from_} format, but a [green]--barcodes[/] file was provided, suggesting it's 10X format data. If the input data is not {from_}, then it is formatted incorrectly for whatever technology it was generated with.")
     if from_ == target:
         print_error("identical conversion target", f"The input file was inferred to be[green]{from_}[/], which is identical to the conversion target [green]{target}[/]. The formats must be different from each other. If the input data is not {from_}, then it is formatted incorrectly for whatever technology it was generated with.")
