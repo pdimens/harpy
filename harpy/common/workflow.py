@@ -18,7 +18,7 @@ from harpy.common.launch import launch_snakemake
 
 class Workflow():
     '''
-    The container for workflow parameters.
+    The container for workflow parameters. Set inputdir = True to create a workflow/input directory
     '''
     def __init__(self, name, snakefile, outdir, quiet, inputdir = False):
         creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')

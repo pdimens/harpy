@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 
 import rich_click as click
-from .commands import align
-from .commands import assembly, metassembly
-from .commands import convert
-from .commands import diagnose, resume, view
-from .commands import deconvolve
-from .commands import demultiplex
-from .commands import downsample
-from .commands import environments
-from .commands import impute
-from .commands import qc
-from .commands import phase
-from .commands import simulate
-from .commands import snp
-from .commands import sv
-from .commands import template
-from .commands import validate
+from harpy.commands import align
+from harpy.commands import assembly, metassembly
+from harpy.commands import convert
+from harpy.commands import diagnose, resume, view
+from harpy.commands import deconvolve
+from harpy.commands import demultiplex
+from harpy.commands import downsample
+from harpy.commands import environments
+from harpy.commands import impute
+from harpy.commands import qc
+from harpy.commands import phase
+from harpy.commands import simulate
+from harpy.commands import snp
+from harpy.commands import sv
+from harpy.commands import template
+from harpy.commands import validate
 
 click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
@@ -49,7 +49,7 @@ cli.add_command(demultiplex.demultiplex)
 cli.add_command(diagnose.diagnose)
 cli.add_command(downsample.downsample)
 cli.add_command(environments.containerize)
-cli.add_command(environments.localenv)
+cli.add_command(environments.deps)
 cli.add_command(impute.impute)
 cli.add_command(metassembly.metassembly)
 cli.add_command(phase.phase)
@@ -77,7 +77,7 @@ click.rich_click.COMMAND_GROUPS = {
             },
             {
                 "name": "Troubleshoot",
-                "commands": sorted(["view", "resume", "diagnose", "validate"]),
+                "commands": sorted(["view", "resume", "diagnose", "validate", "deps"]),
                 "panel_styles": {"border_style": "dim"}
             }
         ],

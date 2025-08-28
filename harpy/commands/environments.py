@@ -51,14 +51,26 @@ def containerize():
             )
     os.remove("Dockerfile.raw")
 
-@click.command(hidden = True)
-@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
-def localenv(workflows):
+@click.group(options_metavar='')
+def deps():
     """
-    Install Harpy workflow dependencies via conda
+    Locally install workflow dependencies
 
-    **INTERNAL USE ONLY**. Used to recreate the conda environments required
-    by the workflows. Provide any combination of: 
+    These commands are intended only for situations on HPCs where `conda` cannot
+    be installed or the worker nodes do not have internet access
+    to download conda/apptainer workflow dependencies.
+    """
+
+@click.command(no_args_is_help = True)
+@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
+def conda(workflows):
+    """
+    Install workflow dependencies via conda
+
+    Create the conda environments required by Harpy's workflows (e.g. `phase`).
+    ONLY use this for specific HPC configurations where worker nodes
+    do not have internet access to let snakemake install conda packages. 
+    Provide any combination of: 
     - all
     - align
     - assembly
@@ -72,11 +84,33 @@ def localenv(workflows):
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
+    create_conda_recipes(workflow.output_directory)
     if "all" in workflows:
-        create_conda_recipes(workflow.output_directory, workflows)
-    else:
-        create_conda_recipes(workflow.output_directory)
+        workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
     workflow.fetch_snakefile()
-    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix ../.environments", "--conda-cleanup-pkgs cache", "--directory localenv", "--config spades=True"])
+    
+    config_params = "--config"
+    if "assembly" in workflows:
+        config_params += " spades=True"
+    config_params += " envs=[\"" + "\",\"".join(workflows) + "\"]"
+    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda", "--cores 2", "--conda-prefix ../.environments", "--conda-cleanup-pkgs cache", "--directory localenv", config_params])
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
+
+@click.command(context_settings={"help_option_names" : ["-h", "--help"]})
+def container():
+    """
+    Install workflow dependency container
+
+    Manually pull the harpy dependency container from dockerhub and convert it
+    into an Apptainer .sif. To use, run this command again without arguments.
+    """
+    workflow = Workflow("localcontainer", "environments.smk", "localenv/", 1)
+    # if "all" was mixed with other workflows, default to just all and avoid doubling up
+    workflow.fetch_snakefile()
+    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
+    workflow.launch()
+    shutil.rmtree(workflow.output_directory, ignore_errors = True)
+
+deps.add_command(conda)
+deps.add_command(container)

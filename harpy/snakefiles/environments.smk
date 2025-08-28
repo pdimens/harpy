@@ -1,6 +1,9 @@
-import os
 
-out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]
+if config.get("envs", None):
+    out_envs = config["envs"]
+else:
+    out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
+
 if config.get("spades", None):
     out_envs.append("spades")
 
@@ -10,5 +13,6 @@ rule all:
 
 rule conda_env:
     output: "{conda}.env"
+    container: "docker://pdimens/harpy:latest"
     conda: "envs/{conda}.yaml"
     shell: "touch {output}"
