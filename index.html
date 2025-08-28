@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809469655669">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809723430632">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="static/logo_navbar.png" rel="icon">
-    <link href="resources/css/retype.css?v=3.11.0.809469655669" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.11.0.809723430632" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.11.0.809469655669" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.11.0.809469655669" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.11.0" defer></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.8.1</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -370,31 +370,31 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
                                                                 
  Documentation: https://pdimens.github.io/harpy/                
                                                                 
-╭─ Data Processing ────────────────────────────────────────────╮
-│ align        Align sequences to a reference genome           │
-│ assembly     Assemble linked reads into a genome             │
-│ demultiplex  Demultiplex haplotagged FASTQ files             │
-│ impute       Impute variant genotypes from alignments        │
-│ metassembly  Assemble linked reads into a metagenome         │
-│ phase        Phase SNPs into haplotypes                      │
-│ qc           FASTQ adapter removal, quality filtering, etc.  │
-│ simulate     Simulate genomic variants or linked reads       │
-│ snp          Call SNPs and small indels                      │
-│ sv           Call inversions, deletions, and duplications    │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Other Commands ─────────────────────────────────────────────╮
-│ convert     Convert between linked-read formats and barcode  │
-│             styles                                           │
-│ deconvolve  Resolve barcode sharing in unrelated molecules   │
-│ downsample  Downsample data by barcode                       │
-│ template    Create files and HPC configs for workflows       │
-╰──────────────────────────────────────────────────────────────╯
-╭─ Troubleshoot ───────────────────────────────────────────────╮
-│ diagnose  Run the Snakemake debugger to identify hang-ups    │
-│ resume    Continue an incomplete Harpy workflow              │
-│ validate  File format checks for linked-read data            │
-│ view      View a workflow's components                       │
-╰──────────────────────────────────────────────────────────────╯</code></pre>
+╭─ Data Processing ──────────────────────────────────────────────────╮
+│ align        Align sequences to a reference genome                 │
+│ assembly     Assemble linked reads into a genome                   │
+│ demultiplex  Demultiplex haplotagged FASTQ files                   │
+│ impute       Impute variant genotypes from alignments              │
+│ metassembly  Assemble linked reads into a metagenome               │
+│ phase        Phase SNPs into haplotypes                            │
+│ qc           FASTQ adapter removal, quality filtering, etc.        │
+│ simulate     Simulate genomic variants or linked reads             │
+│ snp          Call SNPs and small indels                            │
+│ sv           Call inversions, deletions, and duplications          │
+╰────────────────────────────────────────────────────────────────────╯
+╭─ Other Commands ───────────────────────────────────────────────────╮
+│ convert     Convert between linked-read formats and barcode styles │                                            │
+│ deconvolve  Resolve barcode sharing in unrelated molecules         │
+│ downsample  Downsample data by barcode                             │
+│ template    Create files and HPC configs for workflows             │
+╰────────────────────────────────────────────────────────────────────╯
+╭─ Troubleshoot ─────────────────────────────────────────────────────╮
+│ deps      Locally install workflow dependencies                    │
+│ diagnose  Run the Snakemake debugger to identify hang-ups          │
+│ resume    Continue an incomplete Harpy workflow                    │
+│ validate  File format checks for linked-read data                  │
+│ view      View a workflow's components                             │
+╰────────────────────────────────────────────────────────────────────╯</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="typical-linked-read-workflows">
     <h2>
@@ -403,8 +403,11 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
     </h2>
 </doc-anchor-target>
 <p>Depending on your project goals, you may want any combination of SNPs, structural
-variants (inversions, deletions, duplications), or phased haplotypes. Below is a flow chart
-outlining a general workflow of linked-read data.</p>
+variants (inversions, deletions, duplications), or phased haplotypes. Below are diagrams
+outlining general workflows for linked-read data, depending on your goals.</p>
+<doc-tabs>
+<doc-tab v-cloak id="variant-calling">
+<template #title>Variant Calling</template>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">graph LR
     Demux([demultiplex]):::clean---&gt;QC([QC, trim adapters, etc.]):::clean
     QC---&gt;Align([align sequences]):::clean
@@ -414,12 +417,16 @@ outlining a general workflow of linked-read data.</p>
     Align---&gt;SV([call structural variants]):::clean
 
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
-<p>Alternatively, if you are interested in assembling a genome or metagenome, your workflow might look like:</p>
+</doc-tab>
+<doc-tab v-cloak id="assembly">
+<template #title>Assembly</template>
 <div class="overflow-hidden mb-6 py-4 dark:px-5 dark:bg-white rounded-md"><pre translate="no" class="mermaid w-full">graph LR
     QC([QC, trim adapters, etc.]):::clean---&gt;DC([barcode deconvolution]):::clean
     DC---&gt;Assembly([assembly/metassembly]):::clean
 
     classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px</pre></div>
+</doc-tab>
+</doc-tabs>
 
                                 
                                 <!-- Required only on API pages -->

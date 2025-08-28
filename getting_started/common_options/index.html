@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809469655669">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809723430632">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -32,12 +32,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/logo_navbar.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809469655669" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.809723430632" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809469655669" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809469655669" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809469655669" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809723430632" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -58,7 +58,7 @@
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_navbar.png">
                             </span>
                             <span class="dark:text-white font-bold line-clamp-1 md:line-clamp-2">Harpy</span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v2.8.1</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.0</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -269,14 +269,14 @@
     <span>phase</span>
 </a>) follows the format of</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy module options arguments</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy command options arguments</code></pre>
 </doc-codeblock></div>
-<p>where <code v-pre>module</code> is something like <a href="../../workflows/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+<p>where <code v-pre>command</code> is something like <a href="../../workflows/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>impute</span>
 </a> or <a href="../../workflows/snp/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>snp mpileup</span>
 </a> and <code v-pre>options</code> are the runtime parameters,
-which can include things like an input <code v-pre>--vcf</code> file, <code v-pre>--molecule-distance</code>, etc. After the options
+which can include things like <code v-pre>--molecule-distance</code>, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
 In most cases, you can provide an unlimited amount of input arguments. In practice, that can look like:</p>
@@ -297,8 +297,8 @@ In most cases, you can provide an unlimited amount of input arguments. In practi
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>not recursive</h5>
-<p>Keep in mind that Harpy will not recursively scan input directories for files. If you provide <code v-pre>data/</code> as an input,
-Harpy will search for fastq/bam files in <code v-pre>data/</code> and not in any subdirectories within <code v-pre>data/</code>. This is done deliberately
+<p>By design, Harpy will not recursively scan input directories for files. If you provide <code v-pre>data/</code> as an input,
+Harpy will search for fastq/bam files in <code v-pre>data/</code> and not in any subdirectories within <code v-pre>data/</code>. This is done
 to avoid unexpected behavior.</p>
         </div>
     </div>
@@ -316,14 +316,14 @@ to avoid unexpected behavior.</p>
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>clashing names</h5>
-<p>Given the regex pattern matching Harpy employs under the hood and the isolation of just the sample names for Snakemake rules,
+<p>Given the regex pattern matching that happens under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, <code v-pre>lane1/sample1.F.fq</code>
 and <code v-pre>lane2/sample1.F.fq</code> would both derive the sample name <code v-pre>sample1</code>, which, in a workflow like <a href="../../workflows/align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>align</span>
 </a>
 would both result in <code v-pre>output/sample1.bam</code>, creating a problem. This also holds true for the same sample name but different extension, such
 as <code v-pre>sample1.F.fq</code> and <code v-pre>sample1_R1.fq.gz</code>, which would again derive <code v-pre>sample1</code> as the sample name and create a naming clash for workflow outputs.
-During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior.</p>
+You will be informed ahead of time of and naming clashes to protect you against this happening.</p>
         </div>
     </div>
 </div>
@@ -338,7 +338,7 @@ keep the Harpy installation small, we include only the bare minimum to invoke Ha
 Everything else (e.g. <code v-pre>freebayes</code>, <code v-pre>hapcut2</code>, etc.) is installed as needed at runtime by Snakemake.
 By default, Harpy has Snakemake to install a workflow&#x27;s software dependencies as local conda environments
 in the <code v-pre>.environments</code> folder, however you can use <code v-pre>--container</code> to instead have Snakemake use a pre-configured
-Harpy container to manage workflow dependencies.</p>
+Harpy container hosted on Dockerhub to manage workflow dependencies.</p>
 <doc-anchor-target id="common-command-line-options">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#common-command-line-options">#</doc-anchor-trigger>
@@ -368,7 +368,7 @@ configured using these arguments:</p>
 <td style="text-align: left;"><code v-pre>--container</code></td>
 <td style="text-align: left;">toggle</td>
 <td style="text-align: center;"></td>
-<td style="text-align: left;">Use preconfigured Singularity container instead of local conda environments</td>
+<td style="text-align: left;">Use preconfigured Apptainer container instead of local conda environments</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--contigs</code></td>
@@ -426,9 +426,28 @@ configured using these arguments:</p>
 <td style="text-align: center;">4</td>
 <td style="text-align: left;">Number of threads to use</td>
 </tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--unlinked</code> <code v-pre>-U</code></td>
+<td style="text-align: left;">toggle</td>
+<td style="text-align: center;"></td>
+<td style="text-align: left;">Treat the input as non linked-read data</td>
+</tr>
 </tbody>
 </table>
 </div>
+<doc-anchor-target id="--unlinked">
+    <h3>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#--unlinked">#</doc-anchor-trigger>
+        <span>--unlinked</span>
+    </h3>
+</doc-anchor-target>
+<p>As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: <code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>, or <code v-pre>none</code>.
+The formats for these data and how their barcodes look are described <a href="../linked_read_data/#linked-read-data-types">in this section</a>. That means
+you no longer have to specify linked-read technology, and if you aren&#x27;t using linked reads, that&#x27;s fine too (<a href="../guides/wgs_data/">in most cases</a>).
+However, you can force many commands to treat your data as not linked-read using <code v-pre>-U</code>/<code v-pre>--unlinked</code>. This toggle skips data type detection
+and circumvents any linked-read specific parts of workflows. Data that is already not linked-read would be detected as such, so this
+tends to be more helpful if you want to either 1. shave off a second or two from preprocessing non-linked-read data or 2. push linked-read
+data through a workflow pretending it&#x27;s not linked-read data.</p>
 <doc-anchor-target id="--contigs">
     <h3>
         <doc-anchor-trigger class="header-anchor-trigger" to="#--contigs">#</doc-anchor-trigger>
@@ -577,10 +596,10 @@ and the contents therein also allow you to rerun the workflow manually. The <cod
                                     </div>
                             
                                     <div class="w-1/2">
-                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../getting_started/troubleshooting/">
+                                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../getting_started/guides/filtering_snps/">
                                             <span>
                                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                                <span class="block mt-1">Troubleshooting</span>
+                                                <span class="block mt-1"> Filtering SN​Ps</span>
                                             </span>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                                         </a>
