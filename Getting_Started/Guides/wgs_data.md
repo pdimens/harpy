@@ -11,12 +11,11 @@ image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 ---
 
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
-Harpy will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`
+As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`.
 
-==- Harpy 2
+||| Harpy v2
 - When available, use `--lr-type none` to ignore linked-read specific things
 - This option was named `--ignore-bx` in versions <2.7
-===
 
 As of version `2.0`, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,
@@ -79,5 +78,7 @@ harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam
 Like most of the other workflows, use `--lr-type none` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for `-d`/`--molecule-distance` will be ignored:
 ```bash phase example
-harpy phase -t 10 variants.bcf data/*.bam 
+harpy phase -t 10 --lr-type none variants.bcf data/*.bam 
 ```
+
+|||

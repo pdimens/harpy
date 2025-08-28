@@ -8,10 +8,10 @@ order: 5
 ## Input Arguments
 Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/phase.md)) follows the format of
 ```bash
-harpy module options arguments
+harpy command options arguments
 ```
-where `module` is something like [!badge corners="pill" text="impute"](/Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](/Workflows/snp.md) and `options` are the runtime parameters,
-which can include things like an input `--vcf` file, `--molecule-distance`, etc. After the options
+where `command` is something like [!badge corners="pill" text="impute"](/Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](/Workflows/snp.md) and `options` are the runtime parameters,
+which can include things like `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
 In most cases, you can provide an unlimited amount of input arguments. In practice, that can look like:
@@ -19,18 +19,18 @@ In most cases, you can provide an unlimited amount of input arguments. In practi
 harpy align bwa -t 5 genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz 
 ```
 !!!info not recursive
-Keep in mind that Harpy will not recursively scan input directories for files. If you provide `data/` as an input,
-Harpy will search for fastq/bam files in `data/` and not in any subdirectories within `data/`. This is done deliberately
+By design, Harpy will not recursively scan input directories for files. If you provide `data/` as an input,
+Harpy will search for fastq/bam files in `data/` and not in any subdirectories within `data/`. This is done
 to avoid unexpected behavior.
 !!!
 
 !!!warning clashing names
-Given the regex pattern matching Harpy employs under the hood and the isolation of just the sample names for Snakemake rules,
+Given the regex pattern matching that happens under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
 and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)
 would both result in `output/sample1.bam`, creating a problem. This also holds true for the same sample name but different extension, such
 as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as the sample name and create a naming clash for workflow outputs.
-During parsing, Harpy will inform you of naming clashes and terminate to protect you against this behavior. 
+You will be informed ahead of time of and naming clashes to protect you against this happening. 
 !!!
 
 ## Software Dependencies
@@ -39,7 +39,7 @@ keep the Harpy installation small, we include only the bare minimum to invoke Ha
 Everything else (e.g. `freebayes`, `hapcut2`, etc.) is installed as needed at runtime by Snakemake.
 By default, Harpy has Snakemake to install a workflow's software dependencies as local conda environments
 in the `.environments` folder, however you can use `--container` to instead have Snakemake use a pre-configured
-Harpy container to manage workflow dependencies.
+Harpy container hosted on Dockerhub to manage workflow dependencies.
 
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
@@ -52,7 +52,7 @@ configured using these arguments:
 {.compact}
 | argument            | type              | default | description                                                                                                                                            |
 |:--------------------|:------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--container`       | toggle            |         | Use preconfigured Singularity container instead of local conda environments                                                                            |
+| `--container`       | toggle            |         | Use preconfigured Apptainer container instead of local conda environments                                                                            |
 | `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                       |
 | `--help` `-h`       |                   |         | Show the module docstring                                                                                                                              |
 | `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
@@ -63,6 +63,15 @@ configured using these arguments:
 | `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
 | `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                               |
 | `--unlinked` `-U`   | toggle            |         | Treat the input as non linked-read data                                                                                                                |
+
+### --unlinked
+As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: `haplotagging`, `stlfr`, `tellseq`, or `none`.
+The formats for these data and how their barcodes look are described [in this section](linked_read_data.md#linked-read-data-types). That means
+you no longer have to specify linked-read technology, and if you aren't using linked reads, that's fine too ([in most cases](Guides/wgs_data.md)). 
+However, you can force many commands to treat your data as not linked-read using `-U`/`--unlinked`. This toggle skips data type detection
+and circumvents any linked-read specific parts of workflows. Data that is already not linked-read would be detected as such, so this
+tends to be more helpful if you want to either 1. shave off a second or two from preprocessing non-linked-read data or 2. push linked-read
+data through a workflow pretending it's not linked-read data.
 
 ### --contigs
 Some of the workflows (like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)) plot per-contig information in their reports.
