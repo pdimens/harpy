@@ -106,7 +106,7 @@ def print_onerror(logfile: str, time = None) -> None:
     datatable.add_column("value", justify="left")
     datatable.add_row("Duration:", time_text)
     datatable.add_row("Workflow Log: ", logfile + ".gz")
-    CONSOLE.rule("[bold]Workflow Error[/][dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
+    CONSOLE.rule("[bold]Workflow Error[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print("The workflow stopped because of an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")

@@ -249,7 +249,7 @@ class Workflow():
         if self.summary:
             datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
         datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
-        CONSOLE.rule("[bold]Workflow Finished[/] [dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
+        CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
     def launch(self, absolute:bool = False):
