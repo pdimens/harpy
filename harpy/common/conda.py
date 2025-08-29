@@ -93,9 +93,11 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
         try:
             env_dict = {
                 "name" : i,
-                "channels" : ["bioconda","conda-forge"],
+                "channels" : ["conda-forge", "bioconda"],
                 "dependencies": environ[i]
             }
+            if i == "r":
+                env_dict["channels"].append("r")
         except KeyError:
             sys.stderr.write(f"Key '{i}' is not an available conda environment name. The options are: " + ", ".join(environ.keys()))
             sys.exit(1)
