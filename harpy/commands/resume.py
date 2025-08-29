@@ -22,8 +22,8 @@ def resume(directory, conda, relative, threads, quiet):
     In the event you need to run the Snakemake workflow present in a Harpy output directory
     (e.g. `Align/bwa`) without Harpy redoing validations and rewriting any of the configuration files,
     this command bypasses all the preprocessing steps of Harpy workflows and executes the Snakemake command
-    present in `directory/workflow/config.yaml`. It will reuse an existing `workflow/envs/` folder
-    for conda environments, otherwise use `--conda` to create one.
+    present in `directory/workflow/workflow.yaml`. It will reuse an existing `workflow/envs/` folder
+    to validate software dependencies, otherwise use `--conda` to create a populated one.
 
     The only requirements are:
     - the target directory has `workflow/config.yaml` present in it
