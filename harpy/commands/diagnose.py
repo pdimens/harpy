@@ -64,7 +64,6 @@ def diagnose(directory):
                     # this would be a new rule
                     if ruletable:
                         CONSOLE.print(ruletable)
-                        #CONSOLE.print(TIME, highlight=False, style = "default")
                         CONSOLE.rule(style = "dim")
                     TIME = output.replace("[", "").replace("]", "")
                 elif output.startswith("rule "):
