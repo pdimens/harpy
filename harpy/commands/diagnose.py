@@ -63,15 +63,14 @@ def diagnose(directory):
                 if output.startswith("["):
                     # this would be a new rule
                     if ruletable:
+                        CONSOLE.rule(title = f"[default dim]{TIME}[/]", style = "dim")
                         CONSOLE.print(ruletable)
-                        CONSOLE.rule(style = "dim")
                     TIME = output.replace("[", "").replace("]", "")
                 elif output.startswith("rule "):
                     ruletable = Table(
                         title = output.replace(":", "").strip(),
                         title_justify="left",
                         title_style="blue",
-                        caption=TIME,
                         caption_style= "dim",
                         show_header=False,
                         show_footer=False,
