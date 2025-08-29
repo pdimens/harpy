@@ -3,6 +3,8 @@ import sys
 import yaml
 import subprocess
 import rich_click as click
+from rich.table import Table
+from rich import box
 from harpy.common.printing import print_error, CONSOLE
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
@@ -26,6 +28,7 @@ def diagnose(directory):
     command = harpy_config["snakemake"]["absolute"]
     # prefix the new arguments, in case a positional argument was added at the end by user
     command = command.replace("snakemake -", "snakemake --dry-run --debug-dag -")
+    command = command.replace("snakemake --dry-run", "snakemake --sdm env-modules --dry-run")
     CONSOLE.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
     try:
         process = subprocess.Popen(
@@ -35,6 +38,8 @@ def diagnose(directory):
             text=True,
             encoding='utf-8'
         )
+        TIME = ""
+        ruletable = None
         while True:
             output = process.stdout.readline()
             error = process.stderr.readline()
@@ -51,10 +56,46 @@ def diagnose(directory):
                 if output.startswith("This was a dry-run"):
                     process.terminate()
                     exit(0)
+                if "Exception" in output:
+                    while output:
+                        CONSOLE.print(output, end = "")
+                        output = process.stdout.readline()
+                if output.startswith("["):
+                    # this would be a new rule
+                    if ruletable:
+                        CONSOLE.print(ruletable)
+                        #CONSOLE.print(TIME, highlight=False, style = "default")
+                        CONSOLE.rule(style = "dim")
+                    TIME = output.replace("[", "").replace("]", "")
+                elif output.startswith("rule "):
+                    ruletable = Table(
+                        title = output.replace(":", "").strip(),
+                        title_justify="left",
+                        title_style="blue",
+                        caption=TIME,
+                        caption_style= "dim",
+                        show_header=False,
+                        show_footer=False,
+                        box=box.SIMPLE,
+                        pad_edge=False,
+                        show_edge=False,
+                        padding = (0,0)
+                    )
+                    ruletable.add_column("key", justify="left", style = "default")
+                    ruletable.add_column("text", justify="left", style = "yellow")
+                    ruletable.title = output.replace(":", "").strip()
+                elif ":" in output:
+                    output = output.split(":", maxsplit = 1)
+                    if ruletable:
+                        ruletable.add_row(output[0].strip() + ":", output[-1].strip())
                 else:
-                    CONSOLE.print(output, end="", style = "yellow")
-    except:
+                    if output.startswith("Would remove"):
+                        continue
+                    else:
+                        CONSOLE.print(output, end="", highlight=False, style = "yellow")
+    except Exception as e:
         CONSOLE.print("")
+        #CONSOLE.print(f"{e}")
         CONSOLE.rule("[bold]End of diagnosis", style = "yellow")
         process.terminate()
         process.wait()
