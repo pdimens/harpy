@@ -757,25 +757,30 @@ jobs:
           pip install --no-deps dist/*.whl
 #     - name: Clear Space
 #       uses: jlumbroso/free-disk-space@main
-      - name: harpy template impute
+      - name: template impute
         shell: micromamba-shell {0}
         run: harpy template impute
-      - name: harpy template groupings
+      - name: template groupings
         shell: micromamba-shell {0}
         run: harpy template groupings test/fastq
-      - name: harpy downsample bam
-        shell: micromamba-shell {0}
-        run: harpy downsample -d 10 --random-seed 699 --quiet 2 test/bam/sample1.bam && ls -lh Downsample
-      - name: harpy downsample fastq
-        shell: micromamba-shell {0}
-        run: harpy downsample -d 10 --quiet 2 test/fastq/sample1.*gz && ls -lh Downsample
-      - name: harpy hpc
+      - name: template hpc
         shell: micromamba-shell {0}
         run: |
           harpy template hpc-slurm
           harpy template hpc-googlebatch
           harpy template hpc-lsf
           harpy template hpc-generic
+      - name: downsample bam
+        shell: micromamba-shell {0}
+        run: harpy downsample -d 10 --random-seed 699 --quiet 2 test/bam/sample1.bam && ls -lh Downsample
+      - name: downsample fastq
+        shell: micromamba-shell {0}
+        run: harpy downsample -d 10 --quiet 2 test/fastq/sample1.*gz && ls -lh Downsample
+      - name: resume
+        shell: micromamba-shell {0}
+        run: |
+          harpy qc --quiet 2 --setup-only test/fastq &&\
+          harpy resume QC
 
   convert:
     needs: [changes,build]
