@@ -57,14 +57,15 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
 {.compact}
-| argument              | default | description                                                                                                                  |
-|:----------------------|:-------:|:-----------------------------------------------------------------------------------------------------------------------------|
-| `PARAMETERS`          |         | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                             |
-| `VCF`                 |         | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                 |
-| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md)                |
-| `--extra-params` `-x` |         | Extra arguments to add to STITCH, provided in quotes                                                                         |
-| `--region`       `-r` |         | Specific region to impute, in the format `contig:start-end-buffer`                                                           |
-| `--vcf-samples`       |         | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file)) |
+| argument              |   default   | description                                                                                                                   |
+|:----------------------|:-----------:|:------------------------------------------------------------------------------------------------------------------------------|
+| `PARAMETERS`          |             | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                              |
+| `VCF`                 |             | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                  |
+| `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
+| `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
+| `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
+| `--region` `-r`       |             | Specific region to impute, in the format `contig:start-end-buffer`                                                            |
+| `--vcf-samples`       |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
 
 ### Impute a specific region
 Use `--region` to only impute a specific genomic region, given as `contig:start-end-buffer`,
@@ -76,7 +77,7 @@ You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/mast
 `--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
 without spaces. Example:
 ```bash
-harpy impute -t 15 -x "--regionStart=20, --regionEnd=500" stitch.params file.vcf Align/strobe
+harpy impute -t 15 -x "--regionStart=20 --regionEnd=500" stitch.params file.vcf Align/strobe
 ```
 
 ### Prioritize the vcf file
