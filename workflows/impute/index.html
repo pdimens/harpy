@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.809723430632">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.810403132561">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/logo_navbar.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.809723430632" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.810403132561" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.810403132561" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.809723430632" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.809723430632" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.810403132561" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.810403132561" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.11.0" defer></script>
     <link href="../../resources/css/katex.css?v=3.11.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=3.11.0" defer></script>
@@ -428,7 +428,12 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 <td style="text-align: left;">Extra arguments to add to STITCH, provided in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--region</code>       <code v-pre>-r</code></td>
+<td style="text-align: left;"><code v-pre>--grid-size</code> <code v-pre>-g</code></td>
+<td style="text-align: center;">1 (per-snp)</td>
+<td style="text-align: left;">Perform imputation in windows of a specific size, instead of per-SNP</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code v-pre>--region</code> <code v-pre>-r</code></td>
 <td style="text-align: center;"></td>
 <td style="text-align: left;">Specific region to impute, in the format <code v-pre>contig:start-end-buffer</code></td>
 </tr>
@@ -459,7 +464,7 @@ your region STITCH will also look at for imputation (but will not attempt to imp
 <code v-pre>--extra-params</code> (or <code v-pre>-x</code>) option. Harpy uses the <code v-pre>STITCH.R</code> command-line tool, which requires arguments to be in the form <code v-pre>--argument=value</code>,
 without spaces. Example:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -t 15 -x &quot;--regionStart=20, --regionEnd=500&quot; stitch.params file.vcf Align/strobe</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -t 15 -x &quot;--regionStart=20 --regionEnd=500&quot; stitch.params file.vcf Align/strobe</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="prioritize-the-vcf-file">
     <h3>
