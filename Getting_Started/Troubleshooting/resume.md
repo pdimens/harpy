@@ -3,7 +3,7 @@ label: Resume
 icon: arrow-right
 ---
 
-When calling a workflow (e.g. [!badge corners="pill" text="qc"](qc.md)), Harpy performs various file checks
+When calling a workflow (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md)), Harpy performs various file checks
 and validations, sets up the Snakemake command, output folder(s), etc. In the event you want to continue a
 failed or manually terminated workflow without overwriting the workflow files (e.g. `config.harpy.yaml`),
 you can use [!badge corners="pill" text="harpy resume"]. Using `resume` also skips all input/argument validations.

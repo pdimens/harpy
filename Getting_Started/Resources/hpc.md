@@ -57,7 +57,7 @@ Pixi equivalents with e.g. `pixi add snakemake-executor-plugin-slurm`.
 
 ### Configuration templates
 This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use
-[!badge corners="pill" text="harpy template hpc-"](/Workflows/other.md/#hpc-)
+[!badge corners="pill" text="harpy template hpc-"](/Workflows/template.md#hpc-)
 to create skeleton configurations for various supported cluster managers and fill in the information you need:
 ```bash
 harpy template hpc-lsf > lsf.config.yml
