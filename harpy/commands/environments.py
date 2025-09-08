@@ -62,7 +62,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
-@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"]), nargs = -1)
+@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]), nargs = -1)
 def conda(workflows):
     """
     Install workflow dependencies via conda
