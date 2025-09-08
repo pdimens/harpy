@@ -90,14 +90,14 @@ rule create_report:
     params:
         lr_platform
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        PARAM_INFILE=$(realpath {input.data})
+        PARAM_PLATFORM="{params}"
+        jupyter-nbconvert --execute --output {output.qmd} --to notebook --ExecutePreprocessor.timeout=-1 --ExecutePreprocessor.kernel_name=ir {input.template} 2> {log}
         """
 
 rule workflow_summary:

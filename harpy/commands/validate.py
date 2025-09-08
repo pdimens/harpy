@@ -61,7 +61,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["validate_bam.qmd"]
-    workflow.conda = ["r"]
+    workflow.conda = ["report"]
 
     ## checks and validations ##
     alignments = SAM(inputs, detect_bc=True, nonlinked_ok = False)
@@ -112,7 +112,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["validate_fastq.qmd"]
-    workflow.conda = ["r"]
+    workflow.conda = ["report"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False)

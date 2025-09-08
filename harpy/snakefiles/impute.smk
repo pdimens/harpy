@@ -181,7 +181,7 @@ rule contig_report:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:
@@ -307,7 +307,7 @@ rule impute_reports:
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

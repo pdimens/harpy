@@ -90,7 +90,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
-    workflow.conda = ["align", "r", "qc"]
+    workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked)
@@ -167,7 +167,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
-    workflow.conda = ["align", "r", "qc"]
+    workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc= not unlinked)

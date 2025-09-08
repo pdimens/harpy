@@ -240,7 +240,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

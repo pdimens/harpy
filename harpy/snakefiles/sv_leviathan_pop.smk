@@ -247,7 +247,7 @@ rule group_reports:
         sample= lambda wc: "-P sample:" + wc.get('population'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:
@@ -274,7 +274,7 @@ rule aggregate_report:
         statsdir = "reports/data/",
         contigs = f"-P contigs:{plot_contigs}"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

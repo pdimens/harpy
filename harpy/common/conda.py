@@ -52,7 +52,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23"
         ],
-        "r" : [
+        "report" : [
             "conda-forge::quarto",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
@@ -96,7 +96,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
                 "channels" : ["conda-forge", "bioconda"],
                 "dependencies": environ[i]
             }
-            if i == "r":
+            if i == "report":
                 env_dict["channels"].append("r")
         except KeyError:
             sys.stderr.write(f"Key '{i}' is not an available conda environment name. The options are: " + ", ".join(environ.keys()))
