@@ -99,7 +99,7 @@ class Workflow():
         if sm_extra:
             _command.append(sm_extra)
             _command_rel.append(sm_extra)
-    
+
         self.snakemake_cmd_absolute = " ".join(_command)
         self.snakemake_cmd_relative = " ".join(_command_rel)
 
@@ -205,6 +205,38 @@ class Workflow():
     def purge_empty_logs(self):
         purge_empty_logs(self.output_directory)
 
+    def time_elapsed(self) -> str:
+        elapsed_time = datetime.now() - self.start_time
+        days = elapsed_time.days
+        seconds = elapsed_time.seconds
+        hours = seconds // 3600
+        minutes = (seconds % 3600) // 60
+        seconds = seconds % 60
+        return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+
+    def print_onstart(self):
+        """Print a panel of info on workflow run"""
+        if self.quiet == 2:
+            return
+        rprint("")
+        CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
+        CONSOLE.print(self.start_text)
+
+    def print_onsuccess(self):
+        """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
+        if self.quiet == 2:
+            return
+        time_text = self.time_elapsed()
+        datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+        datatable.add_column("detail", justify="left", style="green", no_wrap=True)
+        datatable.add_column("value", justify="left")
+        datatable.add_row("Duration:", time_text)
+        if self.summary:
+            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
+        datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
+        CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
+        CONSOLE.print(datatable)
+
     def initialize(self, setup_only: bool = False):
         """Using the configurations, create all necessary folders and files"""
         self.write_workflow_config()
@@ -223,41 +255,13 @@ class Workflow():
         if not setup_only:
             self.launch()
 
-    def print_onstart(self):
-        """Print a panel of info on workflow run"""
-        if self.quiet == 2:
-            return
-        rprint("")
-        CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
-        CONSOLE.print(self.start_text)
-
-    def print_onsuccess(self):
-        """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
-        if self.quiet == 2:
-            return
-        elapsed_time = datetime.now() - self.start_time 
-        days = elapsed_time.days
-        seconds = elapsed_time.seconds
-        hours = seconds // 3600
-        minutes = (seconds % 3600) // 60
-        seconds = seconds % 60
-        time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-        datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
-        datatable.add_column("detail", justify="left", style="green", no_wrap=True)
-        datatable.add_column("value", justify="left")
-        datatable.add_row("Duration:", time_text)
-        if self.summary:
-            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
-        datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
-        CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
-        CONSOLE.print(datatable)
-
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
-        if absolute:
-            launch_snakemake(self.snakemake_cmd_absolute, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
-        else:
-            launch_snakemake(self.snakemake_cmd_relative, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
+        cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
+        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
+        
         self.purge_empty_logs()
+        
         gzip_file(os.path.join(self.output_directory, self.snakemake_log))
+        
         self.print_onsuccess()
