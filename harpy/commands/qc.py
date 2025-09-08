@@ -64,7 +64,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     workflow = Workflow("qc", "qc.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["qc_bx_stats.qmd"]
-    workflow.conda = ["qc", "r"]
+    workflow.conda = ["qc", "report"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked)

@@ -245,7 +245,7 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.alignstats.log"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:
@@ -318,7 +318,7 @@ rule barcode_report:
     log:
         f"logs/reports/bxstats.report.log"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

@@ -73,7 +73,7 @@ rule create_report:
     log:
         "logs/report.log"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

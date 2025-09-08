@@ -101,7 +101,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.reports = ["leviathan.qmd"]
     if populations:
         workflow.reports.append("leviathan_pop.qmd")
-    workflow.conda = ["align", "r", "variants"]
+    workflow.conda = ["align", "report", "variants"]
 
     ## checks and validations ##
     alignments = SAM(inputs)
@@ -190,7 +190,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflow.reports = ["naibr.qmd"]
     if populations:
         workflow.reports.append("naibr_pop.qmd")
-    workflow.conda = ["phase", "r", "variants"]
+    workflow.conda = ["phase", "report", "variants"]
 
     ## checks and validations ##
     alignments = SAM(inputs)

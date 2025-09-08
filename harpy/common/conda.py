@@ -52,7 +52,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23"
         ],
-        "r" : [
+        "report" : [
             "conda-forge::quarto",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",

@@ -61,7 +61,7 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
     workflow = Workflow("phase", "phase.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["hapcut.qmd"]
-    workflow.conda = ["phase", "r"]
+    workflow.conda = ["phase", "report"]
 
     ## checks and validations ##
     alignments = SAM(inputs, detect_bc= not unlinked)

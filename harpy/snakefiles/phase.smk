@@ -274,7 +274,7 @@ rule phase_report:
     params:
         f"-P contigs:{plot_contigs}"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

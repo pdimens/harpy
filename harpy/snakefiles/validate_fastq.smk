@@ -90,7 +90,7 @@ rule create_report:
     params:
         lr_platform
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:

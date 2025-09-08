@@ -60,7 +60,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     workflow = Workflow("impute", "impute.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
     workflow.reports = ["impute.qmd", "stitch_collate.qmd"]
-    workflow.conda = ["r", "stitch"]
+    workflow.conda = ["report", "stitch"]
 
     ## checks and validations ##
     params = ImputeParams(parameters)

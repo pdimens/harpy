@@ -2,8 +2,9 @@ brand:
   logo:
     medium: https://raw.githubusercontent.com/pdimens/harpy/docs/static/favicon_report.svg
 execute:
-    echo: false
-    warning: false
+  enabled: true
+  echo: false
+  warning: false
 embed-resources: true
 format:
   dashboard:

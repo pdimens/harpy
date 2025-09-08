@@ -100,7 +100,7 @@ rule barcode_report:
     log:
         "logs/barcode.report.log"
     conda:
-        "envs/r.yaml"
+        "envs/report.yaml"
     retries:
         3
     shell:
