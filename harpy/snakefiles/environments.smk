@@ -2,7 +2,7 @@
 if config.get("envs", None):
     out_envs = config["envs"]
 else:
-    out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
+    out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"] 
 
 if config.get("spades", None):
     out_envs.append("spades")
