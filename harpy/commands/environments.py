@@ -88,7 +88,7 @@ def conda(workflows):
     if "all" in workflows:
         workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
     workflow.fetch_snakefile()
-    
+
     config_params = "--config"
     if "assembly" in workflows:
         config_params += " spades=True"
@@ -106,7 +106,6 @@ def container():
     into an Apptainer .sif. To use, run this command again without arguments.
     """
     workflow = Workflow("localcontainer", "environments.smk", "localenv/", 1)
-    # if "all" was mixed with other workflows, default to just all and avoid doubling up
     workflow.fetch_snakefile()
     workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
     workflow.launch()
