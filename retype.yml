@@ -17,10 +17,10 @@ theme:
     image-rounded: 0.75rem
     nav-item-text-stack: "#1e66f5"
 branding:
-  title: Harpy
+  title:
   label: v3.0
-  logo: static/logo_navbar.png
-  logoDark: static/logo_navbar.png
+  logo: static/logo.png
+  logoDark: static/logo.png
   logoAlign: left
 favicon: static/logo_navbar.png
 search:

@@ -179,15 +179,6 @@ python3 -m pip install --upgrade build && python3 -m build && \
     pip install dist/*.whl
 ```
 
-==- Install the bundled scripts
-Harpy needs all the scripts in the `harpy/bin` folder installed too. You will need to copy them into some kind of folder
-on your PATH (e.g. `/usr/local/bin` or `~/.local/bin`). If you don't understand what that means, see [this resource](https://www.howtogeek.com/658904/how-to-add-a-directory-to-your-path-in-linux/).
-
-```bash
-chmod +x harpy/bin/*
-cp harpy/bin/* path/to/the/folder
-```
-
 ==- Install the remaining software
 Unfortunately, you will still need to install the remaining non-Python software, listed below with their minimum version numbers in
 parentheses. With any luck, your system might have one of more of them already installed! 
