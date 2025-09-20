@@ -18,7 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
-harpy = "harpy.__main__:cli"
+harpy = "harpy.__main__"
 assign_mi = "harpy.scripts:assign_mi.main"
 bx_stats = "harpy.scripts:bx_stats.main"
 bx_to_end = "harpy.scripts:bx_to_end.main"

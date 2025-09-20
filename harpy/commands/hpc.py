@@ -4,7 +4,7 @@ import sys
 import rich_click as click
 from harpy.common.system_ops import package_absent
 
-@click.command()
+@click.command(panel = "HPC Configurations")
 def hpc_generic():
     """
     Create a template config for a generic scheduler
@@ -47,8 +47,8 @@ def hpc_generic():
 
     package_absent("snakemake-executor-plugin-cluster-generic")
 
-def hpc_generic2():
-    pass
+#def hpc_generic2():
+#    pass
     #executor: cluster-generic
     #cluster-generic-submit-cmd:
     #  mkdir -p results/slurm_logs/{rule} &&
@@ -79,7 +79,7 @@ def hpc_generic2():
     #keep-going: True
     #rerun-incomplete: True
 
-@click.command()
+@click.command(panel = "HPC Configurations")
 def hpc_lsf():
     """
     Create a template config for LSF
@@ -112,7 +112,7 @@ def hpc_lsf():
 
     package_absent("snakemake-executor-plugin-lsf")
 
-@click.command()
+@click.command(panel = "HPC Configurations")
 def hpc_slurm():
     """
     Create a template config for SLURM
@@ -143,7 +143,7 @@ def hpc_slurm():
     sys.stdout.write("\n".join(out_text) + "\n")
     package_absent("snakemake-executor-plugin-slurm")
 
-@click.command()
+@click.command(panel = "HPC Configurations")
 def hpc_googlebatch():
     """
     Create a template config for Google Batch

@@ -24,6 +24,8 @@ docstring = {
 }
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.command_panel("Input Files", panel_styles={"border_style": "blue"})
+@click.command_panel("HPC Configurations", panel_styles={"border_style": "green", "subtitle": "run without arguments"})
 def template():
     """
     Create files and HPC configs for workflows
@@ -31,7 +33,7 @@ def template():
     All subcommands write to `stdout`.
     """
 
-@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def groupings(inputdir):
     """
@@ -70,7 +72,7 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 def impute():
     """
     Create a template imputation parameter file

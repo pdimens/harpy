@@ -11,11 +11,11 @@ from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
-@click.option('-r', '--relative',  is_flag = True, default = False, help = 'Call Snakemake with relative paths')
+@click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
+@click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, conda, relative, threads, quiet):
+def resume(directory, conda, absolute, threads, quiet):
     """
     Continue an incomplete Harpy workflow
 
@@ -72,5 +72,5 @@ def resume(directory, conda, relative, threads, quiet):
     workflow.write_workflow_config()
 
     workflow.print_onstart()
-    workflow.launch()
+    workflow.launch(absolute)
 #

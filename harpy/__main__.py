@@ -13,8 +13,7 @@ from harpy.commands import impute
 from harpy.commands import qc
 from harpy.commands import phase
 from harpy.commands import simulate
-from harpy.commands import snp
-from harpy.commands import sv
+from harpy.commands import snp, sv
 from harpy.commands import template
 from harpy.commands import validate
 
@@ -26,10 +25,25 @@ click.rich_click.APPEND_METAVARS_HELP = False
 click.rich_click.MAX_WIDTH = 75
 click.rich_click.REQUIRED_SHORT_STRING = ""
 click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
-#click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
-
+##click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
+#
 @click.group(options_metavar='', context_settings={"help_option_names" : []} )
 @click.version_option("0.0.0", prog_name="harpy", hidden = True)
+@click.command_panel(
+    "Data Processing",
+    panel_styles={"border_style": "blue"},
+    commands = sorted(["align","demultiplex","qc","snp","sv","impute","phase", "simulate", "assembly", "metassembly"])
+)
+@click.command_panel(
+    "Other Commands",
+    panel_styles={"border_style": "green"},
+    commands = sorted(["convert","deconvolve", "downsample", "template"])
+)
+@click.command_panel(
+    "Troubleshoot",
+    panel_styles={"border_style": "dim"},
+    commands = sorted(["view", "resume", "diagnose", "validate", "deps"])
+)
 def cli():
     """
     An automated workflow for linked-read data
@@ -62,28 +76,3 @@ cli.add_command(sv.sv)
 cli.add_command(validate.validate)
 cli.add_command(view.view)
 cli.add_command(template.template)
-
-#click.rich_click.COMMAND_GROUPS = {
-#    "harpy":
-#        [
-#            {
-#                "name": "Data Processing",
-#                "commands": sorted(["demultiplex","qc", "align","snp","sv","impute","phase", "simulate", "assembly", "metassembly"]),
-#                "panel_styles": {"border_style": "blue"}
-#            },
-#            {
-#                "name": "Other Commands",
-#                "commands": sorted(["convert","deconvolve", "downsample", "template"]),
-#                "panel_styles": {"border_style": "green"}
-#            },
-#            {
-#                "name": "Troubleshoot",
-#                "commands": sorted(["view", "resume", "diagnose", "validate", "deps"]),
-#                "panel_styles": {"border_style": "dim"}
-#            }
-#        ],
-# } | align.module_docstring | convert.module_docstring | snp.module_docstring | sv.module_docstring | simulate.docstring | template.docstring
-#
-#click.rich_click.OPTIONS_PANEL_TITLE = None
-#for i in [align, deconvolve, downsample, demultiplex, impute, phase, validate, qc, simulate, snp, sv, assembly, metassembly]:
-#    click.rich_click.OPTION_GROUPS |= i.docstring
