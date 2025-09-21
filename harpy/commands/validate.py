@@ -68,18 +68,12 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     ## checks and validations ##
     alignments = SAM(inputs, detect_bc=True, nonlinked_ok = False)
 
+    workflow.inputs = alignments.files
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads": {
             "type": alignments.lr_type
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : alignments.files
+        }
     }
 
     workflow.start_text = workflow_info(
@@ -123,18 +117,12 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
 
     ## setup workflow ##
 
+    workflow.inputs = fastq.files
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads": {
             "type": fastq.lr_type
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : fastq.files
+        }
     }
 
     workflow.start_text = workflow_info(

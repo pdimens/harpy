@@ -66,6 +66,10 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     if contigs:
         fasta.match_contigs(contigs) 
 
+    workflow.inputs = {
+        "reference": fasta.file,
+        "fastq": fastq.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "alignment_quality" : min_quality,
@@ -77,19 +81,9 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            "reference": fasta.file,
-            "fastq": fastq.files
         }
     }
 
@@ -147,6 +141,10 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     if contigs:
         fasta.match_contigs(contigs)
 
+    workflow.inputs = {
+        "reference": fasta.file,
+        "fastq": fastq.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "alignment_quality" : min_quality,
@@ -158,19 +156,9 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            "reference": fasta.file,
-            "fastq": fastq.files
         }
     }
 

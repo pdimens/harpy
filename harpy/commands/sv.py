@@ -77,6 +77,11 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
@@ -89,20 +94,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             "duplicates": duplicates
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            "reference" : fasta.file,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 
@@ -172,6 +166,12 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         vcffile = VCF(vcf, workflow.workflow_directory)
         vcffile.check_phase()
 
+    workflow.inputs = {
+        **({'reference': fasta.file} if reference else {}),
+        **({'vcf': vcffile.file} if vcf else {}),
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
@@ -179,21 +179,9 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            **({'reference': fasta.file} if reference else {}),
-            **({'vcf': vcffile.file} if vcf else {}),
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 

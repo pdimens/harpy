@@ -26,23 +26,24 @@ class Workflow():
         creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')
         os.makedirs(creatdir, exist_ok = True)
 
-        self.name = name
-        self.output_directory = outdir
+        self.name: str = name
+        self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
         self.snakemake_logfile: str = self.snakemake_log(outdir, name)
-        self.snakemake_cmd_absolute = None
-        self.snakemake_cmd_relative = None
-        self.snakefile = snakefile
-        self.reports =[]
-        self.scripts = []
+        self.snakemake_cmd_absolute: str = ""
+        self.snakemake_cmd_relative: str = ""
+        self.snakefile: str = snakefile
+        self.reports: list[str] =[]
+        self.scripts: list[str] = []
+        self.inputs: Dict|list[str] = []
         self.config: Dict = {}
         self.profile: Dict = {}
         self.hpc: str = ""
         self.conda: list[str] = []
         self.start_text: None|Table = None
-        self.quiet = quiet
-        self.start_time = datetime.now()
-        self.summary = name.replace("_",".").replace(" ",".") + ".summary"
+        self.quiet: bool = quiet
+        self.start_time: datetime = datetime.now()
+        self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -125,7 +126,6 @@ class Workflow():
 
     def fetch_report_configs(self):
         """
-        pull yaml config file from github, use local if fails
         pull yaml config file from GitHub, use local if download fails
         """
         dest_dir = os.path.join(self.workflow_directory, "report")
@@ -201,6 +201,13 @@ class Workflow():
         Writes a workflow.yaml file to workdir to use with --configfile. Configs
         are expected to be a dict
         """
+        self.config["snakemake"] = {
+            "log" : self.snakemake_logfile,
+            "absolute": self.snakemake_cmd_absolute,
+            "relative": self.snakemake_cmd_relative,
+            "conda_envs": self.conda
+        }
+        self.config["inputs"] = self.inputs
         with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 

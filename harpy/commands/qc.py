@@ -66,6 +66,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     else:
         trim_adapters = False
 
+    workflow.inputs = fastq.files
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads" : {
@@ -76,14 +77,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
         "min_len" : min_length,
         "max_len" : max_length,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
-        "inputs" : fastq.files
     }
 
     workflow.start_text = workflow_info(

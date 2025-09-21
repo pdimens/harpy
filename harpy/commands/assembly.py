@@ -56,6 +56,10 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])
 
+    workflow.inputs = {
+        "fastq_r1" : fastq.files[0],
+        "fastq_r2" : fastq.files[1]
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "spades" : {
@@ -79,19 +83,9 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
         "links" : {
             "minimum_links" : links
         },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
-        },
-        "inputs": {
-            "fastq_r1" : fastq.files[0],
-            "fastq_r2" : fastq.files[1]
         }
     }
 

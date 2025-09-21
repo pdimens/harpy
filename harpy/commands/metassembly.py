@@ -47,6 +47,11 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     fastq = FASTQ([fastq_r1,fastq_r2])
     fastq.bc_or_bx(bx_tag)
 
+
+    workflow.inputs = {
+            "fastq_r1" : fastq_r1,
+            "fastq_r2" : fastq_r2
+        }
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads" : {
@@ -58,19 +63,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
-        },
-        "inputs": {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
         }
     }
 

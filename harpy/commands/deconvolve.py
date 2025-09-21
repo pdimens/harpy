@@ -43,19 +43,13 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     ## checks and validations ##
     fastq = FASTQ(inputs)
     
+    workflow.inputs = fastq.files
     workflow.config = {
         "workflow": workflow.name,
         "kmer_length" : kmer_length,       
         "window_size" : window_size,
         "density" :  density,
-        "dropout" :  dropout,
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs": fastq.files
+        "dropout" :  dropout
     }
 
     workflow.start_text = workflow_info(

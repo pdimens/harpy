@@ -59,25 +59,19 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     if region:
         vcffile.validate_region(region)
 
+    workflow.inputs = {
+        "parameters" : params.file,
+        "vcf" : vcffile.file,
+        **({"biallelic_contigs" : vcffile.biallelic_file} if not region else {}), 
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         **({'stitch_extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
         "grid_size": grid_size,
         "stitch_parameters" : params.parameters,
-        "inputs" : {
-            "parameters" : params.file,
-            "vcf" : vcffile.file,
-            **({"biallelic_contigs" : vcffile.biallelic_file} if not region else {}), 
-            "alignments" : alignments.files
-        }
     }
 
     workflow.start_text = workflow_info(

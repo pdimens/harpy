@@ -61,6 +61,14 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
     if contigs:
         vcffile.match_contigs(contigs)
 
+    workflow.inputs = {
+        "vcf" : {
+            "file": vcffile.file,
+            "prioritize_samples" : vcf_samples
+        },
+        **({'reference': fasta.file} if reference else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "phasing" : {
@@ -73,23 +81,9 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
             "distance_threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            "vcf" : {
-                "file": vcffile.file,
-                "prioritize_samples" : vcf_samples
-            },
-            **({'reference': fasta.file} if reference else {}),
-            "alignments" : alignments.files
         }
     }
 

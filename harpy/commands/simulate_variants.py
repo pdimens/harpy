@@ -77,6 +77,12 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
         print_error("conflicting arguments", "You can either simulate random indels (--indel-count) or known indels (--indel-vcf), but not both.")
     fasta = FASTA(genome)
 
+    workflow.inputs = {
+        "genome" : fasta.file,
+        **({"centromeres" : centromeres} if centromeres else {}),
+        **({"genes" : genes} if genes else {}),
+        **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "prefix" : prefix,
@@ -97,18 +103,6 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
             **({"indel_ratio" : indel_ratio} if indel_ratio and not indel_vcf else {}),
             **({"size_alpha" : indel_size_alpha} if indel_size_alpha and not indel_vcf else {}),
             **({"size_constant" : indel_size_constant} if indel_size_constant and not indel_vcf else {})
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : {
-            "genome" : fasta.file,
-            **({"centromeres" : centromeres} if centromeres else {}),
-            **({"genes" : genes} if genes else {}),
-            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -175,6 +169,12 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
         print_error("conflicting arguments", "You can either simulate random inversions (--count) or known inversions (--vcf), but not both.")
     fasta = FASTA(genome)
 
+    workflow.inputs = {
+        "genome" : fasta.file,
+        **({"centromeres" : centromeres} if centromeres else {}),
+        **({"genes" : genes} if genes else {}),
+        **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "prefix" : prefix,
@@ -188,18 +188,6 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
             **({'count': count} if not vcf else {}),
             **({"min_size":  min_size} if not vcf else {}),
             **({"max_size" : max_size} if not vcf else {})
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : {
-            "genome" : fasta.file,
-            **({"centromeres" : centromeres} if centromeres else {}),
-            **({"genes" : genes} if genes else {}),
-            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -273,6 +261,12 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
         print_error("conflicting arguments", "You can either simulate random CNVs (--count) or known CNVs (--vcf), but not both.")
     fasta = FASTA(genome)
 
+    workflow.inputs = {
+        "genome" : fasta.file,
+        **({"centromeres" : centromeres} if centromeres else {}),
+        **({"genes" : genes} if genes else {}),
+        **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "prefix" : prefix,
@@ -289,18 +283,6 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
             **({"duplication_ratio" : dup_ratio} if not vcf else {}),
             **({"max_copy" : max_copy} if not vcf else {}),
             **({"gain_ratio" : gain_ratio} if not vcf else {})
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : {
-            "genome" : fasta.file,
-            **({"centromeres" : centromeres} if centromeres else {}),
-            **({"genes" : genes} if genes else {}),
-            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 
@@ -362,6 +344,12 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         print_error("conflicting arguments", "You can either simulate random translocations (--count) or known translocations (--vcf), but not both.")
     fasta = FASTA(genome)
 
+    workflow.inputs = {
+        "genome" : fasta.file,
+        **({"centromeres" : centromeres} if centromeres else {}),
+        **({"genes" : genes} if genes else {}),
+        **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "prefix" : prefix,
@@ -373,18 +361,6 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
         "translocation" : {
             **({"vcf" : vcf} if vcf else {}),
             **({'count': count} if not vcf else {})
-        },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : {
-            "genome" : fasta.file,
-            **({"centromeres" : centromeres} if centromeres else {}),
-            **({"genes" : genes} if genes else {}),
-            **({"excluded_chromosomes" : exclude_chr} if exclude_chr else {})
         }
     }
 

@@ -100,6 +100,10 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     for i in fasta:
         FASTA(i)
 
+    workflow.inputs = {
+        "barcodes" : barcodes,
+        "haplotypes" : list(fasta),
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "output-prefix" : os.path.basename(output_prefix),
@@ -127,16 +131,6 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
         },
         "random_seed": seed,
         **({"regions":  regions} if regions else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
-        "inputs" : {
-            "barcodes" : barcodes,
-            "haplotypes" : list(fasta),
-        }
     }
 
     workflow.start_text = workflow_info(

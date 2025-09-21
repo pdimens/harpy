@@ -79,23 +79,17 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        "regions" : region,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
-        "inputs" : {
-            "reference" : fasta.file,
-            "regions" : region,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
-        }
     }
 
     workflow.start_text = workflow_info(
@@ -161,24 +155,18 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        "regions" : region,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports
-        },
-        "inputs" : {
-            "reference" : fasta.file,
-            "regions" : region,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 

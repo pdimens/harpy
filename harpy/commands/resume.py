@@ -44,7 +44,7 @@ def resume(directory, conda, absolute, threads, quiet):
         snakemake_config = yaml.full_load(f)
 
     workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], quiet)
-    workflow.conda = harpy_config["conda_environments"] 
+    workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
     if conda:
         create_conda_recipes(directory, workflow.conda)
@@ -65,6 +65,9 @@ def resume(directory, conda, absolute, threads, quiet):
 
     workflow.snakemake_cmd_absolute = harpy_config["snakemake"]["absolute"]
     workflow.snakemake_cmd_relative = harpy_config["snakemake"]["relative"]
+    
+    # pull in the inputs and store them, removing the original so it doesn't g
+    workflow.inputs = harpy_config["inputs"]
     workflow.config = harpy_config
     workflow.start_text = workflow_info(
         ("Workflow:", workflow.name.replace("_", " ")),
