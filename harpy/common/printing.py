@@ -93,8 +93,11 @@ def print_setup_error(exitcode: int) -> None:
     CONSOLE.print(errortext)
     CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
 
-def print_onerror(logfile: str, time = None) -> None:
-    """Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it."""
+def print_onerror(logfile: str, time) -> None:
+    """
+    Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
+    time must be of class datetime
+    """
     days = time.days
     seconds = time.seconds
     hours = seconds // 3600
@@ -111,7 +114,7 @@ def print_onerror(logfile: str, time = None) -> None:
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")
 
-def workflow_info(*arg: tuple[str, str | int | float]) -> Table:
+def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     """
     Accepts an unlimited number of length-2 lists or tuples and returns a rich.Table with the value of the first indices as the row names and the second indices as the values
     Use None instead of a list to ignore that entry (useful for conditionals). The second value will always be converted to a string.

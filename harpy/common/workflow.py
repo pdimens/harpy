@@ -8,6 +8,7 @@ import shutil
 import time as _time
 from typing import Dict
 import urllib.request
+import urllib.error
 import yaml
 from rich import print as rprint
 from rich import box
@@ -28,16 +29,16 @@ class Workflow():
         self.name = name
         self.output_directory = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
-        self.snakemake_log = self.snakemake_log(outdir, name)
+        self.snakemake_logfile: str = self.snakemake_log(outdir, name)
         self.snakemake_cmd_absolute = None
         self.snakemake_cmd_relative = None
         self.snakefile = snakefile
         self.reports =[]
         self.scripts = []
-        self.config: None|Dict = None
-        self.profile: None|Dict = None
-        self.hpc: None|Dict = None
-        self.conda: None|list[str] = None
+        self.config: Dict = {}
+        self.profile: Dict = {}
+        self.hpc: str = ""
+        self.conda: list[str] = []
         self.start_text: None|Table = None
         self.quiet = quiet
         self.start_time = datetime.now()
@@ -67,7 +68,7 @@ class Workflow():
             else:
                 badpath.append(i)
         if patherr:
-            formatted_path = os.path.join(badpath)
+            formatted_path = os.path.join(*badpath)
             print_error(
                 "unsupported path name",
                 "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors.",
@@ -233,8 +234,8 @@ class Workflow():
         datatable.add_column("value", justify="left")
         datatable.add_row("Duration:", time_text)
         if self.summary:
-            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
-        datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
+            datatable.add_row("Summary: ", os.path.join(os.path.basename(self.output_directory), "workflow", self.summary))
+        datatable.add_row("Workflow Log:", os.path.join(os.path.basename(self.output_directory), f"{self.snakemake_logfile}.gz"))
         CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
@@ -259,10 +260,10 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
+        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
         
         self.purge_empty_logs()
         
-        gzip_file(os.path.join(self.output_directory, self.snakemake_log))
+        gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()
