@@ -19,7 +19,7 @@ def containerize():
     workflow.fetch_snakefile()
     create_conda_recipes("container")
     
-    with open("Dockerfile", "w", encoding = "utf-8") as dockerraw:
+    with open("container/Dockerfile", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
             'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
             stdout = dockerraw
