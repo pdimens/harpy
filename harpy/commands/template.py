@@ -7,7 +7,6 @@ import glob
 import rich_click as click
 from harpy.common.printing import print_error, print_notice, CONSOLE
 from harpy.commands.hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
-from harpy.common.cli_types_generic import PANEL_OPTIONS
 
 @click.group(context_settings={"help_option_names" : []})
 @click.command_panel("Input Files", panel_styles={"border_style": "blue"})
