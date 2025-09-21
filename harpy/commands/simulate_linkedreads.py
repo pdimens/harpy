@@ -2,34 +2,30 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile
-from harpy.common.cli_types_generic import ReadLengths, SnakemakeParams
+from harpy.common.cli_types_generic import ReadLengths, PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import Barcodes
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 
-docstring = {
-    "harpy simulate linkedreads": [
-        {
-            "name": "Read Simulation Parameters",
-            "options": ["--coverage","--distance","--error", "--lengths",  "--regions", "--stdev"],
-            "panel_styles": {"border_style": "dim blue"}
-        },
-        {
-            "name": "Linked Read Parameters",
-            "options": ["--circular", "--segments", "--molecule-attempts", "--molecule-coverage", "--molecule-length", "--molecules-per", "--singletons"],
-            "panel_styles": {"border_style": "dim magenta"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--help", "--hpc", "--output-prefix", "--output-type", "--quiet", "--seed", "--snakemake", "--threads", "--version"],
-            "panel_styles": {"border_style": "dim"}
-        }
-    ]
-}
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/mimick/")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel(
+    "Read Simulation Parameters",
+    panel_styles = {"border_style": "blue"},
+    options = sorted(["--coverage","--distance","--error", "--lengths",  "--regions", "--stdev"])
+)
+@click.option_panel(
+    "Linked Read Parameters",
+    panel_styles = {"border_style": "blue"},
+    options = sorted(["--circular", "--segments", "--molecule-attempts", "--molecule-coverage", "--molecule-length", "--molecules-per", "--singletons"])
+)
+@click.option_panel(
+    "Workflow Options",
+    panel_styles = {"border_style": "blue"},
+    options = sorted(["--container", "--help", "--hpc", "--output-prefix", "--output-type", "--quiet", "--seed", "--snakemake", "--threads", "--version"])
+)
 #Paired-end FASTQ simulation using pywgsim
 @click.option('--coverage', help='mean coverage (depth) target for simulated data', show_default=True, default=30, type=click.FloatRange(min=0.05))
 @click.option('--distance', help='outer distance between the two read ends in bp', default=500, show_default=True, type=click.IntRange(min=0))

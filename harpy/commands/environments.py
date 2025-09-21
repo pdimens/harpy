@@ -3,7 +3,6 @@
 import os
 import shutil
 import subprocess
-from pathlib import Path
 import rich_click as click
 from harpy.common.conda import create_conda_recipes
 from harpy.common.workflow import Workflow

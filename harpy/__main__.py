@@ -17,17 +17,21 @@ from harpy.commands import snp, sv
 from harpy.commands import template
 from harpy.commands import validate
 
-click.rich_click.THEME = "default-modern"
-click.rich_click.USE_MARKDOWN = True
+config = click.RichHelpConfiguration(
+    max_width=80,
+    theme = "green2-slim",
+    use_markdown=True,
+    errors_suggestion= "Try the '--help' flag for more information."
+)
+
+#click.rich_click.THEME = "default-modern"
+#click.rich_click.USE_MARKDOWN = True
 click.rich_click.SHOW_ARGUMENTS = False
-click.rich_click.SHOW_METAVARS_COLUMN = False
-click.rich_click.APPEND_METAVARS_HELP = False
-click.rich_click.MAX_WIDTH = 75
-click.rich_click.REQUIRED_SHORT_STRING = ""
-click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information."
+click.rich_click.MAX_WIDTH = 80
 ##click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
-#
+
 @click.group(options_metavar='', context_settings={"help_option_names" : []} )
+@click.rich_config(config)
 @click.version_option("0.0.0", prog_name="harpy", hidden = True)
 @click.command_panel(
     "Data Processing",
@@ -36,12 +40,12 @@ click.rich_click.ERRORS_SUGGESTION = "Try the '--help' flag for more information
 )
 @click.command_panel(
     "Other Commands",
-    panel_styles={"border_style": "green"},
+    panel_styles={"border_style": "magenta"},
     commands = sorted(["convert","deconvolve", "downsample", "template"])
 )
 @click.command_panel(
     "Troubleshoot",
-    panel_styles={"border_style": "dim"},
+    panel_styles={"border_style": "yellow"},
     commands = sorted(["view", "resume", "diagnose", "validate", "deps"])
 )
 def cli():

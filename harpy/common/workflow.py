@@ -6,6 +6,7 @@ import importlib.resources as resources
 import os
 import shutil
 import time as _time
+from typing import Dict
 import urllib.request
 import yaml
 from rich import print as rprint
@@ -33,11 +34,11 @@ class Workflow():
         self.snakefile = snakefile
         self.reports =[]
         self.scripts = []
-        self.config = None
-        self.profile = None
-        self.hpc = None
-        self.conda = None
-        self.start_text = None
+        self.config: None|Dict = None
+        self.profile: None|Dict = None
+        self.hpc: None|Dict = None
+        self.conda: None|list[str] = None
+        self.start_text: None|Table = None
         self.quiet = quiet
         self.start_time = datetime.now()
         self.summary = name.replace("_",".").replace(" ",".") + ".summary"

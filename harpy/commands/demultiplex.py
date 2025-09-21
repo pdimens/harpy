@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
-from harpy.common.cli_types_generic import SnakemakeParams
+from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
@@ -23,8 +23,9 @@ def demultiplex():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-u', '--keep-unknown-samples', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
 @click.option('-b', '--keep-unknown-barcodes', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with unrecognized barcodes')
 @click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')

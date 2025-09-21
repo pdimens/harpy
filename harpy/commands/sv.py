@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile, VCFfile
-from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
+from harpy.common.cli_types_generic import ContigList, MultiInt, PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
@@ -13,7 +13,7 @@ from harpy.validation.populations import Populations
 from harpy.validation.sam import SAM
 from harpy.validation.vcf import VCF
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(context_settings={"help_option_names" : []})
 def sv():
     """
     Call inversions, deletions, and duplications from alignments
@@ -28,10 +28,9 @@ def sv():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
-@click.argument('reference', type=FASTAfile(), required = True, nargs = 1, help = "reference genome (fasta format)")
-@click.argument('inputs', required=True, type=SAMfile(), nargs=-1, help = "alignment files (sam/bam format)")
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
 @click.option('-i', '--iterations', panel = "Parameters", show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', panel = "Parameters", show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
@@ -48,6 +47,8 @@ def sv():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
+@click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
     Call structural variants using LEVIATHAN
@@ -115,8 +116,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"], panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"], panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
 @click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', panel = "Parameters", show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
@@ -144,7 +146,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
     in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA/EMA do not phase alignments), then provide a **phased** `--vcf` file such
+    (e.g. BWA/strobealign do not phase alignments), then provide a **phased** `--vcf` file such
      as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 

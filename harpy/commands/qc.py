@@ -4,7 +4,7 @@ import os
 import rich_click as click
 from harpy.validation.fastq import FASTQ
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_types_generic import SnakemakeParams
+from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import FastpParams
 from harpy.common.file_ops import filepath
 from harpy.common.printing import workflow_info
@@ -12,8 +12,9 @@ from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-d', '--deduplicate', panel = "Parameters", is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', panel = "Parameters", type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-M', '--max-length', panel = "Parameters", default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')

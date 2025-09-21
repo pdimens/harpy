@@ -4,6 +4,11 @@ import os
 import click
 from pathlib import Path
 
+PANEL_OPTIONS = {
+    "options_table_column_types": ["opt_long", "opt_short", "help"],
+    "options_table_help_sections": ["required", "help", "default"]
+}
+
 class KParam(click.ParamType):
     """A class for a click type which accepts any number of odd integers separated by a comma, or the word auto."""
     name = "k_param"

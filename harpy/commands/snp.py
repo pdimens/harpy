@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
-from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
+from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
 from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
@@ -14,7 +14,7 @@ from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
 from harpy.validation.sam import SAM
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(options_metavar='', context_settings={"help_option_names" : []})
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
 def snp():
     """
@@ -26,8 +26,9 @@ def snp():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
@@ -107,8 +108,9 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')

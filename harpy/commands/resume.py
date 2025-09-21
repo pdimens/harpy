@@ -6,10 +6,12 @@ import re
 import yaml
 import rich_click as click
 from harpy.common.conda import check_environments, create_conda_recipes
+from harpy.common.cli_types_generic import PANEL_OPTIONS 
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
+@click.rich_config(PANEL_OPTIONS)
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
 @click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')

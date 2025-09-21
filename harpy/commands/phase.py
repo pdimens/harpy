@@ -6,21 +6,22 @@ from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, FASTAfile
 from harpy.validation.fasta import FASTA
 from harpy.validation.sam import SAM
 from harpy.validation.vcf import VCF
-from harpy.common.cli_types_generic import ContigList, SnakemakeParams
+from harpy.common.cli_types_generic import ContigList, PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import HapCutParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
+@click.rich_config(PANEL_OPTIONS)
 @click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "dim"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = HapCutParams(), help = 'Additional HapCut2 parameters, in quotes')
 @click.option('-r', '--reference', panel = "Parameters", type=FASTAfile(), help = 'Path to reference genome if wanting to also extract reads spanning indels')
 @click.option('-q', '--min-map-quality', panel = "Parameters", default = 20, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality for phasing')
 @click.option('-m', '--min-base-quality', panel = "Parameters", default = 13, show_default = True, type = click.IntRange(0, 100, clamp = True), help = 'Minimum base quality for phasing')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")

@@ -3,112 +3,22 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, VCFfile, InputFile
 from harpy.validation.fasta import FASTA
-from harpy.common.cli_types_generic import SnakemakeParams
+from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
-commandstring = {
-    "harpy simulate": [
-        {
-            "name": "Genomic Variants",
-            "commands": ["cnv", "inversion", "snpindel", "translocation"]
-        }
-    ]
-}
-
-docstring = {
-    "harpy simulate snpindel": [
-        {
-            "name": "Known Variants",
-            "options": ["--indel-vcf", "--snp-vcf"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Random Variants",
-            "options": ["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"],
-            "panel_styles": {"border_style": "green"}
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-            "panel_styles": {"border_style": "yellow"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy simulate inversion": [
-        {
-            "name": "Known Variants",
-            "options": ["--vcf"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"],
-            "panel_styles": {"border_style": "green"}
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-            "panel_styles": {"border_style": "yellow"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy simulate cnv": [
-        {
-            "name": "Known Variants",
-            "options": ["--vcf"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"],
-            "panel_styles": {"border_style": "green"}
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-            "panel_styles": {"border_style": "yellow"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy simulate translocation": [
-        {
-            "name": "Known Variants",
-            "options": ["--vcf"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Random Variants",
-            "options": ["--centromeres", "--count", "--exclude-chr", "--genes"],
-            "panel_styles": {"border_style": "green"}
-        },
-        {
-            "name": "Diploid Options",
-            "options": ["--heterozygosity", "--only-vcf"],
-            "panel_styles": {"border_style": "yellow"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ]
-}
+OPT_HET = ["--heterozygosity", "--only-vcf"]
+OPT_WORKFLOW = sorted(["--container", "--hpc", "--output-dir", "--prefix", "--quiet", "--random-seed", "--snakemake", "--help"])
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "This workflow can be quite technical, please read the docs for more information: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Known Variants", panel_styles = {"border_style": "blue"}, options = ["--indel-vcf", "--snp-vcf"])
+@click.option_panel("Random Variants", panel_styles = {"border_style": "blue"}, 
+    options = sorted(["--centromeres", "--exclude-chr", "--genes", "--indel-count", "--indel-ratio", "--snp-count", "--snp-gene-constraints", "--titv-ratio"])
+)
+@click.option_panel("Heterozygosity", panel_styles = {"border_style": "blue"}, options = OPT_HET)
+@click.option_panel("Workflow Options", panel_styles = {"border_style": "blue"}, options =OPT_WORKFLOW)
 @click.option('-s', '--snp-vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known snps to simulate')
 @click.option('-i', '--indel-vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known indels to simulate')
 @click.option('-n', '--snp-count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random snps to simluate")
@@ -218,6 +128,13 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Known Variants", panel_styles = {"border_style": "blue"}, options = ["--vcf"])
+@click.option_panel("Random Variants",panel_styles = {"border_style": "blue"},
+    options = sorted(["--centromeres", "--count", "--exclude-chr", "--genes", "--max-size", "--min-size"])
+)
+@click.option_panel("Heterozygosity", panel_styles = {"border_style": "blue"}, options = OPT_HET)
+@click.option_panel("Workflow Options", panel_styles = {"border_style": "blue"}, options = OPT_WORKFLOW)
 @click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known inversions to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random inversions to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum inversion size (bp)")
@@ -299,6 +216,13 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Known Variants", panel_styles = {"border_style": "blue"}, options = ["--vcf"])
+@click.option_panel("Random Variants", panel_styles = {"border_style": "blue"},
+    options = sorted(["--centromeres", "--count", "--dup-ratio", "--exclude-chr", "--gain-ratio", "--genes",  "--max-copy", "--max-size", "--min-size"])
+)
+@click.option_panel("Heterozygosity", panel_styles = {"border_style": "blue"}, options = OPT_HET)
+@click.option_panel("Workflow Options", panel_styles = {"border_style": "blue"}, options = OPT_WORKFLOW)
 @click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known copy number variants to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random variants to simluate")
 @click.option('-m', '--min-size', type = click.IntRange(min = 1), default = 1000, show_default= True, help = "Minimum variant size (bp)")
@@ -393,6 +317,13 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Please Documentation: https://pdimens.github.io/harpy/workflows/simulate/simulate-variants")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Known Variants", panel_styles = {"border_style": "blue"}, options = ["--vcf"])
+@click.option_panel("Random Variants", panel_styles = {"border_style": "blue"},
+    options = sorted(["--centromeres", "--count", "--exclude-chr", "--genes"])
+)
+@click.option_panel("Heterozygosity", panel_styles = {"border_style": "blue"}, options = OPT_HET)
+@click.option_panel("Workflow Options", panel_styles = {"border_style": "blue"}, options = OPT_WORKFLOW)
 @click.option('-v', '--vcf', type=VCFfile(gzip_ok = False), help = 'VCF file of known translocations to simulate')
 @click.option('-n', '--count', type = click.IntRange(min = 0), default=0, show_default=False, help = "Number of random translocations to simluate")
 @click.option('-c', '--centromeres', type = InputFile("gff", gzip_ok = True), help = "GFF3 file of centromeres to avoid")
