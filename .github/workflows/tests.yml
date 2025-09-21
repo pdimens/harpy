@@ -121,7 +121,7 @@ jobs:
         if: ${{ steps.dockerhub.outcome == 'success' }}
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./container
           push: true
           tags: pdimens/harpy:latest
 #      - name: Pull Image Locally
