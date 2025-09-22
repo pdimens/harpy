@@ -63,7 +63,7 @@ def linkedreads(barcodes, fasta, output_prefix, output_type, regions, threads,co
     For all the features, you are encouraged to install `Mimick` from Bioconda and use it directly.
     In addition to selecting an `--output-type` (default varies by `-x`), barcodes can be parsed absolutely or you can specify the
     linked-read barcode type using `-x/--segments`. For example, to simulate the common 4-segment haplotagging style:
-    ```
+    ```bash
     harpy simulate linkedreads -x 4 -O haplotagging 6,96 hap.{1..2}.fa
     ```
     
