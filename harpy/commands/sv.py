@@ -107,7 +107,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
-@click.option_panel("Workflow Options", options = ["--help"], panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
 @click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', panel = "Parameters", show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
