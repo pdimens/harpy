@@ -4,7 +4,9 @@ import rich_click as click
 from . import simulate_linkedreads
 from . import simulate_variants
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.command_panel("Linked Read Sequences", commands = ["linkedreads"])
+@click.command_panel("Genomic Variants", commands = ["cnv", "inversion", "snpindel", "translocation"])
 def simulate():
     """
     Simulate genomic variants or linked reads
@@ -15,23 +17,6 @@ def simulate():
     Use `simulate linkedreads` to simulate haplotagging linked reads from a diploid genome, which you can create by simulating
     genomic variants.
     """
-
-docstring = {
-    "harpy simulate": [
-        {
-            "name": "Linked Read Sequences",
-            "commands": ["linkedreads"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Genomic Variants",
-            "commands": ["cnv", "inversion", "snpindel", "translocation"],
-            "panel_styles": {"border_style": "green"}
-        }
-    ]
-} | simulate_linkedreads.docstring | simulate_variants.docstring
-
-
 
 simulate.add_command(simulate_linkedreads.linkedreads)
 simulate.add_command(simulate_variants.snpindel)

@@ -6,7 +6,9 @@ import importlib.resources as resources
 import os
 import shutil
 import time as _time
+from typing import Dict
 import urllib.request
+import urllib.error
 import yaml
 from rich import print as rprint
 from rich import box
@@ -24,23 +26,24 @@ class Workflow():
         creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')
         os.makedirs(creatdir, exist_ok = True)
 
-        self.name = name
-        self.output_directory = outdir
+        self.name: str = name
+        self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
-        self.snakemake_log = self.snakemake_log(outdir, name)
-        self.snakemake_cmd_absolute = None
-        self.snakemake_cmd_relative = None
-        self.snakefile = snakefile
-        self.reports =[]
-        self.scripts = []
-        self.config = None
-        self.profile = None
-        self.hpc = None
-        self.conda = None
-        self.start_text = None
-        self.quiet = quiet
-        self.start_time = datetime.now()
-        self.summary = name.replace("_",".").replace(" ",".") + ".summary"
+        self.snakemake_logfile: str = self.snakemake_log(outdir, name)
+        self.snakemake_cmd_absolute: str = ""
+        self.snakemake_cmd_relative: str = ""
+        self.snakefile: str = snakefile
+        self.reports: list[str] =[]
+        self.scripts: list[str] = []
+        self.inputs: Dict|list[str] = []
+        self.config: Dict = {}
+        self.profile: Dict = {}
+        self.hpc: str = ""
+        self.conda: list[str] = []
+        self.start_text: None|Table = None
+        self.quiet: bool = quiet
+        self.start_time: datetime = datetime.now()
+        self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -66,7 +69,7 @@ class Workflow():
             else:
                 badpath.append(i)
         if patherr:
-            formatted_path = os.path.join(badpath)
+            formatted_path = os.path.join(*badpath)
             print_error(
                 "unsupported path name",
                 "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors.",
@@ -123,7 +126,6 @@ class Workflow():
 
     def fetch_report_configs(self):
         """
-        pull yaml config file from github, use local if fails
         pull yaml config file from GitHub, use local if download fails
         """
         dest_dir = os.path.join(self.workflow_directory, "report")
@@ -199,6 +201,13 @@ class Workflow():
         Writes a workflow.yaml file to workdir to use with --configfile. Configs
         are expected to be a dict
         """
+        self.config["snakemake"] = {
+            "log" : self.snakemake_logfile,
+            "absolute": self.snakemake_cmd_absolute,
+            "relative": self.snakemake_cmd_relative,
+            "conda_envs": self.conda
+        }
+        self.config["inputs"] = self.inputs
         with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
@@ -232,8 +241,8 @@ class Workflow():
         datatable.add_column("value", justify="left")
         datatable.add_row("Duration:", time_text)
         if self.summary:
-            datatable.add_row("Summary: ", f"{os.path.basename(self.output_directory)}/workflow/{self.summary}")
-        datatable.add_row("Workflow Log:", f"{os.path.basename(self.output_directory)}/{self.snakemake_log}.gz")
+            datatable.add_row("Summary: ", os.path.join(os.path.basename(self.output_directory), "workflow", self.summary))
+        datatable.add_row("Workflow Log:", os.path.join(os.path.basename(self.output_directory), f"{self.snakemake_logfile}.gz"))
         CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
@@ -258,10 +267,10 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_log, self.quiet)
+        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
         
         self.purge_empty_logs()
         
-        gzip_file(os.path.join(self.output_directory, self.snakemake_log))
+        gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()

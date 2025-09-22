@@ -6,16 +6,18 @@ import re
 import yaml
 import rich_click as click
 from harpy.common.conda import check_environments, create_conda_recipes
+from harpy.common.cli_types_generic import PANEL_OPTIONS 
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
+@click.rich_config(PANEL_OPTIONS)
 @click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
-@click.option('-r', '--relative',  is_flag = True, default = False, help = 'Call Snakemake with relative paths')
+@click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
+@click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, conda, relative, threads, quiet):
+def resume(directory, conda, absolute, threads, quiet):
     """
     Continue an incomplete Harpy workflow
 
@@ -42,7 +44,7 @@ def resume(directory, conda, relative, threads, quiet):
         snakemake_config = yaml.full_load(f)
 
     workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], quiet)
-    workflow.conda = harpy_config["conda_environments"] 
+    workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
     if conda:
         create_conda_recipes(directory, workflow.conda)
@@ -63,6 +65,9 @@ def resume(directory, conda, relative, threads, quiet):
 
     workflow.snakemake_cmd_absolute = harpy_config["snakemake"]["absolute"]
     workflow.snakemake_cmd_relative = harpy_config["snakemake"]["relative"]
+    
+    # pull in the inputs and store them, removing the original so it doesn't g
+    workflow.inputs = harpy_config["inputs"]
     workflow.config = harpy_config
     workflow.start_text = workflow_info(
         ("Workflow:", workflow.name.replace("_", " ")),
@@ -72,5 +77,5 @@ def resume(directory, conda, relative, threads, quiet):
     workflow.write_workflow_config()
 
     workflow.print_onstart()
-    workflow.launch()
+    workflow.launch(absolute)
 #

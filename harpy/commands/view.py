@@ -6,7 +6,8 @@ import glob
 import gzip
 import curses
 from pygments import highlight
-from pygments.lexers import YamlLexer
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import get_formatter_by_name
 from click import echo_via_pager
 import rich_click as click
 from rich.console import Console
@@ -27,11 +28,8 @@ def check_terminal_colors():
         # Determine the color type based on the number of colors
         if num_colors <= 8:
             return 8
-        if num_colors == 256:
+        else:
             return 256
-        if num_colors > 256:  # Truecolor (24-bit)
-            return 999
-        return 256
     except curses.error:
         # Non-interactive/unsupported terminals
         return 0
@@ -53,22 +51,18 @@ def parse_file(infile):
         )
     n_colors = check_terminal_colors()
     if n_colors <= 8:
-        from pygments.formatters import TerminalFormatter
-        formatter = TerminalFormatter
-    elif n_colors == 256:
-        from pygments.formatters import Terminal256Formatter
-        formatter = Terminal256Formatter
+        formatter = get_formatter_by_name("terminal")
     else:
-        from pygments.formatters import TerminalTrueColorFormatter
-        formatter = TerminalTrueColorFormatter
+        formatter = get_formatter_by_name("terminal256")
 
     def _read_file(x):
         compressed = is_gzip(x)
         opener = gzip.open if compressed else open
         mode = "rt" if compressed else "r"
+        lexer = get_lexer_by_name("yaml")
         with opener(x, mode) as f:
             for line in f:
-                yield highlight(line, YamlLexer(),formatter())
+                yield highlight(line, lexer, formatter)
     os.environ["PAGER"] = "less -R"
     echo_via_pager(_read_file(infile), color = n_colors > 0)
     return infile

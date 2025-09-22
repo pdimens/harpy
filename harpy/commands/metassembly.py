@@ -2,45 +2,33 @@
 
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_types_generic import KParam, SnakemakeParams
+from harpy.common.cli_types_generic import KParam, PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams
 from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
 
-docstring = {
-    "harpy metassembly": [
-        {
-            "name": "Metassembly Parameters",
-            "options": ["--bx-tag", "--extra-params","--kmer-length", "--max-memory", "--metassembly", "--organism-type", "--unlinked"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ]
-}
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/metassembly")
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Metassembly Parameters", panel_styles = {"border_style": "blue"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 # SPADES
-@click.option('-b', '--bx-tag', type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
-@click.option('-x', '--extra-params', type = SpadesParams(), help = 'Additional spades parameters, in quotes')
-@click.option('-k', '--kmer-length', type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
-@click.option('-r', '--max-memory',  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
-@click.option('-U', '--unlinked', is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('-b', '--bx-tag', panel = "Metassembly Parameters", type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
+@click.option('-x', '--extra-params', panel = "Metassembly Parameters", type = SpadesParams(), help = 'Additional spades parameters, in quotes')
+@click.option('-k', '--kmer-length', panel = "Metassembly Parameters", type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
+@click.option('-r', '--max-memory', panel = "Metassembly Parameters",  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
+@click.option('-U', '--unlinked', panel = "Metassembly Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 # Common Workflow
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
-@click.option('-u', '--organism-type', type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
-@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
+@click.option('-u', '--organism-type', panel = "Metassembly Parameters", type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
+@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
@@ -59,6 +47,11 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     fastq = FASTQ([fastq_r1,fastq_r2])
     fastq.bc_or_bx(bx_tag)
 
+
+    workflow.inputs = {
+            "fastq_r1" : fastq_r1,
+            "fastq_r2" : fastq_r2
+        }
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads" : {
@@ -70,19 +63,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
-        },
-        "inputs": {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
         }
     }
 

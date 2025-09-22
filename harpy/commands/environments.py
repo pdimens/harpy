@@ -3,7 +3,6 @@
 import os
 import shutil
 import subprocess
-from pathlib import Path
 import rich_click as click
 from harpy.common.conda import create_conda_recipes
 from harpy.common.workflow import Workflow
@@ -20,7 +19,7 @@ def containerize():
     workflow.fetch_snakefile()
     create_conda_recipes("container")
     
-    with open("Dockerfile", "w", encoding = "utf-8") as dockerraw:
+    with open("container/Dockerfile", "w", encoding = "utf-8") as dockerraw:
         _module = subprocess.run(
             'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
             stdout = dockerraw

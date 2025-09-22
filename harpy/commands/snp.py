@@ -5,7 +5,7 @@ import shutil
 from pathlib import Path
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
-from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
+from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
 from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
@@ -14,7 +14,8 @@ from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
 from harpy.validation.sam import SAM
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.command_panel("Commands", panel_styles={"border_style": "blue"})
 def snp():
     """
     Call SNPs and small indels from alignments
@@ -24,57 +25,22 @@ def snp():
     is greater than **2**.
     """
 
-module_docstring = {
-    "harpy snp": [
-        {
-            "name": "Commands",
-            "commands": ["freebayes", "mpileup"],
-            "panel_styles": {"border_style": "blue"}
-        }
-    ]
-}
-
-docstring = {
-    "harpy snp mpileup": [
-        {
-            "name": "Parameters",
-            "options": ["--extra-params", "--ploidy", "--populations", "--regions"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy snp freebayes": [
-        {
-            "name": "Parameters",
-            "options": ["--extra-params", "--ploidy", "--populations", "--regions"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ]
-} |  module_docstring
-
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
-@click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
-@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
+@click.option('-x', '--extra-params', panel = "Parameters", type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
+@click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
+@click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
+@click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
@@ -113,23 +79,17 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        "regions" : region,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {"skip": skip_reports},
-        "inputs" : {
-            "reference" : fasta.file,
-            "regions" : region,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
-        }
     }
 
     workflow.start_text = workflow_info(
@@ -142,18 +102,21 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
-@click.option('-n', '--ploidy', default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
-@click.option('-p', '--populations', type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
-@click.option('-r', '--regions', type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
-@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
+@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
+@click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
+@click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
+@click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
@@ -192,24 +155,18 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        "regions" : region,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "ploidy" : ploidy,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports
-        },
-        "inputs" : {
-            "reference" : fasta.file,
-            "regions" : region,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 

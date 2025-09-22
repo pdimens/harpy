@@ -8,30 +8,17 @@ import rich_click as click
 from harpy.common.printing import print_error, print_notice, CONSOLE
 from harpy.commands.hpc import hpc_generic, hpc_googlebatch, hpc_lsf, hpc_slurm
 
-docstring = {
-    "harpy template": [
-        {
-            "name": "Input Files",
-            "commands": ["groupings", "impute"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "HPC Configurations",
-            "commands": ["hpc-generic", "hpc-googlebatch", "hpc-lsf", "hpc-slurm"],
-            "panel_styles": {"border_style": "green", "subtitle": "run without arguments"}
-        },
-    ]
-}
-
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(context_settings={"help_option_names" : []})
+@click.command_panel("Input Files", panel_styles={"border_style": "blue"})
+@click.command_panel("HPC Configurations", panel_styles={"border_style": "blue"})
 def template():
     """
     Create files and HPC configs for workflows
 
-    All subcommands write to `stdout`.
+    All commands write to `stdout`. Use hpc-* and impute without arguments.
     """
 
-@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(panel = "Input Files", no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 def groupings(inputdir):
     """
@@ -70,7 +57,7 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-@click.command(context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
 def impute():
     """
     Create a template imputation parameter file

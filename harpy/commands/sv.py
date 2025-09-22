@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile, VCFfile
-from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
+from harpy.common.cli_types_generic import ContigList, MultiInt, PANEL_OPTIONS, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
@@ -13,7 +13,7 @@ from harpy.validation.populations import Populations
 from harpy.validation.sam import SAM
 from harpy.validation.vcf import VCF
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(context_settings={"help_option_names" : []})
 def sv():
     """
     Call inversions, deletions, and duplications from alignments
@@ -27,60 +27,26 @@ def sv():
     those variant callers. NAIBR tends to call variants better, but requires more user preprocessing.
     """
 
-module_docstring = {
-    "harpy sv": [
-        {
-            "name": "Commands",
-            "commands": ["leviathan", "naibr"],
-            "panel_styles": {"border_style": "blue"}
-        }
-    ]
-}
-
-docstring = {
-    "harpy sv leviathan": [
-        {
-            "name": "Parameters",
-            "options": ["--duplicates", "--extra-params", "--iterations", "--min-barcodes", "--min-size", "--populations", "--sharing-thresholds"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy sv naibr": [
-        {
-            "name": "Module Parameters",
-            "options": ["--extra-params", "--min-barcodes", "--min-quality", "--min-size", "--molecule-distance", "--populations", "--vcf"],
-            "panel_styles": {"border_style": "blue"}
-        },
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--contigs", "--hpc", "--output-dir", "--quiet", "--skip-reports", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ]
-} | module_docstring
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
-@click.option('-x', '--extra-params', type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
-@click.option('-i', '--iterations', show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
-@click.option('-d', '--duplicates', show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
-@click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-s', '--sharing-thresholds', type = MultiInt(3, minimum = 5, maximum = 100), default = "95,95,95", show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants (no spaces)')
-@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
+@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
+@click.option('-x', '--extra-params', panel = "Parameters", type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
+@click.option('-i', '--iterations', panel = "Parameters", show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
+@click.option('-d', '--duplicates', panel = "Parameters", show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
+@click.option('-m', '--min-size', panel = "Parameters", type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-s', '--sharing-thresholds', panel = "Parameters", type = MultiInt(3, minimum = 5, maximum = 100), default = "95,95,95", show_default=True, help = 'Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants (no spaces)')
+@click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "SV/leviathan", show_default=True,  help = 'Output directory name')
+@click.option('-p', '--populations', panel = "Parameters", type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
-@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
@@ -111,6 +77,11 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     if populations:
         popfile = Populations(populations, alignments.files)
 
+    workflow.inputs = {
+        "reference" : fasta.file,
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
@@ -123,20 +94,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
             "duplicates": duplicates
         },
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            "reference" : fasta.file,
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 
@@ -150,22 +110,25 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
-@click.option('-x', '--extra-params', type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
-@click.option('-b', '--min-barcodes', show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
-@click.option('-q', '--min-quality', show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
-@click.option('-m', '--min-size', type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
-@click.option('-d', '--molecule-distance', default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Base-pair distance delineating separate molecules')
-@click.option('-o', '--output-dir', type = click.Path(exists = False, resolve_path = True), default = "SV/naibr", show_default=True,  help = 'Output directory name')
-@click.option('-p', '--populations', type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
-@click.option('-t', '--threads', default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
-@click.option('-v', '--vcf', type=VCFfile(),  help = 'Path to phased bcf/vcf file')
-@click.option('--container',  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--contigs',  type = ContigList(), help = 'File or list of contigs to plot')
+@click.rich_config(PANEL_OPTIONS)
+@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
+@click.option_panel("Workflow Options", options = ["--help"], panel_styles = {"border_style": "blue"})
+@click.option('-x', '--extra-params', panel = "Parameters", type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
+@click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
+@click.option('-q', '--min-quality', panel = "Parameters", show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
+@click.option('-m', '--min-size', panel = "Parameters", type = click.IntRange(min = 10), default = 1000, show_default=True, help = 'Minimum size of SV to detect')
+@click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Base-pair distance delineating separate molecules')
+@click.option('-o', '--output-dir', panel = "Parameters", type = click.Path(exists = False, resolve_path = True), default = "SV/naibr", show_default=True,  help = 'Output directory name')
+@click.option('-p', '--populations', panel = "Parameters", type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
+@click.option('-t', '--threads',panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('-v', '--vcf', panel = "Parameters", type=VCFfile(),  help = 'Path to phased bcf/vcf file')
+@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc',  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', show_default = True, default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` unified progress bar, `2` no output')
-@click.option('--skip-reports',  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
@@ -177,7 +140,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
 
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
     in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA/EMA do not phase alignments), then provide a **phased** `--vcf` file such
+    (e.g. BWA/strobealign do not phase alignments), then provide a **phased** `--vcf` file such
      as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
     to phase your input bam files prior to calling variants with NAIBR.
 
@@ -203,6 +166,12 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         vcffile = VCF(vcf, workflow.workflow_directory)
         vcffile.check_phase()
 
+    workflow.inputs = {
+        **({'reference': fasta.file} if reference else {}),
+        **({'vcf': vcffile.file} if vcf else {}),
+        **({'groupings': popfile.file} if populations else {}),
+        "alignments" : alignments.files
+    }
     workflow.config = {
         "workflow" : workflow.name,
         "min_barcodes" : min_barcodes,
@@ -210,21 +179,9 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         "min_size" : min_size,
         "molecule_distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
-        "snakemake" : {
-            "log" : workflow.snakemake_log,
-            "absolute": workflow.snakemake_cmd_absolute,
-            "relative": workflow.snakemake_cmd_relative,
-        },
-        "conda_environments" : workflow.conda,
         "reports" : {
             "skip": skip_reports,
             **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        },
-        "inputs" : {
-            **({'reference': fasta.file} if reference else {}),
-            **({'vcf': vcffile.file} if vcf else {}),
-            **({'groupings': popfile.file} if populations else {}),
-            "alignments" : alignments.files
         }
     }
 
