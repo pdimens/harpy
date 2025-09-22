@@ -2,7 +2,7 @@
 
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_types_generic import KParam, PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams, ArcsParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
@@ -10,10 +10,6 @@ from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/assembly")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Assembly Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Scaffolding Parameters", panel_styles = {"border_style": "green"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 # SPADES
 @click.option('-k', '--kmer-length', panel = "Assembly Parameters", type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory', panel = "Assembly Parameters",  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')

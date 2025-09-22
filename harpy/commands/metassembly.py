@@ -2,7 +2,7 @@
 
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_types_generic import KParam, PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams
 from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
@@ -10,9 +10,6 @@ from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/metassembly")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Metassembly Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 # SPADES
 @click.option('-b', '--bx-tag', panel = "Metassembly Parameters", type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
 @click.option('-x', '--extra-params', panel = "Metassembly Parameters", type = SpadesParams(), help = 'Additional spades parameters, in quotes')

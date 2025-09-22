@@ -21,14 +21,15 @@ config = click.RichHelpConfiguration(
     max_width=80,
     theme = "green2-slim",
     use_markdown=True,
+    show_arguments=False,
+    style_options_panel_border = "blue",
+    style_commands_panel_border = "blue",
+    style_option_default= "dim",
+    style_deprecated="dim red",
+    options_table_column_types = ["opt_long", "opt_short", "help"],
+    options_table_help_sections = ["required", "help", "default"],
     errors_suggestion= "Try the '--help' flag for more information."
 )
-
-#click.rich_click.THEME = "default-modern"
-#click.rich_click.USE_MARKDOWN = True
-click.rich_click.SHOW_ARGUMENTS = False
-click.rich_click.MAX_WIDTH = 80
-##click.rich_click.ERRORS_EPILOGUE = "Documentation: [link=https://pdimens.github.io/harpy/]https://pdimens.github.io/harpy/[/link]"
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []} )
 @click.rich_config(config)

@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile
-from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.cli_types_params import StitchParams
 from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
@@ -13,9 +13,6 @@ from harpy.validation.sam import SAM
 from harpy.validation.vcf import VCF
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = StitchParams(), help = 'Additional STITCH parameters, in quotes')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')

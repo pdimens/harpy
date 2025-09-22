@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile, VCFfile
-from harpy.common.cli_types_generic import ContigList, MultiInt, PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
@@ -28,9 +28,6 @@ def sv():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
 @click.option('-i', '--iterations', panel = "Parameters", show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', panel = "Parameters", show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
@@ -110,8 +107,6 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
 @click.option_panel("Workflow Options", options = ["--help"], panel_styles = {"border_style": "blue"})
 @click.option('-x', '--extra-params', panel = "Parameters", type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
 @click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')

@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
-from harpy.common.cli_types_generic import PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
@@ -20,26 +20,7 @@ def validate():
     or `bam` to see more information and options.
     """
 
-docstring = {
-    "harpy validate bam": [
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ],
-    "harpy validate fastq": [
-        {
-            "name": "Workflow Options",
-            "options": ["--container", "--hpc", "--output-dir", "--quiet", "--snakemake", "--threads", "--help"],
-            "panel_styles": {"border_style": "dim"}
-        },
-    ]
-}
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
@@ -85,8 +66,6 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)

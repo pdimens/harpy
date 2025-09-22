@@ -1,10 +1,9 @@
 """Harpy align workflows"""
 
 import os
-from rich import table
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, FASTAfile
-from harpy.common.cli_types_generic import ContigList, PANEL_OPTIONS, SnakemakeParams
+from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import BwaParams, StrobeAlignParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
@@ -13,7 +12,6 @@ from harpy.validation.fasta import FASTA
 from harpy.validation.fastq import FASTQ
 
 @click.group(context_settings={"help_option_names" : []})
-@click.command_panel("Commands", panel_styles={"border_style": "blue"})
 def align():
     """
     Align sequences to a reference genome
@@ -24,9 +22,6 @@ def align():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
@@ -97,9 +92,6 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     workflow.initialize(setup_only)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
-@click.rich_config(PANEL_OPTIONS)
-@click.option_panel("Parameters", panel_styles = {"border_style": "blue"})
-@click.option_panel("Workflow Options", options = ["--help"],   panel_styles = {"border_style": "blue"})
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = StrobeAlignParams(), help = 'Additional strobealign parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
