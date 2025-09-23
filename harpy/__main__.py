@@ -27,8 +27,7 @@ config = click.RichHelpConfiguration(
     style_option_default= "dim",
     style_deprecated="dim red",
     options_table_column_types = ["opt_long", "opt_short", "help"],
-    options_table_help_sections = ["required", "help", "default"],
-    errors_suggestion= "Try the '--help' flag for more information."
+    options_table_help_sections = ["required", "help", "default"]
 )
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []} )
