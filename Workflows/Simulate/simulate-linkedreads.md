@@ -4,11 +4,18 @@ description: Simulate linked reads from a genome
 categories: [linked-read]
 tags: [linked-read]
 icon: dot
+nav:
+  badge: deprecated|danger
 order: 6
 ---
 
-# :icon-flame: Simulate Linked Reads
+# :icon-flame: Simulate Linked Reads [!badge variant="danger" text="being deprecated"]
 Simulate linked reads from a genome
+
+!!!danger SLATED FOR DEPRECATION
+The simulate linkedreads workflow is being replaced with [mimick](https://pdimens.github.io/mimick)
+!!!
+
 
 ===  :icon-checklist: You will need
 - at least one haplotypes of a reference genome in FASTA format: [!badge variant="success" text=".fasta"] [!badge variant="success" text=".fa"] [!badge variant="success" text=".fasta.gz"] [!badge variant="success" text=".fa.gz"] [!badge variant="secondary" text="case insensitive"]

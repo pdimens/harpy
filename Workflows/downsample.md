@@ -4,10 +4,16 @@ description: Downsample data by barcode
 category: [linked-read]
 tags: [linked-read]
 icon: fold-down
+nav:
+  badge: deprecated|danger
 order: 10
 ---
 
-# :icon-fold-down: Downsample data by barcode
+# :icon-fold-down: Downsample data by barcode [!badge variant="danger" text="being deprecated"]
+
+!!!danger SLATED FOR DEPRECATION
+The downsample module is being replaced with [djinn](https://pdimens.github.io/djinn)
+!!!
 
 ===  :icon-checklist: You will need
 - One of either:

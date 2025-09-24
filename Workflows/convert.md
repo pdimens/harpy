@@ -4,10 +4,17 @@ description: Convert between linked-read data formats
 category: [linked-read]
 tags: [linked-read]
 icon: arrow-switch
+nav:
+  badge: deprecated|danger
 order: 10
 ---
 
-# :icon-arrow-switch: Convert between data formats
+# :icon-arrow-switch: Convert between data formats [!badge variant="danger" text="being deprecated"]
+
+
+!!!danger SLATED FOR DEPRECATION
+The convert module is being replaced with [djinn](https://pdimens.github.io/djinn)
+!!!
 
 Regrettably, the bright minds who developed various linked-read technologies cannot seem to agree on a unified data format.
 That's annoying at best and hinders the field of linked-read analysis at worst, as there are pieces of very clever software
