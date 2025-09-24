@@ -647,45 +647,6 @@ jobs:
           harpy simulate translocation --quiet 2 --prefix Simulate/transvcf --vcf Simulate/translocation/haplotype_1/sim.hap1.translocation.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
 
-  simulate_linkedreads:
-    needs: [changes,build]
-    if: ${{ needs.changes.outputs.simreads == 'true' }}
-    name: simulate linkedreads
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
-      - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-          create_simulation_data
-
-      - name: simulate linked reads (random barcodes)
-        shell: micromamba-shell {0}
-        run: |
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 18,96 test.hap1.fa test.hap2.fa && \
-          ls -lh Simulate/linkedreads
-      - name: simulate linked reads (known barcodes)
-        shell: micromamba-shell {0}
-        run: |
-          harpy simulate linkedreads -t 4 --coverage 3 --quiet 1 -x 1 nucleotides.bc test.hap1.fa test.hap2.fa && \
-          ls -lh Simulate/linkedreads
-
   assembly:
     needs: [changes,build]
     if: ${{ needs.changes.outputs.assembly == 'true' }}

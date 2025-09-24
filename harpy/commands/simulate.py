@@ -1,7 +1,6 @@
 """Unify the harpy simulate commands"""
 
 import rich_click as click
-from . import simulate_linkedreads
 from . import simulate_variants
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []})
@@ -9,16 +8,27 @@ from . import simulate_variants
 @click.command_panel("Genomic Variants", commands = ["cnv", "inversion", "snpindel", "translocation"])
 def simulate():
     """
-    Simulate genomic variants or linked reads
+    Simulate genomic variants
 
     To simulate genomic variants, provide an additional subcommand {`snpindel`,`inversion`,`cnv`,`translocation`} 
     to get more information about that workflow. The variant simulator (`simuG`) can only simulate
     one type of variant at a time, so you may need to run it a few times if you want multiple variant types.
-    Use `simulate linkedreads` to simulate haplotagging linked reads from a diploid genome, which you can create by simulating
-    genomic variants.
     """
 
-simulate.add_command(simulate_linkedreads.linkedreads)
+import sys
+import rich_click as click
+
+@click.command(deprecated=True, no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/mimick/")
+def linkedreads():
+    """
+    Create linked reads using genome haplotypes
+
+    This workflow was a very thin veneer to use `Mimick` with mutations (SNPs and indels) deactivated. So, 
+    we now recommend using Mimick directly to achieve this by installing `Mimick` from Bioconda and using it directly.
+    """
+    sys.exit(1)
+
+simulate.add_command(linkedreads)
 simulate.add_command(simulate_variants.snpindel)
 simulate.add_command(simulate_variants.inversion)
 simulate.add_command(simulate_variants.cnv)

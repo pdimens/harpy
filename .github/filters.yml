@@ -126,15 +126,6 @@ simvars: &simvars
   - 'harpy/snakefiles/simulate_snpindel.smk'
   - 'harpy/snakefiles/simulate_variants.smk'
   - 'test/vcf/test.bcf'
-simreads: &simreads
-  - *common
-  - *environments
-  - 'harpy/commands/simulate.py'
-  - 'harpy/commands/simulate_linkedreads.py'
-  - 'harpy/snakefiles/simulate_linkedreads.smk'
-  - 'test/genome**gz'
-  - 'extractReads.cpp'
-  - 'harpy/scripts/haplotag_barcodes.py'
 assembly: &assembly
   - *common
   - *environments
@@ -146,10 +137,6 @@ other: &other
   - *common
   - 'harpy/commands/template.py'
   - 'harpy/commands/hpc.py'
-  - 'harpy/commands/downsample.py'
-convert: &convert
-  - *common
-  - 'harpy/commands/convert.py'
 modules:
   - *common
   - *demux
@@ -165,7 +152,5 @@ modules:
   - *leviathan
   - *naibr
   - *simvars
-  - *simreads
   - *assembly
   - *other
-  - *convert
