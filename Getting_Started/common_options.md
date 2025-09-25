@@ -117,9 +117,9 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 {.compact}
 | item               | contents                                                                                                       | utility                                                |
 |:-------------------|:---------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------|
-| `*.smk`            | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
+| `workflow.smk`            | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
 | `config.yml`       | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
-| `config.harpy.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
+| `workflow.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
 | `envs/`            | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
 | `hpc/`             | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
 | `reference/`       | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
