@@ -82,7 +82,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
         ("Linked-Read Type:", fastq.lr_type),
         ("Trim Adapters:", "yes" if trim_adapters else "no"),
         ("Deduplicate:", "yes" if deduplicate else "no"),
-        ("Output Folder:", f"{output_dir}/"),
+        ("Output Folder:", os.path.relpath(output_dir) + "/"),
     )
 
     workflow.initialize(setup_only)

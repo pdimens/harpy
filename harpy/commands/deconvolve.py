@@ -51,7 +51,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
     
     workflow.initialize(setup_only)

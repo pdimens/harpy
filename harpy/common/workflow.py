@@ -232,6 +232,7 @@ class Workflow():
 
     def print_onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
+        _relpath = os.path.relpath(self.output_directory)
         if self.quiet == 2:
             return
         time_text = self.time_elapsed()
@@ -240,8 +241,8 @@ class Workflow():
         datatable.add_column("value", justify="left")
         datatable.add_row("Duration:", time_text)
         if self.summary:
-            datatable.add_row("Summary: ", os.path.join(os.path.basename(self.output_directory), "workflow", self.summary))
-        datatable.add_row("Workflow Log:", os.path.join(os.path.basename(self.output_directory), f"{self.snakemake_logfile}.gz"))
+            datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))
+        datatable.add_row("Workflow Log:", os.path.join(_relpath, "logs", "snakemake", os.path.basename(f"{self.snakemake_logfile}.gz")))
         CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
@@ -270,7 +271,7 @@ class Workflow():
         try:
             launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
         finally:
-            with open(os.path.join(self.output_directory, "workflow", f"{self.name}.summary"), "w") as f_out: 
+            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())
             self.purge_empty_logs()
             if os.path.exists(self.snakemake_logfile):

@@ -87,7 +87,7 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
 
     workflow.start_text = workflow_info(
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
-        ("Output Folder:", f"{output_dir}/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

@@ -86,7 +86,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
         ("Samples:", fastq.count),
         ("Linked-Read Type:", fastq.lr_type),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)
@@ -158,7 +158,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
         ("Samples:", fastq.count),
         ("Linked-Read Type:", fastq.lr_type),
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

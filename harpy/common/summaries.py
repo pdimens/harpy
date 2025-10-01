@@ -37,7 +37,7 @@ class Summary:
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
-        sm = "The Snakemake workflow was called via command line:\n"
+        sm = "The Snakemake command invoked:\n"
         sm += f"\t{self.config['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)

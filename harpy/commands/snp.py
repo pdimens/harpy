@@ -93,7 +93,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         ("Samples:", alignments.count),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)
@@ -168,7 +168,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
         ("Samples:", alignments.count),
         ("Sample Groups:", os.path.basename(populations)) if populations else None,
         ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

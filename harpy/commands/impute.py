@@ -76,7 +76,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         ("Samples:", min(len(vcffile.samples), alignments.count)),
         ("Parameter File:", os.path.basename(parameters)),
         ("Contigs:", f"{len(vcffile.biallelic_contigs)} [dim](with at least 5 biallelic SNPs)") if not region else ("Target Region:", region),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

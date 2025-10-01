@@ -90,7 +90,7 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
         ("Barcode Type:", alignments.lr_type),
         ("Phase Indels:", "yes" if reference else "no"),
         ("Reference:", os.path.basename(reference)) if reference else None,
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)
