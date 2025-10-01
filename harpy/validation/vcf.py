@@ -18,7 +18,7 @@ class VCF():
 
     def find_biallelic_contigs(self):
         """
-        Identify which contigs have at least 2 biallelic SNPs and write them to `workdir/vcf.biallelic`
+        Identify which contigs have at least 5 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
@@ -33,7 +33,7 @@ class VCF():
         with open(self.biallelic_file, "w", encoding="utf-8") as f:
             for contig in header_contigs:
                 # Use bcftools to count the number of biallelic SNPs in the contig
-                viewcmd = subprocess.Popen(['bcftools', 'view', '-H', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', self.file], stdout=subprocess.PIPE)
+                viewcmd = subprocess.Popen(['bcftools', 'view', '-H', '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file], stdout=subprocess.PIPE)
                 snpcount = 0
                 while True:
                     # Read the next line of output
@@ -42,9 +42,9 @@ class VCF():
                         break
                     snpcount += 1
                     # If there are at least 2 biallellic snps, terminate the process
-                    if snpcount >= 2:
+                    if snpcount >= 5:
                         viewcmd.terminate()
-                        f.write(contig + "\n")
+                        f.write(f"{contig}\n")
                         self.biallelic_contigs.append(contig)
                         break
         if not self.biallelic_contigs:
