@@ -1,5 +1,6 @@
 """Basic functions to write the workflow summaries"""
 import os
+import re
 
 class Summary:
     def __init__(self, config: dict):
@@ -525,5 +526,245 @@ class Summary:
         summary.append(valids)
         sm = "The Snakemake command invoked:\n"
         sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def sv_leviathan(self) -> str:
+        if "groupings" in self.config["inputs"]:
+            return self.leviathan_pop()
+        else:
+            return self.leviathan()
+
+    def leviathan(self) -> str:
+        genomefile = os.path.basename(self.config["inputs"]["reference"])
+        min_size = self.config["min_size"]
+        min_bc = self.config["min_barcodes"]
+        iterations = self.config["iterations"]
+        small_thresh = self.config["variant_thresholds"]["small"]
+        medium_thresh = self.config["variant_thresholds"]["medium"]
+        large_thresh = self.config["variant_thresholds"]["large"]
+        duplcates_thresh = self.config["variant_thresholds"]["duplicates"]
+        extra = self.config.get("extra", "") 
+        params = " ".join([
+            f"-v {min_size}",
+            f"-c {min_bc}",
+            f"-B {iterations}",
+            f"-s {small_thresh}",
+            f"-m {medium_thresh}",
+            f"-l {large_thresh}",
+            f"-d {duplcates_thresh}",
+            extra
+        ])
+
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "\tLRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def leviathan_pop(self) -> str:
+        groupfile 	= self.config["inputs"]["groupings"]
+        genomefile 	= os.path.basename(self.config["inputs"]["reference"])
+        extra 		= self.config.get("extra", "") 
+        min_size      = self.config["min_size"]
+        min_bc      = self.config["min_barcodes"]
+        iterations  = self.config["iterations"]
+        small_thresh = self.config["variant_thresholds"]["small"]
+        medium_thresh = self.config["variant_thresholds"]["medium"]
+        large_thresh = self.config["variant_thresholds"]["large"]
+        duplcates_thresh = self.config["variant_thresholds"]["duplicates"]
+        params = " ".join([
+            f"-v {min_size}",
+            f"-c {min_bc}",
+            f"-B {iterations}",
+            f"-s {small_thresh}",
+            f"-m {medium_thresh}",
+            f"-l {large_thresh}",
+            f"-d {duplcates_thresh}",
+            extra
+        ])
+
+        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        summary.append(f"The provided populations grouping file: {groupfile}")
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam --bx -b samples.list > groupname.bam"
+        summary.append(concat)
+        bc_idx = "The barcodes were indexed using:\n"
+        bc_idx += "\tLRez index bam -p -b INPUT"
+        summary.append(bc_idx)
+        svcall = "Leviathan was called using:\n"
+        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
+        summary.append(svcall)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def sv_naibr(self) -> str:
+        if "vcf" in self.config["inputs"]:
+            if "groupings" in self.config["inputs"]:
+                return self.naibr_phase_pop()
+            else:
+                return self.naibr_phase()
+        else:
+            if "groupings" in self.config["inputs"]:
+                return self.naibr_pop()
+            else:
+                return self.naibr()
+
+    def naibr(self) -> str:
+        genomefile = os.path.basename(self.config["inputs"]["reference"])
+        extra = self.config.get("extra", None) 
+        min_size = self.config["min_size"]
+        min_barcodes = self.config["min_barcodes"]
+        min_quality  = self.config["min_quality"]
+        mol_dist    = self.config["molecule_distance"]
+        argdict = {
+        "min_mapq" : min_quality,
+        "d"        : mol_dist,
+        "min_sv"   : min_size,
+        "k"        : min_barcodes
+        }
+        if extra:
+            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+            for i in zip(words[::2], words[1::2]):
+                if "blacklist" in i or "candidates" in i:
+                    argdict[i[0].lstrip("-")] = i[1]
+        
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def naibr_pop(self) -> str:
+        genomefile   = os.path.basename(self.config["inputs"]["reference"])
+        groupfile    = self.config["inputs"]["groupings"]
+        extra        = self.config.get("extra", None) 
+        min_size     = self.config["min_size"]
+        min_barcodes = self.config["min_barcodes"]
+        min_quality  = self.config["min_quality"]
+        mol_dist     = self.config["molecule_distance"]
+        argdict = {
+        "min_mapq" : min_quality,
+        "d"        : mol_dist,
+        "min_sv"   : min_size,
+        "k"        : min_barcodes
+        }
+        if extra:
+            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+            for i in zip(words[::2], words[1::2]):
+                if "blacklist" in i or "candidates" in i:
+                    argdict[i[0].lstrip("-")] = i[1]
+
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        summary.append(f"The provided populations grouping file: {groupfile}")
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam -b samples.list > groupname.bam"
+        summary.append(concat)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def naibr_phase(self) -> str:
+        genomefile  = self.config["inputs"]["reference"]
+        vcffile     = self.config["inputs"]["vcf"]
+        extra       = self.config.get("extra", None) 
+        mol_dist    = self.config["molecule_distance"]
+        min_quality = self.config["min_quality"]
+        min_size    = self.config["min_size"]
+        min_barcodes = self.config["min_barcodes"]
+        argdict = {
+        "min_mapq" : min_quality,
+        "d"        : mol_dist,
+        "min_sv"   : min_size,
+        "k"        : min_barcodes
+        }
+        if extra:
+            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+            for i in zip(words[::2], words[1::2]):
+                if "blacklist" in i or "candidates" in i:
+                    argdict[i[0].lstrip("-")] = i[1]
+
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        summary.append(f"The provided phased variant call file: {vcffile}")
+        phase = "The alignment files were phased using:\n"
+        phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
+        summary.append(phase)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def naibr_phase_pop(self) -> str:
+        genomefile   = self.config["inputs"]["reference"]
+        groupfile    = self.config["inputs"]["groupings"]
+        vcffile      = self.config["inputs"]["vcf"]
+        extra        = self.config.get("extra", None) 
+        min_size     = self.config["min_size"]
+        min_quality  = self.config["min_quality"]
+        min_barcodes = self.config["min_barcodes"]
+        mol_dist     = self.config["molecule_distance"]
+        argdict = {
+        "min_mapq" : min_quality,
+        "d"        : mol_dist,
+        "min_sv"   : min_size,
+        "k"        : min_barcodes
+        }
+        if extra:
+            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+            for i in zip(words[::2], words[1::2]):
+                if "blacklist" in i or "candidates" in i:
+                    argdict[i[0].lstrip("-")] = i[1]
+
+        summary = ["The harpy sv naibr workflow ran using these parameters:"]
+        summary.append(f"The provided reference genome: {genomefile}")
+        summary.append(f"The provided populations grouping file: {groupfile}")
+        summary.append(f"The provided phased variant call file: {vcffile}")
+
+        phase = "The alignment files were phased using:\n"
+        phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
+        summary.append(phase)
+        concat = "The alignments were concatenated using:\n"
+        concat += "\tconcatenate_bam -o groupname.bam -b samples.list"
+        summary.append(concat)
+        naibr = "naibr variant calling ran using these configurations:\n"
+        naibr += "\tbam_file=BAMFILE\n"
+        naibr += "\tprefix=PREFIX\n"
+        naibr += "\toutdir=Variants/naibr/PREFIX\n"
+        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
+        summary.append(naibr)
+        sm = "The Snakemake command invoked:\n"
+        sm = f"\t{self.config['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)

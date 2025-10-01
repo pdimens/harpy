@@ -282,27 +282,10 @@ rule aggregate_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bedpe = collect("bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
         agg_report = "reports/naibr.summary.html" if not skip_reports else []
-    run:
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam -o groupname.bam -b samples.list"
-        summary.append(concat)
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.naibr.summary", "w") as f:
-            f.write("\n\n".join(summary))
