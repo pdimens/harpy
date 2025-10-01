@@ -318,31 +318,3 @@ rule workflow_summary:
         samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
-    params:
-        quality = config["alignment_quality"],
-        unmapped_strobe = "" if keep_unmapped else "-U",
-        unmapped = "" if keep_unmapped else "-F 4",
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        static = "-C" if is_standardized else "",
-        extra   = extra
-    run:
-        summary = ["The harpy align strobe workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genomefile}")
-        align = "Sequences were aligned with strobealign using:\n"
-        align += f"\tstrobealign -U {params.static} --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
-        align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
-        summary.append(align)
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
-        summary.append(standardization)
-        duplicates = "Duplicates in the alignments were marked following:\n"
-        duplicates += "\tsamtools collate |\n"
-        duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
-        summary.append(duplicates)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/align.strobe.summary", "w") as f:
-            f.write("\n\n".join(summary))

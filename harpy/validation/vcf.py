@@ -62,7 +62,7 @@ class VCF():
                 f"Phase [bold]{bn}[/] into haplotypes using [blue bold]harpy phase[/] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/] or [green]FORMAT/HP[/] tags."
             )
 
-    def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> list[str]:
+    def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
         vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
         filesamples = [Path(i).stem for i in bamlist]
@@ -110,7 +110,7 @@ class VCF():
                 contigs[_contig] = _info.length
         return contigs
 
-    def validate_region(self, region: str) -> list:
+    def validate_region(self, region: str) -> tuple[str,int,int,int]:
         """
         Validates the --region input of harpy impute to infer it's a properly formatted region
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns

@@ -328,37 +328,10 @@ rule barcode_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
-    params:
-        quality = config["alignment_quality"],
-        unmapped = "" if keep_unmapped else "-F 4",\
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        bwa_static = "-C -v 2" if is_standardized else "-v 2",
-        extra   = extra
-    run:
-        summary = ["The harpy align bwa workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genomefile}")
-        align = "Sequences were aligned with BWA using:\n"
-        align += f'\tbwa mem {params.bwa_static} {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
-        align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
-        summary.append(align)
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
-        summary.append(standardization)
-        duplicates = "Duplicates in the alignments were marked following:\n"
-        duplicates += "\tsamtools collate |\n"
-        duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
-        summary.append(duplicates)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open(f"workflow/align.bwa.summary", "w") as f:
-            f.write("\n\n".join(summary))

@@ -128,25 +128,9 @@ rule qc_report:
     shell: 
         "multiqc {params} > {output} 2> {log}"
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = "reports/barcode.summary.html" if not skip_reports and lr_type != "none" else [],
         agg_report = "reports/qc.report.html" if not skip_reports else []    
-    params:
-        minlen = f"--length_required {min_len}",
-        maxlen = f"--max_len1 {max_len}",
-        trim_adapters = trim_arg,
-        dedup = "-D" if dedup else "",
-        extra = extra
-    run:
-        summary = ["The harpy qc workflow ran using these parameters:"]
-        fastp = "fastp ran using:\n"
-        fastp += f"\tfastp --trim_poly_g --cut_right {params}"
-        summary.append(fastp)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/qc.summary", "w") as f:
-            f.write("\n\n".join(summary))

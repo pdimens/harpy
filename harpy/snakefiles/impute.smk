@@ -99,6 +99,7 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
+        #TODO MAKE THE PLOTS EXPLICIT
         temp(directory("{paramset}/contigs/{contig}/plots")),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
@@ -164,6 +165,7 @@ rule contig_report:
         "{paramset}/reports/_harpy.scss",
         "{paramset}/reports/_quarto.yml",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        #TODO MAKE PLOTS EXPLICIT
         plotdir = "{paramset}/contigs/{contig}/plots",
         qmd = "workflow/report/stitch_collate.qmd"
     output:
@@ -318,50 +320,9 @@ rule impute_reports:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input: 
         vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
         agg_report = collect("{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
-        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
-    run:
-        paramfiletext = "\t".join(open(paramfile, "r").readlines())
-        summary = ["The harpy impute workflow ran using these parameters:"]
-        summary.append(f"The provided variant file: {variantfile}")
-        preproc = "Preprocessing was performed with:\n"
-        preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
-        preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
-        summary.append(preproc)
-        stitchparam = f"The STITCH parameter file: {paramfile}\n"
-        stitchparam += f"\t{paramfiletext}"
-        summary.append(stitchparam)
-        stitch = "Within R, STITCH was invoked with the following parameters:\n"
-        stitch += "\tSTITCH(\n"
-        stitch += "\t\tmethod = model,\n"
-        stitch += "\t\tposfile = posfile,\n"
-        stitch += "\t\tbamlist = bamlist,\n"
-        stitch += "\t\tnCores = ncores,\n"
-        stitch += "\t\tnGen = ngen,\n"
-        stitch += "\t\tchr = chr,\n"
-        stitch += f"\t\tregionStart = {startpos},\n" if region else ""
-        stitch += f"\t\tregionEnd = {endpos},\n" if region else ""
-        stitch += f"\t\tbuffer = {buffer},\n" if region else ""
-        stitch += "\t\tK = k,\n"
-        stitch += "\t\tS = s,\n"
-        stitch += "\t\tuse_bx_tag = usebx,\n"
-        stitch += "\t\tbxTagUpperLimit = bxlimit,\n"
-        stitch += "\t\tniterations = 40,\n"
-        stitch += "\t\tswitchModelIteration = 39,\n"
-        stitch += "\t\tsplitReadIterations = NA,\n"
-        if grid_size > 1:
-            stitch += f"\t\tgridWindowSize = {grid_size}\n"
-        stitch += "\t\toutputdir = outdir,\n"
-        stitch += "\t\toutput_filename = outfile\n\t)"
-        stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += "\t" + config.get("stitch_extra", "None")
-        summary.append(stitchextra)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/impute.summary", "w") as f:
-            f.write("\n\n".join(summary))
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []

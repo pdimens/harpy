@@ -17,6 +17,7 @@ from harpy.common.conda import create_conda_recipes
 from harpy.common.file_ops import filepath, gzip_file, fetch_snakefile, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_error
 from harpy.common.launch import launch_snakemake
+from harpy.common.summaries import Summary
 
 class Workflow():
     '''
@@ -25,7 +26,6 @@ class Workflow():
     def __init__(self, name, snakefile, outdir, quiet, inputdir = False):
         creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')
         os.makedirs(creatdir, exist_ok = True)
-
         self.name: str = name
         self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
@@ -44,6 +44,7 @@ class Workflow():
         self.quiet: bool = quiet
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
+        self.summary_text: str = ""
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -55,7 +56,6 @@ class Workflow():
         increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
         return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
-    #def setup_snakemake(self, sdm: str, threads: int, hpc: str|None = None, sm_extra: str|None = None):
     def setup_snakemake(self, container: bool, threads: int, hpc: str|None = None, sm_extra: str|None = None):
         """
         Sets up the snakemake command based on hpc, threads, and extra snakemake params.
@@ -87,12 +87,10 @@ class Workflow():
             "apptainer-prefix": filepath("./.environments"),
             "directory": self.output_directory
         }
-        _command = []
-        _command += ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
+        _command = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
         _command += ["--configfile", os.path.join(self.workflow_directory, "workflow.yaml"), "--profile", self.workflow_directory]
         workdir_rel = os.path.relpath(self.workflow_directory)
-        _command_rel = []
-        _command_rel += ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
+        _command_rel = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
         _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml"), "--profile", workdir_rel]
         if hpc:
             self.hpc = hpc
@@ -261,6 +259,7 @@ class Workflow():
             self.fetch_report_configs()
         if self.hpc:
             self.fetch_hpc()
+        self.summary_text = Summary(self.config).get_text()
         self.print_onstart()
         if not setup_only:
             self.launch()
@@ -268,10 +267,12 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
-        
-        self.purge_empty_logs()
-        
-        gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
+        try:
+            launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
+        finally:
+            with open(os.path.join(self.output_directory, "workflow", f"{self.name}.summary"), "w") as f_out: 
+                f_out.write(self.summary_text)
+            self.purge_empty_logs()
+            gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()
