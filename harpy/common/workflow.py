@@ -259,7 +259,6 @@ class Workflow():
             self.fetch_report_configs()
         if self.hpc:
             self.fetch_hpc()
-        self.summary_text = Summary(self.config).get_text()
         self.print_onstart()
         if not setup_only:
             self.launch()
@@ -267,11 +266,12 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
+
         try:
             launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
         finally:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name}.summary"), "w") as f_out: 
-                f_out.write(self.summary_text)
+                f_out.write(Summary(self.config).get_text())
             self.purge_empty_logs()
             if os.path.exists(self.snakemake_logfile):
                 gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
