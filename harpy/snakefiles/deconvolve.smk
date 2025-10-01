@@ -76,24 +76,7 @@ use rule extract_forward as extract_reverse with:
     params:
         "-2"
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
-        collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-    run:
-        summary = ["The harpy deconvolve workflow ran using these parameters:"]
-        interleave = "fastq files were interleaved with seqtk:\n"
-        interleave += "\tseqtk mergepe forward.fq reverse.fq"
-        summary.append(interleave)
-        deconv = "Deconvolution occurred using QuickDeconvolution:\n"
-        deconv += f"\tQuickDeconvolution -t threads -i infile.fq -o output.fq -k {kmer_length} -w {window_size} -d {density} -a {dropout}"
-        summary.append(deconv)
-        recover = "The interleaved output was split back into forward and reverse reads with seqtk:\n"
-        recover += "\tseqtk seq -1 interleaved.fq | gzip > file.R1.fq.gz\n"
-        recover += "\tseqtk seq -2 interleaved.fq | gzip > file.R2.fq.gz"
-        summary.append(recover)
-        sm = "Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/deconvolve.summary", "w") as f:  
-            f.write("\n\n".join(summary))
+        collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames)

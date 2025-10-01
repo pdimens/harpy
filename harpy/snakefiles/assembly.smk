@@ -170,40 +170,8 @@ rule build_report:
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         "scaffolds.fasta",
-        "reports/assembly.metrics.html" if not skip_reports else [],
-    params:
-        k_param = k_param,
-        max_mem = max_mem // 1000,
-        spades_extra = spades_extra,
-        workdir = f"-C scaffold",
-        threads = f"-j {workflow.cores}",
-        draft_asm = f"draft=spades",
-        reads = f"reads=interleaved",
-        bwa_threads = f"t={workflow.cores}",
-        min_mapq = f"mapq={mapq}",
-        max_mismatch = f"nm={mismatch}",
-        moldist = f"dist={mol_dist}",
-        min_length = f"minsize={mol_len}",
-        span = f"span={span}",
-        min_perbarcod = f"c={min_align}",
-        min_contig = f"z={min_contig}",
-        min_seqid = f"s={seq_id}",
-        min_links = f"l={links}",
-        arcs_extra = arcs_extra
-    run:
-        summary = ["The harpy assemble workflow ran using these parameters:"]
-        spades = "Reads were assembled using cloudspades:\n"
-        spades += f"\tspades.py -t THREADS -m {params.max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {params.k_param} {params.spades_extra}"
-        summary.append(spades)
-        arcs = "The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:\n"
-        arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
-        summary.append(arcs)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/assembly.summary", "w") as f:
-            f.write("\n\n".join(summary))
+        "reports/assembly.metrics.html" if not skip_reports else []

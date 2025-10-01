@@ -83,17 +83,7 @@ rule create_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         "validate.bam.html"
-    run:
-        summary = ["The harpy validate bam workflow ran using these parameters:"]
-        valids = "Validations were performed with:\n"
-        valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
-        summary.append(valids)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/validate.bam.summary", "w") as f:
-            f.write("\n\n".join(summary))

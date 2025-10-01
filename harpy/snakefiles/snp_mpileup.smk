@@ -250,34 +250,9 @@ rule variant_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INPATH {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         vcf = collect("variants.{file}.bcf", file = ["raw", "normalized"]),
         agg_log = "logs/mpileup.log",
         reports = collect("reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
-    params:
-        ploidy = f"--ploidy {ploidy}",
-        populations = f"--populations {groupings}" if groupings else "--populations -"
-    run:
-        summary = ["The harpy snp freebayes workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        summary.append(f"Genomic positions for which variants were called: {region_input}")
-        mpileup = "The mpileup parameters:\n"
-        mpileup += f"\tbcftools mpileup --fasta-ref REFERENCE --region REGION --bam-list BAMS --annotate AD --output-type b {mp_extra}"
-        summary.append(mpileup)
-        bcfcall = "The bcftools call parameters:\n"
-        bcfcall += f"\tbcftools call --multiallelic-caller {params} --variants-only --output-type b |\n"
-        bcfcall += "\tbcftools sort -"
-        summary.append(bcfcall)
-        merged = "The variants identified in the intervals were merged into the final variant file using:\n"
-        merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
-        summary.append(merged)
-        normalize = "The variants were normalized using:\n"
-        normalize += "\tbcftools norm -m -both -d both -c w"
-        summary.append(normalize)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/snp.mpileup.summary", "w") as f:
-            f.write("\n\n".join(summary))

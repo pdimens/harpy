@@ -148,39 +148,9 @@ rule quality_report:
     shell:
         "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         fq = collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         barcode_logs = "logs/demultiplex.barcodes",
         reports = "reports/demultiplex.QA.html" if not skip_reports else []
-    params:
-        R1 = config["inputs"]["R1"],
-        R2 = config["inputs"]["R2"],
-        I1 = config["inputs"]["I1"],
-        I2 = config["inputs"]["I2"],
-        outdir = f"--samples {os.getcwd()}",
-        qxrx = "--rx --qx" if qxrx else "",
-        unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
-        unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
-    run:
-        summary = ["The harpy demultiplex workflow ran using these parameters:"]
-        summary.append("Linked Read Barcode Design: Meier et al. 2021")
-        inputs = "The multiplexed input files:\n"
-        inputs += f"\tread 1: {params.R1}\n"
-        inputs += f"\tread 2: {params.R2}\n"
-        inputs += f"\tindex 1: {params.I1}\n"
-        inputs += f"\tindex 2: {params.I2}"
-        inputs += f"Sample demultiplexing schema: {schemafile}"
-        summary.append(inputs)
-        demux = "Samples were demultiplexed using:\n"
-        demux += f"\tdmox --R1 --R2 --I1 --I2 {params.outdir} {params.qxrx} {params.unknown_barcodes} {params.unknown_samples}"
-        summary.append(demux)
-        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
-        summary.append(qc)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/demultiplex.meier2021.summary", "w") as f:
-            f.write("\n\n".join(summary))
