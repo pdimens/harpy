@@ -273,6 +273,7 @@ class Workflow():
             with open(os.path.join(self.output_directory, "workflow", f"{self.name}.summary"), "w") as f_out: 
                 f_out.write(self.summary_text)
             self.purge_empty_logs()
-            gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
+            if os.path.exists(self.snakemake_logfile):
+                gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()
