@@ -79,6 +79,7 @@ class Workflow():
             "rerun-incomplete": True,
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
+            "scheduler": "greedy",
             "nolock": True,
             "software-deployment-method": "conda" if not container else ["conda", "apptainer"],
             "conda-prefix": filepath("./.environments"),
