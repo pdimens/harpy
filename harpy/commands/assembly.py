@@ -1,6 +1,7 @@
 """Perform a linked-read aware metassembly"""
 
 import rich_click as click
+import os
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams, ArcsParams
