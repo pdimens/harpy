@@ -94,8 +94,8 @@ rule align:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
+        static = "-C -v 2 -T 10" if is_standardized else "-v 2 -T 10",
         unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
-        static = "-C -v 2" if is_standardized else "-v 2",
         extra = extra
     threads:
         min(6, workflow.cores - 1)

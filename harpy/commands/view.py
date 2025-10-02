@@ -39,7 +39,7 @@ def check_terminal_colors():
         except curses.error:
             pass
 
-def parse_file(infile):
+def parse_file(infile: str):
     '''
     take a list of input file name, get the most recent by modificiation time, and print it via pygmentized less
     returns a string of the file that was viewed
@@ -55,7 +55,7 @@ def parse_file(infile):
     else:
         formatter = get_formatter_by_name("terminal256")
 
-    def _read_file(x):
+    def _read_file(x: str):
         compressed = is_gzip(x)
         opener = gzip.open if compressed else open
         mode = "rt" if compressed else "r"
