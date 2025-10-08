@@ -145,7 +145,7 @@ rule index_contigs:
     conda:
         "envs/align.yaml"
     shell:
-        "bwa index {input}"
+        "bwa-mem2 index {input}"
 
 rule align_to_contigs:
     input:
