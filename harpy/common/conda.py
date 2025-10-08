@@ -12,6 +12,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
     environ = {
         "align" : [
             "bioconda::bwa-mem2",
+            "bioconda::bwa",
             "bioconda::samtools=1.22",
             "bioconda::seqtk",
             "bioconda::strobealign",
@@ -69,7 +70,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::python=3"
         ],
         "stitch" : [
-            "bioconda::r-stitch>=1.8"
+            "bioconda::r-stitch>=1.8.4"
         ],
         "variants" : [
             "bioconda::bcftools=1.22",
