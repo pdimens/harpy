@@ -142,6 +142,9 @@ rule impute:
             mv alphaMat.*normalized*.png alphaMat.{wildcards.contig}.normalized.png
             mv hapSum_log.*.png hapSum_log.{wildcards.contig}.png
             mv hapSum.*.png hapSum.{wildcards.contig}.png
+            mv metricsForPostImputationQC.{contig}*sample.jpg metricsForPostImputationQC.{contig}.sample.jpg
+            mv metricsForPostImputationQCChromosomeWide.{contig}*sample.jpg metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg
+            mv r2.{contig}.goodonly.jpg r2.{contig}*goodonly.jpg
         }} 2> {log.rename_log}
         """
 
