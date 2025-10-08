@@ -106,7 +106,6 @@ rule impute:
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg",
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg",
         "{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg",
-        #temp(directory("{paramset}/contigs/{contig}/plots")),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
@@ -115,19 +114,19 @@ rule impute:
         stitch_log = "{paramset}/logs/{contig}.stitch.log",
         rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
     params:
-        chrom   = lambda wc: "--chr=" + wc.contig,
+        chrom   = lambda wc: f"--chr={wc.contig}",
         start   = lambda wc: f"--regionStart={startpos}" if region else "",
         end     = lambda wc: f"--regionEnd={endpos}" if region else "",
         buffer  = lambda wc: f"--buffer={buffer}" if region else "",
-        model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
+        model   = lambda wc: f"--method={stitch_params[wc.paramset]['model']}",
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"--nGen={stitch_params[wc.paramset]['ngen']}",
-        outdir  = lambda wc: "--outputdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig),
-        outfile = lambda wc: "--output_filename=" + f"{wc.contig}.vcf.gz",
-        usebx   = lambda wc: "--use_bx_tag=" + str(stitch_params[wc.paramset]['usebx']).upper(),
+        outdir  = lambda wc: "--outputdir=" + os.path.join(wc.paramset, "contigs", wc.contig),
+        outfile = lambda wc: f"--output_filename={wc.contig}.vcf.gz",
+        usebx   = lambda wc: f"--use_bx_tag={str(stitch_params[wc.paramset]['usebx']).upper()}",
         bxlimit = lambda wc: f"--bxTagUpperLimit={stitch_params[wc.paramset]['bxlimit']}",
-        tmpdir  = lambda wc: "--tempdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig, "tmp"),
+        tmpdir  = lambda wc: "--tempdir=" + os.path.join(wc.paramset, "contigs", wc.contig, "tmp"),
         extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
         workflow.cores - 1
@@ -316,8 +315,7 @@ rule impute_reports:
         "{paramset}/reports/{paramset}.summary.html",
         qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
     log:
-        "{paramset}/lo+        with pysam.VariantFile(self.file) as _vcf:
-+            vcfsamples = list(_vcf.header.samples)gs/reports/imputestats.log"
+        "{paramset}/logs/reports/imputestats.log"
     params:
         param   = lambda wc: f"-P id:{wc.paramset}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",

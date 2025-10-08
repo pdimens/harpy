@@ -139,7 +139,7 @@ rule index_contigs:
     input:
         f"{spadesdir}/contigs.fasta"
     output:
-        multiext(f"{spadesdir}/contigs.fasta.", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac") 
+        multiext(f"{spadesdir}/contigs.fasta.", "0123", "amb", "ann", "bwt.2bit.64", "pac") 
     log:
         "logs/bwa.index.log"
     conda:
@@ -149,7 +149,7 @@ rule index_contigs:
 
 rule align_to_contigs:
     input:
-        multiext(f"{spadesdir}/contigs.fasta.", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
+        multiext(f"{spadesdir}/contigs.fasta.", "0123", "amb", "ann", "bwt.2bit.64", "pac"),
         fastq   = collect("fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
