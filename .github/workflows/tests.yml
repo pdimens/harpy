@@ -438,19 +438,19 @@ jobs:
         shell: micromamba-shell {0}
         run: |
           harpy impute --quiet 2 --grid-size 1500 test/stitch.params test/vcf/test.bcf test/bam && \
-          ls -lh Impute
+          ls -lh Impute/*/*
       - name: impute from vcf
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
-          ls -lh vcfImpute
+          ls -lh vcfImpute/*/*
       - name: impute one region
         shell: micromamba-shell {0}
         if: always()
         run: |
           harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
-          ls -lh regionImpute
+          ls -lh regionImpute/*/*
 
   phase:
     needs: [changes,build]

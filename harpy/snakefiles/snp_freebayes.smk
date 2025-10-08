@@ -61,7 +61,7 @@ rule preprocess_reference:
     shell: 
         """
         {{
-            seqtk seq {input} > {output}
+            seqtk seq {input} > {output.geno}
             samtools faidx --fai-idx {output.fai} {output.geno}
         }} 2> {log}
         """

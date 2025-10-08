@@ -99,17 +99,17 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png",
-        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png",
-        "{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png",
-        "{paramset}/contigs/{contig}/plots/hapSum.{contig}.png",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg",
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png"),
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum.{contig}.png"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg"),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
-        tmp = temp(directory("{paramset}/contigs/{contig}/tmp"))
+        tmpdir = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
         stitch_log = "{paramset}/logs/{contig}.stitch.log",
         rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
@@ -134,13 +134,14 @@ rule impute:
         "envs/stitch.yaml"
     shell:
         """
-        mkdir -p {output.tmp}
+        mkdir -p {output.tmpdir}
         STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
         {{
-            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
-            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
-            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
-            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
+            cd {wildcards.paramset}/contigs/{wildcards.contig}/plots
+            mv alphaMat.*all*.png alphaMat.{wildcards.contig}.all.png
+            mv alphaMat.*normalized*.png alphaMat.{wildcards.contig}.normalized.png
+            mv hapSum_log.*.png hapSum_log.{wildcards.contig}.png
+            mv hapSum.*.png hapSum.{wildcards.contig}.png
         }} 2> {log.rename_log}
         """
 
