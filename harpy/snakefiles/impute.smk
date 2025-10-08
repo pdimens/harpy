@@ -144,7 +144,7 @@ rule impute:
             mv hapSum.*.png hapSum.{wildcards.contig}.png
             mv metricsForPostImputationQC*sample.jpg metricsForPostImputationQC.{wildcards.contig}.sample.jpg
             mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.{wildcards.contig}.sample.jpg
-            mv r2*.goodonly.jpg r2.{wildcards.contig}*goodonly.jpg
+            mv r2*.goodonly.jpg r2.{wildcards.contig}.goodonly.jpg
         }} 2> {log.rename_log}
         """
 
