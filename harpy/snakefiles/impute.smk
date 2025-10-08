@@ -138,10 +138,10 @@ rule impute:
         mkdir -p {output.tmp}
         STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log}
 
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
         """
 
 rule index_vcf:
