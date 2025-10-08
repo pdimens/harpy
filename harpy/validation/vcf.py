@@ -41,14 +41,14 @@ class VCF():
                     if not line:
                         break
                     snpcount += 1
-                    # If there are at least 2 biallellic snps, terminate the process
+                    # If there are at least 5 biallellic snps, terminate the process
                     if snpcount >= 5:
                         viewcmd.terminate()
                         f.write(f"{contig}\n")
                         self.biallelic_contigs.append(contig)
                         break
         if not self.biallelic_contigs:
-            print_error("insufficient data", "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+            print_error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")
 
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""

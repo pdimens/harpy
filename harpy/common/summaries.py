@@ -116,7 +116,7 @@ class Summary:
         spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --isolate -k {k_param} {spades_extra}"
         summary.append(spades)
         arcs = "The draft assembly was error corrected and scaffolded with Tigmint/ARCS/LINKS:\n"
-        arcs += f"\tarcs-make arcs-tigmint {" ".join(params[3:])}"
+        arcs += f"\tarcs-make arcs-tigmint {' '.join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake command invoked:\n"
         sm += f"\t{self.config['snakemake']['relative']}"
@@ -192,12 +192,12 @@ class Summary:
             regiontext = ""
         paramfiletext = "\t".join(open(self.config["inputs"]["parameters"], "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
-        summary.append(f"The provided variant file: {self.config["inputs"]["vcf"]}")
+        summary.append(f"The provided variant file: {self.config['inputs']['vcf']}")
         preproc = "Preprocessing was performed with:\n"
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
         preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
         summary.append(preproc)
-        stitchparam = f"The STITCH parameter file: {self.config["inputs"]["parameters"]}\n"
+        stitchparam = f"The STITCH parameter file: {self.config['inputs']['parameters']}\n"
         stitchparam += f"\t{paramfiletext}"
         summary.append(stitchparam)
         stitch = "Within R, STITCH was invoked with the following parameters:\n"
@@ -217,7 +217,7 @@ class Summary:
         stitch += "\t\tswitchModelIteration = 39,\n"
         stitch += "\t\tsplitReadIterations = NA,\n"
         if self.config["grid_size"] > 1:
-            stitch += f"\t\tgridWindowSize = {self.config["grid_size"]}\n"
+            stitch += f"\t\tgridWindowSize = {self.config['grid_size']}\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
@@ -304,13 +304,13 @@ class Summary:
         annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
         sm = "The Snakemake command invoked:\n"
-        sm = f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def qc(self) -> str:
-        minlen = f"--length_required {self.config["min_len"]}"
-        maxlen = f"--max_len1 {self.config["max_len"]}"
+        minlen = f"--length_required {self.config['min_len']}"
+        maxlen = f"--max_len1 {self.config['max_len']}"
         extra = self.config.get("extra", "") 
         trim_adapters = self.config.get("trim_adapters", None)
         if trim_adapters:
@@ -766,6 +766,6 @@ class Summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake command invoked:\n"
-        sm = f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)

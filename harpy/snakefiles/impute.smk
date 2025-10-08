@@ -113,7 +113,8 @@ rule impute:
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
         tmp = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
-        logfile = "{paramset}/logs/{contig}.stitch.log"
+        stitch_log = "{paramset}/logs/{contig}.stitch.log",
+        rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
     params:
         chrom   = lambda wc: "--chr=" + wc.contig,
         start   = lambda wc: f"--regionStart={startpos}" if region else "",
@@ -136,12 +137,13 @@ rule impute:
     shell:
         """
         mkdir -p {output.tmp}
-        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log}
-
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
-        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
+        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
+        {{
+            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
+            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
+            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
+            mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
+        }} 2> {log.rename_log}
         """
 
 rule index_vcf:

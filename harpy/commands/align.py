@@ -18,7 +18,8 @@ def align():
 
     Provide an additional subcommand `bwa` or `strobe` to get more information on using
     those aligners. Both have comparable performance, but `strobe` is typically faster.
-    The aligners are not linked-read aware, but the workflows
+    The aligners are not linked-read aware, but the workflows ensure linked-read information
+    is carried over to the alignment records.
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
@@ -41,7 +42,7 @@ def align():
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
     """
-    Align sequences to reference genome using BWA MEM
+    Align sequences to reference genome using BWA MEM2
     
     Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
