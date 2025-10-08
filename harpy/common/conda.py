@@ -11,15 +11,11 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
     """Create the YAML files of the workflow conda dependencies"""
     environ = {
         "align" : [
-            "bioconda::bwa",
-            "bioconda::ema",
+            "bioconda::bwa-mem2",
             "bioconda::samtools=1.22",
             "bioconda::seqtk",
             "bioconda::strobealign",
-            "bioconda::tabix",
-            "conda-forge::icu",
-            "conda-forge::libzlib",
-            "conda-forge::xz"
+            "bioconda::tabix"
         ],
         "assembly" : [
             "bioconda::arcs",
@@ -87,7 +83,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
     os.makedirs(_out, exist_ok = True)
     # if none provided, use all
     if not envs:
-        envs = environ.keys()
+        envs = list(environ.keys())
 
     for i in envs:
         try:

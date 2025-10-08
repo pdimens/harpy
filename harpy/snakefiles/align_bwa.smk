@@ -38,7 +38,7 @@ rule preprocess_reference:
         genomefile
     output: 
         geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        bwa_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
@@ -62,7 +62,7 @@ rule preprocess_reference:
             samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
         fi
 
-        bwa index {output.geno} 2> {log}
+        bwa-mem2 index {output.geno} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -87,7 +87,7 @@ rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
-        genome_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
         pipe("samples/{sample}/{sample}.bwa.sam")
     log:
@@ -103,7 +103,7 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        bwa mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
+        bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
         """     
 
 rule standardize_barcodes:
