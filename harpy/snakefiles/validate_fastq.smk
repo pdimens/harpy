@@ -60,8 +60,10 @@ rule concat_results:
         None
     shell:
         """
-        echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast" > {output}
-        cat {input} | sort -k1 >> {output}
+        {{
+            echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast"
+            cat {input} | sort -k1
+        }} > {output}
         """
 
 rule configure_report:

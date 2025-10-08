@@ -49,20 +49,22 @@ rule preprocess_reference:
         "envs/align.yaml"
     shell: 
         """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output.geno}
-        else
-            cp -f {input} {output.geno}
-        fi
+        {{
+            if (file {input} | grep -q compressed ) ;then
+                # is regular gzipped, needs to be BGzipped
+                seqtk seq {input} | bgzip -c > {output.geno}
+            else
+                cp -f {input} {output.geno}
+            fi
 
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno} 2>> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
-        fi
+            if [ "{params}" = "True" ]; then
+                samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
+            else
+                samtools faidx --fai-idx {output.fai} {output.geno}
+            fi
 
-        bwa-mem2 index {output.geno} 2> {log}
+            bwa-mem2 index {output.geno} 
+        }} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -103,7 +105,9 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
+        {{
+            bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} {params.unmapped}
+        }} 2> {log} > {output}
         """     
 
 rule standardize_barcodes:
@@ -144,12 +148,14 @@ rule mark_duplicates:
             OPTICAL_BUFFER=2500
         else
             OPTICAL_BUFFER=100
-        fi
-        samtools collate -O -u {input.sam} 2> {log.debug} |
-            samtools fixmate -z on -m -u - - 2>> {log.debug} |
-            samtools view -h -q {params.quality} |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
+        fi 
+        {{
+            samtools collate -O -u {input.sam} |
+                samtools fixmate -z on -m -u - - |
+                samtools view -h -q {params.quality} |
+                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output}
+        }} 2> {log.debug}
         rm -rf {params.tmpdir}
         """
 
@@ -279,12 +285,16 @@ rule general_stats:
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
+    log:
+        "logs/stats/{sample}.samstats.log"
     container:
         None
     shell:
         """
-        samtools stats -d {input.bam} > {output.stats}
-        samtools flagstat {input.bam} > {output.flagstat}
+        {{
+            samtools stats -d {input.bam} > {output.stats}
+            samtools flagstat {input.bam} > {output.flagstat}
+        }} 2> {log}
         """
 
 rule samtools_report:

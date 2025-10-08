@@ -43,8 +43,10 @@ rule concat_results:
         None
     shell:
         """
-        echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX" > {output}
-        cat {input} | sort -k1 >> {output}
+        {{
+        echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
+        cat {input} | sort -k1
+        }} > {output}
         """
 
 rule configure_report:

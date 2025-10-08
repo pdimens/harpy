@@ -51,8 +51,10 @@ rule index_barcodes:
         "envs/variants.yaml"
     shell:
         """
-        samtools index {input} 2> {log}
-        LRez index bam --threads {threads} -p -b {input} -o {output} 2>> {log}
+        {{
+            samtools index {input}
+            LRez index bam --threads {threads} -p -b {input} -o {output}
+        }} 2> {log}
         """
 
 rule preprocess_reference:
@@ -68,9 +70,11 @@ rule preprocess_reference:
         "envs/align.yaml"
     shell: 
         """
-        seqtk seq {input} > {output.geno}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
-        bwa index {output.geno} 2>> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+            bwa index {output.geno}
+        }} 2> {log}
         """
 
 rule call_variants:
@@ -120,8 +124,10 @@ rule variant_stats:
         None
     shell:
         """
-        echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
-        bcftools query -f '{wildcards.sample}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
+        {{
+            echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs"
+            bcftools query -f '{wildcards.sample}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input}
+        }} > {output}
         """
 
 rule aggregate_variants:
@@ -201,28 +207,9 @@ rule sample_reports:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input: 
         vcf = collect("vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect("reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
-    params:
-        min_size = f"-v {min_size}",
-        min_bc = f"-c {min_bc}",
-        iters  = f"-B {iterations}",
-        extra = extra
-    run:
-        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        bc_idx = "The barcodes were indexed using:\n"
-        bc_idx += "LRez index bam -p -b INPUT"
-        summary.append(bc_idx)
-        svcall = "Leviathan was called using:\n"
-        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
-        summary.append(svcall)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.leviathan.summary", "w") as f:
-            f.write("\n\n".join(summary))

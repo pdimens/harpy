@@ -88,22 +88,10 @@ rule concat_groups:
         bamlist  = "workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        temp("workflow/input/{population}.unsort.bam")
+        bam = "workflow/input/{population}.bam",
+        bai = "workflow/input/{population}.bam.bai"
     log:
         "logs/concat_groups/{population}.concat.log"
-    container:
-        None
-    shell:
-        "concatenate_bam -b {input.bamlist} > {output} 2> {log}"
-
-rule sort_groups:
-    input:
-        "workflow/input/{population}.unsort.bam"
-    output:
-        bam = ("workflow/input/{population}.bam"),
-        bai = ("workflow/input/{population}.bam.bai")
-    log:
-        "logs/samtools/sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -111,7 +99,12 @@ rule sort_groups:
     container:
         None
     shell:
-        "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
+        """
+        {{
+            concatenate_bam -b {input.bamlist} |
+            samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
+        }} 2> {log}
+        """
 
 rule naibr_config:
     input:
@@ -213,8 +206,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule configure_report:
@@ -228,6 +223,7 @@ rule configure_report:
         import shutil
         for i,o in zip(input,output):
             shutil.copy(i,o)
+
 rule group_reports:
     input: 
         "reports/_quarto.yml",

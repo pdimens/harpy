@@ -32,6 +32,8 @@ rule sort_by_barcode:
     output:
         fq_f = temp("fastq_preproc/tmp.R1.fq"),
         fq_r = temp("fastq_preproc/tmp.R2.fq")
+    log:
+        "logs/sort_by_barcode.log"
     params:
         barcode_tag = BX_TAG
     threads:
@@ -40,9 +42,11 @@ rule sort_by_barcode:
         None
     shell:
         """
-        samtools import -T "*" {input} |
-        samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
-        samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+        {{
+            samtools import -T "*" {input} |
+            samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
+            samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+        }} 2> {log}
         """
 
 rule format_barcode:
@@ -135,7 +139,7 @@ rule index_contigs:
     input:
         f"{spadesdir}/contigs.fasta"
     output:
-        multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb") 
+        multiext(f"{spadesdir}/contigs.fasta.", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac") 
     log:
         "logs/bwa.index.log"
     conda:
@@ -145,7 +149,7 @@ rule index_contigs:
 
 rule align_to_contigs:
     input:
-        multiext(f"{spadesdir}/contigs.fasta.", "ann", "bwt", "pac", "sa", "amb"),
+        multiext(f"{spadesdir}/contigs.fasta.", ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
         fastq   = collect("fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
@@ -158,7 +162,7 @@ rule align_to_contigs:
     conda:
         "envs/align.yaml"
     shell:
-        "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
+        "bwa-mem2 mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
 rule index_alignments:
     input:

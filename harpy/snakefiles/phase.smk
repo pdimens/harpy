@@ -113,8 +113,10 @@ if indels:
             None
         shell: 
             """
-            seqtk seq {input} > {output.fasta}
-            samtools faidx --fai-idx {output.fai} {output.fasta} 2> {log}
+            {{
+                seqtk seq {input} > {output.fasta}
+                samtools faidx --fai-idx {output.fai} {output.fasta}
+            }} 2> {log}
             """
 
 rule extract_hairs:
@@ -205,6 +207,7 @@ rule annotate_phase:
         None
     shell:
         "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
+
 rule create_merge_list:
     input:
         bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames)
@@ -241,11 +244,12 @@ rule summarize_blocks:
         None
     shell:
         """
-        echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
-        for i in {input}; do
-            parse_phaseblocks $i >> {params}
-        done
-        gzip {params}
+        {{
+            echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length"
+            for i in {input}; do
+                parse_phaseblocks $i
+            done
+        }} | gzip > {params}
         """
 
 rule configure_report:

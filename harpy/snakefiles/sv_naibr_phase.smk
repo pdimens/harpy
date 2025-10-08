@@ -73,8 +73,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} > {log}
         """
 
 rule index_alignments:

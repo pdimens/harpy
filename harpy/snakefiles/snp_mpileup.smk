@@ -50,13 +50,15 @@ rule preprocess_reference:
         None
     shell: 
         """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output.geno}
-        else
-            cp -f {input} {output.geno}
-        fi
-        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            if (file {input} | grep -q compressed ) ;then
+                # is regular gzipped, needs to be BGzipped
+                seqtk seq {input} | bgzip -c > {output.geno}
+            else
+                cp -f {input} {output.geno}
+            fi
+            samtools faidx {params} --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule preprocess_groups:
