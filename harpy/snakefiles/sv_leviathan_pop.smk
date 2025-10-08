@@ -74,32 +74,22 @@ rule concat_groups:
         bamlist  = "workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        temp("workflow/input/{population}.unsort.bam")
-    log:
-        "logs/concat_groups/{population}.concat.log"
-    threads:
-        1
-    container:
-        None
-    shell:
-        "concatenate_bam --bx -b {input.bamlist} > {output} 2> {log}"
-
-rule sort_groups:
-    input:
-        "workflow/input/{population}.unsort.bam"
-    output:
         bam = temp("workflow/input/{population}.bam"),
         bai = temp("workflow/input/{population}.bam.bai")
     log:
-        "logs/samtools_sort/{population}.sort.log"
+        concat = "logs/concat_groups/{population}.concat.log",
+        samsort = "logs/samtools_sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
-        10
+        workflow.cores
     container:
         None
     shell:
-        "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
+        """
+        concatenate_bam --bx -b {input.bamlist} 2> {log.concat} | 
+            samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} 2> {log.samsort}
+        """
 
 rule index_barcode:
     input: 
