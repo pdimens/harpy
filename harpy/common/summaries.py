@@ -95,10 +95,10 @@ class Summary:
         max_mem = max_mem // 1000
         spades_extra = spades_extra
         params = [
-            f"-C scaffold",
+            "-C scaffold",
             "-j THREADS",
-            f"draft=spades",
-            f"reads=interleaved",
+            "draft=spades",
+            "reads=interleaved",
             "t=THREADS",
             f"mapq={mapq}",
             f"nm={mismatch}",
@@ -293,7 +293,7 @@ class Summary:
         phase = "Phasing was performed using the components of HapCut2:\n"
         phase += f"\textractHAIRS {hairs_params} --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
         if bc_type != "none":
-            phase += f"\t awk " + invalid_regex.get(bc_type, "'$4 !~ /N/'") + " sample.unlinked.frags > sample.frags.filt"
+            phase += "\t awk " + invalid_regex.get(bc_type, "'$4 !~ /N/'") + " sample.unlinked.frags > sample.frags.filt"
             phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.frags.filt --out sample.linked.frags -d {molecule_distance}\n"
             phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {prune} {extra}\n"
         else:
@@ -321,7 +321,7 @@ class Summary:
 
         summary = ["The harpy qc workflow ran using these parameters:"]
         fastp = "fastp ran using:\n"
-        fastp += f"\tfastp --trim_poly_g --cut_right " + " ".join([minlen,maxlen,trim_arg,dedup,extra])
+        fastp += "\tfastp --trim_poly_g --cut_right " + " ".join([minlen,maxlen,trim_arg,dedup,extra])
         summary.append(fastp)
         sm = "The Snakemake command invoked:\n"
         sm += f"\t{self.config['snakemake']['relative']}"
@@ -428,9 +428,9 @@ class Summary:
                 variant_params += f" -{variant}_min_size " +  str(self.config[variant]["min_size"])
                 variant_params += f" -{variant}_max_size " +  str(self.config[variant]["max_size"])
             if variant == "cnv":
-                variant_params += f" -duplication_tandem_dispersed_ratio " +  str(self.config[variant]["duplication_ratio"])
-                variant_params += f" --cnv_max_copy_number " +  str(self.config[variant]["max_copy"])
-                variant_params += f" --cnv_gain_loss_ratio " +  str(self.config[variant]["gain_ratio"])
+                variant_params += " -duplication_tandem_dispersed_ratio " +  str(self.config[variant]["duplication_ratio"])
+                variant_params += " --cnv_max_copy_number " +  str(self.config[variant]["max_copy"])
+                variant_params += " --cnv_gain_loss_ratio " +  str(self.config[variant]["gain_ratio"])
 
         summary = [f"The harpy simulate {variant} workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genome}")
@@ -439,7 +439,7 @@ class Summary:
         haploid += f"\tsimuG -refseq {genome} -prefix {outprefix} {variant_params}"
         summary.append(haploid)
         if heterozygosity > 0 and not only_vcf:
-            diploid = f"Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
+            diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
             diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {variant}.vcf hapX.vcf"
             summary.append(diploid)
         sm = "The Snakemake command invoked:\n"
@@ -463,7 +463,7 @@ class Summary:
         summary.append(f"Genomic positions for which variants were called: {regions_input}")
         varcall = "The freebayes parameters:\n"
         varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
-        varcall += f"\tbcftools sort -"
+        varcall += "\tbcftools sort -"
         summary.append(varcall)
         merged = "The variants identified in the intervals were merged into the final variant file using:\n"
         merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
@@ -636,7 +636,7 @@ class Summary:
         }
         if extra:
             words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2]):
+            for i in zip(words[::2], words[1::2], strict = True):
                 if "blacklist" in i or "candidates" in i:
                     argdict[i[0].lstrip("-")] = i[1]
         
@@ -669,7 +669,7 @@ class Summary:
         }
         if extra:
             words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2]):
+            for i in zip(words[::2], words[1::2], strict = True):
                 if "blacklist" in i or "candidates" in i:
                     argdict[i[0].lstrip("-")] = i[1]
 
@@ -706,7 +706,7 @@ class Summary:
         }
         if extra:
             words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2]):
+            for i in zip(words[::2], words[1::2], strict = True):
                 if "blacklist" in i or "candidates" in i:
                     argdict[i[0].lstrip("-")] = i[1]
 
@@ -744,7 +744,7 @@ class Summary:
         }
         if extra:
             words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2]):
+            for i in zip(words[::2], words[1::2], strict = True):
                 if "blacklist" in i or "candidates" in i:
                     argdict[i[0].lstrip("-")] = i[1]
 

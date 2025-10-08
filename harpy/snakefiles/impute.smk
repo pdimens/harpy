@@ -99,7 +99,6 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        #TODO MAKE THE PLOTS EXPLICIT
         "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png",
         "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png",
         "{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png",
@@ -317,7 +316,8 @@ rule impute_reports:
         "{paramset}/reports/{paramset}.summary.html",
         qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
     log:
-        "{paramset}/logs/reports/imputestats.log"
+        "{paramset}/lo+        with pysam.VariantFile(self.file) as _vcf:
++            vcfsamples = list(_vcf.header.samples)gs/reports/imputestats.log"
     params:
         param   = lambda wc: f"-P id:{wc.paramset}",
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
