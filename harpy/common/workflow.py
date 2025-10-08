@@ -232,9 +232,9 @@ class Workflow():
 
     def print_onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
-        _relpath = os.path.relpath(self.output_directory)
         if self.quiet == 2:
             return
+        _relpath = os.path.relpath(self.output_directory)
         time_text = self.time_elapsed()
         datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)

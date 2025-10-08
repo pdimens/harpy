@@ -100,7 +100,14 @@ rule impute:
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
         #TODO MAKE THE PLOTS EXPLICIT
-        temp(directory("{paramset}/contigs/{contig}/plots")),
+        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.{contig}.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg",
+        #temp(directory("{paramset}/contigs/{contig}/plots")),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
@@ -130,6 +137,11 @@ rule impute:
         """
         mkdir -p {output.tmp}
         STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log}
+
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.all.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/alphaMat.{wildcards.contig}.normalized.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum_log.{wildcards.contig}.png
+        mv {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.s.*.png {wildcards.paramset}/contigs/{wildcards.contig}/plots/hapSum.{wildcards.contig}.png
         """
 
 rule index_vcf:
@@ -164,9 +176,14 @@ rule contig_report:
     input:
         "{paramset}/reports/_harpy.scss",
         "{paramset}/reports/_quarto.yml",
+        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.{contig}.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        #TODO MAKE PLOTS EXPLICIT
-        plotdir = "{paramset}/contigs/{contig}/plots",
         qmd = "workflow/report/stitch_collate.qmd"
     output:
         report = "{paramset}/reports/{contig}.{paramset}.html",
@@ -175,6 +192,7 @@ rule contig_report:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
         params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
+        plotdir = lambda wc: "-P plotdir:" + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
@@ -190,8 +208,7 @@ rule contig_report:
         """
         cp -f {input.qmd} {output.qmd}
         STATS=$(realpath {input.statsfile})
-        PLOTDIR=$(realpath {input.plotdir})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
         """
 
 rule concat_list:

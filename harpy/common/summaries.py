@@ -181,11 +181,15 @@ class Summary:
         return "\n\n".join(summary)
 
     def impute(self) -> str:
-        print(self.config.keys())
         region = self.config.get("region", None)
         if region:
             _,positions = region.split(":")
             startpos,endpos,buffer = [int(i) for i in positions.split("-")]
+            regiontext = f"\t\tregionStart = {startpos},\n"
+            regiontext += f"\t\tregionEnd = {endpos},\n"
+            regiontext += f"\t\tbuffer = {buffer},\n"
+        else:
+            regiontext = ""
         paramfiletext = "\t".join(open(self.config["inputs"]["parameters"], "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {self.config["inputs"]["vcf"]}")
@@ -204,10 +208,7 @@ class Summary:
         stitch += "\t\tnCores = ncores,\n"
         stitch += "\t\tnGen = ngen,\n"
         stitch += "\t\tchr = chr,\n"
-        if region:
-            stitch += f"\t\tregionStart = {startpos},\n"
-            stitch += f"\t\tregionEnd = {endpos},\n"
-            stitch += f"\t\tbuffer = {buffer},\n"
+        stitch += regiontext
         stitch += "\t\tK = k,\n"
         stitch += "\t\tS = s,\n"
         stitch += "\t\tuse_bx_tag = usebx,\n"
