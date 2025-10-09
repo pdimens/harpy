@@ -15,6 +15,7 @@ k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
 spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+force_athena = config["athena"]["force"]
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {
@@ -170,7 +171,7 @@ rule align_to_contigs:
         """
         {{
             bwa mem {params} {input.contigs} {input.fastq} |
-                samtools view -h -F 4 -q 10 |
+                samtools view -h -F 4 -q 5 |
                 samtools sort -@ 1 -O bam --write-index -o {output.bam}##idx##{output.bai} -
         }} 2> {log}
         """
@@ -224,6 +225,7 @@ rule athena_metassembly:
     log:
         "logs/athena.log"
     params:
+        force = "--force_reads" if force_athena else "",
         local_asm = "athena/results/olc/flye-input-contigs.fa",
         final_asm = "athena/results/olc/athena.asm.fa",
         result_dir = "athena"
@@ -231,7 +233,7 @@ rule athena_metassembly:
         "envs/metassembly.yaml"
     shell:
         """
-        athena-meta --config {input.config} 2> {log} &&\\
+        athena-meta {params.force} --config {input.config} &> {log} &&\\
         mv {params.local_asm} {params.final_asm} {params.result_dir}      
         """
 

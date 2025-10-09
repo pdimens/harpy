@@ -8,6 +8,8 @@
 - bwa-mem2 replaces bwa in align bwa
 - impute needs a minimum of 5 biallelic snps per contig
 - alignment during metassembly no longer outputs unmapped reads or alignments with mapq < 10
+- added hidden `--force` option to metassembly to force athena to run even if fq/bam don't pass its internal qc
+- options error borders are now yellow, making it consistent with other errors
 
 # fixes
 - impute workflow has explicit output plot filename declarations to catch errors better
