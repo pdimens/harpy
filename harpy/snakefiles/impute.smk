@@ -99,13 +99,13 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        temp("{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png"),
-        temp("{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png"),
-        temp("{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png"),
-        temp("{paramset}/contigs/{contig}/plots/hapSum.{contig}.png"),
-        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg"),
-        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg"),
-        temp("{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.all.png"),
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.normalized.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum_log.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum.png"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/r2.goodonly.jpg"),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
@@ -138,13 +138,13 @@ rule impute:
         STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
         {{
             cd {wildcards.paramset}/contigs/{wildcards.contig}/plots
-            mv -n alphaMat.*all*.png alphaMat.{wildcards.contig}.all.png
-            mv -n alphaMat.*normalized*.png alphaMat.{wildcards.contig}.normalized.png
-            mv -n hapSum_log.*.png hapSum_log.{wildcards.contig}.png
-            mv -n hapSum.*.png hapSum.{wildcards.contig}.png
-            mv -n metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.{wildcards.contig}.sample.jpg
-            mv -n metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.{wildcards.contig}.sample.jpg
-            mv -n r2*.goodonly.jpg r2.{wildcards.contig}.goodonly.jpg
+            mv alphaMat.*all*.png alphaMat.all.png
+            mv alphaMat.*normalized*.png alphaMat.normalized.png
+            mv hapSum_log.*.png hapSum_log.png
+            mv hapSum.*.png hapSum.png
+            mv metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.sample.jpg
+            mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.sample.jpg
+            mv r2*.goodonly.jpg r2.goodonly.jpg
         }} 2> {log.rename_log}
         """
 
@@ -180,13 +180,13 @@ rule contig_report:
     input:
         "{paramset}/reports/_harpy.scss",
         "{paramset}/reports/_quarto.yml",
-        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.all.png",
-        "{paramset}/contigs/{contig}/plots/alphaMat.{contig}.normalized.png",
-        "{paramset}/contigs/{contig}/plots/hapSum_log.{contig}.png",
-        "{paramset}/contigs/{contig}/plots/hapSum.{contig}.png",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.{contig}.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.{contig}.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/r2.{contig}.goodonly.jpg",
+        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
         qmd = "workflow/report/stitch_collate.qmd"
     output:
