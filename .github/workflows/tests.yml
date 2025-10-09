@@ -682,12 +682,12 @@ jobs:
       - name: test metassembly
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --quiet 2 -r 4000 test/fastq/sample1.* && \
+          harpy metassembly --quiet 2 --force -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
       - name: test metassembly without barcodes
         shell: micromamba-shell {0}
         run: |
-          harpy metassembly --unlinked --quiet 2 -r 4000 test/fastq/sample1.* && \
+          harpy metassembly --unlinked --force --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
 
   other:
