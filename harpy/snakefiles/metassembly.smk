@@ -160,7 +160,7 @@ rule align_to_contigs:
         bam = temp("reads-to-spades.bam"),
         bai = temp("reads-to-spades.bam.bai")
     log:
-        "logs/align.to.contigs.log",
+        "logs/align.to.contigs.log"
     params:
         f"-C -v 2 -t {workflow.cores - 1}"
     threads:
