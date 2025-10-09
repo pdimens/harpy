@@ -70,10 +70,11 @@ rule error_correction:
         "error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
         "error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     params:
-        outdir = "error_correction",
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
+        "--only-error-correction",
+        "-o error_correction",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/error_correct.log"
     threads:
@@ -85,7 +86,7 @@ rule error_correction:
     container:
         None
     shell:
-        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
 rule spades_assembly:
     input:
@@ -95,10 +96,11 @@ rule spades_assembly:
     output:
         "spades_assembly/contigs.fasta" 
     params:
-        outdir = "spades_assembly",
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
+        "--only-assembler",
+        "-o spades_assembly",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/spades_assembly.log"
     threads:
@@ -110,7 +112,7 @@ rule spades_assembly:
     container:
         None
     shell:
-        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 
 rule cloudspades_metassembly:
     input:
@@ -120,10 +122,11 @@ rule cloudspades_metassembly:
         "cloudspades_assembly/contigs.fasta",
         "cloudspades_assembly/scaffolds.fasta"
     params:
-        outdir = f"-o {spadesdir}",
-        k = f"-k {k_param}",
-        mem = f"-m {max_mem // 1000}",
-        extra = extra
+        "--meta",
+        f"-o {spadesdir}",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/assembly.log"
     conda:
@@ -133,7 +136,7 @@ rule cloudspades_metassembly:
     resources:
         mem_mb = max_mem
     shell:
-        "spades.py --meta -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
+        "spades.py -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
 
 rule index_contigs:
     input:
@@ -153,28 +156,24 @@ rule align_to_contigs:
         fastq   = collect("fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        temp("reads-to-spades.bam")
+        bam = temp("reads-to-spades.bam"),
+        bai = temp("reads-to-spades.bam.bai")
     log:
-        bwa = "logs/align.bwa.log",
-        samsort = "logs/sort.alignments.log"
+        "logs/align.to.contigs.log",
+    params:
+        f"-C -v 2 -t {workflow.cores - 1}"
     threads:
         workflow.cores
     conda:
         "envs/align.yaml"
     shell:
-        "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
-
-rule index_alignments:
-    input:
-        "reads-to-spades.bam"
-    output:
-       temp("reads-to-spades.bam.bai")
-    log:
-        "logs/index.alignments.log"
-    container:
-        None
-    shell:
-        "samtools index {input} 2> {log}"
+        """
+        {{
+            bwa mem {params} {input.contigs} {input.fastq} |
+                samtools view -h -F 4 -q 10 |
+                samtools sort -@ 1 -O bam --write-index -o {output.bam}##idx##{output.bai} -
+        }} 2> {log}
+        """
 
 rule interleave_fastq:
     input:

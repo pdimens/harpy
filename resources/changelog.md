@@ -7,6 +7,7 @@
 - simplified the rich-click theming
 - bwa-mem2 replaces bwa in align bwa
 - impute needs a minimum of 5 biallelic snps per contig
+- alignment during metassembly no longer outputs unmapped reads or alignments with mapq < 10
 
 # fixes
 - impute workflow has explicit output plot filename declarations to catch errors better
