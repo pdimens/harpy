@@ -145,7 +145,7 @@ rule index_contigs:
     conda:
         "envs/align.yaml"
     shell:
-        "bwa-mem2 index {input}"
+        "bwa index {input}"
 
 rule align_to_contigs:
     input:
@@ -162,7 +162,7 @@ rule align_to_contigs:
     conda:
         "envs/align.yaml"
     shell:
-        "bwa-mem2 mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
+        "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
 
 rule index_alignments:
     input:
