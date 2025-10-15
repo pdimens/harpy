@@ -15,6 +15,7 @@ k_param = config["spades"]["k"]
 ignore_bx = config["spades"]["ignore_barcodes"]
 extra = config["spades"].get("extra", "")
 spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+force_athena = config["athena"]["force"]
 skip_reports  = config["reports"]["skip"]
 organism = config["reports"]["organism_type"]
 lineage_map = {
@@ -32,6 +33,8 @@ rule sort_by_barcode:
     output:
         fq_f = temp("fastq_preproc/tmp.R1.fq"),
         fq_r = temp("fastq_preproc/tmp.R2.fq")
+    log:
+        "logs/sort_by_barcode.log"
     params:
         barcode_tag = BX_TAG
     threads:
@@ -40,9 +43,11 @@ rule sort_by_barcode:
         None
     shell:
         """
-        samtools import -T "*" {input} |
-        samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
-        samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+        {{
+            samtools import -T "*" {input} |
+            samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
+            samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+        }} 2> {log}
         """
 
 rule format_barcode:
@@ -66,10 +71,11 @@ rule error_correction:
         "error_correction/corrected/input.R2.fq00.0_0.cor.fastq.gz",
         "error_correction/corrected/input.R_unpaired00.0_0.cor.fastq.gz"
     params:
-        outdir = "error_correction",
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
+        "--only-error-correction",
+        "-o error_correction",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/error_correct.log"
     threads:
@@ -81,7 +87,7 @@ rule error_correction:
     container:
         None
     shell:
-        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.FQ_R1} -2 {input.FQ_R2} -o {params.outdir} --only-error-correction > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
 rule spades_assembly:
     input:
@@ -91,10 +97,11 @@ rule spades_assembly:
     output:
         "spades_assembly/contigs.fasta" 
     params:
-        outdir = "spades_assembly",
-        k = k_param,
-        mem = max_mem // 1000,
-        extra = extra
+        "--only-assembler",
+        "-o spades_assembly",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/spades_assembly.log"
     threads:
@@ -106,7 +113,7 @@ rule spades_assembly:
     container:
         None
     shell:
-        "metaspades.py -t {threads} -m {params.mem} -k {params.k} {params.extra} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} -o {params.outdir} --only-assembler > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 
 rule cloudspades_metassembly:
     input:
@@ -116,10 +123,11 @@ rule cloudspades_metassembly:
         "cloudspades_assembly/contigs.fasta",
         "cloudspades_assembly/scaffolds.fasta"
     params:
-        outdir = f"-o {spadesdir}",
-        k = f"-k {k_param}",
-        mem = f"-m {max_mem // 1000}",
-        extra = extra
+        "--meta",
+        f"-o {spadesdir}",
+        f"-k {k_param}",
+        f"-m {max_mem // 1000}",
+        extra
     log:
         "logs/assembly.log"
     conda:
@@ -129,7 +137,7 @@ rule cloudspades_metassembly:
     resources:
         mem_mb = max_mem
     shell:
-        "spades.py --meta -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
+        "spades.py -t {threads} {params} --gemcode1-1 {input.fastq_R1} --gemcode1-2 {input.fastq_R2} > {log}"
 
 rule index_contigs:
     input:
@@ -149,28 +157,24 @@ rule align_to_contigs:
         fastq   = collect("fastq_preproc/input.R{X}.fq.gz", X = [1,2]),
         contigs = f"{spadesdir}/contigs.fasta"
     output:
-        temp("reads-to-spades.bam")
+        bam = temp("reads-to-spades.bam"),
+        bai = temp("reads-to-spades.bam.bai")
     log:
-        bwa = "logs/align.bwa.log",
-        samsort = "logs/sort.alignments.log"
+        "logs/align.to.contigs.log"
+    params:
+        f"-C -v 2 -t {workflow.cores - 1}"
     threads:
         workflow.cores
     conda:
         "envs/align.yaml"
     shell:
-        "bwa mem -C -t {threads} {input.contigs} {input.fastq} 2> {log.bwa} | samtools sort -O bam -o {output} - 2> {log.samsort}"
-
-rule index_alignments:
-    input:
-        "reads-to-spades.bam"
-    output:
-       temp("reads-to-spades.bam.bai")
-    log:
-        "logs/index.alignments.log"
-    container:
-        None
-    shell:
-        "samtools index {input} 2> {log}"
+        """
+        {{
+            bwa mem {params} {input.contigs} {input.fastq} |
+                samtools view -h -F 4 -q 5 |
+                samtools sort -@ 1 -O bam --write-index -o {output.bam}##idx##{output.bai} -
+        }} 2> {log}
+        """
 
 rule interleave_fastq:
     input:
@@ -221,6 +225,7 @@ rule athena_metassembly:
     log:
         "logs/athena.log"
     params:
+        force = "--force_reads" if force_athena else "",
         local_asm = "athena/results/olc/flye-input-contigs.fa",
         final_asm = "athena/results/olc/athena.asm.fa",
         result_dir = "athena"
@@ -228,7 +233,7 @@ rule athena_metassembly:
         "envs/metassembly.yaml"
     shell:
         """
-        athena-meta --config {input.config} 2> {log} &&\\
+        athena-meta {params.force} --config {input.config} &> {log} &&\\
         mv {params.local_asm} {params.final_asm} {params.result_dir}      
         """
 
@@ -292,42 +297,8 @@ rule build_report:
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         "athena/athena.asm.fa",
         "reports/assembly.metrics.html" if not skip_reports else []
-    params:
-        bx = BX_TAG,
-        extra = extra
-    run:
-        summary = ["The harpy metassembly workflow ran using these parameters:"]  
-        bxsort = "FASTQ inputs were sorted by their linked-read barcodes:\n"
-        bxsort += "\tsamtools import -T \"*\" FQ1 FQ2 |\n"
-        bxsort += f"\tsamtools sort -O SAM -t {params.bx} |\n"  
-        bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"  
-        summary.append(bxsort)
-        bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
-        bxappend += f"\tsed 's/{params.bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
-        summary.append(bxappend)
-        if not ignore_bx:
-            spades = "Reads were assembled using cloudspades:\n"
-            spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {params.extra}"
-        else:
-            spades = "Reads were assembled using spades:\n"
-            spades += f"\tmetaspades.py -t THREADS -m {max_mem} -k {k_param} {extra} -1 FQ_1 -2 FQ2 -o {spadesdir}"
-        summary.append(spades)
-        align = "Original input FASTQ files were aligned to the metagenome using BWA:\n"
-        align += "\tbwa mem -C -p spades.contigs FQ1 FQ2 | samtools sort -O bam -"
-        summary.append(align)
-        interleaved = "Barcode-sorted Athena-compliant sequences were interleaved with seqtk:\n"
-        interleaved += "\tseqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ"
-        summary.append(interleaved)
-        athena = "Athena ran with the config file Harpy built from the files created from the previous steps:\n"
-        athena += "\tathena-meta --config athena.config"
-        summary.append(athena)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/metassembly.summary", "w") as f:  
-            f.write("\n\n".join(summary))

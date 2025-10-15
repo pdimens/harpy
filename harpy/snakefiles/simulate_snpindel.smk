@@ -188,7 +188,7 @@ rule rename_diploid:
         cp {input.mapfile} {output.mapfile}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         f"{outprefix}.fasta.gz",
@@ -196,24 +196,3 @@ rule workflow_summary:
         collect("haplotype_{n}/" + outprefix + ".hap{n}.fasta.gz", n = [1,2]) if heterozygosity > 0 and not only_vcf else [],
         collect("haplotype_{n}/" + outprefix + ".hap{n}" + ".{var}.vcf", n = [1,2], var = variants) if heterozygosity > 0 else [],
         collect("haplotype_{n}/" + outprefix + ".hap{n}" + ".map", n = [1,2]) if heterozygosity > 0 else []
-    params:
-        prefix = f"{outprefix}",
-        parameters = variant_params,
-        snp = f"-snp_vcf haplotype_X/{outprefix}.snp.hapX.vcf" if snp else "",
-        indel = f"-indel_vcf haplotype_X/{outprefix}.indel.hapX.vcf" if indel else ""
-    run:
-        summary = ["The harpy simulate snpindel workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genome}")
-        summary.append(f"Heterozygosity specified: {heterozygosity}")
-        haploid = "Haploid variants were simulated using simuG:\n"    
-        haploid += f"\tsimuG -refseq {genome} -prefix {params.prefix} {params.parameters}"
-        summary.append(haploid)
-        if heterozygosity > 0 and not only_vcf:
-            diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            diploid += f"\tsimuG -refseq {genome} -prefix hapX {params.snp} {params.indel}"
-            summary.append(diploid)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open(f"workflow/simulate.snpindel.summary", "w") as f:
-            f.write("\n\n".join(summary))

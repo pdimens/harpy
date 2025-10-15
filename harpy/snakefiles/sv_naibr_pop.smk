@@ -88,22 +88,10 @@ rule concat_groups:
         bamlist  = "workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        temp("workflow/input/{population}.unsort.bam")
+        bam = "workflow/input/{population}.bam",
+        bai = "workflow/input/{population}.bam.bai"
     log:
         "logs/concat_groups/{population}.concat.log"
-    container:
-        None
-    shell:
-        "concatenate_bam -b {input.bamlist} > {output} 2> {log}"
-
-rule sort_groups:
-    input:
-        "workflow/input/{population}.unsort.bam"
-    output:
-        bam = ("workflow/input/{population}.bam"),
-        bai = ("workflow/input/{population}.bam.bai")
-    log:
-        "logs/samtools/sort/{population}.sort.log"
     resources:
         mem_mb = 2000
     threads:
@@ -111,7 +99,12 @@ rule sort_groups:
     container:
         None
     shell:
-        "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
+        """
+        {{
+            concatenate_bam -b {input.bamlist} |
+            samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
+        }} 2> {log}
+        """
 
 rule naibr_config:
     input:
@@ -213,8 +206,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule configure_report:
@@ -228,6 +223,7 @@ rule configure_report:
         import shutil
         for i,o in zip(input,output):
             shutil.copy(i,o)
+
 rule group_reports:
     input: 
         "reports/_quarto.yml",
@@ -282,27 +278,10 @@ rule aggregate_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpedir:$INPATH {params.contigs}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bedpe = collect("bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
         agg_report = "reports/naibr.summary.html" if not skip_reports else []
-    run:
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam -o groupname.bam -b samples.list"
-        summary.append(concat)
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.naibr.summary", "w") as f:
-            f.write("\n\n".join(summary))

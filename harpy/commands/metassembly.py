@@ -1,5 +1,6 @@
 """Perform a linked-read aware metassembly"""
 
+import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import KParam, SnakemakeParams
@@ -16,6 +17,8 @@ from harpy.validation.fastq import FASTQ
 @click.option('-k', '--kmer-length', panel = "Metassembly Parameters", type = KParam(), show_default = True, default = "auto", help = 'K values to use for assembly (`odd` and `<128`)')
 @click.option('-r', '--max-memory', panel = "Metassembly Parameters",  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('-U', '--unlinked', panel = "Metassembly Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('--force', panel = "Workflow Options", hidden = True, is_flag = True, default = False, help = 'Use athena with --force_reads')
+
 # Common Workflow
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
@@ -28,7 +31,7 @@ from harpy.validation.fastq import FASTQ
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
+def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
     Assemble linked reads into a metagenome
 
@@ -43,7 +46,6 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])
     fastq.bc_or_bx(bx_tag)
-
 
     workflow.inputs = {
             "fastq_r1" : fastq_r1,
@@ -60,6 +62,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
             "max_memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
+        "athena" : {
+            "force" : force
+        },
         "reports" : {
             "skip": skip_reports,
             "organism_type": organism_type
@@ -69,7 +74,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     workflow.start_text = workflow_info(
         ("Barcode Tag: ", bx_tag.upper()),
         ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
-        ("Output Folder:", f"{output_dir}/"),
+        ("Output Folder:", os.path.relpath(output_dir) + "/"),
     )
 
     workflow.initialize(setup_only)

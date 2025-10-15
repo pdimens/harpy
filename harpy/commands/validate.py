@@ -60,7 +60,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     workflow.start_text = workflow_info(
         ("Alignment Files:", alignments.count),
         ("Barcode Type:", alignments.lr_type),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)
@@ -107,7 +107,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     workflow.start_text = workflow_info(
         ("FASTQ Files:", fastq.count),
         ("Linked-Read Type:", fastq.lr_type),
-        ("Output Folder:", os.path.basename(output_dir) + "/"),
+        ("Output Folder:", os.path.relpath(output_dir) + "/"),
 
     )
 

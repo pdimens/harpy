@@ -38,7 +38,7 @@ rule preprocess_reference:
         genomefile
     output: 
         geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb"),
+        bwa_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
@@ -49,20 +49,22 @@ rule preprocess_reference:
         "envs/align.yaml"
     shell: 
         """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output.geno}
-        else
-            cp -f {input} {output.geno}
-        fi
+        {{
+            if (file {input} | grep -q compressed ) ;then
+                # is regular gzipped, needs to be BGzipped
+                seqtk seq {input} | bgzip -c > {output.geno}
+            else
+                cp -f {input} {output.geno}
+            fi
 
-        if [ "{params}" = "True" ]; then
-            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno} 2>> {log}
-        else
-            samtools faidx --fai-idx {output.fai} {output.geno} 2>> {log}
-        fi
+            if [ "{params}" = "True" ]; then
+                samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
+            else
+                samtools faidx --fai-idx {output.fai} {output.geno}
+            fi
 
-        bwa index {output.geno} 2> {log}
+            bwa-mem2 index {output.geno} 
+        }} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -87,15 +89,15 @@ rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
-        genome_idx = multiext(workflow_geno, ".ann", ".bwt", ".pac", ".sa", ".amb")
+        genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
         pipe("samples/{sample}/{sample}.bwa.sam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
+        static = "-C -v 2 -T 10" if is_standardized else "-v 2 -T 10",
         unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
-        static = "-C -v 2" if is_standardized else "-v 2",
         extra = extra
     threads:
         min(6, workflow.cores - 1)
@@ -103,7 +105,9 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        bwa mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output}
+        {{
+            bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} {params.unmapped}
+        }} 2> {log} > {output}
         """     
 
 rule standardize_barcodes:
@@ -144,12 +148,14 @@ rule mark_duplicates:
             OPTICAL_BUFFER=2500
         else
             OPTICAL_BUFFER=100
-        fi
-        samtools collate -O -u {input.sam} 2> {log.debug} |
-            samtools fixmate -z on -m -u - - 2>> {log.debug} |
-            samtools view -h -q {params.quality} |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
+        fi 
+        {{
+            samtools collate -O -u {input.sam} |
+                samtools fixmate -z on -m -u - - |
+                samtools view -h -q {params.quality} |
+                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output}
+        }} 2> {log.debug}
         rm -rf {params.tmpdir}
         """
 
@@ -279,12 +285,16 @@ rule general_stats:
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
+    log:
+        "logs/stats/{sample}.samstats.log"
     container:
         None
     shell:
         """
-        samtools stats -d {input.bam} > {output.stats}
-        samtools flagstat {input.bam} > {output.flagstat}
+        {{
+            samtools stats -d {input.bam} > {output.stats}
+            samtools flagstat {input.bam} > {output.flagstat}
+        }} 2> {log}
         """
 
 rule samtools_report:
@@ -328,37 +338,10 @@ rule barcode_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
-    params:
-        quality = config["alignment_quality"],
-        unmapped = "" if keep_unmapped else "-F 4",\
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        bwa_static = "-C -v 2" if is_standardized else "-v 2",
-        extra   = extra
-    run:
-        summary = ["The harpy align bwa workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genomefile}")
-        align = "Sequences were aligned with BWA using:\n"
-        align += f'\tbwa mem {params.bwa_static} {params.extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
-        align += f"\tsamtools view -h {params.unmapped} -q {params.quality}"
-        summary.append(align)
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
-        summary.append(standardization)
-        duplicates = "Duplicates in the alignments were marked following:\n"
-        duplicates += "\tsamtools collate |\n"
-        duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
-        summary.append(duplicates)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open(f"workflow/align.bwa.summary", "w") as f:
-            f.write("\n\n".join(summary))

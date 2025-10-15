@@ -17,6 +17,7 @@ from harpy.common.conda import create_conda_recipes
 from harpy.common.file_ops import filepath, gzip_file, fetch_snakefile, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_error
 from harpy.common.launch import launch_snakemake
+from harpy.common.summaries import Summary
 
 class Workflow():
     '''
@@ -25,7 +26,6 @@ class Workflow():
     def __init__(self, name, snakefile, outdir, quiet, inputdir = False):
         creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')
         os.makedirs(creatdir, exist_ok = True)
-
         self.name: str = name
         self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
@@ -44,6 +44,7 @@ class Workflow():
         self.quiet: bool = quiet
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
+        self.summary_text: str = ""
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -55,7 +56,6 @@ class Workflow():
         increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
         return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
-    #def setup_snakemake(self, sdm: str, threads: int, hpc: str|None = None, sm_extra: str|None = None):
     def setup_snakemake(self, container: bool, threads: int, hpc: str|None = None, sm_extra: str|None = None):
         """
         Sets up the snakemake command based on hpc, threads, and extra snakemake params.
@@ -79,6 +79,7 @@ class Workflow():
             "rerun-incomplete": True,
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
+            "scheduler": "greedy",
             "nolock": True,
             "software-deployment-method": "conda" if not container else ["conda", "apptainer"],
             "conda-prefix": filepath("./.environments"),
@@ -86,12 +87,10 @@ class Workflow():
             "apptainer-prefix": filepath("./.environments"),
             "directory": self.output_directory
         }
-        _command = []
-        _command += ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
+        _command = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
         _command += ["--configfile", os.path.join(self.workflow_directory, "workflow.yaml"), "--profile", self.workflow_directory]
         workdir_rel = os.path.relpath(self.workflow_directory)
-        _command_rel = []
-        _command_rel += ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
+        _command_rel = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
         _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml"), "--profile", workdir_rel]
         if hpc:
             self.hpc = hpc
@@ -235,14 +234,15 @@ class Workflow():
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
         if self.quiet == 2:
             return
+        _relpath = os.path.relpath(self.output_directory)
         time_text = self.time_elapsed()
         datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)
         datatable.add_column("value", justify="left")
         datatable.add_row("Duration:", time_text)
         if self.summary:
-            datatable.add_row("Summary: ", os.path.join(os.path.basename(self.output_directory), "workflow", self.summary))
-        datatable.add_row("Workflow Log:", os.path.join(os.path.basename(self.output_directory), f"{self.snakemake_logfile}.gz"))
+            datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))
+        datatable.add_row("Workflow Log:", os.path.join(_relpath, "logs", "snakemake", os.path.basename(f"{self.snakemake_logfile}.gz")))
         CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
@@ -267,10 +267,14 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
-        
-        self.purge_empty_logs()
-        
-        gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
+
+        try:
+            launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
+        finally:
+            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
+                f_out.write(Summary(self.config).get_text())
+            self.purge_empty_logs()
+            if os.path.exists(self.snakemake_logfile):
+                gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()

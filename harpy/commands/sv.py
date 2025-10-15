@@ -101,7 +101,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         ("Samples:", alignments.count),
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)
@@ -184,7 +184,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
         ("Reference:", os.path.basename(reference)),
         ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
         ("Perform Phasing:", "yes" if vcf else "no"),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

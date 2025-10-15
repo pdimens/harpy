@@ -74,32 +74,23 @@ rule concat_groups:
         bamlist  = "workflow/merge_samples/{population}.list",
         bamfiles = lambda wc: collect("{sample}", sample = popdict[wc.population]) 
     output:
-        temp("workflow/input/{population}.unsort.bam")
-    log:
-        "logs/concat_groups/{population}.concat.log"
-    threads:
-        1
-    container:
-        None
-    shell:
-        "concatenate_bam --bx -b {input.bamlist} > {output} 2> {log}"
-
-rule sort_groups:
-    input:
-        "workflow/input/{population}.unsort.bam"
-    output:
         bam = temp("workflow/input/{population}.bam"),
         bai = temp("workflow/input/{population}.bam.bai")
     log:
-        "logs/samtools_sort/{population}.sort.log"
+        "logs/concat_groups/{population}.concat.log"
     resources:
         mem_mb = 2000
     threads:
-        10
+        workflow.cores
     container:
         None
     shell:
-        "samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai} {input} 2> {log}"
+        """
+        {{
+            concatenate_bam --bx -b {input.bamlist} | 
+            samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
+        }} 2> {log}
+        """
 
 rule index_barcode:
     input: 
@@ -107,6 +98,8 @@ rule index_barcode:
         bai = "workflow/input/{population}.bam.bai"
     output:
         temp("lrez_index/{population}.bci")
+    log:
+        "logs/lrez_index/{population}.concat.log"
     threads:
         min(5, workflow.cores)
     conda:
@@ -127,9 +120,11 @@ rule preprocess_reference:
         "envs/align.yaml"
     shell: 
         """
-        seqtk seq {input} > {output.geno}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
-        bwa index {output.geno} 2>> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+            bwa index {output.geno}
+        }} 2> {log}
         """
 
 rule call_variants:
@@ -182,8 +177,10 @@ rule variant_stats:
         None
     shell:
         """
-        echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs" > {output}
-        bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input} >> {output}
+        {{
+            echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs"
+            bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input}
+        }} > {output}
         """
 
 rule aggregate_variants:
@@ -285,32 +282,10 @@ rule aggregate_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         vcf = collect("vcf/{pop}.bcf", pop = populations),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
         reports = collect("reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
         agg_report = "reports/leviathan.summary.html" if not skip_reports else []
-    params:
-        min_size = f"-v {min_size}",
-        min_bc = f"-c {min_bc}",
-        iters  = f"-B {iterations}",
-        extra = extra
-    run:
-        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam --bx -o groupname.bam -b samples.list"
-        summary.append(concat)
-        bc_idx = "The barcodes were indexed using:\n"
-        bc_idx += "LRez index bam -p -b INPUT"
-        summary.append(bc_idx)
-        svcall = "Leviathan was called using:\n"
-        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
-        summary.append(svcall)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.leviathan.summary", "w") as f:
-            f.write("\n\n".join(summary))

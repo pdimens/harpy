@@ -99,27 +99,34 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        temp(directory("{paramset}/contigs/{contig}/plots")),
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.all.png"),
+        temp("{paramset}/contigs/{contig}/plots/alphaMat.normalized.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum_log.png"),
+        temp("{paramset}/contigs/{contig}/plots/hapSum.png"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg"),
+        temp("{paramset}/contigs/{contig}/plots/r2.goodonly.jpg"),
         temp(directory("{paramset}/contigs/{contig}/RData")),
         temp(directory("{paramset}/contigs/{contig}/input")),
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
-        tmp = temp(directory("{paramset}/contigs/{contig}/tmp"))
+        tmpdir = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
-        logfile = "{paramset}/logs/{contig}.stitch.log"
+        stitch_log = "{paramset}/logs/{contig}.stitch.log",
+        rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
     params:
-        chrom   = lambda wc: "--chr=" + wc.contig,
+        chrom   = lambda wc: f"--chr={wc.contig}",
         start   = lambda wc: f"--regionStart={startpos}" if region else "",
         end     = lambda wc: f"--regionEnd={endpos}" if region else "",
         buffer  = lambda wc: f"--buffer={buffer}" if region else "",
-        model   = lambda wc: "--method=" + stitch_params[wc.paramset]['model'],
+        model   = lambda wc: f"--method={stitch_params[wc.paramset]['model']}",
         k       = lambda wc: f"--K={stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"--S={stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"--nGen={stitch_params[wc.paramset]['ngen']}",
-        outdir  = lambda wc: "--outputdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig),
-        outfile = lambda wc: "--output_filename=" + f"{wc.contig}.vcf.gz",
-        usebx   = lambda wc: "--use_bx_tag=" + str(stitch_params[wc.paramset]['usebx']).upper(),
+        outdir  = lambda wc: "--outputdir=" + os.path.join(wc.paramset, "contigs", wc.contig),
+        outfile = lambda wc: f"--output_filename={wc.contig}.vcf.gz",
+        usebx   = lambda wc: f"--use_bx_tag={str(stitch_params[wc.paramset]['usebx']).upper()}",
         bxlimit = lambda wc: f"--bxTagUpperLimit={stitch_params[wc.paramset]['bxlimit']}",
-        tmpdir  = lambda wc: "--tempdir=" + os.path.join(os.getcwd(), wc.paramset, "contigs", wc.contig, "tmp"),
+        tmpdir  = lambda wc: "--tempdir=" + os.path.join(wc.paramset, "contigs", wc.contig, "tmp"),
         extra   = " ".join([f"{i}={j}" for i,j in extraparams.items()])
     threads:
         workflow.cores - 1
@@ -127,8 +134,18 @@ rule impute:
         "envs/stitch.yaml"
     shell:
         """
-        mkdir -p {output.tmp}
-        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log}
+        mkdir -p {output.tmpdir}
+        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
+        {{
+            cd {wildcards.paramset}/contigs/{wildcards.contig}/plots
+            mv alphaMat.*all*.png alphaMat.all.png
+            mv alphaMat.*normalized*.png alphaMat.normalized.png
+            mv hapSum_log.*.png hapSum_log.png
+            mv hapSum.*.png hapSum.png
+            mv metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.sample.jpg
+            mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.sample.jpg
+            mv r2*.goodonly.jpg r2.goodonly.jpg
+        }} 2> {log.rename_log}
         """
 
 rule index_vcf:
@@ -163,8 +180,14 @@ rule contig_report:
     input:
         "{paramset}/reports/_harpy.scss",
         "{paramset}/reports/_quarto.yml",
+        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        plotdir = "{paramset}/contigs/{contig}/plots",
         qmd = "workflow/report/stitch_collate.qmd"
     output:
         report = "{paramset}/reports/{contig}.{paramset}.html",
@@ -173,6 +196,7 @@ rule contig_report:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
         params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
+        plotdir = lambda wc: "-P plotdir:" + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
         model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
@@ -188,8 +212,7 @@ rule contig_report:
         """
         cp -f {input.qmd} {output.qmd}
         STATS=$(realpath {input.statsfile})
-        PLOTDIR=$(realpath {input.plotdir})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS -P plotdir:$PLOTDIR {params}
+        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
         """
 
 rule concat_list:
@@ -318,50 +341,9 @@ rule impute_reports:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input: 
         vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
         agg_report = collect("{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
-        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else [],
-    run:
-        paramfiletext = "\t".join(open(paramfile, "r").readlines())
-        summary = ["The harpy impute workflow ran using these parameters:"]
-        summary.append(f"The provided variant file: {variantfile}")
-        preproc = "Preprocessing was performed with:\n"
-        preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
-        preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
-        summary.append(preproc)
-        stitchparam = f"The STITCH parameter file: {paramfile}\n"
-        stitchparam += f"\t{paramfiletext}"
-        summary.append(stitchparam)
-        stitch = "Within R, STITCH was invoked with the following parameters:\n"
-        stitch += "\tSTITCH(\n"
-        stitch += "\t\tmethod = model,\n"
-        stitch += "\t\tposfile = posfile,\n"
-        stitch += "\t\tbamlist = bamlist,\n"
-        stitch += "\t\tnCores = ncores,\n"
-        stitch += "\t\tnGen = ngen,\n"
-        stitch += "\t\tchr = chr,\n"
-        stitch += f"\t\tregionStart = {startpos},\n" if region else ""
-        stitch += f"\t\tregionEnd = {endpos},\n" if region else ""
-        stitch += f"\t\tbuffer = {buffer},\n" if region else ""
-        stitch += "\t\tK = k,\n"
-        stitch += "\t\tS = s,\n"
-        stitch += "\t\tuse_bx_tag = usebx,\n"
-        stitch += "\t\tbxTagUpperLimit = bxlimit,\n"
-        stitch += "\t\tniterations = 40,\n"
-        stitch += "\t\tswitchModelIteration = 39,\n"
-        stitch += "\t\tsplitReadIterations = NA,\n"
-        if grid_size > 1:
-            stitch += f"\t\tgridWindowSize = {grid_size}\n"
-        stitch += "\t\toutputdir = outdir,\n"
-        stitch += "\t\toutput_filename = outfile\n\t)"
-        stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += "\t" + config.get("stitch_extra", "None")
-        summary.append(stitchextra)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/impute.summary", "w") as f:
-            f.write("\n\n".join(summary))
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []

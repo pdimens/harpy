@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 import pysam
 import pysam.bcftools
+from shutil import which
 import subprocess
 from harpy.common.printing import print_error
 
@@ -15,14 +16,15 @@ class VCF():
 
         self.file = filename
         self.workdir = workdir
+        self.biallelic_contigs: list[str] = []
+        self.biallelic_file: str = ""
 
     def find_biallelic_contigs(self):
         """
-        Identify which contigs have at least 2 biallelic SNPs and write them to `workdir/vcf.biallelic`
+        Identify which contigs have at least 5 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
-        self.biallelic_contigs = []
         with pysam.VariantFile(self.file) as _vcf:
             header_contigs = list(_vcf.header.contigs)
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
@@ -30,25 +32,35 @@ class VCF():
         if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
             pysam.bcftools.index("--tbi", self.file)
 
+        bcftools = which("bcftools") or "bcftools"
+
         with open(self.biallelic_file, "w", encoding="utf-8") as f:
             for contig in header_contigs:
                 # Use bcftools to count the number of biallelic SNPs in the contig
-                viewcmd = subprocess.Popen(['bcftools', 'view', '-H', '-r', contig, '-v', 'snps', '-m2', '-M2', '-c', '2', self.file], stdout=subprocess.PIPE)
+                viewcmd = subprocess.Popen(
+                    [bcftools, 'view', '-H', '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file],
+                    stdout=subprocess.PIPE,
+                    text = True
+                )
                 snpcount = 0
                 while True:
                     # Read the next line of output
-                    line = viewcmd.stdout.readline().decode()
+                    line = viewcmd.stdout.readline()
                     if not line:
                         break
                     snpcount += 1
-                    # If there are at least 2 biallellic snps, terminate the process
-                    if snpcount >= 2:
+                    # If there are at least 5 biallellic snps, terminate the process
+                    if snpcount >= 5:
                         viewcmd.terminate()
-                        f.write(contig + "\n")
+                        try:
+                            viewcmd.communicate(timeout=2)
+                        except Exception:
+                            viewcmd.kill()
+                        f.write(f"{contig}\n")
                         self.biallelic_contigs.append(contig)
                         break
         if not self.biallelic_contigs:
-            print_error("insufficient data", "No contigs with at least 2 biallelic SNPs identified. Cannot continue with imputation.")
+            print_error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")
 
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
@@ -62,9 +74,11 @@ class VCF():
                 f"Phase [bold]{bn}[/] into haplotypes using [blue bold]harpy phase[/] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/] or [green]FORMAT/HP[/] tags."
             )
 
-    def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> list[str]:
+    def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
-        vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
+        with pysam.VariantFile(self.file) as _vcf:
+            vcfsamples = list(_vcf.header.samples)
+        #vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
         filesamples = [Path(i).stem for i in bamlist]
         if prioritize_vcf:
             fromthis, query = self.file, vcfsamples
@@ -110,15 +124,28 @@ class VCF():
                 contigs[_contig] = _info.length
         return contigs
 
-    def validate_region(self, region: str) -> list:
+    def validate_region(self, region: str) -> tuple[str,int,int,int]:
         """
         Validates the --region input of harpy impute to infer it's a properly formatted region
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
+        startpos = 0
+        endpos = 0
+        buffer = 0
         contigs = self.get_contigs()
         contig, positions = region.split(":")
-        startpos,endpos,buffer = [int(i) for i in positions.split("-")]
+        parts = positions.split("-")
+        if len(parts) == 2:
+            startpos, endpos = (int(parts[0]), int(parts[1]))
+        elif len(parts) == 3:
+            startpos, endpos, buffer = (int(parts[0]), int(parts[1]), int(parts[2]))
+        else:
+            print_error(
+                "invalid region",
+                f"Region must be contig:start-end or contig:start-end-buffer, got [yellow]{region}[/]."
+            )
+
         # check if the region is in the genome
         if contig not in self.biallelic_contigs:
             print_error(

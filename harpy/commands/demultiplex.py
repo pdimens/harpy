@@ -74,7 +74,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
         ("Demultiplex Schema:", os.path.basename(schema)),
         ("Include QX/RX tags", "Yes" if qx_rx else "No"),
-        ("Output Folder:", os.path.basename(output_dir) + "/")
+        ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
     workflow.initialize(setup_only)

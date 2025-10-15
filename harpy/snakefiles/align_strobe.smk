@@ -45,8 +45,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output.geno}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule make_depth_intervals:
@@ -86,7 +88,9 @@ rule align:
         "envs/align.yaml"
     shell:
         """
-        strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} 2> {log} {params.unmapped} > {output} 
+        {{
+            strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} {params.unmapped}
+        }} 2> {log} > {output} 
         """
 
 rule standardize_barcodes:
@@ -128,11 +132,13 @@ rule mark_duplicates:
         else
             OPTICAL_BUFFER=100
         fi
-        samtools collate -O -u {input.sam} 2> {log.debug} |
-            samtools fixmate -z on -m -u - - 2>> {log.debug} |
-            samtools view -h -q {params.quality} |
-            samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - 2>> {log.debug} |
-            samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 2>> {log.debug}
+        {{
+            samtools collate -O -u {input.sam} |
+                samtools fixmate -z on -m -u - - |
+                samtools view -h -q {params.quality} |
+                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 
+        }} 2> {log.debug}
         rm -rf {params.tmpdir}
         """
 
@@ -262,12 +268,16 @@ rule general_stats:
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
+    log:
+        "logs/stats/{sample}.samstats.log"
     container:
         None
     shell:
         """
-        samtools stats -d {input.bam} > {output.stats}
-        samtools flagstat {input.bam} > {output.flagstat}
+        {{
+            samtools stats -d {input.bam} > {output.stats}
+            samtools flagstat {input.bam} > {output.flagstat}
+        }} 2> {log}
         """
 
 rule samtools_report:
@@ -318,31 +328,3 @@ rule workflow_summary:
         samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
         reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
-    params:
-        quality = config["alignment_quality"],
-        unmapped_strobe = "" if keep_unmapped else "-U",
-        unmapped = "" if keep_unmapped else "-F 4",
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        static = "-C" if is_standardized else "",
-        extra   = extra
-    run:
-        summary = ["The harpy align strobe workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genomefile}")
-        align = "Sequences were aligned with strobealign using:\n"
-        align += f"\tstrobealign -U {params.static} --rg-id=SAMPLE --rg=SM:SAMPLE {params.extra} genome reads.F.fq reads.R.fq |\n"
-        align += f"\t\tsamtools view -h {params.unmapped} -q {params.quality}"
-        summary.append(align)
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
-        summary.append(standardization)
-        duplicates = "Duplicates in the alignments were marked following:\n"
-        duplicates += "\tsamtools collate |\n"
-        duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
-        duplicates += f"\tsamtools markdup -S {params.bx_mode} -d 100 (2500 for novaseq)"
-        summary.append(duplicates)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/align.strobe.summary", "w") as f:
-            f.write("\n\n".join(summary))

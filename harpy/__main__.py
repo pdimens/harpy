@@ -26,6 +26,8 @@ config = click.RichHelpConfiguration(
     style_commands_panel_border = "blue",
     style_option_default= "dim",
     style_deprecated="dim red",
+    style_errors_panel_border = "yellow",
+    errors_panel_title = "Usage Error",
     options_table_column_types = ["opt_long", "opt_short", "help"],
     options_table_help_sections = ["required", "help", "default"]
 )

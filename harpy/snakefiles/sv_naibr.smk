@@ -167,14 +167,16 @@ rule preprocess_reference:
         None
     shell: 
         """
-        if (file {input} | grep -q compressed ) ;then
-            # is regular gzipped, needs to be BGzipped
-            seqtk seq {input} | bgzip -c > {output.geno} 2> {log}
-        else
-            # if BZgipped or isn't compressed, just copied
-            cp -f {input} {output.geno} 2> {log}
-        fi
-        samtools faidx {params} --fai-idx {output.fai} {output.geno} 2>> {log}
+        {{
+            if (file {input} | grep -q compressed ) ;then
+                # is regular gzipped, needs to be BGzipped
+                seqtk seq {input} | bgzip -c > {output.geno}
+            else
+                # if BZgipped or isn't compressed, just copied
+                cp -f {input} {output.geno}
+            fi
+            samtools faidx {params} --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule configure_report:
@@ -216,24 +218,9 @@ rule sample_reports:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bedpe = collect("bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
-    run:
-        #os.system(f"rm -rf naibrlog")
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.naibr.summary", "w") as f:
-            f.write("\n\n".join(summary))

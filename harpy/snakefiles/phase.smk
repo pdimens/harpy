@@ -113,8 +113,10 @@ if indels:
             None
         shell: 
             """
-            seqtk seq {input} > {output.fasta}
-            samtools faidx --fai-idx {output.fai} {output.fasta} 2> {log}
+            {{
+                seqtk seq {input} > {output.fasta}
+                samtools faidx --fai-idx {output.fai} {output.fasta}
+            }} 2> {log}
             """
 
 rule extract_hairs:
@@ -205,6 +207,7 @@ rule annotate_phase:
         None
     shell:
         "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
+
 rule create_merge_list:
     input:
         bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames)
@@ -235,17 +238,16 @@ rule summarize_blocks:
         collect("phase_blocks/{sample}.blocks", sample = samplenames)
     output:
         "reports/blocks.summary.gz"
-    params:
-        "reports/blocks.summary"
     container:
         None
     shell:
         """
-        echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length" > {params}
-        for i in {input}; do
-            parse_phaseblocks $i >> {params}
-        done
-        gzip {params}
+        {{
+            echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length"
+            for i in {input}; do
+                parse_phaseblocks $i
+            done
+        }} | gzip > {output}
         """
 
 rule configure_report:
@@ -289,30 +291,3 @@ rule workflow_summary:
     input:
         vcf = "variants.phased.bcf",
         reports = "reports/phase.html" if not skip_reports else []
-    params:
-        prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1",
-        extra = extra
-    run:
-        summary = ["The harpy phase workflow ran using these parameters:"]
-        summary.append(f"The provided variant file: {variantfile}")
-        hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
-        hetsplit += "\tbcftools view -s SAMPLE | bcftools view -m 2 -M 2 -i \'GT=\"het\"\'"
-        summary.append(hetsplit)
-        phase = "Phasing was performed using the components of HapCut2:\n"
-        phase += f"\textractHAIRS {linkarg} --nf 1 --maxfragments 1000000 --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags\n"
-        if bc_type != "none":
-            phase += f"\t awk " + invalid_regex.get(bc_type, "'$4 !~ /N/'") + " sample.unlinked.frags > sample.frags.filt"
-            phase += f"\tLinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.frags.filt --out sample.linked.frags -d {molecule_distance}\n"
-            phase += f"\tHAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
-        else:
-            phase += f"\tHAPCUT2 --fragments sample.unlinked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {params.prune} {params.extra}\n"
-        summary.append(phase)
-        annot = "Variant annotation was performed using:\n"
-        annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"
-        annot += "\tbcftools merge --output-type b samples.annot.bcf"
-        summary.append(annot)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm = f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/phase.summary", "w") as f:
-            f.write("\n\n".join(summary))

@@ -60,8 +60,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} 2> {log}
         """
 
 rule index_alignments:
@@ -220,31 +222,9 @@ rule variant_report:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INPATH {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         vcf = collect("variants.{file}.bcf", file = ["raw","normalized"]),
         reports = collect("reports/variants.{file}.html", file = ["raw","normalized"]) if not skip_reports else []
-    params:
-        ploidy = f"-p {ploidy}",
-        populations = f"--populations {groupings}" if groupings else '',
-        extra = extra
-    run:
-        summary = ["The harpy snp freebayes workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        summary.append(f"Genomic positions for which variants were called: {regions_input}")
-        varcall = "The freebayes parameters:\n"
-        varcall += f"\tfreebayes -f REFERENCE -L samples.list -r REGION {params} |\n"
-        varcall += f"\tbcftools sort -"
-        summary.append(varcall)
-        merged = "The variants identified in the intervals were merged into the final variant file using:\n"
-        merged += "\tbcftools concat -f bcf.files -a --remove-duplicates"
-        summary.append(merged)
-        normalize = "The variants were normalized using:\n"
-        normalize += "\tbcftools norm -m -both -d both -c w"
-        summary.append(normalize)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/snp.freebayes.summary", "w") as f:
-            f.write("\n\n".join(summary))
+

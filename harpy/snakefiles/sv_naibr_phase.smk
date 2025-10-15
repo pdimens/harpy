@@ -73,8 +73,10 @@ rule preprocess_reference:
         None
     shell: 
         """
-        seqtk seq {input} > {output}
-        samtools faidx --fai-idx {output.fai} {output.geno} 2> {log}
+        {{
+            seqtk seq {input} > {output.geno}
+            samtools faidx --fai-idx {output.fai} {output.geno}
+        }} > {log}
         """
 
 rule index_alignments:
@@ -281,28 +283,10 @@ rule sample_reports:
         quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         bedpe = collect("bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
         phaselog = "logs/whatshap-haplotag.log",
         reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
-    run:
-        os.system("rm -rf naibrlog")
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {bn}")
-        phase = "The alignment files were phased using:\n"
-        phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
-        summary.append(phase)
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake workflow was called via command line:\n"
-        sm += f"\t{config['snakemake']['relative']}"
-        summary.append(sm)
-        with open("workflow/sv.naibr.summary", "w") as f:
-            f.write("\n\n".join(summary))
