@@ -69,7 +69,7 @@ for library performance:
 Linked-read library performance also looks at that, but there's a few extra parameters that help us assess performance:
 
 ### Molecule Coverage
-Since linked reads are tagger per DNA molecule, we are interested in understanding coverage on a per-molecule basis. By "molecule",
+Since linked reads are tagged per DNA molecule, we are interested in understanding coverage on a per-molecule basis. By "molecule",
 we are referring to the original DNA molecule from which barcoded sequences originated from.
 
 #### reads per molecule

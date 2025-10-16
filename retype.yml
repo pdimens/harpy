@@ -37,7 +37,6 @@ links:
   link: https://www.genomicsinnovation.cornell.edu/
   icon: static/biotech.png
   target: blank
-
 - text: Source
   link: https://github.com/pdimens/harpy
   icon: mark-github
