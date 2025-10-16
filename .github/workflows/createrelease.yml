@@ -46,7 +46,8 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
+        with:
+          context: ./container
           push: true
           tags: pdimens/harpy:${{ github.ref_name }}
   build_tarball:
