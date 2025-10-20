@@ -54,21 +54,8 @@ jobs:
         with:
           filters: .github/filters.yml
 
-  build:
-    name: Build and Install
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
-        with:
-          pixi-version: v0.56.0
-          cache: false
   dmux_meier2021:
-    needs: [changes, build]
+    needs: changes
     if: ${{ needs.changes.outputs.demux == 'true' }}
     name: demux meier2021
     runs-on: ubuntu-latest
@@ -89,7 +76,7 @@ jobs:
           ls -lh Demultiplex
 
   validate:
-    needs: [changes, build]
+    needs: changes
     if: ${{ needs.changes.outputs.validate == 'true' }}
     name: validate
     runs-on: ubuntu-latest
@@ -115,7 +102,7 @@ jobs:
           ls -lh Validate/bam
 
   qc:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.qc == 'true' }}
     name: qc
     runs-on: ubuntu-latest
@@ -136,7 +123,7 @@ jobs:
           ls -lh  QC
 
   deconvolve:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.deconvolve == 'true' }}
     name: deconvolve
     runs-on: ubuntu-latest
@@ -157,7 +144,7 @@ jobs:
           ls -lh Deconvolve
   
   bwa:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.bwa == 'true' }}
     name: align BWA
     runs-on: ubuntu-latest
@@ -178,7 +165,7 @@ jobs:
           ls -lh Align/bwa
 
   strobe:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.strobealign == 'true' }}
     name: align strobe
     runs-on: ubuntu-latest
@@ -199,7 +186,7 @@ jobs:
           ls -lh Align/strobealign
 
   mpileup:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.mpileup == 'true' }}
     name: mpileup
     runs-on: ubuntu-latest
@@ -224,7 +211,7 @@ jobs:
           ls -lh SNP/poptest
 
   freebayes:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.freebayes == 'true' }}
     name: freebayes
     runs-on: ubuntu-latest
@@ -249,7 +236,7 @@ jobs:
           ls -lh SNP/poptest
 
   impute:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.impute == 'true' }}
     name: impute
     runs-on: ubuntu-latest
@@ -280,7 +267,7 @@ jobs:
           ls -lh regionImpute/*/*
 
   phase:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.phase == 'true' }}
     name: phase
     runs-on: ubuntu-latest
@@ -312,7 +299,7 @@ jobs:
           ls -lh phasevcf
 
   leviathan:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.leviathan == 'true' }}
     name: sv leviathan
     runs-on: ubuntu-latest
@@ -338,7 +325,7 @@ jobs:
           ls -lh SV/leviathanpop
 
   naibr:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.naibr == 'true' }}
     name: sv naibr
     runs-on: ubuntu-latest
@@ -374,7 +361,7 @@ jobs:
           ls -lh SV/phasepop
 
   simulate_variants:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.simvars == 'true' }}
     name: simulate variants
     runs-on: ubuntu-latest
@@ -418,7 +405,7 @@ jobs:
           ls -lh Simulate
 
   assembly:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.assembly == 'true' }}
     name: assembly
     runs-on: ubuntu-latest
@@ -449,7 +436,7 @@ jobs:
           ls -lh Metassembly
 
   other:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.other == 'true' }}
     name: miscellaneous
     runs-on: ubuntu-latest

@@ -71,7 +71,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .container/${{ matrix.env }}
+          context: container/${{ matrix.env }}
           push: true
           tags: pdimens/harpy:$${{ matrix.env }}_{{ github.ref_name }}
 
