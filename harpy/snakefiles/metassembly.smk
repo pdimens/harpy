@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 
@@ -83,7 +81,7 @@ rule error_correction:
     container:
         "docker://pdimens/harpy:assembly_latest"
     shell:
-        "metaspades -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
 rule spades_assembly:
     input:
@@ -109,7 +107,7 @@ rule spades_assembly:
     container:
         None
     shell:
-        "metaspades -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
+        "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 
 rule cloudspades_metassembly:
     input:

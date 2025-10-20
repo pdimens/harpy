@@ -41,7 +41,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     """
     workflow = Workflow("metassembly","metassembly.smk", output_dir, quiet)
     workflow.setup_snakemake(container, threads, hpc, snakemake)
-    workflow.conda = ["align", "assembly", "metassembly", "qc", "spades"]
+    workflow.conda = ["align", "assembly", "metassembly", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])
