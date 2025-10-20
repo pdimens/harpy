@@ -66,7 +66,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
   dmux_meier2021:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.demux == 'true' }}
@@ -81,7 +81,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: harpy demultiplex
         run: |
@@ -102,7 +102,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: test validate fastq
         run: |
@@ -128,7 +128,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: harpy qc
         run: |
@@ -149,7 +149,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: harpy deconvolve
         run: |
@@ -170,7 +170,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: test bwa
         run: |
@@ -191,7 +191,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: test strobealign
         run: |
@@ -212,7 +212,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: snp mpileup
         run: |
@@ -237,7 +237,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: snp freebayes
         run: |
@@ -262,7 +262,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: impute
         run: |
@@ -293,7 +293,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: phase
         run: |
@@ -325,7 +325,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: leviathan
         run: |
@@ -351,7 +351,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: naibr
         run: |
@@ -387,7 +387,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: simulate random snps/indels
         run: |
@@ -431,7 +431,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
@@ -462,7 +462,7 @@ jobs:
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
           pixi-version: v0.56.0
-          cache: true
+          cache: false
           activate-environment: true
       - name: template impute
         run: harpy template impute
