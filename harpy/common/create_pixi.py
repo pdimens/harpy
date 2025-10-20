@@ -1,10 +1,8 @@
 #! /usr/bin/env python
 
-import glob
 import shutil
 import subprocess
 import os
-import sys
 
 environ = {
     "align" : [
@@ -74,101 +72,46 @@ environ = {
     ]
 }
 
+dockerfile_text = """
+FROM ghcr.io/prefix-dev/pixi:0.56.0 AS build
+
+# copy source code, pixi.toml and pixi.lock to the container
+WORKDIR /app
+COPY . .
+
+# use `--locked` to ensure the lockfile is up to date with pixi.toml
+RUN pixi install --locked && rm -rf ~/.cache/rattler
+
+# create the shell-hook bash script to activate the environment
+RUN echo "#!/bin/bash" > /app/entrypoint.sh && \\
+    pixi shell-hook -s bash >> /app/entrypoint.sh && \\
+    echo 'exec "$@"' >> /app/entrypoint.sh && \\
+    chmod +x /app/entrypoint.sh
+
+FROM ubuntu:24.04 AS production
+WORKDIR /app
+COPY --from=build --chmod=0755 /app/entrypoint.sh /app/entrypoint.sh
+COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
+
+ENTRYPOINT ["/app/entrypoint.sh"]
+"""
+
 def create_pixi_dockerfiles():
     '''
-    Using the defined environments, create a series of folders where each has a dockerfile to create one of the environments.
+    Using the defined environments, create a series of folders where each has a dockerfile
+    and pixi.toml file to create one of the environments.
     '''
-    rm_cache = "&& rm -rf home/.cache/rattler".split()
+    shutil.rmtree("container", ignore_errors=True)
     for env,deps in environ.items():
         os.makedirs(f"container/{env}", exist_ok=True)
         with open(f"container/{env}/Dockerfile", "w") as dockerfile:
-            dockerfile.write("FROM ghcr.io/prefix-dev/pixi:bookworm-slim\n\nRUN ")
-            if env == "report":
-                channels = ["conda-forge", "r"]
-            else:
-                channels = ["conda-forge", "bioconda"]
-            _chan = " ".join([f"--channel {i}" for i in channels]).split()
-            if env == "deconvolution":
-                dockerfile.write(
-                    " ".join(["pixi", "global", "install", *_chan, "--environment", env, "--expose", "QuickDeconvolution", *deps, *rm_cache])
-                )
-            else:
-                dockerfile.write(
-                    " ".join(["pixi", "global", "install", *_chan, "--environment", env, *deps, *rm_cache])
-                )
-
-
-def reset_pixi_global():
-    # remove any existing global packages
-    pixidir = os.environ['HOME'] + "/.pixi"
-    for f in glob.glob(pixidir + "/bin/*"):
-        if os.path.isdir(f):
-            shutil.rmtree(f, ignore_errors=True)
-        else:
-            os.remove(f)
-    for f in glob.glob(pixidir + "/envs/*"):
-        shutil.rmtree(f, ignore_errors=True)
-
-def create_pixi_dockerfile():
-    with open("Dockerfile", "w") as dockerfile:
-        dockerfile.write("FROM ghcr.io/prefix-dev/pixi:bookworm-slim\n\nRUN ")
-        cmd = []
-        for env,deps in environ.items():
-            if env == "report":
-                channels = ["conda-forge", "r"]
-            else:
-                channels = ["conda-forge", "bioconda"]
-            _chan = " ".join([f"--channel {i}" for i in channels]).split()
-            if env == "deconvolution":
-                cmd.append(
-                    " ".join(["pixi", "global", "install", *_chan, "--environment", env, "--expose", "QuickDeconvolution", *deps])
-                )
-            else:
-                cmd.append(
-                    " ".join(["pixi", "global", "install", *_chan, "--environment", env, *deps])
-                )
-        cmd.append("rm -rf ~/.cache/rattler")    
-        dockerfile.write(' &&\\ \n\t'.join(cmd))
-
-def create_pixi_toml():
-    with open("Dockerfile", "w") as dockerfile:
-        dockerfile.write("FROM ghcr.io/prefix-dev/pixi:bookworm-slim\n\n")
-        dockerfile.write("COPY ./pixi.toml /root/.pixi/manifests/pixi-global.toml\n\n")
-        dockerfile.write("RUN pixi global update && rm -rf ~/.cache/rattler\n\n")
-
-    # get the name of the manifest file
-    _pix = subprocess.run("pixi global list".split(), capture_output = True, text = True)
-    global_manifest = _pix.stdout.splitlines()[0].split()[-1].strip("\'")
-    print(global_manifest)
-    # clear out the manifest
-    with open(global_manifest, "w") as toml:
-        toml.write("version = 1\n\n")
-    reset_pixi_global()
-
-    for env,deps in environ.items():
+            dockerfile.write(dockerfile_text)
         if env == "report":
-            channels = ["conda-forge", "r"]
+            subprocess.run(f"pixi init container/{env} -c conda-forge -c r".split())
         else:
-            channels = ["conda-forge", "bioconda"]
-        _chan = " ".join([f"--channel {i}" for i in channels]).split()
-        if env == "deconvolution":
-            _pix = subprocess.run(
-                ["pixi", "global", "install", *_chan, "--environment", env, "--expose", "QuickDeconvolution", *deps]
-            )
-            if _pix.returncode > 0:
-                print(_pix.stderr)
-                sys.exit(1)
-        else:
-            _pix = subprocess.run(
-                ["pixi", "global", "install", *_chan, "--environment", env, *deps]
-            )
-            if _pix.returncode > 0:
-                print(_pix.stderr)
-                sys.exit(1)
+            subprocess.run(f"pixi init container/{env} -c conda-forge -c bioconda".split())
 
-    # get the manifest file and copy to this directory
-    shutil.copy(global_manifest, "resources/pixi.toml")
-    # clean up global packages again
-    reset_pixi_global()
-
-
+        subprocess.run(
+            ["pixi", "add", "--no-progress", "--manifest-path", f"container/{env}/pixi.toml", *deps]
+        )
+        shutil.rmtree("container/.pixi", ignore_errors=True)
