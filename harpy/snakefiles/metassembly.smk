@@ -105,11 +105,11 @@ rule spades_assembly:
     resources:
         mem_mb=max_mem
     conda:
-        "envs/spades.yaml"
+        "envs/assembly.yaml"
     container:
         None
     shell:
-        "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
+        "metaspades -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 
 rule cloudspades_metassembly:
     input:
