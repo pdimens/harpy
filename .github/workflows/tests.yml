@@ -67,8 +67,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
   dmux_meier2021:
     needs: [changes, build]
     if: ${{ needs.changes.outputs.demux == 'true' }}
@@ -84,8 +82,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: harpy demultiplex
         run: |
@@ -107,8 +103,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: test validate fastq
         run: |
@@ -135,8 +129,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: harpy qc
         run: |
@@ -158,8 +150,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: harpy deconvolve
         run: |
@@ -181,8 +171,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: test bwa
         run: |
@@ -204,8 +192,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: test strobealign
         run: |
@@ -227,8 +213,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: snp mpileup
         run: |
@@ -254,8 +238,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: snp freebayes
         run: |
@@ -281,8 +263,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: impute
         run: |
@@ -314,8 +294,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: phase
         run: |
@@ -348,8 +326,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: leviathan
         run: |
@@ -376,8 +352,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: naibr
         run: |
@@ -414,8 +388,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: simulate random snps/indels
         run: |
@@ -460,8 +432,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
@@ -493,8 +463,6 @@ jobs:
         with:
           pixi-version: v0.56.0
           cache: true
-          auth-host: prefix.dev
-          auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
       - name: template impute
         run: harpy template impute
