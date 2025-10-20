@@ -88,5 +88,5 @@ jobs:
         with:
           context: ./${{ matrix.env }}
           push: true
-          tags: pdimens/harpy:$${{ matrix.version }}_{{ github.ref_name }}
+          tags: pdimens/harpy:$${{ matrix.env }}_{{ github.ref_name }}
 
