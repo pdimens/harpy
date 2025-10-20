@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -55,6 +53,8 @@ rule deconvolve:
         2
     conda:
         "envs/deconvolution.yaml"
+    container:
+        "docker://pdimens/harpy:deconvolution_latest"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -65,8 +65,6 @@ rule extract_forward:
         "{sample}.R1.fq.gz"
     params:
         "-1"
-    container:
-        None
     shell:
         "seqtk seq {params} {input} | gzip > {output}"
 

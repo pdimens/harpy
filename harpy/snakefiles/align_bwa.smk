@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -47,6 +45,8 @@ rule preprocess_reference:
         genome_zip
     conda:
         "envs/align.yaml"
+    container:
+        "docker://pdimens/harpy:align_latest"
     shell: 
         """
         {{
@@ -103,6 +103,8 @@ rule align:
         min(6, workflow.cores - 1)
     conda:
         "envs/align.yaml"
+    container:
+        "docker://pdimens/harpy:align_latest"
     shell:
         """
         {{
@@ -117,8 +119,6 @@ rule standardize_barcodes:
         temp("samples/{sample}/{sample}.standard.sam")
     log:
         "logs/{sample}.standardize.log"
-    container:
-        None
     shell:
         "standardize_barcodes_sam > {output} 2> {log} < {input}"
 
@@ -138,8 +138,6 @@ rule mark_duplicates:
         quality = config['alignment_quality']
     resources:
         mem_mb = 2000
-    container:
-        None
     threads:
         4
     shell:
@@ -170,8 +168,6 @@ rule assign_molecules:
         "logs/assign_mi/{sample}.assign_mi.log"
     params:
         molecule_distance
-    container:
-        None
     shell:
         """
         assign_mi -c {params} {input} > {output.bam} 2> {log}
@@ -188,8 +184,6 @@ rule barcode_stats:
         "logs/bxstats/{sample}.bxstats.log"
     params:
         sample = lambda wc: d[wc.sample]
-    container:
-        None
     shell:
         "bx_stats {input.bam} > {output} 2> {log}"
 
@@ -203,8 +197,6 @@ rule molecule_coverage:
         "logs/{sample}.molcov.log"
     params:
         windowsize
-    container:
-        None
     shell:
         "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
@@ -215,8 +207,6 @@ rule alignment_coverage:
         bed = "reports/data/coverage/coverage.bed"
     output: 
         "reports/data/coverage/{sample}.cov.gz"
-    container:
-        None
     shell:
         "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
 
@@ -252,6 +242,8 @@ rule sample_reports:
         "logs/reports/{sample}.alignstats.log"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:
@@ -270,8 +262,6 @@ if ignore_bx:
         output:
             "{sample}.bam.bai",
             bam = "{sample}.bam"
-        container:
-            None
         shell:
             """
             mv {input} {output.bam}
@@ -287,8 +277,6 @@ rule general_stats:
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
     log:
         "logs/stats/{sample}.samstats.log"
-    container:
-        None
     shell:
         """
         {{
@@ -311,6 +299,8 @@ rule samtools_report:
         outdir = "reports/data/samtools_stats reports/data/samtools_flagstat"
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell:
         "multiqc {params} > {output} 2> {log}"
 
@@ -329,6 +319,8 @@ rule barcode_report:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

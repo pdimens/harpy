@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -90,8 +88,6 @@ rule preprocess_reference:
         fai = f"{workflow_geno}.fai"
     log:
         f"{workflow_geno}.preprocess.log"
-    container:
-        None
     shell: 
         """
         {{
@@ -105,8 +101,6 @@ rule index_snps:
         vcffile
     output:
         vcffile + ".csi"
-    container:
-        None
     shell:
         "bcftools index {input}"
 
@@ -115,8 +109,6 @@ rule index_snps_gz:
         vcffile
     output:
         vcffile + ".tbi"
-    container:
-        None
     shell:
         "tabix {input}"
 
@@ -125,8 +117,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -147,6 +137,8 @@ rule phase_alignments:
         4
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -155,8 +147,6 @@ rule log_phasing:
         collect("logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         "logs/whatshap-haplotag.log"
-    container:
-        None
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -199,8 +189,6 @@ rule concat_groups:
         mem_mb = 2000
     threads:
         10
-    container:
-        None
     shell:
         """
         {{
@@ -242,6 +230,8 @@ rule call_variants:
         min(10, workflow.cores - 1)
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -255,9 +245,7 @@ rule infer_variants:
         bedpe = "bedpe/{population}.bedpe",
         refmt = "IGV/{population}.reformat.bedpe",
         fail  = "bedpe/qc_fail/{population}.fail.bedpe",
-        vcf   = "vcf/{population}.vcf" 
-    container:
-        None
+        vcf   = "vcf/{population}.vcf"
     shell:
         """
         infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -326,6 +314,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:
@@ -353,6 +343,8 @@ rule aggregate_report:
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

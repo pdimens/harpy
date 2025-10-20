@@ -39,8 +39,6 @@ rule sort_by_barcode:
         barcode_tag = BX_TAG
     threads:
         workflow.cores
-    container:
-        None
     shell:
         """
         {{
@@ -57,8 +55,6 @@ rule format_barcode:
         temp("fastq_preproc/input.R{FR}.fq.gz")
     params:
         barcode_tag = BX_TAG
-    container:
-        None
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
@@ -83,11 +79,11 @@ rule error_correction:
     resources:
         mem_mb=max_mem
     conda:
-        "envs/spades.yaml"
+        "envs/assembly.yaml"
     container:
-        None
+        "docker://pdimens/harpy:assembly_latest"
     shell:
-        "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
+        "metaspades -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
 rule spades_assembly:
     input:

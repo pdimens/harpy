@@ -2,10 +2,9 @@
 
 import os
 import shutil
-#import subprocess
 import rich_click as click
 from harpy.common.conda import create_conda_recipes
-from harpy.common.create_pixi import create_pixi_toml
+from harpy.common.create_pixi import create_pixi_dockerfiles, create_pixi_toml
 from harpy.common.workflow import Workflow
 
 @click.command(hidden = True)
@@ -16,8 +15,8 @@ def containerize():
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    create_pixi_toml()
-
+    create_pixi_dockerfiles()
+    #create_pixi_toml()
 
 @click.group(options_metavar='')
 def deps():

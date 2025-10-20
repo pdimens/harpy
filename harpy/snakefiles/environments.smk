@@ -13,6 +13,6 @@ rule all:
 
 rule conda_env:
     output: "{conda}.env"
-    container: "docker://pdimens/harpy:latest"
+    container: "docker://pdimens/harpy:{conda}_latest"
     conda: "envs/{conda}.yaml"
     shell: "touch {output}"

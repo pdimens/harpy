@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 from pathlib import Path
@@ -56,8 +54,6 @@ rule preprocess_reference:
         fai = f"{workflow_geno}.fai"
     log:
         f"{workflow_geno}.preprocess.log"
-    container:
-        None
     shell: 
         """
         {{
@@ -71,8 +67,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -108,6 +102,8 @@ rule call_variants:
         extra = extra
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
@@ -134,8 +130,6 @@ rule concat_variants:
         "logs/concat.log"
     threads:
         workflow.cores
-    container:
-        None
     shell:  
         "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
 
@@ -145,8 +139,6 @@ rule sort_variants:
     output:
         bcf = "variants.raw.bcf",
         csi = "variants.raw.bcf.csi"
-    container:
-        None
     shell:
         "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
 
@@ -164,10 +156,6 @@ rule realign_indels:
         workflow.cores
     params:
         "-m -both -d both --write-index -Ob -c w"
-    threads:
-        workflow.cores
-    container:
-        None
     shell:
         "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"    
 
@@ -179,8 +167,6 @@ rule general_stats:
         idx     = "variants.{type}.bcf.csi"
     output:
         "reports/data/variants.{type}.stats",
-    container:
-        None
     shell:
         """
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
@@ -213,6 +199,8 @@ rule variant_report:
         "logs/variants.{type}.report.log"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

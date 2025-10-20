@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -29,8 +27,6 @@ rule check_bam:
         temp("{sample}.log")
     params:
         lr_platform
-    container:
-        None
     shell: 
         "check_bam {params} {input} > {output}"
 
@@ -39,8 +35,6 @@ rule concat_results:
         collect("{sample}.log", sample = samplenames)
     output:
         "validate.bam.tsv"
-    container:
-        None
     shell:
         """
         {{
@@ -76,6 +70,8 @@ rule create_report:
         "logs/report.log"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

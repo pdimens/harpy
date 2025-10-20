@@ -81,7 +81,7 @@ class Workflow():
             "rerun-triggers": ["mtime", "params"],
             "scheduler": "greedy",
             "nolock": True,
-            "software-deployment-method": "conda" if not container else ["conda", "apptainer"],
+            "software-deployment-method": "conda" if not container else "apptainer",
             "conda-prefix": filepath("./.environments"),
             "conda-cleanup-pkgs": "cache",
             "apptainer-prefix": filepath("./.environments"),

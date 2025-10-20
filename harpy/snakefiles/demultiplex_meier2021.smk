@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 
@@ -70,6 +68,8 @@ rule demultiplex:
         workflow.cores
     conda:
         "envs/demultiplex.yaml"
+    container:
+        "docker://pdimens/harpy:demultiplex_latest"
     shell:
         """
         dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \
@@ -90,6 +90,8 @@ rule assess_quality:
         1
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell:
         """
         ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
@@ -145,6 +147,8 @@ rule quality_report:
         logdir = "reports/data/"
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell:
         "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
 

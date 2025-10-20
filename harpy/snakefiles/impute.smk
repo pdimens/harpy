@@ -1,4 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
 import os
 import re
 import logging
