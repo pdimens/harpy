@@ -35,7 +35,7 @@ haplotag.bc
 _Inline
 # pixi environments
 .pixi
-pixi*
+pixi.lock
 .gitattributes
 *.egg-info
 .deprecated/
