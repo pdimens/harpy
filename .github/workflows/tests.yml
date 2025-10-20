@@ -161,10 +161,6 @@ jobs:
           auth-host: prefix.dev
           auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
-      - name: Install Harpy
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
       - name: harpy deconvolve
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
@@ -188,9 +184,6 @@ jobs:
           auth-host: prefix.dev
           auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
       - name: test bwa
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
@@ -214,10 +207,6 @@ jobs:
           auth-host: prefix.dev
           auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
-      - name: Install Harpy
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
       - name: test strobealign
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
@@ -241,10 +230,6 @@ jobs:
           auth-host: prefix.dev
           auth-token: ${{ secrets.PREFIX_DEV_TOKEN }}
           activate-environment: true
-      - name: Install Harpy
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
       - name: snp mpileup
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
