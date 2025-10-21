@@ -39,17 +39,11 @@ tryCatch(
 )
 ```
 
-```{r package_imports}
-using<-function(...) {
-    libs<-unlist(list(...))
-    req<-unlist(lapply(libs,require,character.only=TRUE))
-    need<-libs[req==FALSE]
-    if(length(need)>0){ 
-        install.packages(need, repos = "https://cloud.r-project.org/")
-        lapply(need,require,character.only=TRUE)
-    }
-}
-using("dplyr","tidyr","DT", "BioCircos")
+```{r package_imports, results = F}
+library(BioCircos)
+library(dplyr)
+library(DT)
+library(tidyr)
 ```
 
 ```{r process_sv}
