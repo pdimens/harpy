@@ -26,9 +26,7 @@ build:
     - concatenate_bam = harpy.scripts:concatenate_bam.main
     - count_bx = harpy.scripts:count_bx.main
     - create_simulation_data = harpy.scripts:create_simulation_data.main
-    - deconvolve_alignments = harpy.scripts:deconvolve_alignments.main
     - depth_windows = harpy.scripts:depth_windows.main
-    - extract_bxtags = harpy.scripts:extract_bxtags.main
     - haplotag_acbd = harpy.scripts:haplotag_acbd.main
     - haplotag_barcodes = harpy.scripts:haplotag_barcodes.main
     - infer_sv = harpy.scripts:infer_sv.main
@@ -36,8 +34,6 @@ build:
     - molecule_coverage = harpy.scripts:molecule_coverage.main
     - parse_phaseblocks = harpy.scripts:parse_phaseblocks.main
     - rename_bam = harpy.scripts:rename_bam.main
-    - separate_singletons = harpy.scripts:separate_singletons.main
-    - separate_validbx = harpy.scripts:separate_validbx.main
     - standardize_barcodes_sam = harpy.scripts:standardize_barcodes_sam.main
   run_exports:
     - {{ pin_subpackage('harpy', max_pin="x") }}
@@ -53,7 +49,7 @@ requirements:
     - conda >24.7
     - htslib >=1.22
     - pysam >=0.23
-    - rich-click >=1.8
+    - rich-click >=1.9.3
     - snakemake-minimal >=9.0
     - samtools >=1.22
     - seqtk
