@@ -104,12 +104,13 @@ def container_ok(ctx, param, value) -> bool:
     Check if the system is linux or has apptainer installed
     """
     if value:
+        if shutil.which("apptainer"):
+            return value
+
         if platform.system().lower() != 'linux':
             raise click.BadParameter(
                 "Snakemake uses Apptainer (formerly Singularity) to manage containers, which is only available for Linux systems.", ctx, param
             )
-        if shutil.which("apptainer"):
-            return value
         else:
             raise click.BadParameter(
                 "Container software management requires apptainer, which wasn't detected in this environment.", ctx, param
