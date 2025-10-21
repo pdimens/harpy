@@ -46,8 +46,8 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     - `-d` removes optical PCR duplicates
       - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     """
-    workflow = Workflow("qc", "qc.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("qc", "qc.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["qc_bx_stats.qmd"]
     workflow.conda = ["qc", "report"]
 

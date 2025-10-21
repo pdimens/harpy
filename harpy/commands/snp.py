@@ -56,8 +56,8 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["report", "variants"]
 
@@ -129,8 +129,8 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["report"]
 

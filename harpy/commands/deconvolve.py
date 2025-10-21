@@ -33,8 +33,8 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
     is_arm(allowed = False)
-    workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["deconvolution"]
 
     ## checks and validations ##

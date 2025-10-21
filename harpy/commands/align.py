@@ -51,8 +51,8 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]
 
@@ -122,8 +122,8 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]
 

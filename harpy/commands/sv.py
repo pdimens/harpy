@@ -59,8 +59,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     have to be the same across the different size classes.
     """
     vcaller = "sv_leviathan" if not populations else "sv_leviathan_pop"
-    workflow = Workflow("sv_leviathan", f"{vcaller}.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("sv_leviathan", f"{vcaller}.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["leviathan.qmd"]
     if populations:
         workflow.reports.append("leviathan_pop.qmd")
@@ -142,8 +142,8 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     """
     vcaller = "sv_naibr" if not populations else "sv_naibr_pop"
     vcaller += "_phase" if vcf else ""
-    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["naibr.qmd"]
     if populations:
         workflow.reports.append("naibr_pop.qmd")

@@ -42,8 +42,8 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
-    workflow = Workflow("impute", "impute.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("impute", "impute.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["impute.qmd", "stitch_collate.qmd"]
     workflow.conda = ["report", "stitch"]
 

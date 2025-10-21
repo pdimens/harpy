@@ -10,11 +10,10 @@ from typing import Dict
 import urllib.request
 import urllib.error
 import yaml
-from rich import print as rprint
 from rich import box
 from rich.table import Table
 from harpy.common.conda import create_conda_recipes
-from harpy.common.file_ops import filepath, gzip_file, fetch_snakefile, purge_empty_logs
+from harpy.common.file_ops import filepath, gzip_file, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_error
 from harpy.common.launch import launch_snakemake
 from harpy.common.summaries import Summary
@@ -23,9 +22,11 @@ class Workflow():
     '''
     The container for workflow parameters. Set inputdir = True to create a workflow/input directory
     '''
-    def __init__(self, name, snakefile, outdir, quiet, inputdir = False):
-        creatdir = os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input')
-        os.makedirs(creatdir, exist_ok = True)
+    def __init__(self, name, snakefile, outdir, container, quiet, inputdir = False):
+        os.makedirs(
+            os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input'),
+            exist_ok = True
+        )
         self.name: str = name
         self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
@@ -39,6 +40,7 @@ class Workflow():
         self.config: Dict = {}
         self.profile: Dict = {}
         self.hpc: str = ""
+        self.container: bool = container
         self.conda: list[str] = []
         self.start_text: None|Table = None
         self.quiet: bool = quiet
@@ -56,7 +58,7 @@ class Workflow():
         increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
         return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
-    def setup_snakemake(self, container: bool, threads: int, hpc: str|None = None, sm_extra: str|None = None):
+    def setup_snakemake(self, threads: int, hpc: str|None = None, sm_extra: str|None = None):
         """
         Sets up the snakemake command based on hpc, threads, and extra snakemake params.
         """
@@ -81,7 +83,7 @@ class Workflow():
             "rerun-triggers": ["mtime", "params"],
             "scheduler": "greedy",
             "nolock": True,
-            "software-deployment-method": "conda" if not container else "apptainer",
+            "software-deployment-method": "conda" if not self.container else "apptainer",
             "conda-prefix": filepath("./.environments"),
             "conda-cleanup-pkgs": "cache",
             "apptainer-prefix": filepath("./.environments"),
@@ -164,10 +166,21 @@ class Workflow():
                     )
 
     def fetch_snakefile(self):
-         """
-         Retrieve the target harpy rule and write it into the workdir as workflow.smk
-         """
-         fetch_snakefile(self.workflow_directory, self.snakefile)
+        """
+        Retrieve the target harpy rule and write it into the workdir as workflow.smk
+        """
+        os.makedirs(self.workflow_directory, exist_ok= True)
+        dest_file = os.path.join(self.workflow_directory,"workflow.smk")
+        source_file = resources.files("harpy.snakefiles") / self.snakefile
+        try:
+            with resources.as_file(source_file) as _source:
+                shutil.copy2(_source, dest_file)
+        except (FileNotFoundError, KeyError):
+            print_error(
+                "snakefile missing",
+                f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation.",
+                "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
+            )
 
     def fetch_script(self, target: str) -> None:
         """
@@ -180,7 +193,7 @@ class Workflow():
                 shutil.copy2(_source, dest_file)
         except (FileNotFoundError, KeyError):
             print_error(
-                "snakefile missing",
+                "script missing",
                 f"The required script [blue bold]{target}[/] was not found in the Harpy installation.",
                 "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
             )
@@ -226,7 +239,7 @@ class Workflow():
         """Print a panel of info on workflow run"""
         if self.quiet == 2:
             return
-        rprint("")
+        CONSOLE.print("")
         CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
         CONSOLE.print(self.start_text)
 
@@ -250,7 +263,8 @@ class Workflow():
         """Using the configurations, create all necessary folders and files"""
         self.write_workflow_config()
         self.write_snakemake_profile()
-        create_conda_recipes(self.output_directory, self.conda)
+        if not self.container:
+            create_conda_recipes(self.output_directory, self.conda)
         self.fetch_snakefile()
         for i in self.reports:
             self.fetch_report(i)

@@ -5,29 +5,28 @@ import os
 import re
 import yaml
 import rich_click as click
-from harpy.common.conda import check_environments, create_conda_recipes
+from harpy.common.conda import check_environments
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
-@click.option('-c', '--conda',  is_flag = True, default = False, help = 'Recreate the conda environments')
 @click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, conda, absolute, threads, quiet):
+def resume(directory, absolute, threads, quiet):
     """
     Continue an incomplete Harpy workflow
 
     In the event you need to run the Snakemake workflow present in a Harpy output directory
     (e.g. `Align/bwa`) without Harpy redoing validations and rewriting any of the configuration files,
     this command bypasses all the preprocessing steps of Harpy workflows and executes the Snakemake command
-    present in `directory/workflow/workflow.yaml`. It will reuse an existing `workflow/envs/` folder
-    to validate software dependencies, otherwise use `--conda` to create a populated one.
+    present in `directory/workflow/workflow.yaml`.
 
     The only requirements are:
     - the target directory has `workflow/config.yaml` present in it
-    - the targest directory has `workflow/envs/*.yaml` present in it
+    - the target directory has `workflow/workflow.yaml` present in it
+    - the targest directory has `workflow/envs/*.yaml` present in it (if using conda)
     """
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
@@ -41,12 +40,11 @@ def resume(directory, conda, absolute, threads, quiet):
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
         snakemake_config = yaml.full_load(f)
 
-    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], quiet)
+    is_conda = snakemake_config["software-deployment-method"] == "conda"
+    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], is_conda, quiet)
     workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
-    if conda:
-        create_conda_recipes(directory, workflow.conda)
-    else:
+    if is_conda:
         check_environments(directory, workflow.conda)
     
     sm_log = os.path.join(directory, harpy_config["snakemake"]["log"])
@@ -64,8 +62,8 @@ def resume(directory, conda, absolute, threads, quiet):
     workflow.snakemake_cmd_absolute = harpy_config["snakemake"]["absolute"]
     workflow.snakemake_cmd_relative = harpy_config["snakemake"]["relative"]
     
-    # pull in the inputs and store them, removing the original so it doesn't g
-    workflow.inputs = harpy_config["inputs"]
+    # pull in the inputs and store them, removing the original
+    workflow.inputs = harpy_config.pop("inputs")
     workflow.config = harpy_config
     workflow.start_text = workflow_info(
         ("Workflow:", workflow.name.replace("_", " ")),
