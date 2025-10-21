@@ -40,11 +40,11 @@ def resume(directory, absolute, threads, quiet):
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
         snakemake_config: dict = yaml.full_load(f)
 
-    is_conda = snakemake_config["software-deployment-method"] == "conda"
-    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], is_conda, quiet)
+    container = snakemake_config["software-deployment-method"] == "apptainer"
+    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], container, quiet)
     workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
-    if is_conda:
+    if not container:
         check_environments(directory, workflow.conda)
     
     sm_log = os.path.join(directory, harpy_config["snakemake"]["log"])
