@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814372963522">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814375140854">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../../static/logo_navbar.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.11.0.814372963522" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.11.0.814375140854" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.814372963522" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.814375140854" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.814372963522" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.814372963522" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.814375140854" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.814375140854" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -283,15 +283,15 @@
     <div class="flex items-center shrink-0">Published&nbsp;<span>2025-02-06</span></div>
 </div>
 
-<p>As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with <code v-pre>--unlinked</code> / <code v-pre>-U</code>.</p>
+<p>As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with <code v-pre>--unlinked</code> / <code v-pre>-U</code>. You can safely ignore the linked-read information in some of the reports Harpy produces.</p>
 <div class="mb-6 overflow-hidden border rounded-md docs-columns dark:border-base-border" style="grid-template-columns: repeat(1, minmax(0, 1fr));">
     <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white">
         <span>Harpy v2</span>
     </div>
     <div class="px-5 py-3 docs-columns-content">
 <ul>
-<li>When available, use <code v-pre>--lr-type none</code> to ignore linked-read specific things</li>
-<li>This option was named <code v-pre>--ignore-bx</code> in versions &lt;2.7</li>
+<li>version <code v-pre>2.0</code>-<code v-pre>2.6</code>: use <code v-pre>--ignore-bx</code></li>
+<li>version <code v-pre>2.7+</code> use <code v-pre>--lr-type none</code></li>
 </ul>
 <p>As of version <code v-pre>2.0</code>, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,
@@ -300,8 +300,8 @@ align sequences, call SNPs and small indels, phase, and impute genotypes. All of
 RADseq data may also work, however the SNP calling workflows
 probably won&#x27;t be very computationally efficient for a highly fragmented RAD assembly.
 There is also another consideration for RADseq regarding marking duplicates (described below).</p>
-<p>Given some of the reports Harpy produces from its workflows, you can safely ignore the stuff
-specific to linked-read information.</p>
+    </div>
+</div>
 <doc-anchor-target id="quality-assessment">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#quality-assessment">#</doc-anchor-trigger>
@@ -407,8 +407,7 @@ information. When using this option, the value for <code v-pre>-d</code>/<code v
 <div class="codeblock-title">phase example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase -t 10 --unlinked variants.bcf data/*.bam </code></pre>
 </doc-codeblock></div>
-    </div>
-</div>
+<p>|||</p>
 
                                 
                                 <!-- Required only on API pages -->
