@@ -6,37 +6,6 @@ on:
     - '*' # Push events of any tag created
 
 jobs:
-  build_tarball:
-    name: Upload Release Tarball
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      repository-projects: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Version the Container
-        # this removes the :*_latest tag and replaces with versioned container
-        run: |
-          for i in harpy/snakefiles/*.smk; do
-            sed -i "s/_latest/_${{ github.ref_name }}/g" $i
-          done
-      - name: Bump Harpy Version
-        # this removes the :latest tag and replaces with versioned container
-        run: |
-          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/__main__.py
-          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" pyproject.toml         
-      - name: Build project
-        # This builds the release tarball, stripped of unneccessary things
-        run: |
-          mkdir artifacts
-          tar --exclude="test" --exclude=".deprecated" --exclude="resources" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
-      - name: Create Release with Assets
-        uses: softprops/action-gh-release@v2
-        with:
-          files: ./artifacts/harpy.${{ github.ref_name }}.tar.gz
-
   build_versioned_containers:
     name: Build and Push versioned container
     runs-on: ubuntu-latest
@@ -75,3 +44,34 @@ jobs:
           push: true
           tags: pdimens/harpy:$${{ matrix.env }}_{{ github.ref_name }}
 
+  build_tarball:
+    needs: build_versioned_containers
+    name: Upload Release Tarball
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Version the Container
+        # this removes the :*_latest tag and replaces with versioned container
+        run: |
+          for i in harpy/snakefiles/*.smk; do
+            sed -i "s/_latest/_${{ github.ref_name }}/g" $i
+          done
+      - name: Bump Harpy Version
+        # this removes the :latest tag and replaces with versioned container
+        run: |
+          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/__main__.py
+          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" pyproject.toml         
+      - name: Build project
+        # This builds the release tarball, stripped of unneccessary things
+        run: |
+          mkdir artifacts
+          tar --exclude="test" --exclude=".deprecated" --exclude="resources" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
+      - name: Create Release with Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/harpy.${{ github.ref_name }}.tar.gz

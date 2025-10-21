@@ -107,11 +107,18 @@ def create_pixi_dockerfiles():
         with open(f"container/{env}/Dockerfile", "w") as dockerfile:
             dockerfile.write(dockerfile_text)
         if env == "report":
-            subprocess.run(f"pixi init container/{env} -c conda-forge -c r".split())
+            subprocess.run(
+                f"pixi init container/{env} -c conda-forge -c r".split(),
+                check = True
+            )
         else:
-            subprocess.run(f"pixi init container/{env} -c conda-forge -c bioconda".split())
+            subprocess.run(
+                f"pixi init container/{env} -c conda-forge -c bioconda".split(),
+                check = True    
+            )
 
         subprocess.run(
-            ["pixi", "add", "--no-progress", "--manifest-path", f"container/{env}/pixi.toml", *deps]
+            ["pixi", "add", "--no-progress", "--manifest-path", f"container/{env}/pixi.toml", *deps],
+            check = True
         )
         shutil.rmtree("container/.pixi", ignore_errors=True)

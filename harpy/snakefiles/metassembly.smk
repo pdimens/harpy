@@ -221,14 +221,13 @@ rule athena_metassembly:
     params:
         force = "--force_reads" if force_athena else "",
         local_asm = "athena/results/olc/flye-input-contigs.fa",
-        final_asm = "athena/results/olc/athena.asm.fa",
-        result_dir = "athena"
+        final_asm = "athena/results/olc/athena.asm.fa"
     conda:
         "envs/metassembly.yaml"
     shell:
         """
         athena-meta {params.force} --config {input.config} &> {log} &&\\
-        mv {params.local_asm} {params.final_asm} {params.result_dir}      
+        mv {params.local_asm} {params.final_asm} athena      
         """
 
 rule QUAST_assessment:
