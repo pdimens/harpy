@@ -61,7 +61,7 @@ def snpindel(genome, snp_vcf, indel_vcf, only_vcf, output_dir, prefix, snp_count
     | `--snp-ratio`   | transitions / transversions | transit. only | transv. only |
     | `--indel-ratio` | insertions / deletions      | insert. only  | delet. only  |
     """
-    workflow = Workflow("simulate_snpindel", "simulate_snpindel.smk", output_dir, quiet, True)
+    workflow = Workflow("simulate_snpindel", "simulate_snpindel.smk", output_dir, container, quiet, True)
     workflow.setup_snakemake(2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
@@ -156,7 +156,7 @@ def inversion(genome, vcf, only_vcf, prefix, output_dir, count, min_size, max_si
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
-    workflow = Workflow("simulate_inversion", "simulate_variants.smk", output_dir, quiet, True)
+    workflow = Workflow("simulate_inversion", "simulate_variants.smk", output_dir, container, quiet, True)
     workflow.setup_snakemake(2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
@@ -247,7 +247,7 @@ def cnv(genome, output_dir, vcf, only_vcf, prefix, count, min_size, max_size, du
     | `--dup-ratio`  | tandem / dispersed | tand. only | disp. only |
     | `--gain-ratio` | copy gain / loss   | gain only  | loss only  |
     """
-    workflow = Workflow("simulate_cnv", "simulate_variants.smk", output_dir, quiet, True)
+    workflow = Workflow("simulate_cnv", "simulate_variants.smk", output_dir, container, quiet, True)
     workflow.setup_snakemake(2, hpc, snakemake)
     workflow.conda = ["simulations"]
 
@@ -329,7 +329,7 @@ def translocation(genome, output_dir, prefix, vcf, only_vcf, count, centromeres,
     To simulate a diploid genome with heterozygous and homozygous variants, set `--heterozygosity` to a value greater than `0`.
     Use `--only-vcf` alongside `--heterozygosity` to only generate the second VCF file and not simulate a second FASTA file.
     """
-    workflow = Workflow("simulate_translocation", "simulate_variants.smk", output_dir, quiet, True)
+    workflow = Workflow("simulate_translocation", "simulate_variants.smk", output_dir, container, quiet, True)
     workflow.setup_snakemake(2, hpc, snakemake)
     workflow.conda = ["simulations"]    
 
