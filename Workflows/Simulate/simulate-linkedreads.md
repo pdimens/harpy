@@ -12,8 +12,9 @@ order: 6
 # :icon-flame: Simulate Linked Reads [!badge variant="danger" text="being deprecated"]
 Simulate linked reads from a genome
 
-!!!danger SLATED FOR DEPRECATION
-The simulate linkedreads workflow is being replaced with [mimick](https://pdimens.github.io/mimick)
+!!!danger DEPRECATION NOTICE
+The simulate linkedreads workflow is being replaced with [mimick](https://pdimens.github.io/mimick).
+It will be officially removed from Harpy starting with version 3.3.
 !!!
 
 

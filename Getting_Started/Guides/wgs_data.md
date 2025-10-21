@@ -33,16 +33,16 @@ Using [!badge corners="pill" text="harpy qc"](/Workflows/qc.md), you are able to
 quality, bases, detect duplicates with UMIs, etc. You **cannot** use `--deconvolve` when ignoring
 linked-read information.
 ```bash qc example
-harpy qc --lr-type none --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
+harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
 ```
 
 ## Sequence Alignment
 Likewise, you can use either [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md) or [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md) to align
 your sequences onto a reference genome. The `--molecule-distance` will be ignored when
-using `--lr-type none`.
+using `--unlinked`.
 
 ```bash align example
-harpy align bwa --lr-type none --min-quality 25 genome.fasta data/WGS/trimmed 
+harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed 
 ```
 
 !!!warning RADseq data
@@ -75,10 +75,10 @@ harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam
 ```
 
 ## Phase Genotypes
-Like most of the other workflows, use `--lr-type none` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
+Like most of the other workflows, use `--unlinked` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for `-d`/`--molecule-distance` will be ignored:
 ```bash phase example
-harpy phase -t 10 --lr-type none variants.bcf data/*.bam 
+harpy phase -t 10 --unlinked variants.bcf data/*.bam 
 ```
 
 |||

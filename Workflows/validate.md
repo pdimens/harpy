@@ -52,7 +52,6 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | argument          | description                                                                                                                            |
 |:------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
 | `INPUTS`          | [!badge variant="info" text="required"] Files or directories containing [input fastq or bam files](/Getting_Started/common_options.md#input-arguments) |
-| `--platform` `-P` | linked-read type (options: [`haplotgagging`, `stlfr`, `tellseq`], default: `haplotagging`)                                             |
 
 ## Workflow
 
@@ -64,7 +63,7 @@ of the language such as when "any" and "all" are written.
 {.compact}
  | Criteria           | Pass Condition                                                                           | Fail Condition                                                |
  |:-------------------|:-----------------------------------------------------------------------------------------|:--------------------------------------------------------------|
- | Format             | **all** reads with BX:Z: tag have properly formatted barcodes for the given `--platform` | **any** BX:Z: barcodes have incorrect format                  |
+ | Format             | **all** reads with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** BX:Z: barcodes have incorrect format                  |
  | follows SAM spec   | **all** reads have proper `TAG:TYPE:VALUE` comments                                      | **any** reads have incorrectly formatted comments             |
  | BX:Z: last comment | **all** reads have `BX:Z`: as final comment                                              | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
  | BX:Z: tag          | any `BX:Z:` tags present                                                                 | **all** reads lack `BX:Z:` tag                                |
@@ -79,7 +78,7 @@ of the language such as when "any" and "all" are written.
 | name matches   | the file name matches the `@RG ID:` tag in the header                                         | file name does not match `@RG ID:` in the header              |
 | MI: tag        | **any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags                      | **all** reads have `BX:Z:` tag present but `MI:i:` tag absent |
 | BX:Z: tag      | any `BX:Z:` tags present                                                                      | **all** alignments lack `BX:Z:` tag                           |
-| Format         | **all** alignments with BX:Z: tag have properly formatted barcodes for the given `--platform` | **any** `BX:Z:` barcodes have incorrect format                |
+| Format         | **all** alignments with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** `BX:Z:` barcodes have incorrect format                |
 | BX:Z: last tag | **all** reads have `BX:Z`: as final tag in alignment records                                  | **at least 1 read** doesn't have `BX:Z:` tag as final tag     |
 
 +++ output

@@ -12,8 +12,10 @@ order: 10
 # :icon-arrow-switch: Convert between data formats [!badge variant="danger" text="being deprecated"]
 
 
-!!!danger SLATED FOR DEPRECATION
-The convert module is being replaced with [djinn](https://pdimens.github.io/djinn)
+!!!danger DEPRECATION NOTICE
+The convert module is being replaced with [djinn](https://pdimens.github.io/djinn),
+which is provided with a conda-based Harpy installation as of version `3.1` (build 2).
+It will be officially removed from Harpy starting with version 3.3.
 !!!
 
 Regrettably, the bright minds who developed various linked-read technologies cannot seem to agree on a unified data format.

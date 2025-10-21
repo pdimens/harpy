@@ -17,7 +17,7 @@ theme:
     image-rounded: 0.75rem
     nav-item-text-stack: "#1e66f5"
 branding:
-  label: v3.0
+  label: v3.1
   logo: static/logo_trans.png
   logoDark: static/logo_trans.png
   logoAlign: left

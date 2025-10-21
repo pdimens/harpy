@@ -42,7 +42,6 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
 | `--extra-params` `-x`      | string               |         | Additional stroebealign arguments, in quotes                                                                                                    |
 | `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                                   |
-| `--lr-type` `-L`           |                      |         | Ignore linked-read information by setting to `none`                                                                                             |
 | `--min-quality` `-d`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
 | `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
 

@@ -11,8 +11,10 @@ order: 10
 
 # :icon-fold-down: Downsample data by barcode [!badge variant="danger" text="being deprecated"]
 
-!!!danger SLATED FOR DEPRECATION
-The downsample module is being replaced with [djinn](https://pdimens.github.io/djinn)
+!!!danger DEPRECATION NOTICE
+The downsample module is being replaced with [djinn](https://pdimens.github.io/djinn),
+which is provided with a conda-based Harpy installation as of version `3.1` (build 2).
+It will be officially removed from Harpy starting with version 3.3.
 !!!
 
 ===  :icon-checklist: You will need
