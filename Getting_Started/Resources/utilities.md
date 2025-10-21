@@ -120,18 +120,6 @@ infer_sv file.bedpe [-f fail.bedpe] > outfile.bedpe
 Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags
 and you can use the optional `-f` (`--fail`) argument to output FAIL variants to a separate file.
 
-### inline_to_haplotag [!badge variant="warning" corners="pill" text="deprecated"]
-```bash
-inline_to_haplotag -b <barcodes.txt> -p <prefix> forward.fq.gz reverse.fq.gz
-```
-Converts inline nucleotide barcodes in reads to haplotag linked reads with barcodes in `BX:Z` and `OX:Z` header tags. The `barcodes.txt` file
-can be gzipped and must be in the form of nucleotide-barcode _TAB_ haplotagging-barcode. Example:
-
-``` barcodes.txt
-ATTACACATA    A01C03B57D31
-AGGACACATA    A11C83B77D29
-```
-
 ### make_windows
 ```bash
 make_windows -w <window.size> -m <0,1> input.fasta[.fai] > output.bed
@@ -161,22 +149,6 @@ rename_bam [-d] new_name input.bam
 ```
 Rename a sam/bam file and modify the `@RG` tag of the alignment file to reflect the change for both `ID` and `SM`.
 This process creates a new file `new_name.bam` and you may use `-d` to delete the original file. Requires `samtools`.
-
-### separate_singletons
-```bash
-separate_singletons -t threads -b barcode_tag -s singletons.bam input.bam > output.bam
-```
-Isolate singleton and non-singleton linked-read BAM records into separate files. Singletons
-refers to barcodes that have only one unpaired or paired read, meaning the barcode doesn't
-actually link and reads togeher.
-
-### separate_validbx
-```bash
-separate_validbx invalid.bam input.bam > valid.bam
-```
-Split a BAM file with `BX` tags by tag validity
-- **first argument**: alignments invalid ACBD barcodes
-- `stdout`: alignments with valid ACBD barcodes
 
 ### standardize_barcodes_sam
 ```bash
