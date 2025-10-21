@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.813949948929">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814372723584">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../../static/logo_navbar.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.11.0.813949948929" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.11.0.814372723584" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.813949948929" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.814372723584" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.813949948929" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.813949948929" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.814372723584" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.814372723584" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -59,7 +59,7 @@
                                 <img class="max-h-10 dark:hidden md:inline-block" src="../../../static/logo_trans.png">
                                 <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_trans.png">
                             </span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.0</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.1</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -315,7 +315,7 @@ quality, bases, detect duplicates with UMIs, etc. You <strong>cannot</strong> us
 linked-read information.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">qc example</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc --lr-type none --trim-adapters auto --min-length 50 data/WGS/sample_*.gz </code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz </code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="sequence-alignment">
     <h2>
@@ -329,10 +329,10 @@ linked-read information.</p>
     <span>harpy align strobe</span>
 </a> to align
 your sequences onto a reference genome. The <code v-pre>--molecule-distance</code> will be ignored when
-using <code v-pre>--lr-type none</code>.</p>
+using <code v-pre>--unlinked</code>.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">align example</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa --lr-type none --min-quality 25 genome.fasta data/WGS/trimmed </code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed </code></pre>
 </doc-codeblock></div>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
@@ -399,13 +399,13 @@ model2    diploid   FASE    50000   15      10      100</code></pre>
         <span>Phase Genotypes</span>
     </h2>
 </doc-anchor-target>
-<p>Like most of the other workflows, use <code v-pre>--lr-type none</code> with <a href="../../../workflows/phase/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+<p>Like most of the other workflows, use <code v-pre>--unlinked</code> with <a href="../../../workflows/phase/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>harpy phase</span>
 </a> to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for <code v-pre>-d</code>/<code v-pre>--molecule-distance</code> will be ignored:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">phase example</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase -t 10 --lr-type none variants.bcf data/*.bam </code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase -t 10 --unlinked variants.bcf data/*.bam </code></pre>
 </doc-codeblock></div>
     </div>
 </div>

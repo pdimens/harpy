@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.813949948929">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814372723584">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../static/logo_navbar.png" rel="icon">
-    <link href="../../resources/css/retype.css?v=3.11.0.813949948929" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=3.11.0.814372723584" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.813949948929" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=3.11.0.814372723584" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.813949948929" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.813949948929" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=3.11.0.814372723584" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=3.11.0.814372723584" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=3.11.0" defer></script>
 </head>
 <body>
@@ -60,7 +60,7 @@
                                 <img class="max-h-10 dark:hidden md:inline-block" src="../../static/logo_trans.png">
                                 <img class="max-h-10 hidden dark:inline-block" src="../../static/logo_trans.png">
                             </span>
-                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.0</span>
+                        </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.1</span>
                     </div>
         
                     <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -336,8 +336,8 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase OPTIONS... VCF INPUTS...</code></pre>
 </doc-codeblock></div>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">example | phase variants whose barcodes are tellseq style</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase --threads 20 -P tellseq Variants/variants.raw.bcf alignments/ </code></pre>
+<div class="codeblock-title">example | phase variants using auto-detected linked-read data</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase --threads 20 Variants/variants.raw.bcf alignments/ </code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="running-options">
     <h2>
@@ -390,11 +390,6 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <td style="text-align: left;">Path to reference genome if wanting to also use reads spanning indels</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code v-pre>--lr-type</code> <code v-pre>-L</code></td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;">Type of linked-read barcode technology. Will filter out reads with invalid barcodes based on this option. Ignore linked-read information with <code v-pre>none</code> [<code v-pre>none</code>, <code v-pre>haplotagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>]</td>
-</tr>
-<tr>
 <td style="text-align: left;"><code v-pre>--min-map-qual</code> <code v-pre>-q</code></td>
 <td style="text-align: center;"><code v-pre>20</code></td>
 <td style="text-align: left;">Minimum mapping quality score to be considered for phasing</td>
@@ -408,11 +403,6 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 <td style="text-align: left;"><code v-pre>--molecule-distance</code> <code v-pre>-d</code></td>
 <td style="text-align: center;"><code v-pre>100000</code></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules</td>
-</tr>
-<tr>
-<td style="text-align: left;"><code v-pre>--platform</code> <code v-pre>-P</code></td>
-<td style="text-align: center;"><code v-pre>haplotgagging</code></td>
-<td style="text-align: left;">linked-read type: [<code v-pre>haplotgagging</code>, <code v-pre>stlfr</code>, <code v-pre>tellseq</code>]</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code v-pre>--prune-threshold</code> <code v-pre>-p</code></td>
