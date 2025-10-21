@@ -11,11 +11,11 @@ image: https://www.food-safety.com/ext/resources/2021/06/19/WGS_Img01_900.jpg
 ---
 
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
-As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`.
+As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`. You can safely ignore the linked-read information in some of the reports Harpy produces.
 
 ||| Harpy v2
-- When available, use `--lr-type none` to ignore linked-read specific things
-- This option was named `--ignore-bx` in versions <2.7
+- version `2.0`-`2.6`: use `--ignore-bx`
+- version `2.7+` use `--lr-type none`
 
 As of version `2.0`, Harpy can be used to process regular whole genome
 sequencing (WGS) data. Specifically, you can quality checks and trim samples,
@@ -24,9 +24,7 @@ align sequences, call SNPs and small indels, phase, and impute genotypes. All of
 RADseq data may also work, however the SNP calling workflows
 probably won't be very computationally efficient for a highly fragmented RAD assembly. 
 There is also another consideration for RADseq regarding marking duplicates (described below).
-
-Given some of the reports Harpy produces from its workflows, you can safely ignore the stuff
-specific to linked-read information.
+|||
 
 ## Quality Assessment
 Using [!badge corners="pill" text="harpy qc"](/Workflows/qc.md), you are able to detect and remove adapters, poly G tails, trim low 
