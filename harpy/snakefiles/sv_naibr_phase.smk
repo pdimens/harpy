@@ -11,7 +11,7 @@ wildcard_constraints:
 
 genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
+#bamdict     = dict(zip(bamlist, bamlist))
 vcffile     = config["inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
@@ -77,9 +77,9 @@ rule preprocess_reference:
 
 rule index_alignments:
     input:
-        lambda wc: bamdict[wc.bam]
+        get_alignments
     output:
-        "{bam}.bai"
+        "{sample}.bai"
     shell:
         "samtools index {input}"
 

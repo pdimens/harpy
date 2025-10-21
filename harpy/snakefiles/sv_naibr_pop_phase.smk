@@ -114,9 +114,9 @@ rule index_snps_gz:
 
 rule index_alignments:
     input:
-        lambda wc: bamdict[wc.bam]
+        get_alignments
     output:
-        "{bam}.bai"
+        "{sample}.bai"
     shell:
         "samtools index {input}"
 
