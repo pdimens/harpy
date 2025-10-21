@@ -36,9 +36,9 @@ def resume(directory, absolute, threads, quiet):
         print_error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
     
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
-        harpy_config = yaml.full_load(f)
+        harpy_config: dict = yaml.full_load(f)
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
-        snakemake_config = yaml.full_load(f)
+        snakemake_config: dict = yaml.full_load(f)
 
     is_conda = snakemake_config["software-deployment-method"] == "conda"
     workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], is_conda, quiet)
