@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814467115234">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814469903811">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,12 +34,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="../../../static/logo_navbar.png" rel="icon">
-    <link href="../../../resources/css/retype.css?v=3.11.0.814467115234" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=3.11.0.814469903811" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.814467115234" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=3.11.0.814469903811" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.814467115234" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.814467115234" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=3.11.0.814469903811" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=3.11.0.814469903811" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -308,42 +308,35 @@ style of presenting and explaining the error, then providing a solution and show
         <span>Installing dev version</span>
     </h2>
 </doc-anchor-target>
-<p>As of v1.15, we provide two scripts that automate a development installation
-(we use them ourselves!).
-First, you&#x27;ll need to clone the Harpy git repository:</p>
+<p>As of v3.2, the easiest way to locally install the development build is to use <a href="https://pixi.sh/latest/installation/" class="outbound" target="_blank"><span>pixi</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>.</p>
+<p>First, you&#x27;ll need to install <code v-pre>pixi</code> if you don&#x27;t already have it on your system:</p>
+<div class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
+</doc-codeblock></div>
+<p>Then, you&#x27;ll need to clone the Harpy git repository:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">git clone https://github.com/pdimens/harpy.git</code></pre>
 </doc-codeblock></div>
-<p>Then you have your choice of conda- or pixi-based installations</p>
-<doc-tabs>
-<doc-tab v-cloak id="conda-based-installation">
-<template #title>conda-based installation</template>
+<p>After, you can install the environment manually or have <code v-pre>pixi</code> do it automatically
+when you activate the pixi shell:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bash resources/dev_install_conda.sh</code></pre>
+<div class="codeblock-title">manually install the environment and activate the shell</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
+pixi install
+pixi shell
+# harpy ...</code></pre>
 </doc-codeblock></div>
-<p>After which, you can activate the conda environment:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">from within the harpy/ folder</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">conda activate .conda/harpy</code></pre>
-</doc-codeblock></div>
-</doc-tab>
-<doc-tab v-cloak id="pixi-based-installation">
-<template #title>pixi-based installation</template>
-<div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bash resources/dev_install_pixi.sh</code></pre>
-</doc-codeblock></div>
-<p>After which, you can activate the pixi environment:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">form within the harpy/ folder</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">pixi shell</code></pre>
+<div class="codeblock-title">have pixi do it automatically and activate the shell</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
+pixi shell
+# harpy ...</code></pre>
 </doc-codeblock></div>
 <p>Alternatively, you can prefix harpy commands with <code v-pre>pixi run</code>:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">from within the harpy/ folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">pixi run harpy impute...</code></pre>
 </doc-codeblock></div>
-</doc-tab>
-</doc-tabs>
 <doc-anchor-target id="harpys-components">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpys-components">#</doc-anchor-trigger>
@@ -376,8 +369,8 @@ using non-python code.</p>
         <span>bioconda recipe</span>
     </h3>
 </doc-anchor-target>
-<p>For the ease of installation for end-users, Harpy has a <a href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml" class="outbound" target="_blank"><span>recipe and build script</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> in Bioconda,
-which makes it available for download and installation. A copy of the recipe is also
+<p>For the ease of installation for end-users, Harpy has a <a href="https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml" class="outbound" target="_blank"><span>recipe</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> in Bioconda,
+which makes it available for download and installation. A semi-updated copy of the recipe is also
 stored in <code v-pre>resources/meta.yml</code>. The yaml file is the metadata of the package, including software
 deps and their versions. Now that Harpy is hosted on bioconda, when a new version is tagged with
 a release, Bioconda will automatically create a pull request (after a delay), typically not
@@ -444,19 +437,20 @@ table below:</p>
     </h3>
 </doc-anchor-target>
 <p>As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
-that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually.</p>
+that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually. As of v3.2,
+the container has been split into smaller images with a <code v-pre>&lt;env&gt;_&lt;version&gt;</code> tags, e.g. <code v-pre>harpy:align_3.2</code> is the tag for
+the container with all the software in the conda-equivalent <code v-pre>align</code> environment for Harpy v3.2.</p>
 <doc-anchor-target id="automatically">
     <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#automatically">#</doc-anchor-trigger>
         <span>automatically</span>
     </h4>
 </doc-anchor-target>
-<p>The testing GitHub Action will automatically create a Dockerfile with <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
+<p>The <code v-pre>createrelease</code> GitHub Action will automatically create the multiple Dockerfiles with <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>harpy containerize</span>
 </span> (a hidden harpy command)
-and build a new Docker container, then upload it to <a href="https://hub.docker.com/repository/docker/pdimens/harpy/general" class="outbound" target="_blank"><span>dockerhub</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
-with the <code v-pre>latest</code> tag. This process is triggered on <code v-pre>push</code> or <code v-pre>pull request</code> with changes to either
-<code v-pre>src/harpy/conda_deps.py</code> or <code v-pre>src/harpy/snakefiles/containerize.smk</code> on <code v-pre>main</code>.</p>
+and build the new Docker containers, then upload them to <a href="https://hub.docker.com/repository/docker/pdimens/harpy/general" class="outbound" target="_blank"><span>dockerhub</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
+with the appropriate version tag.</p>
 <doc-anchor-target id="manually">
     <h4>
         <doc-anchor-trigger class="header-anchor-trigger" to="#manually">#</doc-anchor-trigger>
@@ -467,32 +461,21 @@ with the <code v-pre>latest</code> tag. This process is triggered on <code v-pre
     <span>harpy containerize</span>
 </span></p>
 <div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">auto-generate Dockerfile</div>
+<div class="codeblock-title">auto-generate Dockerfiles</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy containerize</code></pre>
 </doc-codeblock></div>
-<p>which does all of the work for us. The result is a <code v-pre>Dockerfile</code> that has all of the conda environments
-written into it. After creating the <code v-pre>Dockerfile</code>, the image must then be built.</p>
+<p>which does all of the work for us. The result is a series of <code v-pre>container/env/Dockerfile</code> files that have all of the pixi environments and shell hooks written into them. After creating the <code v-pre>Dockerfile</code>s, the images must then be built with the correct tag.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">build the Docker image</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd resources
-docker build -t pdimens/harpy .</code></pre>
+docker build -t pdimens/harpy:env_tag container/env</code></pre>
 </doc-codeblock></div>
-<p>This will take a bit because the R dependencies are hefty. Once that&#x27;s done, the image can be pushed to Dockerhub:</p>
+<p>where <code v-pre>env</code> can be e.g. <code v-pre>qc</code> and <code v-pre>tag</code> could be something like <code v-pre>3.3</code>, making the tag <code v-pre>qc_3.3</code></p>
+<p>Once that&#x27;s done, the image can be pushed to Dockerhub:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">push image to Dockerhub</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker push pdimens/harpy</code></pre>
 </doc-codeblock></div>
-<p>This containerize -&gt; dockerfile -&gt; build -&gt; process will push the changes to Dockerhub with the <code v-pre>latest</code> tag, which is suitable for
-the development cycle. When the container needs to be tagged to be associated with the release of a new Harpy version, you will need to
-add a tag to the <code v-pre>docker build</code> step:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
-<div class="codeblock-title">build tagged Docker image</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">cd resources
-docker build -t pdimens/harpy:TAG</code></pre>
-</doc-codeblock></div>
-<p>where <code v-pre>TAG</code> is the Harpy version, such as <code v-pre>1.0</code>, <code v-pre>1.4.1</code>, <code v-pre>2.1</code>, etc. As such, during development, the <code v-pre>containerized: docker://pdimens/harpy:TAG</code> declaration at the top of the snakefiles should use the <code v-pre>latest</code> tag, and when ready for release, changed to match the Harpy
-version. So, if the Harpy version is <code v-pre>1.4.12</code>, then the associated docker image should also be tagged with <code v-pre>1.4.12</code>. The tag should remain <code v-pre>latest</code>
-(unless there is a very good reason otherwise) since automatic Docker tagging happens upon releases of new Harpy versions.</p>
 <doc-anchor-target id="automations">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#automations">#</doc-anchor-trigger>
@@ -525,9 +508,9 @@ crop up this way and require more work so Harpy can be resilient to more use cas
 that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
 upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
 build a new Dockerfile and tag it with the same git tag for Harpy&#x27;s next release and push it to Dockerhub.
-In doing so, it will also replace the tag of the container in all of Harpy&#x27;s snakefiles from <code v-pre>latest</code> to the
-current Harpy version. In other words, during development the top of every snakefile reads
-<code v-pre>containerized: docker://pdimens/harpy:latest</code> and the automation replaces it with (e.g.) <code v-pre>containerized: docker://pdimens/harpy:1.17</code>.
+In doing so, it will also replace the tag of the containers in all of Harpy&#x27;s snakefiles from <code v-pre>latest</code> to the
+current Harpy version. In other words, during development the containers in workflows appear as
+<code v-pre>container: docker://pdimens/harpy:env_latest</code> and the automation replaces it with (e.g.) <code v-pre>container: docker://pdimens/harpy:env_tag</code>.
 Same for the software version, which is kept at <code v-pre>0.0.0</code> (<code v-pre>pyproject.toml</code> and <code v-pre>__main__.py</code>) in the development version and gets replaced with the tagged version with the automation.
 Tagging is easily accomplished with Git commands in the command line:</p>
 <div class="codeblock-wrapper"><doc-codeblock>
