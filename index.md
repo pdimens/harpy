@@ -45,40 +45,36 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
- Usage: harpy COMMAND [ARGS]...                                            
-                                                                
- An automated workflow for linked-read data to go  
- from raw data to genotypes (or phased haplotypes). Batteries   
- included.                                                      
- demultiplex >> qc >> align >> snp >> impute >> phase >> sv     
-                                                                
- Documentation: https://pdimens.github.io/harpy/                
-                                                                
-╭─ Data Processing ──────────────────────────────────────────────────╮
-│ align        Align sequences to a reference genome                 │
-│ assembly     Assemble linked reads into a genome                   │
-│ demultiplex  Demultiplex haplotagged FASTQ files                   │
-│ impute       Impute variant genotypes from alignments              │
-│ metassembly  Assemble linked reads into a metagenome               │
-│ phase        Phase SNPs into haplotypes                            │
-│ qc           FASTQ adapter removal, quality filtering, etc.        │
-│ simulate     Simulate genomic variants or linked reads             │
-│ snp          Call SNPs and small indels                            │
-│ sv           Call inversions, deletions, and duplications          │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ───────────────────────────────────────────────────╮
-│ convert     Convert between linked-read formats and barcode styles │                                            │
-│ deconvolve  Resolve barcode sharing in unrelated molecules         │
-│ downsample  Downsample data by barcode                             │
-│ template    Create files and HPC configs for workflows             │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Troubleshoot ─────────────────────────────────────────────────────╮
-│ deps      Locally install workflow dependencies                    │
-│ diagnose  Run the Snakemake debugger to identify hang-ups          │
-│ resume    Continue an incomplete Harpy workflow                    │
-│ validate  File format checks for linked-read data                  │
-│ view      View a workflow's components                             │
-╰────────────────────────────────────────────────────────────────────╯
+Usage: harpy COMMAND [ARGS]...
+
+An automated workflow for linked-read data to go from raw data to
+genotypes (or phased haplotypes). Batteries included.
+demultiplex >> qc >> align >> snp >> impute >> phase >> sv
+                                                                 
+Documentation: https://pdimens.github.io/harpy/
+
+Data Processing:
+  align        Align sequences to a reference genome
+  assembly     Assemble linked reads into a genome
+  demultiplex  Demultiplex haplotagged FASTQ files
+  impute       Impute variant genotypes from alignments
+  metassembly  Assemble linked reads into a metagenome
+  phase        Phase SNPs into haplotypes
+  qc           FASTQ adapter removal, quality filtering, etc.
+  simulate     Simulate genomic variants
+  snp          Call SNPs and small indels from alignments
+  sv           Call inversions, deletions, and duplications from alignments
+
+Other Commands:
+  deconvolve  Resolve barcode sharing in unrelated molecules
+  template    Create files and HPC configs for workflows
+
+Troubleshoot:
+  deps      Locally install workflow dependencies
+  diagnose  Attempt to resolve workflow errors
+  resume    Continue an incomplete Harpy workflow
+  validate  File format checks for linked-read data
+  view      View a workflow's components
 ```
 
 ## Typical Linked-Read Workflows
