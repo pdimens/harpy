@@ -5,9 +5,9 @@ import re
 import os
 import sys
 import subprocess
-from rich.table import Table
 from rich import box
 from rich.syntax import Syntax
+from rich.table import Table
 from harpy.common.file_ops import gzip_file, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_onerror, print_setup_error
 from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
@@ -66,7 +66,6 @@ def print_shellcmd(text: str, _process):
             CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text), overflow = "ignore", crop = False)
             return _process.stderr.readline()
 
-
 def highlight_params(text: str):
     """make important snakemake attributes like 'input:' highlighted in the error output"""
     text = text.removeprefix("    ").rstrip()
@@ -93,7 +92,7 @@ def highlight_params(text: str):
         return f"\n[blue]{text}[/]"
     return text
 
-def launch_snakemake(sm_args, workflow, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
+def launch_snakemake(sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
     """launch snakemake with the given commands"""
     exitcode = None
     sm_start = datetime.now()

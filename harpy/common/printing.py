@@ -2,9 +2,11 @@
 
 import time as _time
 import os
+import re
 import sys
 from rich.console import Console, RenderableType
 from rich import box
+from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
 
@@ -113,6 +115,23 @@ def print_onerror(logfile: str, time) -> None:
     CONSOLE.print("The workflow stopped because of an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")
+
+def print_shellcmd_simple(text):
+    _table = Table(
+        show_header=False,
+        pad_edge=False,
+        show_edge=False,
+        padding=(0,0),
+        box=box.SIMPLE,
+    )
+    _table.add_column("Lpadding", justify="left")
+    _table.add_column("shell", justify="left")
+    _table.add_column("Rpadding", justify="left")
+
+    text = re.sub(r' {2,}|\t+', '  ', text)
+    cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
+    _table.add_row("  ", cmd, "  ")
+    CONSOLE.print("[bold default]shell:", _table)
 
 def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     """

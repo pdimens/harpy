@@ -283,7 +283,7 @@ class Workflow():
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
 
         try:
-            launch_snakemake(cmd, self.workflow_directory, self.output_directory, self.snakemake_logfile, self.quiet)
+            launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
         finally:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())
