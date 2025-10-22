@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814375140854">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="3.11.0.814467065527">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 3.11.0">
@@ -34,11 +34,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link href="static/logo_navbar.png" rel="icon">
-    <link href="resources/css/retype.css?v=3.11.0.814375140854" rel="stylesheet">
+    <link href="resources/css/retype.css?v=3.11.0.814467065527" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=3.11.0.814375140854" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=3.11.0.814467065527" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=3.11.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.11.0.814375140854" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=3.11.0.814467065527" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=3.11.0" defer></script>
 </head>
 <body>
@@ -360,40 +360,36 @@ Great! Only want to call variants? Awesome! All modules are called by <code v-pr
 <p>You can call <code v-pre>harpy</code> without any arguments (or with <code v-pre>--help</code>) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with <code v-pre>--help</code> to see their usage  (e.g. <code v-pre>harpy align --help</code>).</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">harpy --help</div>
-<pre translate="no" class="language-none"><code v-pre class="language-none"> Usage: harpy COMMAND [ARGS]...                                            
-                                                                
- An automated workflow for linked-read data to go  
- from raw data to genotypes (or phased haplotypes). Batteries   
- included.                                                      
- demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv     
-                                                                
- Documentation: https://pdimens.github.io/harpy/                
-                                                                
-╭─ Data Processing ──────────────────────────────────────────────────╮
-│ align        Align sequences to a reference genome                 │
-│ assembly     Assemble linked reads into a genome                   │
-│ demultiplex  Demultiplex haplotagged FASTQ files                   │
-│ impute       Impute variant genotypes from alignments              │
-│ metassembly  Assemble linked reads into a metagenome               │
-│ phase        Phase SNPs into haplotypes                            │
-│ qc           FASTQ adapter removal, quality filtering, etc.        │
-│ simulate     Simulate genomic variants or linked reads             │
-│ snp          Call SNPs and small indels                            │
-│ sv           Call inversions, deletions, and duplications          │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Other Commands ───────────────────────────────────────────────────╮
-│ convert     Convert between linked-read formats and barcode styles │                                            │
-│ deconvolve  Resolve barcode sharing in unrelated molecules         │
-│ downsample  Downsample data by barcode                             │
-│ template    Create files and HPC configs for workflows             │
-╰────────────────────────────────────────────────────────────────────╯
-╭─ Troubleshoot ─────────────────────────────────────────────────────╮
-│ deps      Locally install workflow dependencies                    │
-│ diagnose  Run the Snakemake debugger to identify hang-ups          │
-│ resume    Continue an incomplete Harpy workflow                    │
-│ validate  File format checks for linked-read data                  │
-│ view      View a workflow's components                             │
-╰────────────────────────────────────────────────────────────────────╯</code></pre>
+<pre translate="no" class="language-none"><code v-pre class="language-none">Usage: harpy COMMAND [ARGS]...
+
+An automated workflow for linked-read data to go from raw data to
+genotypes (or phased haplotypes). Batteries included.
+demultiplex &gt;&gt; qc &gt;&gt; align &gt;&gt; snp &gt;&gt; impute &gt;&gt; phase &gt;&gt; sv
+                                                                 
+Documentation: https://pdimens.github.io/harpy/
+
+Data Processing:
+  align        Align sequences to a reference genome
+  assembly     Assemble linked reads into a genome
+  demultiplex  Demultiplex haplotagged FASTQ files
+  impute       Impute variant genotypes from alignments
+  metassembly  Assemble linked reads into a metagenome
+  phase        Phase SNPs into haplotypes
+  qc           FASTQ adapter removal, quality filtering, etc.
+  simulate     Simulate genomic variants
+  snp          Call SNPs and small indels from alignments
+  sv           Call inversions, deletions, and duplications from alignments
+
+Other Commands:
+  deconvolve  Resolve barcode sharing in unrelated molecules
+  template    Create files and HPC configs for workflows
+
+Troubleshoot:
+  deps      Locally install workflow dependencies
+  diagnose  Attempt to resolve workflow errors
+  resume    Continue an incomplete Harpy workflow
+  validate  File format checks for linked-read data
+  view      View a workflow's components</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="typical-linked-read-workflows">
     <h2>
