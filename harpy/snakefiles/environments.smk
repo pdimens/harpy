@@ -1,11 +1,5 @@
 
-if config.get("envs", None):
-    out_envs = config["envs"]
-else:
-    out_envs =  ["align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"] 
-
-if config.get("spades", None):
-    out_envs.append("spades")
+out_envs = config.get("envs", ["align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"])
 
 rule all:
     input:
@@ -13,6 +7,5 @@ rule all:
 
 rule conda_env:
     output: "{conda}.env"
-    container: "docker://pdimens/harpy:{conda}_latest"
     conda: "envs/{conda}.yaml"
     shell: "touch {output}"
