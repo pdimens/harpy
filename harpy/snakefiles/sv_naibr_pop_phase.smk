@@ -13,7 +13,6 @@ wildcard_constraints:
 genomefile   = config["inputs"]["reference"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
-bamdict      = dict(zip(bamlist, bamlist))
 samplenames  = {Path(i).stem for i in bamlist}
 groupfile    = config["inputs"]["groupings"]
 vcffile      = config["inputs"]["vcf"]
@@ -74,12 +73,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
-
 rule preprocess_reference:
     input:
         genomefile
@@ -116,17 +109,21 @@ rule index_alignments:
     input:
         get_alignments
     output:
-        "{sample}.bai"
+        bam = temp("workflow/input/bam/{sample}.bam"),
+        bai = temp("workflow/input/bam/{sample}.bam.bai")
     shell:
-        "samtools index {input}"
+        """
+        ln -sr {input} {output.bam}
+        samtools index {output.bam}
+        """
 
 rule phase_alignments:
     input:
         vcfindex,
-        get_align_index,
+        "workflow/input/bam/{sample}.bam.bai",
         f"{workflow_geno}.fai",
         vcf = vcffile,
-        aln = get_alignments,
+        aln = "workflow/input/bam/{sample}.bam",
         ref = workflow_geno
     output:
         bam = temp("phasedbam/{sample}.bam"),
