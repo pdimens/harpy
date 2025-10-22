@@ -34,38 +34,36 @@ style of presenting and explaining the error, then providing a solution and show
 ===
 
 ## Installing dev version
-As of v1.15, we provide two scripts that automate a development installation
-(we use them ourselves!).
-First, you'll need to clone the Harpy git repository:
+As of v3.2, the easiest way to locally install the development build is to use [pixi](https://pixi.sh/latest/installation/).
+
+First, you'll need to install `pixi` if you don't already have it on your system:
+```bash
+curl -fsSL https://pixi.sh/install.sh | sh
+```
+
+Then, you'll need to clone the Harpy git repository:
 ```bash
 git clone https://github.com/pdimens/harpy.git
 ```
 
-Then you have your choice of conda- or pixi-based installations
-+++ conda-based installation
-```bash
-bash resources/dev_install_conda.sh
-```
-
-After which, you can activate the conda environment:
-```bash from within the harpy/ folder
-conda activate .conda/harpy
-```
-
-+++ pixi-based installation
-```bash
-bash resources/dev_install_pixi.sh
-```
-After which, you can activate the pixi environment:
-```bash form within the harpy/ folder
+After, you can install the environment manually or have `pixi` do it automatically
+when you activate the pixi shell:
+```bash manually install the environment and activate the shell
+cd harpy
+pixi install
 pixi shell
+# harpy ...
 ```
-
+```bash have pixi do it automatically and activate the shell
+cd harpy
+pixi shell
+# harpy ...
+```
 Alternatively, you can prefix harpy commands with `pixi run`:
 ```bash from within the harpy/ folder
 pixi run harpy impute...
 ```
-+++
+
 
 ## Harpy's components
 ### source code
@@ -84,8 +82,8 @@ we can keep the source code modular, installable, and have the flexibility of
 using non-python code.
 
 ### bioconda recipe
-For the ease of installation for end-users, Harpy has a [recipe and build script](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) in Bioconda,
-which makes it available for download and installation. A copy of the recipe is also
+For the ease of installation for end-users, Harpy has a [recipe](https://github.com/bioconda/bioconda-recipes/blob/master/recipes/harpy/meta.yaml) in Bioconda,
+which makes it available for download and installation. A semi-updated copy of the recipe is also
 stored in `resources/meta.yml`. The yaml file is the metadata of the package, including software 
 deps and their versions. Now that Harpy is hosted on bioconda, when a new version is tagged with
 a release, Bioconda will automatically create a pull request (after a delay), typically not
@@ -117,40 +115,32 @@ The dev workflow is reasonably standard:
 
 ### containerization
 As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
-that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually.
+that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually. As of v3.2,
+the container has been split into smaller images with a `<env>_<version>` tags, e.g. `harpy:align_3.2` is the tag for
+the container with all the software in the conda-equivalent `align` environment for Harpy v3.2.
 
 #### automatically
-The testing GitHub Action will automatically create a Dockerfile with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
-and build a new Docker container, then upload it to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
-with the `latest` tag. This process is triggered on `push` or `pull request` with changes to either
-`src/harpy/conda_deps.py` or `src/harpy/snakefiles/containerize.smk` on `main`.
+The `createrelease` GitHub Action will automatically create the multiple Dockerfiles with [!badge corners="pill" text="harpy containerize"] (a hidden harpy command)
+and build the new Docker containers, then upload them to [dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general)
+with the appropriate version tag.
 
 #### manually
 The dockerfile for that container is created by using a hidden harpy command [!badge corners="pill" text="harpy containerize"]
-```bash auto-generate Dockerfile
+```bash auto-generate Dockerfiles
 harpy containerize
 ```
-which does all of the work for us. The result is a `Dockerfile` that has all of the conda environments
-written into it. After creating the `Dockerfile`, the image must then be built.
+which does all of the work for us. The result is a series of `container/env/Dockerfile` files that have all of the pixi environments and shell hooks written into them. After creating the `Dockerfile`s, the images must then be built with the correct tag.
 
 ```bash build the Docker image
 cd resources
-docker build -t pdimens/harpy .
+docker build -t pdimens/harpy:env_tag container/env
 ```
-This will take a bit because the R dependencies are hefty. Once that's done, the image can be pushed to Dockerhub:
+where `env` can be e.g. `qc` and `tag` could be something like `3.3`, making the tag `qc_3.3`
+
+Once that's done, the image can be pushed to Dockerhub:
 ```bash push image to Dockerhub
 docker push pdimens/harpy
 ```
-This containerize -> dockerfile -> build -> process will push the changes to Dockerhub with the `latest` tag, which is suitable for
-the development cycle. When the container needs to be tagged to be associated with the release of a new Harpy version, you will need to
-add a tag to the `docker build` step:
-```bash build tagged Docker image
-cd resources
-docker build -t pdimens/harpy:TAG
-```
-where `TAG` is the Harpy version, such as `1.0`, `1.4.1`, `2.1`, etc. As such, during development, the `containerized: docker://pdimens/harpy:TAG` declaration at the top of the snakefiles should use the `latest` tag, and when ready for release, changed to match the Harpy
-version. So, if the Harpy version is `1.4.12`, then the associated docker image should also be tagged with `1.4.12`. The tag should remain `latest`
-(unless there is a very good reason otherwise) since automatic Docker tagging happens upon releases of new Harpy versions.
 
 ## Automations
 ### testing
@@ -169,9 +159,9 @@ There is [an automation](https://github.com/pdimens/harpy/blob/dev/.github/workf
 that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
 upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
 build a new Dockerfile and tag it with the same git tag for Harpy's next release and push it to Dockerhub.
-In doing so, it will also replace the tag of the container in all of Harpy's snakefiles from `latest` to the
-current Harpy version. In other words, during development the top of every snakefile reads
-`containerized: docker://pdimens/harpy:latest` and the automation replaces it with (e.g.) `containerized: docker://pdimens/harpy:1.17`.
+In doing so, it will also replace the tag of the containers in all of Harpy's snakefiles from `latest` to the
+current Harpy version. In other words, during development the containers in workflows appear as
+`container: docker://pdimens/harpy:env_latest` and the automation replaces it with (e.g.) `container: docker://pdimens/harpy:env_tag`.
 Same for the software version, which is kept at `0.0.0` (`pyproject.toml` and `__main__.py`) in the development version and gets replaced with the tagged version with the automation.
 Tagging is easily accomplished with Git commands in the command line:
 ```bash
