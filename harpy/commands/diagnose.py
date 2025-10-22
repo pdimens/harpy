@@ -158,16 +158,17 @@ def rule(directory):
         print_shellcmd_simple("\n".join(cmd))
         os.system("\n".join([conda, f"cd {directory}", *cmd]))
     elif container:
+        joined_cmd = "\n".join([*cmd])
         print_shellcmd_simple(f"""
 apptainer exec {container} bash -c '
-{"\n".join([*cmd])}
+{joined_cmd}
 '
 """
         )
         os.system(f"""
 cd {directory}
 apptainer exec {container} bash -c '
-{"\n".join([*cmd])}
+{joined_cmd}
 '
 """
         )
