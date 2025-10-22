@@ -112,7 +112,9 @@ def rule(directory):
     Directly run the first rule that caused the workflow failure
 
     The rule is identified in the most recent Snakemake log file in
-    `DIRECTORY` as the first one with the text `Error in rule ____`.
+    `DIRECTORY/logs/snakemake` as the first one with the text `Error in rule ____`. This
+    convenience feature is somewhat limited and will fail if any of the inputs for the
+    failing rule were marked as temporary.
     """
     directory = directory.rstrip("/")
     if not os.path.exists(f'{directory}/logs/snakemake/'):
@@ -149,6 +151,8 @@ def rule(directory):
                 if line.strip() == "(command exited with non-zero exit code)":
                     break
                 cmd.append(line.strip())
+    if not _found:
+        CONSOLE.print(f"No errors found in {os.path.basename(latest_log)}", style = "green")
 
     if conda:
         print_shellcmd_simple("\n".join(cmd))
