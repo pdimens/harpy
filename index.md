@@ -29,9 +29,7 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 |:------------------------------------------------------------------------|:---------------------------------------------------------------------|
 | [!badge corners="pill" text="align"](Workflows/Align/Align.md)          | Align sample sequences to a reference genome                         |
 | [!badge corners="pill" text="assembly"](Workflows/assembly.md)          | Create a genome assembly from linked-reads                           |
-| [!badge corners="pill" text="convert"](Workflows/convert.md)            | Convert data between linked-read types                               |
 | [!badge corners="pill" text="deconvolve"](Workflows/deconvolve.md)      | Resolve barcode sharing in unrelated molecules                       |
-| [!badge corners="pill" text="downsample"](Workflows/downsample.md)      | Downsample data by barcode                                           |
 | [!badge corners="pill" text="demultiplex"](Workflows/demultiplex.md)    | Demultiplex haplotagged FASTQ files                                  |
 | [!badge corners="pill" text="impute"](Workflows/impute.md)              | Impute genotypes using variants and sequences                        |
 | [!badge corners="pill" text="metassembly"](Workflows/metassembly.md)    | Create a metagenome assembly from linked-reads                       |
