@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -59,6 +57,8 @@ rule fastp:
         workflow.cores
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell: 
         "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 
@@ -69,8 +69,6 @@ rule barcode_stats:
         temp("logs/bxcount/{sample}.count.log")
     params:
         lr_type
-    container:
-        None
     shell:
         "count_bx {params} {input} > {output}"
 
@@ -101,6 +99,8 @@ rule barcode_report:
         "logs/barcode.report.log"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:
@@ -125,6 +125,8 @@ rule qc_report:
         logdir = "reports/data/fastp/"
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell: 
         "multiqc {params} > {output} 2> {log}"
 

@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 
@@ -39,8 +37,6 @@ rule sort_by_barcode:
         barcode_tag = BX_TAG
     threads:
         workflow.cores
-    container:
-        None
     shell:
         """
         {{
@@ -57,8 +53,6 @@ rule format_barcode:
         temp("fastq_preproc/input.R{FR}.fq.gz")
     params:
         barcode_tag = BX_TAG
-    container:
-        None
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
@@ -83,9 +77,9 @@ rule error_correction:
     resources:
         mem_mb=max_mem
     conda:
-        "envs/spades.yaml"
+        "envs/assembly.yaml"
     container:
-        None
+        "docker://pdimens/harpy:assembly_latest"
     shell:
         "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
@@ -109,7 +103,7 @@ rule spades_assembly:
     resources:
         mem_mb=max_mem
     conda:
-        "envs/spades.yaml"
+        "envs/assembly.yaml"
     container:
         None
     shell:
@@ -227,14 +221,13 @@ rule athena_metassembly:
     params:
         force = "--force_reads" if force_athena else "",
         local_asm = "athena/results/olc/flye-input-contigs.fa",
-        final_asm = "athena/results/olc/athena.asm.fa",
-        result_dir = "athena"
+        final_asm = "athena/results/olc/athena.asm.fa"
     conda:
         "envs/metassembly.yaml"
     shell:
         """
         athena-meta {params.force} --config {input.config} &> {log} &&\\
-        mv {params.local_asm} {params.final_asm} {params.result_dir}      
+        mv {params.local_asm} {params.final_asm} athena      
         """
 
 rule QUAST_assessment:

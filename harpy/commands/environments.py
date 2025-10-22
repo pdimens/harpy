@@ -2,53 +2,20 @@
 
 import os
 import shutil
-import subprocess
 import rich_click as click
 from harpy.common.conda import create_conda_recipes
+from harpy.common.create_pixi import create_pixi_dockerfiles
 from harpy.common.workflow import Workflow
 
 @click.command(hidden = True)
 def containerize():
     """
-    Configure conda and docker environments
+    Configure the harpy container
 
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    workflow = Workflow("container", "environments.smk", "container", 1)
-    workflow.fetch_snakefile()
-    create_conda_recipes("container")
-    
-    with open("container/Dockerfile", "w", encoding = "utf-8") as dockerraw:
-        _module = subprocess.run(
-            'snakemake -s container/workflow/workflow.smk --containerize --directory container'.split(),
-            stdout = dockerraw
-        )
-
-    #with open("Dockerfile.raw", "r") as dockerraw, open("Dockerfile", "w") as dockerfile:
-    #        # copy over the first three lines
-    #        dockerfile.write(dockerraw.readline())
-    #        dockerfile.write(dockerraw.readline())
-    #        dockerfile.write(dockerraw.readline())
-    #        dockerfile.write("\nCOPY container/workflow/envs/*.yaml /\n")
-    #        env_hash = {}
-    #        for line in dockerraw:
-    #            if line.startswith("#"):
-    #                continue
-    #            if line.startswith("COPY"):
-    #                dockercmd, env, hashname = line.split()
-    #                env = Path(env).stem
-    #                hashname = hashname.split("/")[-2]
-    #                env_hash[env] = hashname
-    #        runcmds = []
-    #        for env, _hash in env_hash.items():
-    #            runcmds.append(f"conda env create --prefix /conda-envs/{_hash} --file /{env}.yaml && \\")
-    #        runcmds.append("conda clean --all -y")
-    #        dockerfile.write("\nRUN ")
-    #        dockerfile.write(
-    #            "\n\t".join(runcmds)
-    #        )
-    #os.remove("Dockerfile.raw")
+    create_pixi_dockerfiles()
 
 @click.group(options_metavar='')
 def deps():
@@ -81,7 +48,7 @@ def conda(workflows):
     - stitch
     - variants
     """
-    workflow = Workflow("localenv", "environments.smk", "localenv/", 1)
+    workflow = Workflow("localenv", "environments.smk", "localenv/", False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
     create_conda_recipes(workflow.output_directory)
     if "all" in workflows:
@@ -99,12 +66,12 @@ def conda(workflows):
 @click.command(context_settings={"help_option_names" : ["-h", "--help"]})
 def container():
     """
-    Install workflow dependency container
+    Install workflow dependency containers
 
     Manually pull the harpy dependency container from dockerhub and convert it
     into an Apptainer .sif. To use, run this command again without arguments.
     """
-    workflow = Workflow("localcontainer", "environments.smk", "localenv/", 1)
+    workflow = Workflow("localcontainer", "environments.smk", "localenv/", True, 1)
     workflow.fetch_snakefile()
     workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
     workflow.launch()

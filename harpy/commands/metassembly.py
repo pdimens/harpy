@@ -39,9 +39,9 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflow = Workflow("metassembly","metassembly.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
-    workflow.conda = ["align", "assembly", "metassembly", "qc", "spades"]
+    workflow = Workflow("metassembly","metassembly.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow.conda = ["align", "assembly", "metassembly", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2])

@@ -5,25 +5,6 @@ import glob
 import gzip
 import shutil
 from pathlib import Path
-import importlib.resources as resources
-from harpy.common.printing import print_error
-
-def fetch_snakefile(workdir: str, target: str) -> None:
-    """
-    Retrieve the target harpy rule and write it into the workdir as workflow.smk
-    """
-    os.makedirs(workdir, exist_ok= True)
-    dest_file = os.path.join(workdir,"workflow.smk")
-    source_file = resources.files("harpy.snakefiles") / target
-    try:
-        with resources.as_file(source_file) as _source:
-            shutil.copy2(_source, dest_file)
-    except (FileNotFoundError, KeyError):
-        print_error(
-            "snakefile missing",
-            f"The required snakefile [blue bold]{target}[/] was not found in the Harpy installation.",
-            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
-        )
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""

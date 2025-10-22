@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import subprocess
 import logging
@@ -75,8 +73,6 @@ rule isolate_sample:
     output:
         vcf = temp("workflow/input/original/{sample}.bcf"),
         csi = temp("workflow/input/original/{sample}.bcf.csi")
-    container:
-        None
     shell:
         "bcftools view -Ob -W -s {wildcards.sample} -o {output.vcf} {input}"
 
@@ -85,8 +81,6 @@ rule isolate_het_snps:
         "workflow/input/original/{sample}.bcf"
     output:
         temp("workflow/input/heterozygotes/{sample}.het.vcf")
-    container:
-        None
     shell:
         "bcftools view -m 2 -M 2 -i 'GT=\"het\"' {input} > {output}"
 
@@ -95,8 +89,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -109,8 +101,6 @@ if indels:
             fai = temp(genofai)
         log:
             f"workflow/reference/{bn}.preprocess.log"
-        container:
-            None
         shell: 
             """
             {{
@@ -138,6 +128,8 @@ rule extract_hairs:
         purge_invalid = invalid_regex.get(bc_type, "'$4 !~ /N/'")
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     shell:
         """
         extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
@@ -157,6 +149,8 @@ rule link_fragments:
         f"-d {molecule_distance} --use-tag"
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
@@ -175,6 +169,8 @@ rule phase:
         extra = extra
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
@@ -183,8 +179,6 @@ rule compress_phaseblock:
         "phase_blocks/{sample}.blocks.phased.VCF"
     output:
         "phase_blocks/{sample}.phased.vcf.gz"
-    container:
-        None
     shell:
         "bcftools view -Oz6 -o {output} --write-index {input}"
 
@@ -203,8 +197,6 @@ rule annotate_phase:
         "-Ob --write-index -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT"
     threads:
         2
-    container:
-        None
     shell:
         "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
 
@@ -228,8 +220,6 @@ rule merge_samples:
         bcf = "variants.phased.bcf"
     threads:
         workflow.cores
-    container:
-        None
     shell:
         "bcftools merge --threads {threads} --force-single -l {input.filelist} -Ob -o {output.bcf} --write-index"
 
@@ -238,8 +228,6 @@ rule summarize_blocks:
         collect("phase_blocks/{sample}.blocks", sample = samplenames)
     output:
         "reports/blocks.summary.gz"
-    container:
-        None
     shell:
         """
         {{
@@ -277,6 +265,8 @@ rule phase_report:
         f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

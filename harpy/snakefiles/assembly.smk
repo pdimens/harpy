@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import logging
 
@@ -50,6 +48,8 @@ rule cloudspades:
         "logs/assembly.log"
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_latest"
     threads:
         workflow.cores
     resources:
@@ -63,8 +63,6 @@ rule interleave_fastq:
         FQ2
     output:
         temp("scaffold/interleaved.fq.gz")
-    container:
-        None
     shell:
         "seqtk mergepe {input} | bgzip > {output}"
 
@@ -73,8 +71,6 @@ rule link_assembly:
         "spades/scaffolds.fasta",
     output:
         "scaffold/spades.fa"
-    container:
-        None
     shell:  
         "ln -sr {input} {output}"
 
@@ -107,6 +103,8 @@ rule scaffolding:
         extra = arcs_extra
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_latest"
     shell:
         """
         arcs-make arcs-tigmint -C {params} 2> {log}
@@ -131,6 +129,8 @@ rule QUAST_assessment:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_latest"
     shell:
         "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -151,6 +151,8 @@ rule BUSCO_analysis:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_latest"
     shell:
         "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
@@ -167,6 +169,8 @@ rule build_report:
         title = "--title \"Assembly Metrics\""
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_latest"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 

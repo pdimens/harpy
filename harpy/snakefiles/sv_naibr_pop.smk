@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -96,8 +94,6 @@ rule concat_groups:
         mem_mb = 2000
     threads:
         10
-    container:
-        None
     shell:
         """
         {{
@@ -139,6 +135,8 @@ rule call_variants:
         min(10, workflow.cores - 1)
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -153,8 +151,6 @@ rule infer_variants:
         refmt = "IGV/{population}.reformat.bedpe",
         fail  = "bedpe/qc_fail/{population}.fail.bedpe",
         vcf   = "vcf/{population}.vcf" 
-    container:
-        None
     shell:
         """
         infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -202,8 +198,6 @@ rule preprocess_reference:
         fai = f"{workflow_geno}.fai"
     log:
         f"{workflow_geno}.preprocess.log"
-    container:
-        None
     shell: 
         """
         {{
@@ -241,6 +235,8 @@ rule group_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:
@@ -268,6 +264,8 @@ rule aggregate_report:
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

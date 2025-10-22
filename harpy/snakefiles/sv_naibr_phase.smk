@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -13,7 +11,6 @@ wildcard_constraints:
 
 genomefile  = config["inputs"]["reference"]
 bamlist     = config["inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
 vcffile     = config["inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
@@ -55,12 +52,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
-
 rule preprocess_reference:
     input:
         genomefile
@@ -69,8 +60,6 @@ rule preprocess_reference:
         fai = f"{workflow_geno}.fai"
     log:
         f"{workflow_geno}.preprocess.log"
-    container:
-        None
     shell: 
         """
         {{
@@ -81,21 +70,21 @@ rule preprocess_reference:
 
 rule index_alignments:
     input:
-        lambda wc: bamdict[wc.bam]
+        get_alignments
     output:
-        "{bam}.bai"
-    container:
-        None
+        temp("workflow/input/bam/{sample}.bam.bai"),
+        bam = temp("workflow/input/bam/{sample}.bam")
     shell:
-        "samtools index {input}"
+        """
+        ln -sr {input} {output.bam}
+        samtools index {output.bam}
+        """
 
 rule index_snps:
     input:
         vcffile
     output:
         vcffile + ".csi"
-    container:
-        None
     shell:
         "bcftools index {input}"
 
@@ -104,18 +93,16 @@ rule index_snps_gz:
         vcffile
     output:
         vcffile + ".tbi"
-    container:
-        None
     shell:
         "tabix {input}"
 
 rule phase_alignments:
     input:
-        get_align_index,
+        "workflow/input/bam/{sample}.bam.bai",
         vcfindex,
         f"{workflow_geno}.fai",
         vcf = vcffile,
-        aln = get_alignments,
+        aln = "workflow/input/bam/{sample}.bam",
         ref = workflow_geno
     output:
         bam = "phasedbam/{sample}.bam",
@@ -124,6 +111,8 @@ rule phase_alignments:
         mol_dist
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     threads:
         4
     shell:
@@ -134,8 +123,6 @@ rule log_phasing:
         collect("logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         "logs/whatshap-haplotag.log"
-    container:
-        None
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -168,8 +155,6 @@ rule index_phased:
         "phasedbam/{sample}.bam"
     output:
         "phasedbam/{sample}.bam.bai"
-    container:
-        None
     shell:
         "samtools index {input} {output} 2> /dev/null"
 
@@ -189,6 +174,8 @@ rule call_variants:
         10
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -203,8 +190,6 @@ rule infer_variants:
         refmt = "IGV/{sample}.reformat.bedpe",
         fail  = "bedpe/qc_fail/{sample}.fail.bedpe",
         vcf   = "vcf/{sample}.vcf" 
-    container:
-        None
     shell:
         """
         infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -273,6 +258,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

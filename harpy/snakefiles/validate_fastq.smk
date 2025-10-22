@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -34,8 +32,6 @@ rule check_forward:
         temp("{sample}.F.log")
     params:
         lr_platform
-    container:
-        None
     shell: 
         "check_fastq {params} {input} > {output}"
 
@@ -46,8 +42,6 @@ rule check_reverse:
         temp("{sample}.R.log")
     params:
         lr_platform
-    container:
-        None
     shell: 
         "check_fastq {params} {input} > {output}"
 
@@ -56,8 +50,6 @@ rule concat_results:
         collect("{sample}.{FR}.log", sample = samplenames, FR = ["F","R"])
     output:
         "validate.fastq.tsv"
-    container:
-        None
     shell:
         """
         {{
@@ -93,6 +85,8 @@ rule create_report:
         lr_platform
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

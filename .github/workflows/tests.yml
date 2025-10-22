@@ -54,93 +54,8 @@ jobs:
         with:
           filters: .github/filters.yml
 
-  build:
-    name: Build and Install
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-      - name: Install Harpy
-        id: harpybuild
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build && \
-          pip install --no-deps dist/*.whl
-  container:
-    needs: [changes, build]
-    if: ${{ needs.changes.outputs.environments == 'true' }}
-    name: Rebuild Container
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-      - name: Install Harpy
-        id: harpybuild
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-      - name: Clear Space
-        uses: jlumbroso/free-disk-space@main
-      - name: Rebuild Dockerfile
-        id: rebuild
-        shell: micromamba-shell {0}
-        run: harpy containerize
-      - name: Set up Docker Buildx
-        id: buildx
-        if: ${{ steps.rebuild.outcome == 'success' }}
-        uses: docker/setup-buildx-action@v3
-      - name: Login to Docker Hub
-        id: dockerhub
-        if: ${{ steps.buildx.outcome == 'success' }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and Push to Dockerhub
-        if: ${{ steps.dockerhub.outcome == 'success' }}
-        uses: docker/build-push-action@v6
-        with:
-          context: ./container
-          push: true
-          tags: pdimens/harpy:latest
-#      - name: Pull Image Locally
-#        id: singularity
-#        shell: micromamba-shell {0}
-#        if: ${{ needs.changes.outputs.modules == 'true' }}
-#        run: |
-#          export APPTAINER_TMPDIR=$PWD/test/
-#          harpy qc --skip-reports --quiet 2 test/fastq/sample1.*.fq.gz
-#      - name: Create Singularity Artifact
-#        if: ${{ steps.singularity.outcome == 'success' }}
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: deps-image
-#          path: .snakemake/singularity/*.simg
-#          retention-days: 1
-
   dmux_meier2021:
-    needs: [changes, build]
+    needs: changes
     if: ${{ needs.changes.outputs.demux == 'true' }}
     name: demux meier2021
     runs-on: ubuntu-latest
@@ -149,27 +64,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: harpy demultiplex
-        shell: micromamba-shell {0}
         run: |
           harpy demultiplex meier2021 --quiet 2 test/demux/samples.schema test/demux/multiplex.R* test/demux/multiplex.I* && \
           ls -lh Demultiplex
 
   validate:
-    needs: [changes, build]
+    needs: changes
     if: ${{ needs.changes.outputs.validate == 'true' }}
     name: validate
     runs-on: ubuntu-latest
@@ -178,36 +85,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: test validate fastq
-        shell: micromamba-shell {0}
         run: |
           harpy validate fastq test/fastq && \
           ls -lh Validate/fastq
       - name: test validate bam
         if: always()
-        shell: micromamba-shell {0}
         run: |
           harpy validate bam --quiet 2 test/bam && \
           ls -lh Validate/bam
 
   qc:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.qc == 'true' }}
     name: qc
     runs-on: ubuntu-latest
@@ -216,30 +111,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: harpy qc
-        shell: micromamba-shell {0}
         run: |
           harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
           ls -lh  QC
 
   deconvolve:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.deconvolve == 'true' }}
     name: deconvolve
     runs-on: ubuntu-latest
@@ -248,30 +132,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: harpy deconvolve
-        shell: micromamba-shell {0}
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
           ls -lh Deconvolve
   
   bwa:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.bwa == 'true' }}
     name: align BWA
     runs-on: ubuntu-latest
@@ -280,30 +153,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: test bwa
-        shell: micromamba-shell {0}
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/bwa
 
   strobe:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.strobealign == 'true' }}
     name: align strobe
     runs-on: ubuntu-latest
@@ -312,30 +174,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: test strobealign
-        shell: micromamba-shell {0}
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/strobealign
 
   mpileup:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.mpileup == 'true' }}
     name: mpileup
     runs-on: ubuntu-latest
@@ -344,35 +195,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: snp mpileup
-        shell: micromamba-shell {0}
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
-        shell: micromamba-shell {0}
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   freebayes:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.freebayes == 'true' }}
     name: freebayes
     runs-on: ubuntu-latest
@@ -381,35 +220,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: snp freebayes
-        shell: micromamba-shell {0}
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
-        shell: micromamba-shell {0}
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   impute:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.impute == 'true' }}
     name: impute
     runs-on: ubuntu-latest
@@ -418,42 +245,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: impute
-        shell: micromamba-shell {0}
         run: |
           harpy impute --quiet 2 --grid-size 1500 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh Impute/*/*
       - name: impute from vcf
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute/*/*
       - name: impute one region
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute/*/*
 
   phase:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.phase == 'true' }}
     name: phase
     runs-on: ubuntu-latest
@@ -462,44 +276,30 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: phase
-        shell: micromamba-shell {0}
         run: |
           harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
           ls -lh Phase
       - name: phase with indels
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy phase --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phaseindel
       - name: phase from vcf
-        shell: micromamba-shell {0}
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam
+          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam && \
           ls -lh phasevcf
 
   leviathan:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.leviathan == 'true' }}
     name: sv leviathan
     runs-on: ubuntu-latest
@@ -508,37 +308,24 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: leviathan
-        shell: micromamba-shell {0}
         run: |
           harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathan
       - name: leviathan-pop
         if: always()
-        shell: micromamba-shell {0}
         run: | 
           harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathanpop
 
   naibr:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.naibr == 'true' }}
     name: sv naibr
     runs-on: ubuntu-latest
@@ -547,49 +334,34 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: naibr
-        shell: micromamba-shell {0}
         run: |
           harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
-        shell: micromamba-shell {0}
         run: |
           harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
       - name: naibr with phasing
         if: always()
-        shell: micromamba-shell {0}
         run: |
           harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phase
       - name: naibr pop with phasing
         if: always()
-        shell: micromamba-shell {0}
         run: |
           harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phasepop
 
   simulate_variants:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.simvars == 'true' }}
     name: simulate variants
     runs-on: ubuntu-latest
@@ -598,32 +370,19 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: simulate random snps/indels
-        shell: micromamba-shell {0}
         run: |
           harpy simulate snpindel --quiet 2 --snp-count 10 --indel-count 10 -z 0.5  test/genome/genome.fasta.gz
           ls -lh Simulate/snpindel
           harpy simulate snpindel --quiet 2 --prefix Simulate/snpvcf --snp-vcf Simulate/snpindel/haplotype_1/sim.hap1.snp.vcf --indel-vcf Simulate/snpindel/haplotype_1/sim.hap1.indel.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate inversions
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate inversion --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
@@ -631,7 +390,6 @@ jobs:
           harpy simulate inversion --quiet 2 --prefix Simulate/invvcf --vcf Simulate/inversion/haplotype_1/sim.hap1.inversion.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate cnv
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate cnv --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
@@ -639,7 +397,6 @@ jobs:
           harpy simulate cnv --quiet 2 --prefix Simulate/cnvvcf --vcf Simulate/cnv/haplotype_1/sim.hap1.cnv.vcf test/genome/genome.fasta.gz && \
           ls -lh Simulate
       - name: simulate translocations
-        shell: micromamba-shell {0}
         if: always()
         run: |
           harpy simulate translocation --quiet 2 --count 10 -z 0.5 test/genome/genome.fasta.gz
@@ -648,7 +405,7 @@ jobs:
           ls -lh Simulate
 
   assembly:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.assembly == 'true' }}
     name: assembly
     runs-on: ubuntu-latest
@@ -657,41 +414,29 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
+      - name: Clear Space
+        uses: jlumbroso/free-disk-space@main
       - name: test assembly
-        shell: micromamba-shell {0}
         run: |
           harpy assembly --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Assembly
       - name: test metassembly
-        shell: micromamba-shell {0}
         run: |
           harpy metassembly --quiet 2 --force -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
       - name: test metassembly without barcodes
-        shell: micromamba-shell {0}
         run: |
           harpy metassembly --unlinked --force --quiet 2 -r 4000 test/fastq/sample1.* && \
           ls -lh Metassembly
 
   other:
-    needs: [changes,build]
+    needs: changes
     if: ${{ needs.changes.outputs.other == 'true' }}
     name: miscellaneous
     runs-on: ubuntu-latest
@@ -700,32 +445,17 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup Mamba
-        uses: mamba-org/setup-micromamba@v2
-        env:
-          ACTIONS_STEP_DEBUG: true
-        with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: true
-          post-cleanup: 'all'
-          log-level: error
       - name: Install Harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install --no-deps dist/*.whl
-#     - name: Clear Space
-#       uses: jlumbroso/free-disk-space@main
+        uses: prefix-dev/setup-pixi@v0.9.2
+        with:
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: template impute
-        shell: micromamba-shell {0}
         run: harpy template impute
       - name: template groupings
-        shell: micromamba-shell {0}
         run: harpy template groupings test/fastq
       - name: template hpc
-        shell: micromamba-shell {0}
         run: |
           harpy template hpc-slurm
           harpy template hpc-googlebatch

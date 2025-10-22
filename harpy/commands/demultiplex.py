@@ -47,8 +47,8 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, quiet) 
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, quiet) 
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
 
     workflow.inputs = {

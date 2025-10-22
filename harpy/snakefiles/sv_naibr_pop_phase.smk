@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -15,7 +13,6 @@ wildcard_constraints:
 genomefile   = config["inputs"]["reference"]
 bn           = os.path.basename(genomefile)
 bamlist      = config["inputs"]["alignments"]
-bamdict      = dict(zip(bamlist, bamlist))
 samplenames  = {Path(i).stem for i in bamlist}
 groupfile    = config["inputs"]["groupings"]
 vcffile      = config["inputs"]["vcf"]
@@ -76,12 +73,6 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-def get_align_index(wildcards):
-    """returns a list with the bai index file for the sample based on wildcards.sample"""
-    r = re.compile(fr"(.*/{wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
-    aln = list(filter(r.match, bamlist))
-    return aln[0] + ".bai"
-
 rule preprocess_reference:
     input:
         genomefile
@@ -90,8 +81,6 @@ rule preprocess_reference:
         fai = f"{workflow_geno}.fai"
     log:
         f"{workflow_geno}.preprocess.log"
-    container:
-        None
     shell: 
         """
         {{
@@ -105,8 +94,6 @@ rule index_snps:
         vcffile
     output:
         vcffile + ".csi"
-    container:
-        None
     shell:
         "bcftools index {input}"
 
@@ -115,28 +102,28 @@ rule index_snps_gz:
         vcffile
     output:
         vcffile + ".tbi"
-    container:
-        None
     shell:
         "tabix {input}"
 
 rule index_alignments:
     input:
-        lambda wc: bamdict[wc.bam]
+        get_alignments
     output:
-        "{bam}.bai"
-    container:
-        None
+        bam = temp("workflow/input/bam/{sample}.bam"),
+        bai = temp("workflow/input/bam/{sample}.bam.bai")
     shell:
-        "samtools index {input}"
+        """
+        ln -sr {input} {output.bam}
+        samtools index {output.bam}
+        """
 
 rule phase_alignments:
     input:
         vcfindex,
-        get_align_index,
+        "workflow/input/bam/{sample}.bam.bai",
         f"{workflow_geno}.fai",
         vcf = vcffile,
-        aln = get_alignments,
+        aln = "workflow/input/bam/{sample}.bam",
         ref = workflow_geno
     output:
         bam = temp("phasedbam/{sample}.bam"),
@@ -147,6 +134,8 @@ rule phase_alignments:
         4
     conda:
         "envs/phase.yaml"
+    container:
+        "docker://pdimens/harpy:phase_latest"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -155,8 +144,6 @@ rule log_phasing:
         collect("logs/whatshap-haplotag/{sample}.phase.log", sample = samplenames)
     output:
         "logs/whatshap-haplotag.log"
-    container:
-        None
     shell:
         """
         echo -e "sample\\ttotal_alignments\\tphased_alignments" > {output}
@@ -199,8 +186,6 @@ rule concat_groups:
         mem_mb = 2000
     threads:
         10
-    container:
-        None
     shell:
         """
         {{
@@ -242,6 +227,8 @@ rule call_variants:
         min(10, workflow.cores - 1)
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -255,9 +242,7 @@ rule infer_variants:
         bedpe = "bedpe/{population}.bedpe",
         refmt = "IGV/{population}.reformat.bedpe",
         fail  = "bedpe/qc_fail/{population}.fail.bedpe",
-        vcf   = "vcf/{population}.vcf" 
-    container:
-        None
+        vcf   = "vcf/{population}.vcf"
     shell:
         """
         infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -326,6 +311,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:
@@ -353,6 +340,8 @@ rule aggregate_report:
         contigs = f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

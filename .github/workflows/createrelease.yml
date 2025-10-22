@@ -6,35 +6,31 @@ on:
     - '*' # Push events of any tag created
 
 jobs:
-  build_versioned_container:
+  build_versioned_containers:
     name: Build and Push versioned container
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
+    strategy:
+      matrix:
+        env: [align, assembly, deconvolution, demultiplex, metassembly, phase, qc, report, simulations, stitch, variants]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Setup mamba
-        uses: mamba-org/setup-micromamba@v2
+      - name: Install Harpy
+        uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          init-shell: bash
-          generate-run-shell: true
-          environment-file: resources/harpy.yaml
-          cache-environment: false
-          post-cleanup: 'all'
-      - name: Install harpy
-        shell: micromamba-shell {0}
-        run: |
-          python3 -m pip install --upgrade build && python3 -m build
-          pip install dist/*.whl
-          pip install importlib-resources
+          pixi-version: v0.56.0
+          cache: false
+          activate-environment: true
       - name: Clear space
         run: rm -rf /opt/hostedtoolcache
-      - name: Recreate container
-        shell: micromamba-shell {0}
+#      - name: Clear Space
+#        uses: jlumbroso/free-disk-space@main
+      - name: Recreate containers
         run: harpy containerize
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -46,10 +42,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./container
+          context: container/${{ matrix.env }}
           push: true
-          tags: pdimens/harpy:${{ github.ref_name }}
+          tags: pdimens/harpy:$${{ matrix.env }}_{{ github.ref_name }}
+
   build_tarball:
+    needs: build_versioned_containers
     name: Upload Release Tarball
     runs-on: ubuntu-latest
     permissions:
@@ -60,10 +58,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Version the Container
-        # this removes the :latest tag and replaces with versioned container
+        # this removes the :*_latest tag and replaces with versioned container
         run: |
           for i in harpy/snakefiles/*.smk; do
-            sed -i "s/harpy\:latest/harpy\:${{ github.ref_name }}/g" $i
+            sed -i "s/_latest/_${{ github.ref_name }}/g" $i
           done
       - name: Bump Harpy Version
         # this removes the :latest tag and replaces with versioned container

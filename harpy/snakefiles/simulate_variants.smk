@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import random
 import logging
@@ -43,8 +41,6 @@ if vcf:
             vcf
         output:
             vcf_correct
-        container:
-            None
         shell:
             "bcftools view -Oz {input} > {output}"
 
@@ -63,6 +59,8 @@ rule simulate_haploid:
         parameters = variant_params
     conda:
         "envs/simulations.yaml"
+    container:
+        "docker://pdimens/harpy:simulations_latest"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -118,6 +116,8 @@ rule simulate_diploid:
         vcf_arg = f"-{variant}_vcf"
     conda:
         "envs/simulations.yaml"
+    container:
+        "docker://pdimens/harpy:simulations_latest"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
 
@@ -128,8 +128,6 @@ rule rename_diploid:
     output:
         fasta = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.fasta.gz",
         mapfile = f"haplotype_{{haplotype}}/{outprefix}.hap{{haplotype}}.{variant}.map"
-    container:
-        None
     shell:
         """
         bgzip -c {input.fasta} > {output.fasta}

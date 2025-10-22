@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -49,6 +47,8 @@ rule index_barcodes:
         min(10, workflow.cores)
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         """
         {{
@@ -68,6 +68,8 @@ rule preprocess_reference:
         f"{workflow_geno}.preprocess.log"
     conda:
         "envs/align.yaml"
+    container:
+        "docker://pdimens/harpy:align_latest"
     shell: 
         """
         {{
@@ -101,6 +103,8 @@ rule call_variants:
         workflow.cores - 1
     conda:
         "envs/variants.yaml"
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -110,8 +114,6 @@ rule sort_variants:
         "vcf/{sample}.vcf"
     output:
         "vcf/{sample}.bcf"
-    container:
-        None
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
@@ -120,8 +122,6 @@ rule variant_stats:
         "vcf/{sample}.bcf"
     output: 
         temp("reports/data/{sample}.sv.stats")
-    container:
-        None
     shell:
         """
         {{
@@ -197,6 +197,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

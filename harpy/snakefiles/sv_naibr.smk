@@ -1,5 +1,3 @@
-containerized: "docker://pdimens/harpy:latest"
-
 import os
 import re
 import logging
@@ -60,8 +58,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -98,6 +94,8 @@ rule call_variants:
         min(10, workflow.cores -1)
     conda:
         "envs/variants.yaml"     
+    container:
+        "docker://pdimens/harpy:variants_latest"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -111,8 +109,6 @@ rule infer_variants:
         refmt = "IGV/{sample}.reformat.bedpe",
         fail  = "bedpe/qc_fail/{sample}.fail.bedpe",
         vcf   = "vcf/{sample}.vcf" 
-    container:
-        None
     shell:
         """
         infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
@@ -163,8 +159,6 @@ rule preprocess_reference:
         f"{workflow_geno}.preprocess.log"
     params:
         f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
-    container:
-        None
     shell: 
         """
         {{
@@ -208,6 +202,8 @@ rule sample_reports:
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
+    container:
+        "docker://pdimens/harpy:report_latest"
     retries:
         3
     shell:

@@ -41,8 +41,8 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     fix your data, but it will report the number of records that feature errors to help you diagnose
     if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["validate_bam.qmd"]
     workflow.conda = ["report"]
 
@@ -86,8 +86,8 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     of `TAG:TYPE:VALUE`. This **will not** fix your data, but it will report the number of reads
     that feature errors to help you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["validate_fastq.qmd"]
     workflow.conda = ["report"]
 

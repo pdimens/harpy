@@ -202,7 +202,7 @@ class NaibrParams(click.ParamType):
     name = "naibr_params"
     def convert(self, value, param, ctx):
         harpy_options = "bam_file prefix outdir threads min_mapq d min_sv k".split() 
-        valid_options = "blacklist candidates".split()
+        valid_options = "blacklist candidates min_discs min_reads sd_mult".split()
         opts = 0
         docs = "https://github.com/pontushojer/NAIBR?tab=readme-ov-file#running-naibr"
         clean_args = []

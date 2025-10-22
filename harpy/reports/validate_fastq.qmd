@@ -6,17 +6,11 @@ params:
 ---
 `r format(Sys.time(), '🗓️ %d %B, %Y 🕔 %H:%M')`
 
-```{r}
-using<-function(...) {
-    libs<-unlist(list(...))
-    req<-unlist(lapply(libs,require,character.only=TRUE))
-    need<-libs[req==FALSE]
-    if(length(need)>0){ 
-        install.packages(need, repos = "https://cloud.r-project.org/")
-        lapply(need,require,character.only=TRUE)
-    }
-}
-using("dplyr","tidyr","DT","scales")
+```{r package_imports, results = F}
+library(dplyr)
+library(DT)
+library(scales)
+library(tidyr)
 ```
 
 ```{r}

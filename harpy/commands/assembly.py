@@ -46,8 +46,8 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflow = Workflow("assembly", "assembly.smk", output_dir, quiet)
-    workflow.setup_snakemake(container, threads, hpc, snakemake)
+    workflow = Workflow("assembly", "assembly.smk", output_dir, container, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
