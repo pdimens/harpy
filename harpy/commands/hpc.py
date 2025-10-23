@@ -1,25 +1,8 @@
 """Harpy module to create HPC profiles for running snakemake on a cluster"""
 
-import importlib.resources as resources
-import sys
 import rich_click as click
-from harpy.common.printing import print_error
+from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import package_absent
-
-def fetch_hpc_template(target: str) -> None:
-    """
-    Retrieve the target hpc config yaml and print to stdout
-    """
-    source_file = resources.files("harpy.templates") / target
-    try:
-        with resources.as_file(source_file) as _source, open(_source, 'r') as f:
-            sys.stdout.write(f.read() + "\n")
-    except (FileNotFoundError, KeyError):
-        print_error(
-            "template file missing",
-            f"The required HPC template file [blue bold]{target}[/] was not found within the Harpy installation.",
-            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
-        )
 
 @click.command(panel = "HPC Configurations")
 def hpc_generic():
@@ -29,7 +12,7 @@ def hpc_generic():
     This command creates a configuration for a generic HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-cluster-generic` for the HPC job submission to work.
     """
-    fetch_hpc_template("hpc-generic.yaml")
+    fetch_template("hpc-generic.yaml")
     package_absent("snakemake-executor-plugin-cluster-generic")
 
 #def hpc_generic2():
@@ -72,7 +55,7 @@ def hpc_lsf():
     This command creates a configuration for the LSF HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-lsf` for the HPC job submission to work.
     """
-    fetch_hpc_template("hpc-lsf.yaml")
+    fetch_template("hpc-lsf.yaml")
 
     package_absent("snakemake-executor-plugin-lsf")
 
@@ -84,7 +67,7 @@ def hpc_slurm():
     This command creates a configuration for the SLURM HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-slurm` for the HPC job submission to work.
     """
-    fetch_hpc_template("hpc-slurm.yaml")
+    fetch_template("hpc-slurm.yaml")
     package_absent("snakemake-executor-plugin-slurm")
 
 @click.command(panel = "HPC Configurations")
@@ -95,5 +78,5 @@ def hpc_googlebatch():
     This command creates a configuration for the Google Batch scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-googlebatch` for the HPC job submission to work.
     """
-    fetch_hpc_template("hpc-googlebatch.yaml")
+    fetch_template("hpc-googlebatch.yaml")
     package_absent("snakemake-executor-plugin-googlebatch")

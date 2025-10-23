@@ -21,7 +21,7 @@ def print_error(
     _exit: bool = True
     ) -> None:
     """
-    Print a yellow panel with error text, exits with error code 1 by default, but exit
+    Print a yellow panel with error text to stderr, exits with error code 1 by default, but exit
     can be disabled with _exit = False. Prints a blue-panel solution if `solutiontext` is provided,
     prints `offenders` after solution if proivded.    
     """
@@ -55,7 +55,7 @@ def print_error(
         sys.exit(1)
 
 def print_notice(noticetext: str) -> None:
-    """Print a white panel with information text text"""
+    """Print a white panel with information text to stderr"""
     CONSOLE.print(
         Panel(
             noticetext,
@@ -67,13 +67,13 @@ def print_notice(noticetext: str) -> None:
     )
 
 def print_onstart(text: str, title: str) -> None:
-    """Print a panel of info on workflow run"""
+    """Print a panel of info on workflow run to stderr"""
     CONSOLE.print("")
     CONSOLE.rule(f"[bold]harpy {title}", style = "light_steel_blue")
     CONSOLE.print(text)
 
 def print_setup_error(exitcode: int) -> None:
-    """Print a red panel with snakefile or conda/singularity error text"""
+    """Print a red panel with snakefile or conda/singularity error text to stderr"""
     if exitcode == 1:
         errortype = "Snakefile Error"
         errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
@@ -97,7 +97,7 @@ def print_setup_error(exitcode: int) -> None:
 
 def print_onerror(logfile: str, time) -> None:
     """
-    Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
+    Print a red panel with error text to stderr. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
     time must be of class datetime
     """
     days = time.days
@@ -117,6 +117,9 @@ def print_onerror(logfile: str, time) -> None:
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")
 
 def print_shellcmd_simple(text):
+    """
+    Prints the input text string as syntax-highlighted SHELL code to stderr 
+    """
     _table = Table(
         show_header=False,
         pad_edge=False,

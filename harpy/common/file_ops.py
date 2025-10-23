@@ -3,8 +3,11 @@
 import os
 import glob
 import gzip
+import importlib.resources as resources
 import shutil
+import sys
 from pathlib import Path
+from harpy.common.printing import print_error
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -14,6 +17,30 @@ def symlink(original: str, destination: str) -> None:
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).resolve())
+
+def fetch_template(target: str, outfile = None) -> None:
+    """
+    Retrieve the target file from harpy.templates and print to outfile. Prints
+    to stdout if no outfile provided.
+    """
+    source_file = resources.files("harpy.templates") / target
+    if outfile:
+        os.makedirs(os.path.dirname(outfile), exist_ok=True)
+        _out = open(outfile, "w")
+    else:
+        _out = sys.stdout
+    try:
+        with resources.as_file(source_file) as _source, open(_source, 'r') as f:
+            _out.write(f.read() + "\n")
+    except (FileNotFoundError, KeyError):
+        print_error(
+            "template file missing",
+            f"The required template file [blue bold]{target}[/] was not found within the Harpy installation.",
+            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+        )
+    finally:
+        if outfile:
+            _out.close()
 
 def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
