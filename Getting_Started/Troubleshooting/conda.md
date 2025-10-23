@@ -3,6 +3,8 @@ label: Install / Conda
 icon: package
 ---
 
+# :icon-package: Install / Conda
+
 ## Installation issues
 Conda is an awesome package manager, but _was_ slow and used a ton of memory
 as dependencies increased. Recent (`23.10+`) versions of Conda [now use the `libmamba` solver](https://www.anaconda.com/blog/a-faster-conda-for-a-growing-community),

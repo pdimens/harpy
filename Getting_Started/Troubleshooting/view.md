@@ -3,6 +3,8 @@ label: View
 icon: eye
 ---
 
+# :icon-eye: View
+
 This convenience command lets you view relevant details within a Harpy workflow directory
 without having to fish around for the right files.
 
