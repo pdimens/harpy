@@ -1,0 +1,4 @@
+name	model	usebx	bxlimit	k	s	ngen
+k10_ng50	diploid	TRUE	50000	10	1	50
+k1_ng30	diploid	TRUE	50000	5	1	30
+high_ngen	diploid	TRUE	50000	15	1	100
