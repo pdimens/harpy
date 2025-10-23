@@ -3,6 +3,7 @@
 from datetime import datetime
 import os
 import re
+import sys
 import yaml
 import rich_click as click
 from harpy.common.conda import check_environments
@@ -11,10 +12,11 @@ from harpy.common.workflow import Workflow
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
+@click.option('-d', '--direct',  is_flag = True, default = False, help = 'Call Snakemake directly without Harpy intervention')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, absolute, threads, quiet):
+def resume(directory, absolute, direct, threads, quiet):
     """
     Continue an incomplete Harpy workflow
 
@@ -72,6 +74,13 @@ def resume(directory, absolute, threads, quiet):
 
     workflow.write_workflow_config()
 
-    workflow.print_onstart()
-    workflow.launch(absolute)
-#
+    if direct:
+        if absolute:
+            _ = os.system(harpy_config["snakemake"]["absolute"])
+        else:
+            _ = os.system(harpy_config["snakemake"]["relative"])
+        if _ > 0:
+            sys.exit(1)
+    else:
+        workflow.print_onstart()
+        workflow.launch(absolute)

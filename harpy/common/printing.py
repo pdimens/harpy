@@ -10,7 +10,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
 
-CONSOLE = Console(stderr=True)
+CONSOLE = Console(stderr=True, log_path=False)
 
 def print_error(
     errortitle: str,
@@ -131,7 +131,7 @@ def print_shellcmd_simple(text):
     text = re.sub(r' {2,}|\t+', '  ', text)
     cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
     _table.add_row("  ", cmd, "  ")
-    CONSOLE.print("[bold default]shell:", _table)
+    CONSOLE.print(_table)
 
 def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     """

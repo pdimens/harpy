@@ -1,8 +1,8 @@
 # new
-- `diagnose` now has 3 subcommands:
+- `diagnose` now has 2 subcommands:
   - `stall`: same as previous `diagnose` behavior, where it runs snakemake with `--dry-run --debug-dag`
-  - `snakemake`: runs snakemake directly (without Harpy intervention), outputting everything to terminal
-  - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log
+  - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
+- `harpy resume` has new `--direct` option to call Snakemake directly without harpy intervention
 
 # deprecations
 - harpy convert
