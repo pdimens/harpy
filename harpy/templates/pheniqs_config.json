@@ -1,0 +1,67 @@
+{
+    "template": {
+        "transform": {
+            "token": [
+                "0:58:",
+                "1::"
+            ]
+        }
+    },
+    "cellular": [
+        {
+            "comment": "Stagger sequence",
+            "base": "stagger_sequence_set",
+            "algorithm": "pamld",
+            "PL": "ILLUMINA",
+            "noise": 0.02,
+            "confidence_threshold": 0.95,
+            "transform": {
+                "token": [
+                    "0:0:7"
+                ]
+            }
+        },
+        {
+            "comment": "First cellular barcode",
+            "base": "first_cellular_barcode_set",
+            "algorithm": "pamld",
+            "PL": "ILLUMINA",
+            "noise": 0.02,
+            "confidence_threshold": 0.95,
+            "transform": {
+                "token": [
+                    "0:10:22"
+                ]
+            }
+        },
+        {
+            "comment": "Second cellular barcode",
+            "base": "second_cellular_barcode_set",
+            "algorithm": "pamld",
+            "PL": "ILLUMINA",
+            "noise": 0.02,
+            "confidence_threshold": 0.95,
+            "transform": {
+                "token": [
+                    "0:25:37"
+                ]
+            }
+        },
+        {
+            "comment": "Third cellular barcode",
+            "base": "third_cellular_barcode_set",
+            "algorithm": "pamld",
+            "PL": "ILLUMINA",
+            "noise": 0.02,
+            "confidence_threshold": 0.95,
+            "transform": {
+                "token": [
+                    "0:40:52"
+                ]
+            }
+        }
+    ],
+    "import": [
+        "pheniqs_barcode_set_core.json"
+    ]
+}

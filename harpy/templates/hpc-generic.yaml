@@ -1,0 +1,36 @@
+__use_yte__: true
+executor: cluster-generic
+default-resources:
+  mem_mb: attempt * 3200
+  time: "12:00:00"
+  mem_per_cpu: attempt * 3200
+  tmpdir: "/tmp"
+jobs: 100
+max-jobs-per-second: 10
+latency-wait: 60
+retries: 1
+
+# command for submitting jobs
+cluster-generic-submit-cmd: VALUE
+
+# [optional] command for retrieving job status
+cluster-generic-status-cmd: VALUE
+
+# [optional] command for cancelling jobs-- expected to take one or more jobids as arguments
+cluster-generic-cancel-cmd: VALUE
+
+# [optional] number of jobids to pass to cancel_cmd and if more are given, cancel_cmd will be called multiple times
+cluster-generic-cancel-nargs: 20
+
+# [optional] command for sidecar process
+cluster-generic-sidecar-cmd: VALUE
+
+# This section is for advanced copying into a scratch directory #
+## requires snakemake-storage-plugin-fs, which can be installed via conda
+#default-storage-provider: fs
+#local-storage-prefix: /home2/$USER
+#shared-fs-usage:
+#  - persistence
+#  - software-deployment
+#  - sources
+#  - source-cache

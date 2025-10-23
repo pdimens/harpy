@@ -1,0 +1,72 @@
+__use_yte__: true
+executor: googlebatch
+jobs: 50
+latency-wait: 45
+retries: 1
+default-resources:
+## YOU MAY NOT NEED ALL OF THESE! ##
+# The name of the Google Project
+  googlebatch_project: Harpy
+
+# The name of the Google Project region (e.g., 'us-central1')
+  googlebatch_region: 'us-central1'
+
+# Retry count
+  googlebatch_retry_count: 1
+
+# Maximum run duration, string (e.g., '3600s')
+  googlebatch_max_run_duration: '3600s'
+
+# Memory in MiB
+  googlebatch_memory: attempt * 2000
+
+# The default number of work tasks (these are NOT MPI ranks)
+  googlebatch_work_tasks: 50
+
+# The default number of work tasks per node (NOT MPI ranks)
+  googlebatch_work_tasks_per_node: 10
+
+# Milliseconds per cpu-second
+  googlebatch_cpu_milli: 1000
+
+# A custom container for use with Google Batch COS
+  googlebatch_container: VALUE
+
+# A docker registry password for COS if credentials are required
+  googlebatch_docker_password: VALUE
+
+# A docker registry username for COS if credentials are required
+  googlebatch_docker_username: VALUE
+
+# Google Cloud machine type or VM (mpitune on c2 and c2d family)
+  googlebatch_machine_type: 'c2-standard-4'
+
+# Comma separated key value pairs to label job (e.g., model=a3,stage=test)
+  googlebatch_labels: VALUE
+
+# Google Cloud image family (defaults to hpc-centos-7)
+  googlebatch_image_family: 'hpc-centos-7'
+
+# Selected image project
+  googlebatch_image_project: 'cloud-hpc-image-public'
+
+# Boot disk size (GB)
+  googlebatch_boot_disk_gb: VALUE
+
+# The URL of an existing network resource
+  googlebatch_network: VALUE
+
+# The URL of an existing subnetwork resource
+  googlebatch_subnetwork: VALUE
+
+# Boot disk type. (e.g., gcloud compute disk-types list)
+  googlebatch_boot_disk_type: VALUE
+
+# Boot disk image (e.g., batch-debian, bath-centos)
+  googlebatch_boot_disk_image: VALUE
+
+# Mount path for Google bucket (if defined)
+  googlebatch_mount_path: '/mnt/share'
+
+# One or more snippets to add to the Google Batch task setup
+  googlebatch_snippets: VALUE

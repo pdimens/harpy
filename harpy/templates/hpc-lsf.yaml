@@ -1,0 +1,21 @@
+__use_yte__: true
+executor: lsf
+default-resources:
+  lsf_queue: 
+  walltime: 60 # minutes per job
+  mem_mb: attempt * 2000
+  # other args to pass to bsub
+  lsf_extra: VALUE
+jobs: 50
+latency-wait: 60
+retries: 1
+
+# This section is for advanced copying into a scratch directory #
+## requires snakemake-storage-plugin-fs, which can be installed via conda
+#default-storage-provider: fs
+#local-storage-prefix: /home2/$USER
+#shared-fs-usage:
+#  - persistence
+#  - software-deployment
+#  - sources
+#  - source-cache
