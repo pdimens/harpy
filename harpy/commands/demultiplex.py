@@ -6,6 +6,7 @@ from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
+from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []})
@@ -92,36 +93,28 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('schema', required = True, type=DemuxSchema())
-@click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
-@click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
-def gih(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
+def gih(inputs, output_dir, schema, qx_rx, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
     """
     Demultiplex FASTQ files haplotagged with the Genomics Innovation Hub protocol
 
+    
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs after the options and schema (4 files, in that exact order). 
     The `SCHEMA` must have **no header** (i.e. no column names) and be in the format of `sample`\\<TAB\\>`barcode`,
     where `barcode` is the barcode segment associated with the sample ID (.e.g. `C01`, `C02`, etc.). Use `--qx-rx` to add the 
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, quiet) 
+    workflow = Workflow("demultiplex_gih", "demultiplex_gih.smk", output_dir, container, quiet) 
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
 
-    workflow.inputs = {
-        "demultiplex_schema" : schema,
-        "R1": r12_fq[0][0],
-        "R2": r12_fq[1][0],
-        "I1": i12_fq[0][0],
-        "I2": i12_fq[1][0]
-    }
+    ## checks and validations ##
+    fastq = FASTQ(inputs, detect_bc = False)
+    workflow.inputs = fastq.files
     workflow.config = {
         "workflow" : workflow.name,
-        "retain" : {
-            "qx_rx" : qx_rx,
-            "barcodes" : keep_unknown_barcodes,
-            "samples" : keep_unknown_samples,
-        },
+        #TODO SOME OTHER STUFF HERE
         "reports" : {
             "skip": skip_reports
         }
