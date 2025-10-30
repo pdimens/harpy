@@ -7,7 +7,7 @@
 # deprecations
 - harpy convert
 - harpy downsample
-- harpy simulate linkedreads
+- harpy simulate
 
 # changes
 - simplified the rich-click theming
