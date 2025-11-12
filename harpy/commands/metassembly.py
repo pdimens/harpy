@@ -18,11 +18,11 @@ from harpy.validation.fastq import FASTQ
 @click.option('-r', '--max-memory', panel = "Metassembly Parameters",  type = click.IntRange(min = 1000), show_default = True, default = 10000, help = 'Maximum memory for spades to use, in megabytes')
 @click.option('-U', '--unlinked', panel = "Metassembly Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--force', panel = "Workflow Options", hidden = True, is_flag = True, default = False, help = 'Use athena with --force_reads')
-
 # Common Workflow
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', panel = "Metassembly Parameters", type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
@@ -31,7 +31,7 @@ from harpy.validation.fastq import FASTQ
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
+def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, clean, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
     """
     Assemble linked reads into a metagenome
 
@@ -39,7 +39,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflow = Workflow("metassembly","metassembly.smk", output_dir, container, quiet)
+    workflow = Workflow("metassembly","metassembly.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["align", "assembly", "metassembly", "qc"]
 

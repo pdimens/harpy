@@ -26,10 +26,11 @@ def validate():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
+def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup_only):
     """
     Validate linked-read BAM file format
 
@@ -41,7 +42,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
     fix your data, but it will report the number of records that feature errors to help you diagnose
     if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, quiet)
+    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["validate_bam.qmd"]
     workflow.conda = ["report"]
@@ -68,13 +69,14 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_onl
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_only):
+def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup_only):
     """
     Validate linked-read FASTQ file format
 
@@ -86,7 +88,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, container, setup_o
     of `TAG:TYPE:VALUE`. This **will not** fix your data, but it will report the number of reads
     that feature errors to help you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, quiet)
+    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["validate_fastq.qmd"]
     workflow.conda = ["report"]

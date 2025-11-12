@@ -21,7 +21,6 @@ def align():
     The aligners are not linked-read aware, but the workflows ensure linked-read information
     is carried over to the alignment records.
     """
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
@@ -31,6 +30,7 @@ def align():
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  panel = "Workflow Options", type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -40,7 +40,7 @@ def align():
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup_only):
     """
     Align sequences to reference genome using BWA MEM2
     
@@ -51,7 +51,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, quiet)
+    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]
@@ -101,6 +101,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -110,7 +111,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup_only):
     """
     Align sequences to reference genome using strobealign
  
@@ -122,7 +123,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, quiet)
+    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]

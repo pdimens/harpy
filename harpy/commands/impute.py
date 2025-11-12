@@ -18,6 +18,7 @@ from harpy.validation.vcf import VCF
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-r', '--region', panel = "Parameters", type = str, help = 'Specific region to impute')
 @click.option('-g', '--grid-size', panel = "Parameters", show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only',  panel = "Workflow Options", is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -28,7 +29,7 @@ from harpy.validation.vcf import VCF
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs=1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup_only):
     """
     Impute variant genotypes from alignments
     
@@ -42,7 +43,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     `contig:start-end-buffer`, otherwise all contigs will be imputed. If providing additional STITCH arguments, they
     must be in quotes and in the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
     """
-    workflow = Workflow("impute", "impute.smk", output_dir, container, quiet)
+    workflow = Workflow("impute", "impute.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["impute.qmd", "stitch_collate.qmd"]
     workflow.conda = ["report", "stitch"]

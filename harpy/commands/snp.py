@@ -32,6 +32,7 @@ def snp():
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -40,7 +41,7 @@ def snp():
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup_only):
     """
     Call variants using freebayes
     
@@ -56,7 +57,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, quiet)
+    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["report", "variants"]

@@ -14,9 +14,10 @@ from harpy.common.workflow import Workflow
 @click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-d', '--direct',  is_flag = True, default = False, help = 'Call Snakemake directly without Harpy intervention')
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
-def resume(directory, absolute, direct, threads, quiet):
+def resume(directory, absolute, direct, threads, clean, quiet):
     """
     Continue an incomplete Harpy workflow
 
@@ -43,7 +44,7 @@ def resume(directory, absolute, direct, threads, quiet):
         snakemake_config: dict = yaml.full_load(f)
 
     container = snakemake_config["software-deployment-method"] == "apptainer"
-    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], container, quiet)
+    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], container, clean, quiet)
     workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
     if not container:

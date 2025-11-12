@@ -22,7 +22,7 @@ class Workflow():
     '''
     The container for workflow parameters. Set inputdir = True to create a workflow/input directory
     '''
-    def __init__(self, name, snakefile, outdir, container, quiet, inputdir = False):
+    def __init__(self, name, snakefile, outdir, container, clean, quiet, inputdir = False):
         os.makedirs(
             os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input'),
             exist_ok = True
@@ -40,6 +40,7 @@ class Workflow():
         self.config: Dict = {}
         self.profile: Dict = {}
         self.hpc: str = ""
+        self.clean: str = clean if clean else ""
         self.container: bool = container
         self.conda: list[str] = []
         self.start_text: None|Table = None
@@ -292,3 +293,7 @@ class Workflow():
                 gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         self.print_onsuccess()
+        if self.clean:
+            for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
+                if i in self.clean.lower():
+                    shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
