@@ -278,6 +278,8 @@ class Workflow():
         self.print_onstart()
         if not setup_only:
             self.launch()
+        else:
+            CONSOLE.rule("[dim bold]workflow setup complete", style="dim")
 
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
