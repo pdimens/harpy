@@ -63,8 +63,8 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow.conda = ["report", "variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
-    fasta = FASTA(reference)
+    alignments = SAM(inputs, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
@@ -107,6 +107,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
@@ -130,14 +131,14 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, quiet)
+    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["bcftools_stats.qmd"]
     workflow.conda = ["report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
-    fasta = FASTA(reference)
+    alignments = SAM(inputs, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()

@@ -29,6 +29,7 @@ def demultiplex():
 @click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Demultiplex", show_default=True,  help = 'Output directory name')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -38,7 +39,7 @@ def demultiplex():
 @click.argument('schema', required = True, type=DemuxSchema())
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
-def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup_only):
     """
     Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
@@ -48,10 +49,10 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, quiet) 
+    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, clean, quiet) 
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
-
+    
     workflow.inputs = {
         "demultiplex_schema" : schema,
         "R1": r12_fq[0][0],
@@ -104,12 +105,12 @@ def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, th
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
     The `BARCODES` file must have **no header** (i.e. no column name). 
     """
-    workflow = Workflow("demultiplex_gih", "demultiplex_gih.smk", output_dir, container, quiet) 
+    workflow = Workflow("demultiplex_gih", "demultiplex_gih.smk", output_dir, container, clean, quiet) 
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["demultiplex", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc = False)
+    fastq = FASTQ(inputs, detect_bc = False, quiet= True)
     with open(barcodes, "r") as f:
         bc_seg_len = len(f.readline())
 

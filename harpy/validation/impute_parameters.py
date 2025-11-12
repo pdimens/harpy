@@ -2,15 +2,19 @@
 import re
 from rich.table import Table
 from rich import box
-from harpy.common.printing import print_error
+from harpy.common.printing import CONSOLE, print_error
 
 class ImputeParams():
     '''
     A class to contain and validate a STITCH imputation parameter file.
     Validation checks the STITCH parameter file for column names, order, types, missing values, etc.
     '''
-    def __init__(self, filename):
+    def __init__(self, filename, quiet:bool = False):
         self.file: str = filename
+        self.quiet: bool = quiet
+
+        if not self.quiet:
+            CONSOLE.log("Validating impute parameters file format")
 
         with open(self.file, "r", encoding="utf-8") as paramfile:
             header = paramfile.readline().rstrip().lower()

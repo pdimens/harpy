@@ -50,8 +50,8 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
     workflow.conda = ["phase", "report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, detect_bc= not unlinked)
-    vcffile = VCF(vcf, workflow.workflow_directory)
+    alignments = SAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
     vcffile.match_samples(alignments.files, vcf_samples)
 
     if reference:

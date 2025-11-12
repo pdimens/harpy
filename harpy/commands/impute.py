@@ -49,9 +49,9 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     workflow.conda = ["report", "stitch"]
 
     ## checks and validations ##
-    params = ImputeParams(parameters)
-    alignments = SAM(inputs)
-    vcffile = VCF(vcf, workflow.workflow_directory)
+    params = ImputeParams(parameters, quiet > 0)
+    alignments = SAM(inputs, quiet > 0)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet > 0)
     vcffile.find_biallelic_contigs()
     vcffile.match_samples(alignments.files, vcf_samples)
     if region:

@@ -1,13 +1,17 @@
 from pathlib import Path
-from harpy.common.printing import print_notice, print_error
+from harpy.common.printing import CONSOLE, print_notice, print_error
 
 class Populations():
     '''
     A class to contain and validate a sample-grouping input file.
     '''
-    def __init__(self, filename, infiles):
+    def __init__(self, filename, infiles, quiet:bool = False):
         self.file = filename
-        
+        self.quiet: bool = quiet
+
+        if not self.quiet:
+            CONSOLE.log("Validating all samples are present between input and populations files")
+
         with open(self.file, "r", encoding="utf-8") as f:
             popsamples = [i.split()[0] for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
         in_samples = [Path(i).stem for i in infiles]

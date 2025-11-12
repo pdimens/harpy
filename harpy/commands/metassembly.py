@@ -44,7 +44,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     workflow.conda = ["align", "assembly", "metassembly", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2])
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet > 0)
     fastq.bc_or_bx(bx_tag)
 
     workflow.inputs = {

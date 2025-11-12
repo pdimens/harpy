@@ -6,6 +6,8 @@
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
   - this option is **hidden** because it's meant more for advanced users or development
   - options provided as sequential letters (e.g. `ws`, `sl`, `lw`, etc.)
+- output log of checks and validations printed to console so Harpy is transparent about the delays before kicking off Snakemake
+  - disabled when `--quiet` > 0
 
 # deprecations
 - harpy convert (replaced by Djinn)

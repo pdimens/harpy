@@ -2,7 +2,7 @@
 from itertools import chain
 import os
 import re
-from harpy.common.printing import print_error
+from harpy.common.printing import CONSOLE, print_error
 from harpy.validation.barcodes import which_linkedread_sam
 
 class SAM():
@@ -13,19 +13,24 @@ class SAM():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     """
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:bool = False):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
             self.files = filenames
         self.count = 0
         self.lr_type = "none"
+        self.quiet: bool = quiet
 
         re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
         uniqs = set()
         dupes = []
         inv_pattern = r'[^a-zA-Z0-9._-]+'
         badmatch = []
+
+        if not self.quiet:
+            CONSOLE.log("Validating input alignment files")
+
         for i in self.files:
             bn = os.path.basename(re_ext.sub("", str(i)))
             if bn in uniqs:

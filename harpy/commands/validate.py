@@ -48,7 +48,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     workflow.conda = ["report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, detect_bc=True, nonlinked_ok = False)
+    alignments = SAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
 
     workflow.inputs = alignments.files
     workflow.config = {
@@ -94,7 +94,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, 
     workflow.conda = ["report"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False)
+    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet > 0)
 
     ## setup workflow ##
 

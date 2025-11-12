@@ -44,10 +44,13 @@ class Workflow():
         self.container: bool = container
         self.conda: list[str] = []
         self.start_text: None|Table = None
-        self.quiet: bool = quiet
+        self.quiet: int = quiet
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
         self.summary_text: str = ""
+
+        if self.quiet == 0 and "demultiplex" not in self.name and self.snakefile != "NA":
+            CONSOLE.rule("[bold]Checks and Validations", style = "dim magenta")
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""

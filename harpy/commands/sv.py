@@ -117,6 +117,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('-p', '--populations', panel = "Parameters", type=click.Path(exists = True, dir_okay=False, readable=True, resolve_path=True), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-t', '--threads',panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-v', '--vcf', panel = "Parameters", type=VCFfile(),  help = 'Path to phased bcf/vcf file')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--setup-only',  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
@@ -126,7 +127,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup_only):
     """
     Call structural variants using NAIBR
     
@@ -143,7 +144,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     """
     vcaller = "sv_naibr" if not populations else "sv_naibr_pop"
     vcaller += "_phase" if vcf else ""
-    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, container, quiet)
+    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.reports = ["naibr.qmd"]
     if populations:
@@ -151,14 +152,14 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflow.conda = ["phase", "report", "variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
-    fasta =  FASTA(reference)
+    alignments = SAM(inputs, quiet = quiet > 0)
+    fasta =  FASTA(reference, quiet = quiet > 0)
     if contigs:
         fasta.match_contigs(contigs)
     if populations:
         popfile = Populations(populations, alignments.files)
     if vcf:
-        vcffile = VCF(vcf, workflow.workflow_directory)
+        vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
         vcffile.check_phase()
 
     workflow.inputs = {

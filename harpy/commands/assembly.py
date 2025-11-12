@@ -52,7 +52,7 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2])
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
 
     workflow.inputs = {
         "fastq_r1" : fastq.files[0],

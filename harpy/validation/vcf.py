@@ -5,25 +5,29 @@ import pysam
 import pysam.bcftools
 from shutil import which
 import subprocess
-from harpy.common.printing import print_error
+from harpy.common.printing import CONSOLE, print_error
 
 class VCF():
     '''
     A class to contain and validate a VCF input file.
     '''
-    def __init__(self, filename:str, workdir:str):
+    def __init__(self, filename:str, workdir:str, quiet:bool = False):
         os.makedirs(workdir, exist_ok = True)
 
         self.file = filename
         self.workdir = workdir
         self.biallelic_contigs: list[str] = []
         self.biallelic_file: str = ""
+        self.quiet:bool = quiet
 
     def find_biallelic_contigs(self):
         """
         Identify which contigs have at least 5 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
+        if not self.quiet:
+            CONSOLE.log("Finding contigs in VCF with at least 5 biallelic SNPs")
+
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
         with pysam.VariantFile(self.file) as _vcf:
             header_contigs = list(_vcf.header.contigs)
@@ -64,6 +68,8 @@ class VCF():
 
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
+        if not self.quiet:
+            CONSOLE.log("Checking if VCF file is phased ([green]PS[/] or [green]HP[/] tags)")
         with pysam.VariantFile(self.file) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
@@ -76,6 +82,8 @@ class VCF():
 
     def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
+        if not self.quiet:
+            CONSOLE.log("Validating all samples are present between VCF and input alignments")
         with pysam.VariantFile(self.file) as _vcf:
             vcfsamples = list(_vcf.header.samples)
         #vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
@@ -100,6 +108,8 @@ class VCF():
 
     def match_contigs(self, contigs: list[str]):
         """Check if the supplied contigs are present in the VCF"""
+        if not self.quiet:
+            CONSOLE.log("Validating input contigs against those in the input VCF")
         with pysam.VariantFile(self.file) as _vcf:
             vcf_contigs = list(_vcf.header.contigs)
         bad_names = []
@@ -130,6 +140,8 @@ class VCF():
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
+        if not self.quiet:
+            CONSOLE.log("Validating input regions to those in the input VCF")
         startpos = 0
         endpos = 0
         buffer = 0

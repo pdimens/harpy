@@ -3,7 +3,7 @@ from itertools import chain
 import os
 import re
 import pysam
-from harpy.common.printing import print_error
+from harpy.common.printing import CONSOLE, print_error
 from harpy.validation.barcodes import which_linkedread
 
 class FASTQ():
@@ -14,14 +14,15 @@ class FASTQ():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     '''
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:bool = False):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
             self.files = filenames
         self.bx_tag = False
         self.lr_type = "none"
-        
+        self.quiet = quiet
+
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
         # check if any names will be clashing
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
@@ -29,6 +30,9 @@ class FASTQ():
         dupes = []
         inv_pattern = r'[^a-zA-Z0-9._-]+'
         badmatch = []
+        if not self.quiet:
+            CONSOLE.log("Validating input FASTQ files")
+
         for i in self.files:
             sans_ext = os.path.basename(re_ext.sub("", str(i)))
             if sans_ext in uniqs:
@@ -60,6 +64,8 @@ class FASTQ():
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
+            if not self.quiet:
+                CONSOLE.log("Detecting linked-read barcode format")
             scanned = []
             for i,fq in enumerate(self.files, 1):
                 if i > 10:
@@ -86,6 +92,9 @@ class FASTQ():
         Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
+        if not self.quiet:
+            CONSOLE.log("Checking files for BX:Z tag")
+
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
                 for i,record in enumerate(fq, 1):
@@ -100,6 +109,8 @@ class FASTQ():
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
+        if not self.quiet:
+            CONSOLE.log("Checking files for BX:Z or BC:Z tags")
         primary = "BX:Z" if tag == "BX" else "BC:Z"
         secondary = "BC:Z" if tag == "BX" else "BX:Z"
         for fastq in self.files:

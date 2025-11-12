@@ -57,8 +57,8 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc = not unlinked)
-    fasta = FASTA(reference)
+    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     if contigs:
         fasta.match_contigs(contigs) 
 
@@ -129,8 +129,8 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc= not unlinked)
-    fasta = FASTA(reference)
+    fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
+    fasta = FASTA(reference, quiet= quiet > 0)
 
     if contigs:
         fasta.match_contigs(contigs)

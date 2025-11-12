@@ -39,7 +39,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     workflow.conda = ["deconvolution"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs)
+    fastq = FASTQ(inputs, quiet= quiet > 0)
     
     workflow.inputs = fastq.files
     workflow.config = {
