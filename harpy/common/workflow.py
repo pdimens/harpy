@@ -294,8 +294,11 @@ class Workflow():
             if os.path.exists(self.snakemake_logfile):
                 gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
-        self.print_onsuccess()
         if self.clean:
+            CONSOLE.rule("[dim]Cleaning output directory", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
                 if i in self.clean.lower():
+                    CONSOLE.log(f"Removing: [blue]{j}[/]")
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
+
+        self.print_onsuccess()
