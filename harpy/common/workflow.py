@@ -82,6 +82,7 @@ class Workflow():
                 f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
             )
         self.profile = {
+            "cores" : threads,
             "rerun-incomplete": True,
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
@@ -93,10 +94,10 @@ class Workflow():
             "apptainer-prefix": filepath("./.environments"),
             "directory": self.output_directory
         }
-        _command = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
+        _command = ["snakemake", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
         _command += ["--configfile", os.path.join(self.workflow_directory, "workflow.yaml"), "--profile", self.workflow_directory]
         workdir_rel = os.path.relpath(self.workflow_directory)
-        _command_rel = ["snakemake", "--cores", f"{threads}", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
+        _command_rel = ["snakemake", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
         _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml"), "--profile", workdir_rel]
         if hpc:
             self.hpc = hpc
@@ -263,7 +264,7 @@ class Workflow():
         CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
         CONSOLE.print(datatable)
 
-    def initialize(self, setup_only: bool = False):
+    def initialize(self, setup: bool = False):
         """Using the configurations, create all necessary folders and files"""
         self.write_workflow_config()
         self.write_snakemake_profile()
@@ -279,7 +280,7 @@ class Workflow():
         if self.hpc:
             self.fetch_hpc()
         self.print_onstart()
-        if not setup_only:
+        if not setup:
             self.launch()
         else:
             CONSOLE.rule("[dim bold]workflow setup complete", style="dim")

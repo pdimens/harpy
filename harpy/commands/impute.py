@@ -20,7 +20,7 @@ from harpy.validation.vcf import VCF
 @click.option('-g', '--grid-size', panel = "Parameters", show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only',  panel = "Workflow Options", is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--setup',  panel = "Workflow Options", is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
@@ -29,7 +29,7 @@ from harpy.validation.vcf import VCF
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs=1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup_only):
+def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Impute variant genotypes from alignments
     
@@ -80,4 +80,4 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)

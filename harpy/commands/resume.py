@@ -22,14 +22,15 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     Continue an incomplete Harpy workflow
 
     In the event you need to run the Snakemake workflow present in a Harpy output directory
-    (e.g. `Align/bwa`) without Harpy redoing validations and rewriting any of the configuration files,
+    (e.g. `Align/bwa`) without redoing validations and writing new configuration files (config files get updated with new thread count and log file name),
     this command bypasses all the preprocessing steps of Harpy workflows and executes the Snakemake command
     present in `directory/workflow/workflow.yaml`.
 
-    The only requirements are:
-    - the target directory has `workflow/config.yaml` present in it
-    - the target directory has `workflow/workflow.yaml` present in it
-    - the targest directory has `workflow/envs/*.yaml` present in it (if using conda)
+    The target directory must have:
+    - the `workflow/config.yaml` file
+    - the `workflow/workflow.yaml` file
+    - `workflow/envs/*.yaml` file(s) if using conda
+    - `workflow/hpc/config.yaml` if using HPC
     """
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
@@ -43,12 +44,12 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
         snakemake_config: dict = yaml.full_load(f)
 
-    container = snakemake_config["software-deployment-method"] == "apptainer"
-    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], container, clean, quiet)
+    #container = snakemake_config["software-deployment-method"] == "apptainer"
+    workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], False, clean, quiet)
     workflow.conda = harpy_config["snakemake"]["conda_envs"] 
 
-    if not container:
-        check_environments(directory, workflow.conda)
+    if snakemake_config["software-deployment-method"] != "apptainer":
+        check_environments(directory, harpy_config["snakemake"]["conda_envs"])
     
     sm_log = os.path.join(directory, harpy_config["snakemake"]["log"])
     if os.path.exists(sm_log) or os.path.exists(sm_log + ".gz"):
@@ -56,11 +57,15 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         split_log = sm_log.split(".")
         _basename = ".".join(split_log[0:-3])
         incremenent = int(split_log[-3]) + 1
-        harpy_config["snakemake"]["log"] = f"{_basename}.{incremenent}.{timestamp}"
+        workflow.snakemake_logfile = f"{_basename}.{incremenent}.{timestamp}"
+        harpy_config["snakemake"]["log"] = workflow.snakemake_logfile
+        with open(os.path.join(snakemake_config["directory"], 'config.yaml'), "w", encoding="utf-8") as sm_config:
+            yaml.dump(harpy_config, sm_config, sort_keys=False, width=float('inf'))
 
     if threads:
-        harpy_config["snakemake"]["absolute"] = re.sub(r"--cores \d+", f"--cores {threads}", harpy_config["snakemake"]["absolute"])
-        harpy_config["snakemake"]["relative"] = re.sub(r"--cores \d+", f"--cores {threads}", harpy_config["snakemake"]["relative"])
+        snakemake_config["cores"] = threads
+        workflow.profile = snakemake_config
+        workflow.write_snakemake_profile()
 
     workflow.snakemake_cmd_absolute = harpy_config["snakemake"]["absolute"]
     workflow.snakemake_cmd_relative = harpy_config["snakemake"]["relative"]
@@ -72,8 +77,6 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         ("Workflow:", workflow.name.replace("_", " ")),
         ("Output Folder:", directory + "/")
     )
-
-    workflow.write_workflow_config()
 
     if direct:
         if absolute:

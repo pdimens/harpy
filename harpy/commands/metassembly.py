@@ -26,12 +26,12 @@ from harpy.validation.fastq import FASTQ
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, clean, container, threads, snakemake, quiet, hpc, organism_type, setup_only, skip_reports):
+def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, clean, container, threads, snakemake, quiet, hpc, organism_type, setup, skip_reports):
     """
     Assemble linked reads into a metagenome
 
@@ -77,4 +77,4 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
         ("Output Folder:", os.path.relpath(output_dir) + "/"),
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)
