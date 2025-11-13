@@ -1,13 +1,14 @@
 
 from itertools import chain
 import os
+import pysam
 import re
 from harpy.common.printing import CONSOLE, print_error
 from harpy.validation.barcodes import which_linkedread_sam
 
-class SAM():
+class XAM():
     """
-    A class to contain and validate SAM input files. If detect_bc is True, will scan the first 100
+    A class to contain and validate BAM/SAM input files. If detect_bc is True, will scan the first 100
     records of the first [up to] 5 files to determine barcode type, stopping at the first detection of a
     recognizable barcode technology and sets the SAM.lr_type field with one of
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
@@ -25,8 +26,7 @@ class SAM():
         re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
         uniqs = set()
         dupes = []
-        inv_pattern = r'[^a-zA-Z0-9._-]+'
-        badmatch = []
+        badfiles = []
 
         if not self.quiet:
             CONSOLE.log("Validating input alignment files")
@@ -38,17 +38,21 @@ class SAM():
             else:
                 uniqs.add(bn)
                 self.count += 1
-            if re.search(inv_pattern, os.path.basename(i)):
-                badmatch.append(os.path.basename(i))
-        
-        if badmatch:
+            try:
+                with pysam.AlignmentFile(i, 'r', require_index=False):
+                    pass
+            except (ValueError, OSError):
+                badfiles.append(i)
+
+        if badfiles:
             print_error(
-                "invalid characters",
-                "Invalid characters were detected in the input file names.",
-                "Valid file names may contain only:\n  - [green]A-Z 0-9[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
+                "invalid file type",
+                f"[yellow]{len(badfiles)}[/] of the input alignment files did not conform to SAM/BAM format expectations.",
+                "Please verify that the files listed below are properly formatted SAM or BAM files."
                 "Offending Files",
-                ", ".join(badmatch)
-                )
+                ", ".join(badfiles)
+            )
+
         if dupes:
             dupe_out = []
             for i in dupes:
@@ -60,6 +64,7 @@ class SAM():
                 "Files with Clashing Names",
                 dupe_out
             )
+
         if detect_bc:
             scanned = []
             for i,samfile in enumerate(self.files):
@@ -72,7 +77,7 @@ class SAM():
             if not nonlinked_ok and self.lr_type == "none":
                 print_error(
                     "incompatible data",
-                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 lines of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 lines of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                     "Files Scanned",
                     "\n".join(scanned)

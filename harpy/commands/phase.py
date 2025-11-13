@@ -4,7 +4,7 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, FASTAfile
 from harpy.validation.fasta import FASTA
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
 from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import HapCutParams
@@ -50,7 +50,7 @@ def phase(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_
     workflow.conda = ["phase", "report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
     vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
     vcffile.match_samples(alignments.files, vcf_samples)
 

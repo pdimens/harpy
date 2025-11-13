@@ -7,7 +7,7 @@ from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []})
@@ -48,7 +48,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     workflow.conda = ["report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
 
     workflow.inputs = alignments.files
     workflow.config = {

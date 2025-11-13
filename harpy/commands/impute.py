@@ -9,7 +9,7 @@ from harpy.common.system_ops import container_ok
 from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.impute_parameters import ImputeParams
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
@@ -50,7 +50,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
 
     ## checks and validations ##
     params = ImputeParams(parameters, quiet > 0)
-    alignments = SAM(inputs, quiet > 0)
+    alignments = XAM(inputs, quiet > 0)
     vcffile = VCF(vcf, workflow.workflow_directory, quiet > 0)
     vcffile.find_biallelic_contigs()
     vcffile.match_samples(alignments.files, vcf_samples)

@@ -10,7 +10,7 @@ from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
 
 @click.group(context_settings={"help_option_names" : []})
@@ -68,7 +68,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.conda = ["align", "report", "variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
+    alignments = XAM(inputs)
     fasta = FASTA(reference)
     if contigs:
         fasta.match_contigs(contigs)
@@ -152,7 +152,7 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     workflow.conda = ["phase", "report", "variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, quiet = quiet > 0)
+    alignments = XAM(inputs, quiet = quiet > 0)
     fasta =  FASTA(reference, quiet = quiet > 0)
     if contigs:
         fasta.match_contigs(contigs)

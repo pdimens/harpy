@@ -22,16 +22,25 @@ class FASTQ():
         self.bx_tag = False
         self.lr_type = "none"
         self.quiet = quiet
+        badfiles = []
 
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
         # check if any names will be clashing
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
         uniqs = set()
         dupes = []
-        inv_pattern = r'[^a-zA-Z0-9._-]+'
-        badmatch = []
         if not self.quiet:
             CONSOLE.log("Validating input FASTQ files")
+
+        for i in self.files:
+            try:
+                with pysam.FastxFile(i, persist=False) as f:
+                    for j in f:
+                        if not j.name or not j.quality:
+                            raise ValueError
+                        break
+            except (ValueError, OSError):
+                badfiles.append(i)
 
         for i in self.files:
             sans_ext = os.path.basename(re_ext.sub("", str(i)))
@@ -39,16 +48,16 @@ class FASTQ():
                 dupes.append(sans_ext)
             else:
                 uniqs.add(sans_ext)
-            if re.search(inv_pattern, os.path.basename(i)):
-                badmatch.append(os.path.basename(i))
-        if badmatch:
+
+        if badfiles:
             print_error(
-                "invalid characters",
-                "Invalid characters were detected in the input FASTQ file names.",
-                "Valid file names may contain only:\n  - [green]A-Z 0-9[/] characters (case insensitive)\n  - [green].[/] (period)\n  - [green]_[/] (underscore)\n  - [green]-[/] (dash)",
+                "invalid file type",
+                f"[yellow]{len(badfiles)}[/] of the input FASTQ files did not conform to format expectations.",
+                "Please verify that the files listed below are properly formatted FASTQ files."
                 "Offending Files",
-                ", ".join(badmatch)
-                )
+                ", ".join(badfiles)
+            )
+
         if dupes:
             dupe_out = []
             for i in dupes:

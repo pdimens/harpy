@@ -8,6 +8,7 @@ import re
 import yaml
 from harpy.common.file_ops import is_gzip
 from harpy.common.printing import print_error, print_notice
+from rich.text import Text
 
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
@@ -16,34 +17,38 @@ class SAMfile(click.ParamType):
         super().__init__()
         self.single = single
         self.dir_ok = False if single else dir_ok
+        self.re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
+        self.inv_pattern = re.compile(r'[^a-z0-9._-]+', re.IGNORECASE)
 
     def convert(self, value, param, ctx):
+        infiles = []
         filepath = Path(value)
-        if filepath.is_dir() and not self.dir_ok:
-            self.fail("Alignment input cannot be a directory", param, ctx)
+        if not filepath.exists():
+            self.fail(f"{value} was not found.", param, ctx)
+
         if not filepath.is_dir():
-            if not filepath.exists():
-                self.fail(f"Alignment file {value} was not found.", param, ctx)
-            if not os.access(value, os.R_OK):
-                self.fail(f"Alignment file {value} does not have reading permission.", param, ctx)
-            infiles = [filepath.resolve().as_posix()]
+            _f = filepath.resolve().as_posix()
+            if not self.re_ext.search(_f):
+                self.fail(f"{value} does not end with the accepted extensions for alignment files: .bam/.sam (case insensitive).")
+            infiles.append(_f)
         else:
-            re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
-            infiles = []
+            if filepath.is_dir() and not self.dir_ok:
+                self.fail("Alignment input cannot be a directory", param, ctx)
             for i in filepath.glob("*"):
-                if i.is_file() and re_ext.search(i.name):
-                    _file = i.resolve().as_posix()
-                    if not os.access(_file, os.R_OK):
-                        self.fail(f"Alignment file {_file} does not have reading permission.", param, ctx)
-                    infiles.append(_file)
-            if len(infiles) < 1:
-                self.fail(f"There were no files ending with the accepted alignment extensions .bam/.sam (case insensitive) in {value}.")
-        for i in infiles:
-            try:
-                with pysam.AlignmentFile(i, 'r', require_index=False):
-                    pass
-            except (ValueError, OSError):
-                self.fail(f"File {value} was not recognized as being in BAM/SAM format.", param, ctx)
+                if i.is_file() and self.re_ext.search(i.name):
+                    infiles.append(i.resolve().as_posix())
+
+        # name and permission validations
+        for _file in infiles:
+            if not os.access(_file, os.R_OK):
+                self.fail(f"Alignment file {_file} does not have user read permission.", param, ctx)
+            #if self.inv_pattern.search(_file):
+            if self.inv_pattern.search(os.path.basename(_file)):
+                self.fail(f"Invalid characters detected in file name {_file}. Valid file names may contain only:\n  - A-Z 0-9 characters (case insensitive)\n  - . (period)\n  - _ (underscore)\n  - - (dash)")
+
+        if len(infiles) < 1:
+            self.fail(f"There were no files ending with the accepted alignment extensions .bam/.sam (case insensitive) in {value}.")
+
         if self.single:
             return infiles[0]
         else:
@@ -52,23 +57,19 @@ class SAMfile(click.ParamType):
 class FASTAfile(click.ParamType):
     """A CLI class to validate a FASTA file as input. Checks for presence, format, and returns the absolute path"""
     name = "fasta_file"
+
     def convert(self, value, param, ctx):
+        re_ext = re.compile(r"\.(fa|fas|fasta|fna|ffn|frn)(?:\.gz)?$", re.IGNORECASE)
         filepath = Path(value)
-        if not filepath.exists():
-            self.fail(f"FASTA file {value} was not found.", param, ctx)
-        if not filepath.is_file():
+        if not filepath.exists() or not filepath.is_file():
             self.fail(f"FASTA file {value} was not found.", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"FASTA file {value} does not have reading permission.", param, ctx)
-        try:
-            with pysam.FastxFile(value, persist=False) as f:
-                for i in f:
-                    if not i.name or i.quality:
-                        raise ValueError
-                    else:
-                        return filepath.resolve().as_posix()
-        except ValueError:
-            self.fail(f"File {value} was not recognized as being in FASTA format.", param, ctx)
+
+        if not re_ext.search(value):
+            self.fail(f"File {value} does not have any of the recognized [case insensitive] FASTA file extensions (.fa, .fas, .fasta, .fna, .ffn, .frn). Gzipping (.gz) is also permitted.", param, ctx)
+
+        return filepath.resolve().as_posix()
         
 class FASTQfile(click.ParamType):
     """
@@ -80,43 +81,40 @@ class FASTQfile(click.ParamType):
         super().__init__()
         self.single = single
         self.dir_ok = False if single else dir_ok
+        self.inv_pattern = re.compile(r'[^a-z0-9._-]+', re.IGNORECASE)
+        self.re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
 
     def convert(self, value, param, ctx):
+        infiles = []
         filepath = Path(value)
-        re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
+        if not filepath.exists():
+            self.fail(f"{value} was not found.", param, ctx)
         if filepath.is_dir() and not self.dir_ok:
             self.fail("FASTQ input cannot be a directory", param, ctx)
-        if not filepath.is_dir():
-            if not filepath.exists():
-                self.fail(f"FASTQ file {value} was not found.", param, ctx)
-            if not os.access(value, os.R_OK):
-                self.fail(f"FASTQ file {value} does not have reading permission.", param, ctx)
-            infiles = [filepath.resolve().as_posix()]
-        else:
-            infiles = []
-            for i in filepath.glob("*"):
-                if i.is_file() and re_ext.search(i.name):
-                    _file = i.resolve().as_posix()
-                    if not os.access(_file, os.R_OK):
-                        self.fail(f"FASTQ file {_file} does not have reading permission.", param, ctx)
-                    infiles.append(_file)
-            if len(infiles) < 1:
-                self.fail(f"There were no files ending with the accepted FASTQ extensions .fq[.gz] or .fastq[.gz] (case insensitive) in {value}.")
 
-        for fastq in infiles:
-            try:
-                with pysam.FastxFile(fastq, persist=False) as f:
-                    for i in f:
-                        if not i.name or not i.quality:
-                            raise ValueError
-                        break
-            except (ValueError, OSError):
-                self.fail(f"File {fastq} was not recognized as being in FASTQ format.", param, ctx)
+        if not filepath.is_dir():
+            _f = filepath.resolve().as_posix()
+            if not self.re_ext.search(_f):
+                self.fail(f"{value} does not end with the accepted extensions for FASTQ files: .fq[.gz]/.fastq[.gz] (case insensitive).")
+            infiles.append(filepath.resolve().as_posix())
+        else:
+            for i in filepath.glob("*"):
+                if i.is_file() and self.re_ext.search(i.name):
+                    infiles.append(i.resolve().as_posix())
+
+        for _file in infiles:
+            if not os.access(_file, os.R_OK):
+                self.fail(f"FASTQ file {_file} does not have user read permission.", param, ctx)
+            if self.inv_pattern.search(os.path.basename(_file)):
+                self.fail(f"Invalid characters detected in file name {_file}. Valid file names may contain only:\n  - A-Z 0-9 characters (case insensitive)\n  - . (period)\n  - _ (underscore)\n  - - (dash)")
+
+        if len(infiles) < 1:
+            self.fail(f"There were no files ending with the accepted FASTQ extensions .fq[.gz] or .fastq[.gz] (case insensitive) in {value}.")
+
         if self.single:
             return infiles[0]
         else:
             return infiles
-
 
 class VCFfile(click.ParamType):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
@@ -124,20 +122,22 @@ class VCFfile(click.ParamType):
     def __init__(self, gzip_ok: bool = True):
         super().__init__()
         self.gzip_ok = gzip_ok
+        self.re_ext = re.compile(r"\.(vcf|vcf\.gz|bcf)$", re.IGNORECASE)
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
+        _file = filepath.resolve().as_posix()
         if not filepath.exists():
             self.fail(f"Variant call format file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"Variant call format file {value} does not have read permission.", param, ctx)
         if is_gzip(value) and not self.gzip_ok:
             self.fail(f"Variant call format file {value} cannot be gzipped. Please decompress it.", param, ctx)
-        try:
-            with pysam.VariantFile(value, 'r'):
-                return filepath.resolve().as_posix()
-        except (ValueError, OSError):
-            self.fail(f"File {value} was not recognized as being in BCF/VCF[.GZ] format.", param, ctx)
+
+        if not self.re_ext.search(_file):
+            self.fail(f"File {value} was not recognized as having the [case-insensitive] accepted variant call format file extensions: .vcf, .vcf.gz, .bcf", param, ctx)
+        else:
+            return _file
 
 class PopulationFile(click.ParamType):
     name = "populations_file"
@@ -148,18 +148,6 @@ class PopulationFile(click.ParamType):
             self.fail(f"Sample grouping file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"Sample grouping file {value} does not have read permission.", param, ctx)
-
-        with open(value, "r", encoding="utf-8") as f:
-            rows = [i for i in f.readlines() if i != "\n" and not i.lstrip().startswith("#")]
-            invalids = [(i,j) for i,j in enumerate(rows) if len(j.split()) < 2]
-            if invalids:
-                print_error(
-                    "invalid format",
-                    f"There are [bold]{len(invalids)}[/] rows in [bold]{value}[/] without a space/tab delimiter or don't have two entries for sample[dim]<tab>[/dim]population. Terminating Harpy to avoid downstream errors.",
-                    f"Make sure every entry in [bold]{value}[/] uses space or tab delimeters and has both a sample name and population designation. You may comment out rows with a [green bold]#[/] to have Harpy ignore them.",
-                    "The rows and values causing this error are",
-                    [f"{i[0]+1}\t{i[1]}" for i in invalids]
-                )
         return filepath.resolve().as_posix()
 
 class InputFile(click.ParamType):

@@ -12,7 +12,7 @@ from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []})
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
@@ -63,7 +63,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     workflow.conda = ["report", "variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, quiet = quiet > 0)
+    alignments = XAM(inputs, quiet = quiet > 0)
     fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
@@ -137,7 +137,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     workflow.conda = ["report"]
 
     ## checks and validations ##
-    alignments = SAM(inputs, quiet = quiet > 0)
+    alignments = XAM(inputs, quiet = quiet > 0)
     fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
