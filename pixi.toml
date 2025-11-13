@@ -22,3 +22,4 @@ apptainer = ">=1.4.2,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
+snakemake-logger-plugin-harpyrich = {path = "snakemake-logger-plugin-harpyrich", editable = true}

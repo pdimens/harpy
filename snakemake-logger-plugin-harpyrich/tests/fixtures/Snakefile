@@ -1,0 +1,38 @@
+rule all:
+    input:
+        "output.txt",
+        expand("file_{i}.txt", i=range(3))
+
+rule create_input:
+    output:
+        "input_{i}.txt"
+    message:
+        "Creating input file {wildcards.i}"
+    shell:
+        """
+        echo "Input content for file {wildcards.i}" > {output}
+        sleep 0.5
+        """
+
+rule process_file:
+    input:
+        "input_{i}.txt"
+    output:
+        "file_{i}.txt"
+    message:
+        "Processing file {wildcards.i}: {input} -> {output}"
+    shell:
+        """
+        echo "Processed: $(cat {input})" > {output}
+        sleep 0.5
+        """
+
+rule combine:
+    input:
+        expand("file_{i}.txt", i=range(3))
+    output:
+        "output.txt"
+    message:
+        "Combining all files into final output"
+    shell:
+        "cat {input} > {output}"

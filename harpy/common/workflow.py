@@ -86,6 +86,7 @@ class Workflow():
             "rerun-incomplete": True,
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
+            "logger": "harpyrich",
             "scheduler": "greedy",
             "nolock": True,
             "software-deployment-method": "conda" if not self.container else "apptainer",
@@ -288,9 +289,13 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-
         try:
-            launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
+            #with subprocess.Popen(cmd.split(), stdout=subprocess.PIPE) as _:
+            os.system(cmd)
+            #launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
+        except KeyboardInterrupt:
+            CONSOLE.print("")
+            CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
         finally:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())

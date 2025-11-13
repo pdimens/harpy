@@ -94,6 +94,7 @@ def highlight_params(text: str):
 
 def launch_snakemake(sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
     """launch snakemake with the given commands"""
+    sys.exit(os.system(sm_args))
     exitcode = None
     sm_start = datetime.now()
     try:

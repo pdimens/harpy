@@ -1,0 +1,94 @@
+[project]
+name = "snakemake-logger-plugin-harpyrich"
+version = "0.4.0"
+description = "Log plugin for snakemake using Rich"
+readme = "README.md"
+requires-python = "<4.0,>=3.11"
+dependencies = [
+    "pydantic>=2.10.6",
+    "rich>=13.9.4",
+    "snakemake-interface-executor-plugins>=9.3.2",
+    "snakemake-interface-logger-plugins>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3.5", "snakemake>=9.0.1", "ruff>=0.9.10", "mypy>=1.0.0"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pixi.workspace]
+channels = ["conda-forge","bioconda"]
+platforms = ["osx-arm64", "linux-64"]
+
+[tool.pixi.environments]
+dev = { features = ["dev"] }
+publish = { features = ["publish"] }
+
+[tool.pixi.pypi-dependencies]
+snakemake-logger-plugin-harpyrich = { path = ".", editable = true }
+
+[tool.pixi.feature.dev.tasks.run-demo]
+    cmd = "snakemake -s {{ snakefile }} -d demo/output --sdm conda --show-failed-logs --printshellcmds --logger rich --cores 1"
+    args = [{ "arg" = "snakefile", "default" = "demo/Snakefile" }]
+
+[tool.pixi.feature.dev.tasks.run-verbose]
+    cmd = "snakemake -s {{ snakefile }} -d demo/output --sdm conda --verbose --show-failed-logs --printshellcmds --logger rich --cores 1"
+    args = [{ "arg" = "snakefile", "default" = "demo/Snakefile" }]
+
+[tool.pixi.feature.dev.tasks.run-fail]
+    cmd = "snakemake -s {{ snakefile }} -d demo/output --sdm conda --show-failed-logs --printshellcmds --logger rich --cores 1 --config fail=True"
+    args = [{ "arg" = "snakefile", "default" = "demo/Snakefile" }]
+
+[tool.pixi.feature.dev.tasks.dryrun]
+    cmd = "snakemake -s {{ snakefile }} -d demo/output --printshellcmds --logger rich -n"
+    args = [{ "arg" = "snakefile", "default" = "demo/Snakefile" }]
+
+[tool.pixi.feature.dev.tasks.clean-demo]
+    cmd = "rm -r demo/output"
+
+[tool.pixi.feature.dev.dependencies]
+conda = ">=25.5.1,<26"
+pytest = ">=8.4.2,<9"
+
+[tool.pixi.feature.dev.tasks]
+    demo = { depends-on = ["run-demo", "clean-demo"] }
+    demo-verbose = { depends-on = ["run-verbose", "clean-demo"] }
+    fail = { depends-on = ["run-fail", "clean-demo"] }
+    format = "ruff format ."
+    lint = "ruff check ."
+    lint-fix = "ruff check --fix ."
+    type-check = "mypy ."
+    qc = { depends-on = ["format", "lint", "type-check"] }
+    test = "pytest tests/ -v"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --tb=short"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+
+# Publish
+[tool.pixi.feature.publish.dependencies]
+twine = ">=6.1.0,<7"
+python-build = ">=1.2.2,<2"
+
+[tool.pixi.feature.publish.tasks]
+build = { cmd = "python -m build", description = "Build the package into the dist/ directory" }
+check-build = { cmd = "python -m twine check dist/*", depends-on = [
+  "build",
+], description = "Check that the package can be uploaded" }
+
+[tool.pixi.dependencies]
+snakemake = ">=9.10.1,<10"

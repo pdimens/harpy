@@ -1,0 +1,48 @@
+rule all:
+    input:
+        collect("potato.{x}.{y}.txt", x = range(3), y = range(3)),
+        "combined.txt",
+        "fail.txt" if config.get("fail", False) else []
+
+rule create_file:
+    output:
+        "carrot.{x}.{y}.txt"
+    message:
+        "Test message"
+    shell:
+        """
+        echo 'Content from file {wildcards.x}.{wildcards.y} and written to be kinda long the quick brown fox jumps over the lazy dog' > {output}
+        sleep 1
+        """
+
+rule create_other_file:
+    input:
+        "carrot.{x}.{y}.txt"
+    output:
+        "potato.{x}.{y}.txt"
+    message:
+        "Test message with {input} and {wildcards.y} to belabor a point"
+    shell:
+        """
+        echo 'Stuff and things' > {output}
+        sleep 1
+        """
+
+rule forced_failure:
+    output:
+        "fail.txt"
+    log:
+        "logs/fail.log"
+    shell:
+        "XXechoXX 'this that' > {output} 2> {log}"
+
+rule combine_files:
+    input:
+        collect("carrot.{x}.{y}.txt", x = range(3), y = range(3)),
+        collect("potato.{x}.{y}.txt", x = range(3), y = range(3))     
+    output:
+        "combined.txt"
+    conda:
+        "envs/conda.yaml"
+    shell:
+        "cat {input} > {output}"

@@ -1,0 +1,6 @@
+name: variants
+channels:
+- bioconda
+- conda-forge
+dependencies:
+- bioconda::bcftools
