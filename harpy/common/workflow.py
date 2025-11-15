@@ -5,6 +5,7 @@ import glob
 import importlib.resources as resources
 import os
 import shutil
+import sys
 import time as _time
 from typing import Dict
 import urllib.request
@@ -86,7 +87,8 @@ class Workflow():
             "rerun-incomplete": True,
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
-            "logger": "harpyrich",
+            "quiet": "reason",
+            #"logger": "harpyrich",
             "scheduler": "greedy",
             "nolock": True,
             "software-deployment-method": "conda" if not self.container else "apptainer",
@@ -290,18 +292,13 @@ class Workflow():
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
         try:
-            #with subprocess.Popen(cmd.split(), stdout=subprocess.PIPE) as _:
-            os.system(cmd)
-            #launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
-        except KeyboardInterrupt:
-            CONSOLE.print("")
-            CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
+            sm = launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
         finally:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())
-            self.purge_empty_logs()
-            if os.path.exists(self.snakemake_logfile):
-                gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
+            #self.purge_empty_logs()
+            #if os.path.exists(self.snakemake_logfile):
+            #    gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
         
         if self.clean:
             CONSOLE.rule("[dim]Cleaning output directory", style = "dim")
@@ -309,5 +306,7 @@ class Workflow():
                 if i in self.clean.lower():
                     CONSOLE.log(f"Removing: [blue]{j}/[/]")
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
-
-        self.print_onsuccess()
+        if sm.exitcode == 0:
+            self.print_onsuccess()
+        else:
+            sys.exit(1)

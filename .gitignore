@@ -4,6 +4,8 @@
 .environments/
 .cache/
 *.egg
+snakemake_*/
+snakemake-*/
 container/
 localenv/
 hpc/
