@@ -146,6 +146,9 @@ class launch_snakemake():
         if self.process.poll() or self.iserror():
             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
             self.exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in self.output else self.exitcode
+            while self.output:
+                CONSOLE.print(self.output, style = "red")
+                self.nextline()
             CONSOLE.print("STARTUP ERRORS")
         #sys.exit(0)
 
