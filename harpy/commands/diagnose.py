@@ -98,7 +98,7 @@ def rule(directory):
     # get the lastest snakemake log file
     list_of_files = glob.glob(f'{directory}/logs/snakemake/*')
     if not list_of_files:
-        print_error("missing log folder", f"Log directory [blue]{directory}/logs/snakemake[/] does not have any log files in it")
+        print_error("missing log files", f"Log directory [blue]{directory}/logs/snakemake[/] does not have any log files in it")
 
     latest_log = max(list_of_files, key=os.path.getctime)
 
