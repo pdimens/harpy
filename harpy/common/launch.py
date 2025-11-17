@@ -288,7 +288,9 @@ class launch_snakemake():
                         if completed in details[2]:
                             task_id = task_ids[job]
                             current_task = self.progress.tasks[task_id]
-                            self.progress.update(task_id, advance = 1, refresh = True, active = current_task.fields["active"] - 1)
+                            # don't show any number if there are 0 active
+                            _active = current_task.fields["active"] - 1 if current_task.fields["active"] - 1 > 0 else ""
+                            self.progress.update(task_id, advance = 1, refresh = True, active = _active)
                             self.update_total_active()
                             self.progress.update(task_ids["total_progress"], refresh=True, advance=1, active = self.total_active - 1)
                             if self.progress.tasks[task_ids[job]].completed == self.progress.tasks[task_id].total:
