@@ -1,4 +1,5 @@
 ## new
+- progressbar has a new column to show a count of the active jobs!
 - `diagnose` now has 2 subcommands:
   - `stall`: same as previous `diagnose` behavior, where it runs snakemake with `--dry-run --debug-dag`
   - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
@@ -22,9 +23,11 @@
 - swapped order of validations/checks
   - CLI input validations are for fast basic checks (e.g. naming conventions, presence/absence)
   - harpy validations are for more involved checks (formatting, consistency, inter-parameter checks)
+- [internal] Snakemake process monitoring saw a significant rewrite
+  - the new internals are easier to develop and should hopefully have more consistent exiting behavior
+- [internal] `harpy resume` logic reorganized a bit
 
 # fixes
 - removed redundant validations between CLI and harpy
-
-# In progress but not ready
-- replace manually hacked progressbars with executor plugin
+- wording improvements for errors and doc text
+- [hopefully] no more double-printing of Snakemake errors
