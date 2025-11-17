@@ -91,7 +91,7 @@ def print_setup_error(exitcode: int) -> None:
                 errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
         except ModuleNotFoundError:
             pass
-    CONSOLE.rule(f"[bold]{errortype}[/] [dim default]" + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
+    CONSOLE.rule(f"[bold]{errortype}[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print(errortext)
     CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
 
@@ -114,7 +114,7 @@ def print_onerror(logfile: str, time) -> None:
     CONSOLE.rule("[bold]Workflow Error[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print("The workflow stopped due to an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
-    CONSOLE.rule("[bold]Where Error Occurred", style = "red")
+    CONSOLE.rule("[bold]Cause of Error", style = "red")
 
 def print_shellcmd_simple(text):
     """

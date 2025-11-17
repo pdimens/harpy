@@ -102,7 +102,7 @@ def rule(directory):
 
     latest_log = max(list_of_files, key=os.path.getctime)
 
-    CONSOLE.rule(f"Latest log: [bold]{os.path.basename(latest_log)}", style = "yellow")
+    CONSOLE.rule(f"Latest log: [bold default]{os.path.basename(latest_log)}", style = "yellow")
     failed_rule = ""
     _shellblock = False
     infiles = []
@@ -138,7 +138,7 @@ def rule(directory):
     if failed_rule:
         CONSOLE.log(f"Failing rule: [yellow]{failed_rule}")
     else:
-        CONSOLE.log(f"No errors found in {os.path.basename(latest_log)}", style = "green")
+        CONSOLE.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
         sys.exit(0)
     if infiles:
         if not os.path.exists(CONFIG_FILE):

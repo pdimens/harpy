@@ -35,36 +35,46 @@ class launch_snakemake():
         self.output: str = ""
         self.job_inventory: dict = {}
         self.total_active: int = 0
+        self.progress = harpy_progressbar(self.quiet)
 
         try:
             self.workflow_setup()
-            if self.exitcode > -1 or self.process.poll():
-                self.process_finish()
+            if self.is_done():
+                return
             self.check_startup()
-            if self.exitcode > -1 or self.process.poll():
-                if self.exitcode == 0:
-                    return
-                else:
-                    self.process_finish()
-                    return
+            if self.is_done():
+                return
             self.monitor_jobs()
-            #CONSOLE.print(self.exitcode)
-            #if self.exitcode > -1 or self.process.poll():
-                #CONSOLE.print("AFTERMONITOR")
-            self.process_finish()
+            #self.progress.stop()
         except KeyboardInterrupt:
+            #self.progress.stop()
             CONSOLE.print("")
             CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
             sys.exit(1)
         finally:
+            self.progress.stop()
+            self.process_finish()
             self.process.terminate()
             self.process.wait()
             if os.path.exists(os.path.join(outdir,sm_logfile)):
                 gzip_file(os.path.join(outdir,sm_logfile))
             purge_empty_logs(outdir)
 
+    def is_done(self) -> bool:
+        '''check if self.exitcode > -1 or a value exists for self.process.poll()'''
+        if self.exitcode > -1 or self.process.poll():
+            return True
+        return False
+
     def update_total_active(self):
+        '''update self.total_active with the sum of all the active jobs in self.rule_inventory'''
         self.total_active = sum([len(self.job_inventory[rule][2]) for rule in self.job_inventory if rule != "total"])
+
+    def nothing_to_do(self):
+        '''check if self.output has the "Nothing to be" triggering text and exit with return code 0 if true'''
+        if "Nothing to be" in self.output:
+            CONSOLE.rule("[bold]All outputs already present", style = "green")
+            sys.exit(0)
 
     def iserror(self) -> bool:
         """logical check for erroring trigger words in snakemake output"""
@@ -91,6 +101,7 @@ class launch_snakemake():
         CONSOLE.print(f"[bold default]{key}: [/]\n  [red]" + "\n  ".join(vals))
 
     def print_shellcmd(self):
+        '''format the snakemake rule shell command nicely and print it to the console'''
         _table = Table(
             show_header=False,
             pad_edge=False,
@@ -150,9 +161,9 @@ class launch_snakemake():
                 CONSOLE.print(self.output, style = "red")
                 self.nextline()
             CONSOLE.print("STARTUP ERRORS")
-        #sys.exit(0)
 
     def workflow_setup(self):
+        '''processes the workflow setup text snakemake prints to the console up to the end of the job summary table'''
         while self.exitcode < 0:
             if self.quiet < 2:
                 with CONSOLE.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow"):
@@ -200,9 +211,7 @@ class launch_snakemake():
                     progress.stop()
             if self.process.poll() or self.exitcode >= 0:
                 return
-            if "Nothing to be" in self.output:
-                CONSOLE.rule("[bold]All outputs already present", style = "green")
-                sys.exit(0)
+            self.nothing_to_do()
             # process the job summary
             while True:
                 self.nextline()
@@ -228,10 +237,10 @@ class launch_snakemake():
         if self.exitcode > -1 or self.process.poll():
             return
         #CONSOLE.print("WE START MONITORING JOBS")
-        progress = harpy_progressbar(self.quiet) 
-        with harpy_progresspanel(progress, quiet = self.quiet):
+        #progress = harpy_progressbar(self.quiet)
+        with harpy_progresspanel(self.progress, quiet = self.quiet):
             task_ids = {
-                "total_progress" : progress.add_task(
+                "total_progress" : self.progress.add_task(
                     "[bold blue]Total" if self.quiet == 0 else "[bold blue]Progress",
                     total= self.job_inventory["total"][1], active = 0
                 )
@@ -240,18 +249,15 @@ class launch_snakemake():
             while self.output:
                 self.nextline()
                 if self.iserror() or self.process.poll() == 1:
-                    progress.stop()
-                    #CONSOLE.log("WATATA")
+                    #progress.stop()
                     self.exitcode = EXIT_CODE_RUNTIME_ERROR
                     break
                 if "(100%) done" in self.output or self.output.startswith("Nothing to be") or self.process.poll() == 0:
-                    progress.stop()
-                    #CONSOLE.log("Alkaline")
+                    #progress.stop()
                     self.exitcode = EXIT_CODE_SUCCESS
                     break
                 if self.output.startswith("Complete log") or self.process.poll():
-                    progress.stop()
-                    #CONSOLE.log("RAINBOW")                    
+                    #progress.stop()
                     self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                     break
                 # add new progress bar track if the rule doesn't have one yet
@@ -260,7 +266,7 @@ class launch_snakemake():
                     rule = self.output.split()[-1].replace(":", "")
                     # add progress bar if it doesn't exist
                     if rule not in task_ids and rule != "all":
-                        task_ids[rule] = progress.add_task(self.job_inventory[rule][0], total=self.job_inventory[rule][1], visible = self.quiet != 1, active = 1)
+                        task_ids[rule] = self.progress.add_task(self.job_inventory[rule][0], total=self.job_inventory[rule][1], visible = self.quiet != 1, active = 1)
                     # parse the rest of the rule block to get the job ID and add it to the inventory
                     while True:
                         self.nextline()
@@ -270,10 +276,10 @@ class launch_snakemake():
                             if rule != "all":
                                 self.job_inventory[rule][2].add(job_id)
                                 # update the number of active jobs
-                                progress.update(task_ids[rule], active = len(self.job_inventory[rule][2]))
+                                self.progress.update(task_ids[rule], active = len(self.job_inventory[rule][2]))
                                 # update total
                                 self.update_total_active()
-                                progress.update(task_ids["total_progress"], refresh = True, active = self.total_active - 1)
+                                self.progress.update(task_ids["total_progress"], refresh = True, active = self.total_active)
                             break
                 # check which rule the job is associated with and update the corresponding progress bar
                 if self.output.startswith("Finished jobid: "):
@@ -281,13 +287,12 @@ class launch_snakemake():
                     for job,details in self.job_inventory.items():
                         if completed in details[2]:
                             task_id = task_ids[job]
-                            current_task = progress.tasks[task_id]
-                            progress.update(task_id, advance = 1, refresh = True, active = current_task.fields["active"] - 1)
+                            current_task = self.progress.tasks[task_id]
+                            self.progress.update(task_id, advance = 1, refresh = True, active = current_task.fields["active"] - 1)
                             self.update_total_active()
-                            progress.update(task_ids["total_progress"], refresh=True, advance=1, active = self.total_active - 1)
-                            if progress.tasks[task_ids[job]].completed == progress.tasks[task_id].total:
-                                progress.update(task_ids[job], refresh=True, description=f"[dim]{details[0]}", active = "")
-                                #progress.update(task_ids[job], visible = False)
+                            self.progress.update(task_ids["total_progress"], refresh=True, advance=1, active = self.total_active - 1)
+                            if self.progress.tasks[task_ids[job]].completed == self.progress.tasks[task_id].total:
+                                self.progress.update(task_ids[job], refresh=True, description=f"[dim]{details[0]}", active = "")
                             # remove the job to save memory. wont be seen again
                             details[2].discard(completed)
                             break
@@ -299,7 +304,6 @@ class launch_snakemake():
 
         self.process.wait()
         if self.exitcode == 0:
-            #print("PROCESS FINISH 0")
             return
         if self.exitcode in (1,2):
             print_setup_error(self.exitcode)
@@ -307,7 +311,29 @@ class launch_snakemake():
             print_onerror(os.path.join(os.path.basename(self.outdir), self.logfile), datetime.now() - self.start_time)
         CONSOLE.tab_size = 4
         CONSOLE._highlight = False
-
+        # shortcut to FileNotFoundError #
+        if self.output.strip().startswith("FileNotFound"):
+            if "/envs/" in self.output and ".yaml'" in self.output:
+                CONSOLE.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + self.output.split(":")[-1].replace("'", ""))
+            else:
+                CONSOLE.print(self.output.strip(), style = "red")
+            return
+        # pick out conda-env errors
+        if self.output.strip().startswith("CreateCondaEnvir"):
+            self.nextline()
+            while self.output and "To search for alternate" not in self.output:
+                if self.output != "\n":
+                    if self.output.lstrip().startswith("-"):
+                        CONSOLE.print(self.output.rstrip(), style = "bold red")
+                    else:
+                        CONSOLE.print(self.output.rstrip(), style = "red")
+                self.nextline()
+            return
+        if "MissingOutputException" in self.output:
+            while "Shutting down, this might" not in self.output:
+                CONSOLE.print(self.output, style="red")
+                self.nextline()
+        # Parse rule-based errors #
         while self.output:
             self.nextline()
             if "Exiting because a job execution failed" in self.output:
@@ -316,6 +342,7 @@ class launch_snakemake():
                     # this is the [timestamp] line
                     CONSOLE.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
                     break
+
         # error in rule line
         while self.output:
             self.nextline()
