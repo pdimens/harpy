@@ -1,5 +1,6 @@
 ## new
-- progressbar has a new column to show a count of the active jobs!
+- progress bar has a new column to show a count of the active jobs!
+- time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
 - `diagnose` now has 2 subcommands:
   - `stall`: same as previous `diagnose` behavior, where it runs snakemake with `--dry-run --debug-dag`
   - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
@@ -28,6 +29,6 @@
 - [internal] `harpy resume` logic reorganized a bit
 
 # fixes
-- removed redundant validations between CLI and harpy
+- removed redundant validations between CLI checks and harpy checks
 - wording improvements for errors and doc text
 - [hopefully] no more double-printing of Snakemake errors
