@@ -5,7 +5,6 @@ import re
 import os
 import sys
 import subprocess
-import time
 from rich import box
 from rich.syntax import Syntax
 from rich.table import Table
