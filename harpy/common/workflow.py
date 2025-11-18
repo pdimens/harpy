@@ -14,9 +14,9 @@ import yaml
 from rich import box
 from rich.table import Table
 from harpy.common.conda import create_conda_recipes
-from harpy.common.file_ops import filepath, gzip_file, purge_empty_logs
+from harpy.common.file_ops import filepath, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_error
-from harpy.common.launch import launch_snakemake
+from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
 
 class Workflow():
@@ -292,7 +292,7 @@ class Workflow():
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
         try:
-            sm = launch_snakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
+            sm = LaunchSnakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
         finally:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())

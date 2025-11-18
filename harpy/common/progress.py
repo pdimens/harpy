@@ -5,15 +5,61 @@ Functions related to Harpy's progressbars
 from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
+from rich.text import Text
 from harpy.common.printing import CONSOLE
+import time
+
+class PausableTimeElapsedColumn(TimeElapsedColumn):
+    """Custom time elapsed column that supports pausing."""
+    
+    def __init__(self):
+        super().__init__()
+        self.pause_adjustments = {}  # task_id -> total paused time
+        self.pause_start_times = {}  # task_id -> when pause started
+    
+    def pause(self, task_id):
+        """Start pausing the timer for a task."""
+        self.pause_start_times[task_id] = time.monotonic()
+    
+    def resume(self, task_id):
+        """Resume the timer for a task."""
+        if task_id in self.pause_start_times:
+            pause_duration = time.monotonic() - self.pause_start_times[task_id]
+            self.pause_adjustments[task_id] = self.pause_adjustments.get(task_id, 0) + pause_duration
+            del self.pause_start_times[task_id]
+    
+    def render(self, task):
+        """Render the elapsed time, accounting for pauses."""
+        elapsed = task.elapsed
+        
+        # Subtract any paused time
+        if task.id in self.pause_adjustments:
+            elapsed -= self.pause_adjustments[task.id]
+        
+        # If currently paused, also subtract time since pause started
+        if task.id in self.pause_start_times:
+            elapsed -= (time.monotonic() - self.pause_start_times[task.id])
+        
+        elapsed = max(0, elapsed)  # Don't go negative
+        
+        # Format the time
+        minutes, seconds = divmod(int(elapsed), 60)
+        hours, minutes = divmod(minutes, 60)
+        days, hours = divmod(hours, 24)
+        
+        if days:
+            return Text(f"{days:d} days, {hours:d} hours", style="progress.elapsed")
+        else:
+            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style="progress.elapsed")
+        #else:
+        #    return Text(f"{minutes:02d}:{seconds:02d}", style="progress.elapsed")
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
     """Returns a nicely formatted live-panel with the progress bar in it"""
+            #progressbar if quiet != 2 else None,
     return Live(
         Panel(
-            progressbar if quiet != 2 else None,
-            title = title,
-            border_style="dim"
+            progressbar, title = title, border_style="dim"
         ) if quiet != 2 else None,
         refresh_per_second=8,
         transient=True,
@@ -30,7 +76,8 @@ def harpy_progressbar(quiet: int) -> Progress:
         TextColumn("[progress.description]{task.description}"),
         BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
         TaskProgressColumn("[progress.remaining]{task.completed}/{task.total}") if quiet == 0 else TaskProgressColumn(),
-        TimeElapsedColumn(),
+        PausableTimeElapsedColumn(),
+        #TimeElapsedColumn(),
         transient = True,
         auto_refresh = True,
         disable = quiet == 2,
