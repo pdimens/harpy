@@ -4,7 +4,7 @@ Functions related to Harpy's progressbars
 
 from rich.live import Live
 from rich.panel import Panel
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, SpinnerColumn, TaskProgressColumn
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn #, SpinnerColumn
 from rich.text import Text
 from harpy.common.printing import CONSOLE
 import time
@@ -63,7 +63,7 @@ def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: in
         Panel(
             progressbar, title = title, border_style="dim"
         ) if quiet != 2 else None,
-        refresh_per_second=8,
+        refresh_per_second=2,
         transient=True,
         console=CONSOLE
     )
@@ -73,8 +73,8 @@ def harpy_progressbar(quiet: int) -> Progress:
     The pre-configured transient progress bar that workflows and validations use
     """
     return Progress(
-        SpinnerColumn(spinner_name = "dots12", style = "blue dim", finished_text="[dim green]✓"),
-        TextColumn("{task.fields[active]}", style="default"),
+        #SpinnerColumn(spinner_name = "dots12", style = "blue dim", finished_text="[dim green]✓"),
+        TextColumn("{task.fields[active]}", style="yellow"),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
         TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if quiet == 0 else TaskProgressColumn(style = "blue"),
@@ -82,6 +82,7 @@ def harpy_progressbar(quiet: int) -> Progress:
         transient = True,
         auto_refresh = True,
         disable = quiet == 2,
+        refresh_per_second=2,
         console= CONSOLE,
         expand=True
     )

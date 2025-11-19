@@ -163,33 +163,32 @@ class LaunchSnakemake():
     def pause_progress(self, rulename):
         '''pause the time elapsed col for a rule's progress bar'''
         # pause time elapsed col
-        self.progress.columns[5].pause(self.task_ids[rulename])
+        self.progress.columns[4].pause(self.task_ids[rulename])
 
     def resume_progress(self, rulename):
         '''resume the time elapsed col for a rule's progress bar'''
         # pause time elapsed col
-        self.progress.columns[5].resume(self.task_ids[rulename])
+        self.progress.columns[4].resume(self.task_ids[rulename])
 
     def update_finished_progress(self):
         '''Process the stderr output and update the progressbars accordingly'''
         completed = int(re.search(r"\d+", self.output).group())
         for job,details in self.job_inventory.items():
             if completed in details.ids:
-                task_id = self.task_ids[job]
-                current_task = self.progress.tasks[task_id]
-                # don't show any number if there are 0 active and pause the timer
-                if current_task.fields["active"] - 1 < 1:
-                    self.pause_progress(job)
-                    #self.progress.columns[5].pause(task_id)
-                    self.progress.update(task_id, advance = 1, refresh = True, active = "")
-                else:
-                    self.progress.update(task_id, advance = 1, refresh = True, active = current_task.fields["active"] - 1)
-                self.update_total_active()
-                self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = self.total_active - 1)
-                if self.progress.tasks[self.task_ids[job]].completed == self.progress.tasks[task_id].total:
-                    self.progress.update(self.task_ids[job], refresh=True, description=f"[dim]{details.name}", active = "")
                 # remove the job to save memory. wont be seen again
                 self.job_inventory[job].ids.discard(completed)
+                self.update_total_active()
+                task_id = self.task_ids[job]
+                # don't show any number if there are 0 active and pause the timer
+                _active = self.job_inventory[job].active()
+                if _active < 1:
+                    self.pause_progress(job)
+                    self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]…")
+                else:
+                    self.progress.update(task_id, advance = 1, refresh = True, active = _active)
+                self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = self.total_active)
+                if self.progress.tasks[self.task_ids[job]].completed == self.progress.tasks[task_id].total:
+                    self.progress.update(self.task_ids[job], refresh = True, description = f"[dim]{details.name}", active = "[dim blue]✓")
                 break
 
     def check_startup(self):
