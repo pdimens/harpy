@@ -31,7 +31,8 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
     def render(self, task):
         """Render the elapsed time, accounting for pauses."""
         elapsed = task.elapsed
-        
+        _style = "magenta"
+
         # subtract any paused time
         if task.id in self.pause_adjustments:
             elapsed -= self.pause_adjustments[task.id]
@@ -39,6 +40,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         # if currently paused, also subtract time since pause started
         if task.id in self.pause_start_times:
             elapsed -= (time.monotonic() - self.pause_start_times[task.id])
+            _style = "dim magenta"
 
         # don't go negative
         elapsed = max(0, elapsed)
@@ -49,13 +51,12 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         days, hours = divmod(hours, 24)
         
         if days:
-            return Text(f"{days:d} days, {hours:d} hours", style="progress.elapsed")
+            return Text(f"{days:d} days, {hours:d} hours", style = _style)
         else:
-            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style="progress.elapsed")
+            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 
 def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
     """Returns a nicely formatted live-panel with the progress bar in it"""
-            #progressbar if quiet != 2 else None,
     return Live(
         Panel(
             progressbar, title = title, border_style="dim"
@@ -74,7 +75,7 @@ def harpy_progressbar(quiet: int) -> Progress:
         TextColumn("{task.fields[active]}", style="default"),
         TextColumn("[progress.description]{task.description}"),
         BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
-        TaskProgressColumn("[progress.remaining]{task.completed}/{task.total}") if quiet == 0 else TaskProgressColumn(),
+        TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if quiet == 0 else TaskProgressColumn(style = "blue"),
         PausableTimeElapsedColumn(),
         transient = True,
         auto_refresh = True,
