@@ -88,7 +88,6 @@ class Workflow():
             "show-failed-logs": True,
             "rerun-triggers": ["mtime", "params"],
             "quiet": "reason",
-            #"logger": "harpyrich",
             "scheduler": "greedy",
             "nolock": True,
             "software-deployment-method": "conda" if not self.container else "apptainer",
@@ -241,7 +240,15 @@ class Workflow():
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         seconds = seconds % 60
-        return f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
+        report_times = []
+        for i,j in zip(
+            ["day","hour","minute","second"],
+            [days,hours,minutes,seconds]
+        ):
+            if j:
+                _i = f"{i}s" if j > 1 else i             
+                report_times.append(f"{j} {_i}")
+        return ", ".join(report_times)
 
     def print_onstart(self):
         """Print a panel of info on workflow run"""

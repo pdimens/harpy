@@ -16,7 +16,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         super().__init__()
         self.pause_adjustments = {}  # task_id -> total paused time
         self.pause_start_times = {}  # task_id -> when pause started
-    
+
     def pause(self, task_id):
         """Start pausing the timer for a task."""
         self.pause_start_times[task_id] = time.monotonic()
@@ -31,7 +31,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
     def render(self, task):
         """Render the elapsed time, accounting for pauses."""
         elapsed = task.elapsed
-        _style = "magenta"
+        _style = "yellow"
 
         # subtract any paused time
         if task.id in self.pause_adjustments:
@@ -40,7 +40,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         # if currently paused, also subtract time since pause started
         if task.id in self.pause_start_times:
             elapsed -= (time.monotonic() - self.pause_start_times[task.id])
-            _style = "dim magenta"
+            _style = "dim yellow"
 
         # don't go negative
         elapsed = max(0, elapsed)
@@ -49,9 +49,11 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         minutes, seconds = divmod(int(elapsed), 60)
         hours, minutes = divmod(minutes, 60)
         days, hours = divmod(hours, 24)
-        
+
         if days:
-            return Text(f"{days:d} days, {hours:d} hours", style = _style)
+            _days = "day" if days == 1 else "days"
+            _hours = "hour" if hours == 1 else "hours"
+            return Text(f"{days:d} {_days}, {hours:d} {_hours}", style = _style)
         else:
             return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 

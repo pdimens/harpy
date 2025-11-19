@@ -26,7 +26,6 @@ class Rule:
         self.name: str = name
         self.total: int = total
         self.ids: set = set()
-        #self.elapsed = None
 
     def active(self) -> int:
         return len(self.ids) 
@@ -314,7 +313,6 @@ class LaunchSnakemake():
                                 self.job_inventory[rule].ids.add(job_id)
                                 # update the number of active jobs
                                 self.resume_progress(rule)
-                                #self.progress.columns[5].resume(self.task_ids[rule])
                                 self.progress.update(self.task_ids[rule], active = self.job_inventory[rule].active())
                                 # update total
                                 self.update_total_active()
