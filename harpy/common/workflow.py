@@ -141,9 +141,7 @@ class Workflow():
         if hpc:
             self.hpc = hpc
             hpc_dir = os.path.join(self.workflow_directory, "hpc")
-            os.makedirs(hpc_dir, exist_ok=True)
-            _command += ["--workflow-profile", hpc_dir]
-            _command_rel += ["--workflow-profile", os.path.join(workdir_rel, "hpc")]
+            self.profile["workflow-profile"] = hpc_dir
         if sm_extra:
             _command.append(sm_extra)
             _command_rel.append(sm_extra)
@@ -282,8 +280,9 @@ class Workflow():
             self.config["Inputs"] = self.inputs["_list"]
         else:
             self.config["Inputs"] = self.inputs
-        with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
-            yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
+        if writefile:
+            with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
+                yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
     def purge_empty_logs(self):
         purge_empty_logs(self.output_directory)
