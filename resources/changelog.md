@@ -5,7 +5,7 @@
   - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
 - `phase bam` added for more fine-tuned and configurable alignment phasing
 ### options
-- `harpy resume` has new `--direct` option to call Snakemake directly without harpy intervention
+- `resume` has new `--direct` option to call Snakemake directly without harpy intervention
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
   - this option is **hidden** because it's meant more for advanced users or development
   - options provided as sequential letters (e.g. `ws`, `sl`, `lw`, etc.)
@@ -21,9 +21,9 @@
 # changes
 ## breaking
 ### deprecations
-  - harpy convert (replaced by Djinn)
-  - harpy downsample (replaced by Djinn)
-  - harpy simulate (replaced by Mimick and VISOR-HACks)
+  - `convert` (replaced by `Djinn` software)
+  - `downsample` (replaced by `Djinn` software)
+  - `simulate` (replaced by `Mimick` and `VISOR-HACks` softwares)
 ### renamed
 - `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
 - `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow
@@ -49,7 +49,7 @@
   - harpy validations are for more involved checks (formatting, consistency, inter-parameter checks)
 - Snakemake process monitoring saw a significant rewrite
   - the new internals are easier to develop and should hopefully have more consistent exiting behavior
-- `harpy resume` logic reorganized updated to match new workflow configuration design
+- `resume` logic reorganized updated to match new workflow configuration design
 - the `--workflow-profile` part of the snakemake command (when using hpc) has been moved to `config.yaml` to further reduce the length of the snakemake call
 
 # fixes
