@@ -1,32 +1,56 @@
-## new
-- progress bar has a new column to show a count of the active jobs!
-- time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
+# new
+### modules
 - `diagnose` now has 2 subcommands:
   - `stall`: same as previous `diagnose` behavior, where it runs snakemake with `--dry-run --debug-dag`
   - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
+- `phase bam` added for more fine-tuned and configurable alignment phasing
+### options
 - `harpy resume` has new `--direct` option to call Snakemake directly without harpy intervention
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
   - this option is **hidden** because it's meant more for advanced users or development
   - options provided as sequential letters (e.g. `ws`, `sl`, `lw`, etc.)
+### misc
+- progress bar has a new column to show a count of the active jobs!
+- time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
 - output log of checks and validations printed to console so Harpy is transparent about the delays before kicking off Snakemake
   - disabled when `--quiet` > 0
 - added "workflow setup complete" text when using `--setup`
+- added "all stuff is there" equivalent text when snakemake reports there is nothing to do
 
-## changes
-### breaking
-- deprecations
+
+# changes
+## breaking
+### deprecations
   - harpy convert (replaced by Djinn)
   - harpy downsample (replaced by Djinn)
   - harpy simulate (replaced by Mimick and VISOR-HACks)
+### renamed
+- `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
+- `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow
 - `--setup-only` replaced with the more succinct `--setup`
+- the `workflow.yaml` files now all have a standard/consistent format with three main sections whose names are capitalized (whereas all the rest are lowercase):
+  - `Workflow`: with common information (name, linkedread info, report skip/contigs, harpy-specific snakemake things)
+  - `Parameters`: the run configurations resulting from command-line arguments/options
+  - `Inputs`: the input files
+  - this means previous `workflow.yaml` files are incompatible with this and future versions
+- all `workflow.yaml` keys use hyphens instead of underscores to reduce keystrokes
+  - e.g. `min_len` => `min-len`
+- minimum mapping quality has been consistenlty named `min-map-quality` in all `workflow.yaml` files 
+### function
+- `sv naibr` no longer phases input alignment files, use the new `phase bam` module for that
 
-### non-breaking
+### internal
+- significant rewrite of the `Workflow` class and how it expects workflow, parameter, and input delcarations
+
+## non-breaking
+### internal
 - swapped order of validations/checks
   - CLI input validations are for fast basic checks (e.g. naming conventions, presence/absence)
   - harpy validations are for more involved checks (formatting, consistency, inter-parameter checks)
-- [internal] Snakemake process monitoring saw a significant rewrite
+- Snakemake process monitoring saw a significant rewrite
   - the new internals are easier to develop and should hopefully have more consistent exiting behavior
-- [internal] `harpy resume` logic reorganized a bit
+- `harpy resume` logic reorganized updated to match new workflow configuration design
+- the `--workflow-profile` part of the snakemake command (when using hpc) has been moved to `config.yaml` to further reduce the length of the snakemake call
 
 # fixes
 - removed redundant validations between CLI checks and harpy checks
