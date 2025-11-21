@@ -260,10 +260,10 @@ class Workflow():
         with open(os.path.join(self.workflow_directory, 'config.yaml'), "w", encoding="utf-8") as sm_config:
             yaml.dump(self.profile, sm_config, sort_keys=False, width=float('inf'))
 
-    def write_workflow_config(self) -> None:
+    def write_workflow_config(self, writefile: bool = True) -> None:
         """
-        Writes a workflow.yaml file to workdir to use with --configfile. Configs
-        are expected to be a dict
+        Formats the workflow configurations into the self.config dict. Writes a workflow.yaml
+        file to workdir to use with --configfile if `writefile = True` (default)
         """
         self.config["Workflow"]["name"] = self.name
         if self.linkedreads:
@@ -274,11 +274,14 @@ class Workflow():
             "log" : self.snakemake_logfile,
             "absolute": self.snakemake_cmd_absolute,
             "relative": self.snakemake_cmd_relative,
-            "conda_envs": self.conda
+            "conda-envs": self.conda
         }
         if self.parameters:
             self.config["Parameters"] = self.parameters
-        self.config["Inputs"] = self.inputs
+        if "_list" in self.inputs:
+            self.config["Inputs"] = self.inputs["_list"]
+        else:
+            self.config["Inputs"] = self.inputs
         with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 

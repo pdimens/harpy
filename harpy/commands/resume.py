@@ -11,6 +11,40 @@ from harpy.common.conda import check_environments
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
+def config_extract(d: dict, section:str, key: str = ""):
+    val = d.get(section, {})
+    if not val:
+        print_error(
+            "incorrect config.yaml",
+            f"The [blue]workflow.yaml[/] file is missing the [green]{section}[/] section",
+            f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{section}[/] section (and it is not empty)."
+        )
+    if ":" in key:
+        _key, _subkey = key.split(":")
+        val = val.get(_key, {})
+        if val:
+            val = val.get(_subkey, {})
+    elif key:
+        val = val.get(key, {})
+
+    if not val:
+        print_error(
+            "incorrect workflow.yaml",
+            "The [blue]workflow.yaml[/] file is missing one or more the necessary/expected keys.",
+            f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{key}[/] key (and it is not empty) under the [green]{section}[/] section."
+        )
+    return val
+
+def snakemake_profile_extract(d: dict, key: str):
+    val = d.get(key, None)
+    if not val:
+        print_error(
+            "incorrect config.yaml",
+            "The [blue]config.yaml[/] file is missing one or more the necessary/expected keys.",
+            f"Please verify that [blue]workflow/config.yaml[/] is not missing the [green]{key}[/] key (and it is not empty)."
+        )
+    return val
+
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/other")
 @click.option('-a', '--absolute',  is_flag = True, default = False, help = 'Call Snakemake with absolute paths')
 @click.option('-d', '--direct',  is_flag = True, default = False, help = 'Call Snakemake directly without Harpy intervention')
@@ -46,77 +80,54 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         snakemake_config: dict = yaml.full_load(f)
 
     #container = snakemake_config["software-deployment-method"] == "apptainer"
-    try:
-        workflow = Workflow(harpy_config["workflow"], "NA", snakemake_config["directory"], False, clean, quiet)
-        # pull in the inputs and store them, removing the original
-        workflow.inputs = harpy_config.pop("inputs")
-    except KeyError:
-        print_error(
-            "incorrect config.yaml",
-            "The [blue]workflow.yaml[/] file is missing one or more the necessary/expected keys.",
-            f"Please verify that [blue]{os.path.relpath(directory)}/workflow/workflow.yaml[/] is not missing these keys (and they are not empty): [green]workflow[/], [green]snakemake[/], [green]inputs[/]"
-        )
+    _name = config_extract(harpy_config, "Workflow", "name")
+    _dir = snakemake_profile_extract(snakemake_config, "directory")
+    _inputs = config_extract(harpy_config, "Inputs")
 
-    workflow.config = harpy_config
+    workflow = Workflow(_name, "NA", _dir, False, clean, quiet)
+    if isinstance(_inputs, list):
+        workflow.input(_inputs)
+    else:
+        for i,j in _inputs.items():
+            workflow.input(j, i)    
 
-    try:
-        sm_abs = harpy_config["snakemake"].get("absolute", None)
-        workflow.snakemake_cmd_absolute = sm_abs
-        if not sm_abs and absolute:
-            print_error(
-                "missing Snakemake command",
-                "You requested the Snakemake absolute-path command but it was missing from [blue]workflow.yaml[/]. Please check that the configuration has the [green]snakemake:absolute[/] key and is associated with a Snakemake command line call."
-            )
-    except KeyError:
-        print_error(
-            "incorrect config.yaml",
-            "The [blue]workflow.yaml[/] file is missing the [green]snakemake[/] key.",
-            f"Please verify that [blue]{os.path.relpath(directory)}/workflow/workflow.yaml[/] is not missing this key and it's not empty."
-        )
-    
-    try:
-        sm_rel = harpy_config["snakemake"].get("relative", None)
-        workflow.snakemake_cmd_relative = sm_rel
-        if not sm_rel and not absolute:
-            print_error(
-                "missing Snakemake command",
-                "Attempted to use the Snakemake relative-path command but it was missing from [blue]workflow.yaml[/]. Please check that the configuration has the [green]snakemake:relative[/] key and is associated with a Snakemake command line call."
-            )
-    except KeyError:
-        print_error(
-            "incorrect config.yaml",
-            "The [blue]workflow.yaml[/] file is missing the [green]snakemake[/] key.",
-            f"Please verify that [blue]{os.path.relpath(directory)}/workflow/workflow.yaml[/] is not missing this key and it's not empty."
-        )
+    workflow.parameters = config_extract(harpy_config, "Parameters")
 
-    if snakemake_config["software-deployment-method"] != "apptainer":
-        try:
-            workflow.conda = harpy_config["snakemake"]["conda_envs"]
-        except KeyError:
-            print_error(
-                "missing conda environments",
-                "The [blue]config.yaml[/] file indicates Snakemake will run with conda environments (rather than apptainer), but the [blue]workflow.yaml[/] file is missing the [green]snakemake:conda-envs[/] key.",
-                f"If you intend to run Harpy with Snakemake using conda environments, [blue]{os.path.relpath(directory)}/workflow/workflow.yaml[/] will need [green]snakemake:conda-envs[/] specified. That file can be rebuilt using [green]harpy {workflow.name} --setup ..."
-            )   
-        check_environments(directory, harpy_config["snakemake"]["conda_envs"])
+    workflow.snakemake_cmd_relative = config_extract(harpy_config, "Workflow", "snakemake:relative")
+    if absolute:
+        workflow.snakemake_cmd_absolute = config_extract(harpy_config, "Workflow", "snakemake:absolute")
+    else:
+        _abs_cmd = []
+        for i in workflow.snakemake_cmd_relative.split():
+            if os.path.exists(i):
+                _abs_cmd.append(os.path.abspath(i))
+            else:
+                _abs_cmd.append(i)
+        workflow.snakemake_cmd_absolute = " ".join(_abs_cmd)
 
-    try:
-        sm_log = os.path.join(directory, harpy_config["snakemake"]["log"])
-    except KeyError:
-        print_error(
-            "incorrect config.yaml",
-            "The [blue]workflow.yaml[/] file is missing the [green]snakemake:log[/] key.",
-            f"Please verify that [blue]{os.path.relpath(directory)}/workflow/workflow.yaml[/] is not missing this key and it's not empty."
-        )
+    _sdm = snakemake_profile_extract(snakemake_config, "software-deployment-method")
+    if _sdm != "apptainer":
+        workflow.conda = config_extract(harpy_config, "Workflow", "snakemake:conda-envs")
+        check_environments(_dir, workflow.conda)
 
-    if os.path.exists(sm_log) or os.path.exists(sm_log + ".gz"):
+    # inherit workflow report part, if present
+    workflow.reports = harpy_config["Workflow"].get("reports", {"skip" : False})
+
+    # inherit workflow report part, if present
+    workflow.linkedreads = harpy_config["Workflow"].get("linkedreads", {"type" : "none"})
+
+    _smlog = os.path.join(_dir, config_extract(harpy_config, "Workflow", "snakemake:log"))
+
+    # overwrite workflow.yaml with the new logfile name, otherwise just create the
+    # workflow.config dict
+    if os.path.exists(_smlog) or os.path.exists(_smlog + ".gz"):
         timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
-        split_log = sm_log.split(".")
+        split_log = _smlog.split(".")
         _basename = ".".join(split_log[0:-3])
         incremenent = int(split_log[-3]) + 1
         workflow.snakemake_logfile = f"{_basename}.{incremenent}.{timestamp}"
-        harpy_config["snakemake"]["log"] = workflow.snakemake_logfile
-        workflow.write_workflow_config()
+
+    workflow.write_workflow_config()
 
     if threads:
         snakemake_config["cores"] = threads

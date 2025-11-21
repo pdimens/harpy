@@ -7,15 +7,15 @@ class Summary:
         self.config: dict = config
 
     def get_text(self) -> str:
-        return self.__getattribute__(self.config["workflow"])()
+        return self.__getattribute__(self.config["Workflow"]["name"])()
 
     def align_bwa(self) -> str:
-        ignore_bx = self.config["linkedreads"]["type"] == "none"
-        is_standardized = self.config["linkedreads"]["standardized"]
-        keep_unmapped = self.config["keep-unmapped"]
-        extra 		= self.config.get("extra", "") 
-        genomefile 	= self.config["inputs"]["reference"]
-        quality = self.config["alignment-quality"]
+        ignore_bx = self.config["Workflow"]["linkedreads"]["type"] == "none"
+        is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
+        keep_unmapped = self.config["Parameters"]["keep-unmapped"]
+        extra 		= self.config["Parameters"].get("extra", "") 
+        genomefile 	= self.config["Inputs"]["reference"]
+        quality = self.config["Parameters"]["min-map-quality"]
 
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -38,22 +38,22 @@ class Summary:
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def align_strobe(self) -> str:
-        genomefile 	= self.config["inputs"]["reference"]
-        ignore_bx = self.config["linkedreads"]["type"] == "none"
-        is_standardized = self.config["linkedreads"]["standardized"]
-        keep_unmapped = self.config["keep-unmapped"]
+        genomefile 	= self.config["Inputs"]["reference"]
+        ignore_bx = self.config["Workflow"]["linkedreads"]["type"] == "none"
+        is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
+        keep_unmapped = self.config["Parameters"]["keep-unmapped"]
 
-        quality = self.config["alignment-quality"]
+        quality = self.config["Parameters"]["min-map-quality"]
         unmapped_strobe = "" if keep_unmapped else "-U"
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
         static = "-C" if is_standardized else ""
-        extra = self.config.get("extra", "") 
+        extra = self.config["Parameters"].get("extra", "") 
 
         summary = ["The harpy align strobe workflow ran using these parameters:"]
         summary.append(f"The provided genome: {genomefile}")
@@ -71,26 +71,26 @@ class Summary:
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
         summary.append(duplicates)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def assembly(self) -> str:
         # SPADES
-        max_mem      = self.config["spades"]["max_memory"]
-        k_param      = self.config["spades"]["k"]
-        spades_extra = self.config["spades"].get("extra", "")
+        max_mem      = self.config["Parameters"]["spades"]["max-memory"]
+        k_param      = self.config["Parameters"]["spades"]["k"]
+        spades_extra = self.config["Parameters"]["spades"].get("extra", "")
         # ARCS
-        mapq       = self.config["tigmint"]["minimum_mapping_quality"]
-        mismatch   = self.config["tigmint"]["mismatch"]
-        mol_dist   = self.config["tigmint"]["molecule_distance"]
-        mol_len    = self.config["tigmint"]["molecule_length"]
-        span       = self.config["tigmint"]["span"]
-        min_align  = self.config["arcs"]["minimum_aligned_reads"]
-        min_contig = self.config["arcs"]["minimum_contig_length"]
-        seq_id     = self.config["arcs"]["minimum_sequence_identity"]
-        arcs_extra = self.config["arcs"].get("extra", "")
-        links      = self.config["links"]["minimum_links"]
+        mapq       = self.config["Parameters"]["tigmint"]["minimum-mapping-quality"]
+        mismatch   = self.config["Parameters"]["tigmint"]["mismatch"]
+        mol_dist   = self.config["Parameters"]["tigmint"]["molecule-distance"]
+        mol_len    = self.config["Parameters"]["tigmint"]["molecule-length"]
+        span       = self.config["Parameters"]["tigmint"]["span"]
+        min_align  = self.config["Parameters"]["arcs"]["minimum-aligned-reads"]
+        min_contig = self.config["Parameters"]["arcs"]["minimum-contig-length"]
+        seq_id     = self.config["Parameters"]["arcs"]["minimum-sequence-identity"]
+        arcs_extra = self.config["Parameters"]["arcs"].get("extra", "")
+        links      = self.config["Parameters"]["links"]["minimum-links"]
         k_param = k_param
         max_mem = max_mem // 1000
         spades_extra = spades_extra
@@ -119,15 +119,15 @@ class Summary:
         arcs += f"\tarcs-make arcs-tigmint {' '.join(params[3:])}"
         summary.append(arcs)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def deconvolve(self) -> str:
-        kmer_length = self.config["kmer_length"]
-        window_size = self.config["window_size"]
-        density 	= self.config["density"] 
-        dropout     = self.config["dropout"]
+        kmer_length = self.config["Parameters"]["kmer-length"]
+        window_size = self.config["Parameters"]["window-size"]
+        density 	= self.config["Parameters"]["density"] 
+        dropout     = self.config["Parameters"]["dropout"]
 
         summary = ["The harpy deconvolve workflow ran using these parameters:"]
         interleave = "fastq files were interleaved with seqtk:\n"
@@ -141,20 +141,20 @@ class Summary:
         recover += "\tseqtk seq -2 interleaved.fq | gzip > file.R2.fq.gz"
         summary.append(recover)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def demultiplex_meier2021(self) -> str:
-        schemafile = self.config["inputs"]["demultiplex_schema"]
-        qxrx = self.config["retain"]["qx_rx"]
-        unknown_samples = self.config["retain"]["samples"]
-        unknown_barcodes = self.config["retain"]["barcodes"]
+        schemafile = self.config["Inputs"]["demultiplex_schema"]
+        qxrx = self.config["Parameters"]["qx-rx"]
+        unknown_samples = self.config["Parameters"]["samples"]
+        unknown_barcodes = self.config["Parameters"]["barcodes"]
 
-        R1 = self.config["inputs"]["R1"],
-        R2 = self.config["inputs"]["R2"],
-        I1 = self.config["inputs"]["I1"],
-        I2 = self.config["inputs"]["I2"],
+        R1 = self.config["Inputs"]["R1"],
+        R2 = self.config["Inputs"]["R2"],
+        I1 = self.config["Inputs"]["I1"],
+        I2 = self.config["Inputs"]["I2"],
         outdir = f"--samples {os.getcwd()}",
         qxrx = "--rx --qx" if qxrx else "",
         unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
@@ -176,12 +176,12 @@ class Summary:
         qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
         summary.append(qc)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def impute(self) -> str:
-        region = self.config.get("region", None)
+        region = self.config["Parameters"].get("region", None)
         if region:
             _,positions = region.split(":")
             startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -190,14 +190,14 @@ class Summary:
             regiontext += f"\t\tbuffer = {buffer},\n"
         else:
             regiontext = ""
-        paramfiletext = "\t".join(open(self.config["inputs"]["parameters"], "r").readlines())
+        paramfiletext = "\t".join(open(self.config["Inputs"]["parameters"], "r").readlines())
         summary = ["The harpy impute workflow ran using these parameters:"]
-        summary.append(f"The provided variant file: {self.config['inputs']['vcf']}")
+        summary.append(f"The provided variant file: {self.config['Inputs']['vcf']}")
         preproc = "Preprocessing was performed with:\n"
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
         preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
         summary.append(preproc)
-        stitchparam = f"The STITCH parameter file: {self.config['inputs']['parameters']}\n"
+        stitchparam = f"The STITCH parameter file: {self.config['Inputs']['parameters']}\n"
         stitchparam += f"\t{paramfiletext}"
         summary.append(stitchparam)
         stitch = "Within R, STITCH was invoked with the following parameters:\n"
@@ -216,24 +216,24 @@ class Summary:
         stitch += "\t\tniterations = 40,\n"
         stitch += "\t\tswitchModelIteration = 39,\n"
         stitch += "\t\tsplitReadIterations = NA,\n"
-        if self.config["grid_size"] > 1:
-            stitch += f"\t\tgridWindowSize = {self.config['grid_size']}\n"
+        if self.config["Parameters"]["grid-size"] > 1:
+            stitch += f"\t\tgridWindowSize = {self.config["Parameters"]['grid-size']}\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += "\t" + self.config.get("stitch_extra", "None")
+        stitchextra += "\t" + self.config["Parameters"].get("extra", "None")
         summary.append(stitchextra)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def metassembly(self) -> str:
-        bx = self.config["linkedreads"]["barcode_tag"]
-        max_mem = self.config["spades"]["max_memory"]
-        k_param = self.config["spades"]["k"]
-        ignore_bx = self.config["spades"]["ignore_barcodes"]
-        extra = self.config["spades"].get("extra", "")
+        bx = self.config["Workflow"]["linkedreads"]["barcode-tag"]
+        max_mem = self.config["Parameters"]["spades"]["max-memory"]
+        k_param = self.config["Parameters"]["spades"]["k"]
+        ignore_bx = self.config["Parameters"]["spades"]["ignore-barcodes"]
+        extra = self.config["Parameters"]["spades"].get("extra", "")
         spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 
         summary = ["The harpy metassembly workflow ran using these parameters:"]  
@@ -262,25 +262,25 @@ class Summary:
         athena += "\tathena-meta --config athena.config"
         summary.append(athena)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def phase(self) -> str:
-        bc_type           = self.config["linkedreads"]["type"]
-        pruning           = self.config["phasing"]["prune"]
-        map_qual          = self.config["phasing"]["min_map_quality"]
-        base_qual         = self.config["phasing"]["min_base_quality"]
-        molecule_distance = self.config["linkedreads"]["distance_threshold"]
-        extra             = self.config.get("extra", "") 
-        variantfile       = self.config["inputs"]["vcf"]["file"]
+        bc_type           = self.config["Workflow"]["linkedreads"]["type"]
+        pruning           = self.config["Parameters"]["prune"]
+        map_qual          = self.config["Parameters"]["min-map-quality"]
+        base_qual         = self.config["Parameters"]["min-base-quality"]
+        molecule_distance = self.config["Parameters"]["distance-threshold"]
+        extra             = self.config["Parameters"].get("extra", "") 
+        variantfile       = self.config["Inputs"]["vcf"]
         invalid_regex = {
             "haplotagging" : "'$4 !~ /[ABCD]00/'",
             "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
             "tellseq": "'$4 !~ /N/'"
         }
         linkarg = "--10x 0" if bc_type == "none" else "--10x 1"
-        indelarg   = "--indels 1 --ref reference.fasta" if self.config["inputs"].get("reference", None) else ""
+        indelarg   = "--indels 1 --ref reference.fasta" if self.config["Inputs"].get("reference", None) else ""
         hairs_params = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000"
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1"
         extra = extra
@@ -304,155 +304,36 @@ class Summary:
         annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def qc(self) -> str:
-        minlen = f"--length_required {self.config['min_len']}"
-        maxlen = f"--max_len1 {self.config['max_len']}"
-        extra = self.config.get("extra", "") 
-        trim_adapters = self.config.get("trim_adapters", None)
+        minlen = f"--length_required {self.config["Parameters"]['min-len']}"
+        maxlen = f"--max_len1 {self.config["Parameters"]['max-len']}"
+        extra = self.config["Parameters"].get("extra", "") 
+        trim_adapters = self.config["Parameters"].get("trim_adapters", None)
         if trim_adapters:
             trim_arg = "--detect_adapter_for_pe" if trim_adapters == "auto" else f"--adapter_fasta {trim_adapters}"
         else:
             trim_arg = "--disable_adapter_trimming"
-        dedup = "-D" if self.config["deduplicate"] else ""
+        dedup = "-D" if self.config["Parameters"]["deduplicate"] else ""
 
         summary = ["The harpy qc workflow ran using these parameters:"]
         fastp = "fastp ran using:\n"
         fastp += "\tfastp --trim_poly_g --cut_right " + " ".join([minlen,maxlen,trim_arg,dedup,extra])
         summary.append(fastp)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-
-    def simulate_snpindel(self) -> str:
-        genome = self.config["inputs"]["genome"]
-        snp_vcf = self.config["snp"].get("vcf", None)
-        indel_vcf = self.config["indel"].get("vcf", None)
-        heterozygosity = float(self.config["heterozygosity"]["ratio"])
-        only_vcf = self.config["heterozygosity"]["only_vcf"]
-        outprefix = self.config["prefix"]
-        randomseed = self.config.get("random_seed", None)
-
-        snp = False 
-        indel = False
-        variant_params = ""
-        if snp_vcf or indel_vcf:
-            if snp_vcf:
-                snp = True
-                snp_vcf_correct = snp_vcf[:-4] + ".vcf.gz" if snp_vcf.lower().endswith("bcf") else snp_vcf
-                variant_params += f" -snp_vcf {snp_vcf_correct}"
-            if indel_vcf:
-                indel = True
-                indel_vcf_correct = indel_vcf[:-4] + ".vcf.gz" if indel_vcf.lower().endswith("bcf") else indel_vcf
-                variant_params += f" -indel_vcf {indel_vcf_correct}"
-        else:
-            snp_count = self.config["snp"].get("count", None)
-            indel_count =  self.config["indel"].get("count", None)
-            if snp_count:
-                snp = True
-                variant_params += f" -snp_count {snp_count}"
-                snp_constraint = self.config["snp"].get("gene_constraints", None)
-                variant_params += f" -coding_partition_for_snp_simulation {snp_constraint}" if snp_constraint else ""
-                ratio = self.config["snp"].get("titv_ratio", None)
-                variant_params += f" -titv_ratio {ratio}" if ratio else ""
-            if indel_count:
-                indel = True
-                variant_params += f" -indel_count {indel_count}"
-                ratio = self.config["indel"].get("indel_ratio", None)
-                variant_params += f" -ins_del_ratio {ratio}" if ratio else ""
-                size_alpha = self.config["indel"].get("size_alpha", None)
-                variant_params += f" -indel_size_powerlaw_alpha {size_alpha}" if size_alpha else ""        
-                size_constant = self.config["indel"].get("size_constant", None)
-                variant_params += f" -indel_size_powerlaw_constant {size_constant}" if size_constant else ""        
-
-            centromeres = self.config["inputs"].get("centromeres", None)
-            variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
-            genes = self.config["inputs"].get("genes", None)
-            variant_params += f" -gene_gff {genes}" if genes else ""
-            exclude = self.config["inputs"].get("excluded_chromosomes", None)
-            variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
-            variant_params += f" -seed {randomseed}" if randomseed else ""
-
-        snp = f"-snp_vcf haplotype_X/{outprefix}.snp.hapX.vcf" if snp else ""
-        indel = f"-indel_vcf haplotype_X/{outprefix}.indel.hapX.vcf" if indel else ""
-
-        summary = ["The harpy simulate snpindel workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genome}")
-        summary.append(f"Heterozygosity specified: {heterozygosity}")
-        haploid = "Haploid variants were simulated using simuG:\n"    
-        haploid += f"\tsimuG -refseq {genome} -prefix {outprefix} {variant_params}"
-        summary.append(haploid)
-        if heterozygosity > 0 and not only_vcf:
-            diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            diploid += f"\tsimuG -refseq {genome} -prefix hapX {snp} {indel}"
-            summary.append(diploid)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-    
-    def simulate_inversion(self) -> str:
-        return self.simulate_variants()
-
-    def simulate_cnv(self) -> str:
-        return self.simulate_variants()      
-
-    def simulate_translocation(self) -> str:
-        return self.simulate_variants()
-
-    def simulate_variants(self) -> str:
-        variant = self.config["workflow"].split("_")[-1]
-        outprefix = self.config["prefix"]
-        genome = self.config["inputs"]["genome"]
-        vcf = self.config[variant].get("vcf", None)
-        heterozygosity = float(self.config["heterozygosity"]["ratio"])
-        only_vcf = self.config["heterozygosity"]["only_vcf"]
-        randomseed = self.config.get("random_seed", None)
-
-        if vcf:
-            variant_params = f"-{variant}_vcf {variant}.vcf"
-        else:
-            variant_params = f"-{variant}_count " + str(self.config[variant]["count"])
-            centromeres = self.config["inputs"].get("centromeres", None)
-            variant_params += f" -centromere_gff {centromeres}" if centromeres else ""
-            genes = self.config["inputs"].get("genes", None)
-            variant_params += f" -gene_gff {genes}" if genes else ""
-            exclude = self.config["inputs"].get("excluded_chromosomes", None)
-            variant_params += f" -excluded_chr_list {exclude}" if exclude else ""
-            variant_params += f" -seed {randomseed}" if randomseed else ""
-            if variant in ["inversion", "cnv"]:  
-                variant_params += f" -{variant}_min_size " +  str(self.config[variant]["min_size"])
-                variant_params += f" -{variant}_max_size " +  str(self.config[variant]["max_size"])
-            if variant == "cnv":
-                variant_params += " -duplication_tandem_dispersed_ratio " +  str(self.config[variant]["duplication_ratio"])
-                variant_params += " --cnv_max_copy_number " +  str(self.config[variant]["max_copy"])
-                variant_params += " --cnv_gain_loss_ratio " +  str(self.config[variant]["gain_ratio"])
-
-        summary = [f"The harpy simulate {variant} workflow ran using these parameters:"]
-        summary.append(f"The provided genome: {genome}")
-        summary.append(f"Heterozygosity specified: {heterozygosity}")
-        haploid = "Haploid variants were simulated using simuG:\n"    
-        haploid += f"\tsimuG -refseq {genome} -prefix {outprefix} {variant_params}"
-        summary.append(haploid)
-        if heterozygosity > 0 and not only_vcf:
-            diploid = "Diploid variants were simulated after splitting by the heterozygosity ratio:\n"
-            diploid += f"\tsimuG -refseq {genome} -prefix HAP_PREFIX {variant}.vcf hapX.vcf"
-            summary.append(diploid)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
     
     def snp_freebayes(self) -> str:
-        ploidy 		= self.config["ploidy"]
-        extra 	    = self.config.get("extra", "") 
-        regions_input = self.config["inputs"]["regions"]
-        genomefile 	= os.path.basename(self.config["inputs"]["reference"])
-        groupings 	= self.config["inputs"].get("groupings", None)
+        ploidy 		= self.config["Parameters"]["ploidy"]
+        extra 	    = self.config["Parameters"].get("extra", "") 
+        regions_input = self.config["Inputs"]["regions"]
+        genomefile 	= os.path.basename(self.config["Inputs"]["reference"])
+        groupings 	= self.config["Inputs"].get("groupings", None)
 
         params = f"-p {ploidy} "
         params += f"--populations {groupings} " if groupings else ''
@@ -472,16 +353,16 @@ class Summary:
         normalize += "\tbcftools norm -m -both -d both -c w"
         summary.append(normalize)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
     
     def snp_mpileup(self) -> str:
-        mp_extra = self.config.get("extra", "")
-        genomefile = self.config["inputs"]["reference"]
-        groupings = self.config["inputs"].get("groupings", [])
-        region_input = self.config["inputs"]["regions"]
-        ploidy = self.config["ploidy"]
+        mp_extra = self.config["Parameters"].get("extra", "")
+        genomefile = self.config["Inputs"]["reference"]
+        groupings = self.config["Inputs"].get("groupings", [])
+        region_input = self.config["Inputs"]["regions"]
+        ploidy = self.config["Parameters"]["ploidy"]
         params = f"--ploidy {ploidy} --populations "
         params += f"{groupings}" if groupings else "-"
 
@@ -502,50 +383,50 @@ class Summary:
         normalize += "\tbcftools norm -m -both -d both -c w"
         summary.append(normalize)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def validate_bam(self) -> str:
-        lr_platform = self.config["linkedreads"]["type"]
+        lr_platform = self.config["Workflow"]["linkedreads"]["type"]
 
         summary = ["The harpy validate bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
         summary.append(valids)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def validate_fastq(self) -> str:
-        lr_platform = self.config["linkedreads"]["type"]
+        lr_platform = self.config["Workflow"]["linkedreads"]["type"]
         
         summary = ["The harpy validate fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_fastq {lr_platform} sample.fastq > sample.txt"
         summary.append(valids)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def sv_leviathan(self) -> str:
-        if "groupings" in self.config["inputs"]:
+        if "groupings" in self.config["Inputs"]:
             return self.leviathan_pop()
         else:
             return self.leviathan()
 
     def leviathan(self) -> str:
-        genomefile = os.path.basename(self.config["inputs"]["reference"])
-        min_size = self.config["min_size"]
-        min_bc = self.config["min_barcodes"]
-        iterations = self.config["iterations"]
-        small_thresh = self.config["variant_thresholds"]["small"]
-        medium_thresh = self.config["variant_thresholds"]["medium"]
-        large_thresh = self.config["variant_thresholds"]["large"]
-        duplcates_thresh = self.config["variant_thresholds"]["duplicates"]
-        extra = self.config.get("extra", "") 
+        genomefile = os.path.basename(self.config["Inputs"]["reference"])
+        min_size = self.config["Parameters"]["min-size"]
+        min_bc = self.config["Parameters"]["min-barcodes"]
+        iterations = self.config["Parameters"]["iterations"]
+        small_thresh = self.config["Parameters"]["variant-thresholds"]["small"]
+        medium_thresh = self.config["Parameters"]["variant-thresholds"]["medium"]
+        large_thresh = self.config["Parameters"]["variant-thresholds"]["large"]
+        duplcates_thresh = self.config["Parameters"]["variant-thresholds"]["duplicates"]
+        extra = self.config["Parameters"].get("extra", "") 
         params = " ".join([
             f"-v {min_size}",
             f"-c {min_bc}",
@@ -566,21 +447,21 @@ class Summary:
         svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
         summary.append(svcall)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def leviathan_pop(self) -> str:
-        groupfile 	= self.config["inputs"]["groupings"]
-        genomefile 	= os.path.basename(self.config["inputs"]["reference"])
-        extra 		= self.config.get("extra", "") 
-        min_size      = self.config["min_size"]
-        min_bc      = self.config["min_barcodes"]
-        iterations  = self.config["iterations"]
-        small_thresh = self.config["variant_thresholds"]["small"]
-        medium_thresh = self.config["variant_thresholds"]["medium"]
-        large_thresh = self.config["variant_thresholds"]["large"]
-        duplcates_thresh = self.config["variant_thresholds"]["duplicates"]
+        groupfile 	= self.config["Inputs"]["groupings"]
+        genomefile 	= os.path.basename(self.config["Inputs"]["reference"])
+        extra 		= self.config["Parameters"].get("extra", "") 
+        min_size      = self.config["Parameters"]["min-size"]
+        min_bc      = self.config["min-barcodes"]
+        iterations  = self.config["Parameters"]["iterations"]
+        small_thresh = self.config["Parameters"]["variant-thresholds"]["small"]
+        medium_thresh = self.config["Parameters"]["variant-thresholds"]["medium"]
+        large_thresh = self.config["Parameters"]["variant-thresholds"]["large"]
+        duplcates_thresh = self.config["Parameters"]["variant-thresholds"]["duplicates"]
         params = " ".join([
             f"-v {min_size}",
             f"-c {min_bc}",
@@ -605,29 +486,29 @@ class Summary:
         svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
         summary.append(svcall)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def sv_naibr(self) -> str:
-        if "vcf" in self.config["inputs"]:
-            if "groupings" in self.config["inputs"]:
+        if "vcf" in self.config["Inputs"]:
+            if "groupings" in self.config["Inputs"]:
                 return self.naibr_phase_pop()
             else:
                 return self.naibr_phase()
         else:
-            if "groupings" in self.config["inputs"]:
+            if "groupings" in self.config["Inputs"]:
                 return self.naibr_pop()
             else:
                 return self.naibr()
 
     def naibr(self) -> str:
-        genomefile = os.path.basename(self.config["inputs"]["reference"])
-        extra = self.config.get("extra", None) 
-        min_size = self.config["min_size"]
-        min_barcodes = self.config["min_barcodes"]
-        min_quality  = self.config["min_quality"]
-        mol_dist    = self.config["molecule_distance"]
+        genomefile = os.path.basename(self.config["Inputs"]["reference"])
+        extra = self.config["Parameters"].get("extra", None) 
+        min_size = self.config["Parameters"]["min-size"]
+        min_barcodes = self.config["Parameters"]["min-barcodes"]
+        min_quality  = self.config["Parameters"]["min-map-quality"]
+        mol_dist    = self.config["Parameters"]["molecule-distance"]
         argdict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
@@ -649,18 +530,18 @@ class Summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
 
     def naibr_pop(self) -> str:
-        genomefile   = os.path.basename(self.config["inputs"]["reference"])
-        groupfile    = self.config["inputs"]["groupings"]
-        extra        = self.config.get("extra", None) 
-        min_size     = self.config["min_size"]
-        min_barcodes = self.config["min_barcodes"]
-        min_quality  = self.config["min_quality"]
-        mol_dist     = self.config["molecule_distance"]
+        genomefile   = os.path.basename(self.config["Inputs"]["reference"])
+        groupfile    = self.config["Inputs"]["groupings"]
+        extra        = self.config["Parameters"].get("extra", None) 
+        min_size     = self.config["Parameters"]["min-size"]
+        min_barcodes = self.config["Parameters"]["min-barcodes"]
+        min_quality  = self.config["Parameters"]["min-map-quality"]
+        mol_dist     = self.config["Parameters"]["molecule-distance"]
         argdict = {
         "min_mapq" : min_quality,
         "d"        : mol_dist,
@@ -686,86 +567,6 @@ class Summary:
         naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         summary.append(naibr)
         sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-
-    def naibr_phase(self) -> str:
-        genomefile  = self.config["inputs"]["reference"]
-        vcffile     = self.config["inputs"]["vcf"]
-        extra       = self.config.get("extra", None) 
-        mol_dist    = self.config["molecule_distance"]
-        min_quality = self.config["min_quality"]
-        min_size    = self.config["min_size"]
-        min_barcodes = self.config["min_barcodes"]
-        argdict = {
-        "min_mapq" : min_quality,
-        "d"        : mol_dist,
-        "min_sv"   : min_size,
-        "k"        : min_barcodes
-        }
-        if extra:
-            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2], strict = True):
-                if "blacklist" in i or "candidates" in i:
-                    argdict[i[0].lstrip("-")] = i[1]
-
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {genomefile}")
-        summary.append(f"The provided phased variant call file: {vcffile}")
-        phase = "The alignment files were phased using:\n"
-        phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
-        summary.append(phase)
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-
-    def naibr_phase_pop(self) -> str:
-        genomefile   = self.config["inputs"]["reference"]
-        groupfile    = self.config["inputs"]["groupings"]
-        vcffile      = self.config["inputs"]["vcf"]
-        extra        = self.config.get("extra", None) 
-        min_size     = self.config["min_size"]
-        min_quality  = self.config["min_quality"]
-        min_barcodes = self.config["min_barcodes"]
-        mol_dist     = self.config["molecule_distance"]
-        argdict = {
-        "min_mapq" : min_quality,
-        "d"        : mol_dist,
-        "min_sv"   : min_size,
-        "k"        : min_barcodes
-        }
-        if extra:
-            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2], strict = True):
-                if "blacklist" in i or "candidates" in i:
-                    argdict[i[0].lstrip("-")] = i[1]
-
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {genomefile}")
-        summary.append(f"The provided populations grouping file: {groupfile}")
-        summary.append(f"The provided phased variant call file: {vcffile}")
-
-        phase = "The alignment files were phased using:\n"
-        phase += f"\twhatshap haplotag --reference reference.fasta --linked-read-distance-cutoff {mol_dist} --ignore-read-groups --tag-supplementary --sample sample_x file.vcf sample_x.bam"
-        summary.append(phase)
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam -o groupname.bam -b samples.list"
-        summary.append(concat)
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config['snakemake']['relative']}"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
