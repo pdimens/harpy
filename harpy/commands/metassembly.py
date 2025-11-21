@@ -48,18 +48,18 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     fastq.bc_or_bx(bx_tag)
 
     workflow.inputs = {
-            "fastq_r1" : fastq_r1,
-            "fastq_r2" : fastq_r2
+            "fastq-r1" : fastq_r1,
+            "fastq-r2" : fastq_r2
         }
     workflow.config = {
         "workflow" : workflow.name,
         "linkedreads" : {
-            "barcode_tag" : bx_tag.upper()
+            "barcode-tag" : bx_tag.upper()
         },
         "spades" : {
-            'ignore_barcodes' : unlinked,
+            'ignore-barcodes' : unlinked,
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
-            "max_memory" : max_memory,
+            "max-memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
         "athena" : {
@@ -67,7 +67,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
         },
         "reports" : {
             "skip": skip_reports,
-            "organism_type": organism_type
+            "organism-type": organism_type
         }
     }
 

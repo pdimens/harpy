@@ -5,10 +5,10 @@ onstart:
     logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 
-FQ1 = config["inputs"]["fastq_r1"]
-FQ2 = config["inputs"]["fastq_r2"]
+FQ1 = config["inputs"]["fastq-r1"]
+FQ2 = config["inputs"]["fastq-r2"]
 skip_reports  = config["reports"]["skip"]
-organism = config["reports"]["organism_type"]
+organism = config["reports"]["organism-type"]
 lineage_map = {
     "eukaryote": "eukaryota",
     "fungus": "fungi",
@@ -17,20 +17,20 @@ lineage_map = {
 lineagedb = lineage_map.get(organism, "bacteria")
 odb_version = 12
 # SPADES
-max_mem      = config["spades"]["max_memory"]
+max_mem      = config["spades"]["max-memory"]
 k_param      = config["spades"]["k"]
 spades_extra = config["spades"].get("extra", "")
 # ARCS
-mapq       = config["tigmint"]["minimum_mapping_quality"]
+mapq       = config["tigmint"]["minimum_mapping-quality"]
 mismatch   = config["tigmint"]["mismatch"]
-mol_dist   = config["tigmint"]["molecule_distance"]
-mol_len    = config["tigmint"]["molecule_length"]
+mol_dist   = config["tigmint"]["molecule-distance"]
+mol_len    = config["tigmint"]["molecule-length"]
 span       = config["tigmint"]["span"]
-min_align  = config["arcs"]["minimum_aligned_reads"]
-min_contig = config["arcs"]["minimum_contig_length"]
-seq_id     = config["arcs"]["minimum_sequence_identity"]
+min_align  = config["arcs"]["minimum-aligned-reads"]
+min_contig = config["arcs"]["minimum-contig-length"]
+seq_id     = config["arcs"]["minimum-sequence-identity"]
 arcs_extra = config["arcs"].get("extra", "")
-links      = config["links"]["minimum_links"]
+links      = config["links"]["minimum-links"]
 
 rule cloudspades:
     input:

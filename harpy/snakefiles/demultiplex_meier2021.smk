@@ -9,7 +9,7 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-schemafile = config["inputs"]["demultiplex_schema"]
+schemafile = config["inputs"]["schema"]
 skip_reports = config["reports"]["skip"]
 qxrx = config["retain"]["qx_rx"]
 unknown_samples = config["retain"]["samples"]

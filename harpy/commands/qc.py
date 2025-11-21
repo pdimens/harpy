@@ -70,10 +70,10 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
         "linkedreads" : {
             "type" : fastq.lr_type
         },
-        "trim_adapters" : trim_adapters,
+        "trim-adapters" : trim_adapters,
         "deduplicate" : deduplicate,
-        "min_len" : min_length,
-        "max_len" : max_length,
+        "min-len" : min_length,
+        "max-len" : max_length,
         **({'extra': extra_params} if extra_params else {}),
         "reports" : {"skip": skip_reports},
     }

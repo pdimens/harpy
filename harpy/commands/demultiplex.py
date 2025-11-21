@@ -54,7 +54,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.conda = ["demultiplex", "qc"]
     
     workflow.inputs = {
-        "demultiplex_schema" : schema,
+        "schema" : schema,
         "R1": r12_fq[0][0],
         "R2": r12_fq[1][0],
         "I1": i12_fq[0][0],
@@ -63,7 +63,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.config = {
         "workflow" : workflow.name,
         "retain" : {
-            "qx_rx" : qx_rx,
+            "qx-rx" : qx_rx,
             "barcodes" : keep_unknown_barcodes,
             "samples" : keep_unknown_samples,
         },

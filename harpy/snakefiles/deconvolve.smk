@@ -9,8 +9,8 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 fqlist      = config["inputs"]
-kmer_length = config["kmer_length"]
-window_size = config["window_size"]
+kmer_length = config["kmer-length"]
+window_size = config["window-size"]
 density 	= config["density"] 
 dropout     = config["dropout"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"

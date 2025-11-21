@@ -21,6 +21,7 @@ def align():
     The aligners are not linked-read aware, but the workflows ensure linked-read information
     is carried over to the alignment records.
     """
+
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
@@ -68,9 +69,9 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     }
     workflow.config = {
         "workflow" : workflow.name,
-        "alignment_quality" : min_quality,
-        "keep_unmapped" : keep_unmapped,
-        "depth_windowsize" : depth_window,
+        "min-map-quality" : min_quality,
+        "keep-unmapped" : keep_unmapped,
+        "depth-windowsize" : depth_window,
         "linkedreads": {
             "type" : fastq.lr_type,
             "standardized": fastq.bx_tag,
@@ -79,7 +80,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
         **({'extra': extra_params} if extra_params else {}),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
         }
     }
 
@@ -141,18 +142,18 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     }
     workflow.config = {
         "workflow" : workflow.name,
-        "alignment_quality" : min_quality,
-        "keep_unmapped" : keep_unmapped,
-        "depth_windowsize" : depth_window,
+        "min-map-quality" : min_quality,
+        "keep-unmapped" : keep_unmapped,
+        "depth-windowsize" : depth_window,
         "linkedreads": {
             "type" : fastq.lr_type,
             "standardized": fastq.bx_tag,
-            "distance_threshold" : molecule_distance,
+            "distance-threshold" : molecule_distance,
         },
         **({'extra': extra_params} if extra_params else {}),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
         }
     }
 

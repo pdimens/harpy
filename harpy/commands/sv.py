@@ -94,7 +94,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         **({'extra': extra_params} if extra_params else {}),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
         }
     }
 
@@ -170,14 +170,14 @@ def naibr(inputs, output_dir, reference, vcf, min_size, min_barcodes, min_qualit
     }
     workflow.config = {
         "workflow" : workflow.name,
-        "min_barcodes" : min_barcodes,
-        "min_quality" : min_quality,
-        "min_size" : min_size,
-        "molecule_distance" : molecule_distance,
+        "min-barcodes" : min_barcodes,
+        "min-map-quality" : min_quality,
+        "min-size" : min_size,
+        "molecule-distance" : molecule_distance,
         **({'extra': extra_params} if extra_params else {}),
         "reports" : {
             "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
+            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
         }
     }
 

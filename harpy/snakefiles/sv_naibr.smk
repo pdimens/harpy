@@ -14,16 +14,16 @@ bamlist     = config["inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config.get("extra", None) 
-mol_dist    = config["molecule_distance"]
-min_size      = config["min_size"]
-min_barcodes = config["min_barcodes"]
-min_quality  = config["min_quality"]
+mol_dist    = config["molecule-distance"]
+min_size      = config["min-size"]
+min_barcodes = config["min-barcodes"]
+min_quality  = config["min-map-quality"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno = f"workflow/reference/{bn}"
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot_contigs"]    
+plot_contigs = config["reports"]["plot-contigs"]    
 
 def process_args(args):
     argsDict = {

@@ -15,13 +15,13 @@ bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
-windowsize  = config["depth_windowsize"]
-molecule_distance = config["linkedreads"]["distance_threshold"]
+windowsize  = config["depth-windowsize"]
+molecule_distance = config["linkedreads"]["distance-threshold"]
 ignore_bx = config["linkedreads"]["type"] == "none"
 is_standardized = config["linkedreads"]["standardized"]
-keep_unmapped = config["keep_unmapped"]
+keep_unmapped = config["keep-unmapped"]
 skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot_contigs"]    
+plot_contigs = config["reports"]["plot-contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -114,7 +114,7 @@ rule mark_duplicates:
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = config['alignment_quality']
+        quality = config['min-map-quality']
     resources:
         mem_mb = 2000
     threads:

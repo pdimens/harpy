@@ -16,9 +16,9 @@ variantfile   = config["inputs"]["vcf"]
 paramfile     = config["inputs"]["parameters"]
 region        = config.get("region", None)
 skip_reports  = config["reports"]["skip"]
-stitch_params = config["stitch_parameters"]
-stitch_extra  = config.get("stitch_extra", "None")
-grid_size     = config["grid_size"]
+stitch_params = config["stitch-parameters"]
+stitch_extra  = config.get("stitch-extra", "None")
+grid_size     = config["grid-size"]
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]

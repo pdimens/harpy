@@ -12,10 +12,10 @@ class Summary:
     def align_bwa(self) -> str:
         ignore_bx = self.config["linkedreads"]["type"] == "none"
         is_standardized = self.config["linkedreads"]["standardized"]
-        keep_unmapped = self.config["keep_unmapped"]
+        keep_unmapped = self.config["keep-unmapped"]
         extra 		= self.config.get("extra", "") 
         genomefile 	= self.config["inputs"]["reference"]
-        quality = self.config["alignment_quality"]
+        quality = self.config["alignment-quality"]
 
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -46,9 +46,9 @@ class Summary:
         genomefile 	= self.config["inputs"]["reference"]
         ignore_bx = self.config["linkedreads"]["type"] == "none"
         is_standardized = self.config["linkedreads"]["standardized"]
-        keep_unmapped = self.config["keep_unmapped"]
+        keep_unmapped = self.config["keep-unmapped"]
 
-        quality = self.config["alignment_quality"]
+        quality = self.config["alignment-quality"]
         unmapped_strobe = "" if keep_unmapped else "-U"
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""

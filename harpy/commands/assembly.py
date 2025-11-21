@@ -55,35 +55,35 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
 
     workflow.inputs = {
-        "fastq_r1" : fastq.files[0],
-        "fastq_r2" : fastq.files[1]
+        "fastq-r1" : fastq.files[0],
+        "fastq-r2" : fastq.files[1]
     }
     workflow.config = {
         "workflow" : workflow.name,
         "spades" : {
             "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
-            "max_memory" : max_memory,
+            "max-memory" : max_memory,
             **({'extra' : extra_params} if extra_params else {})
         },
         "tigmint" : {
-            "minimum_mapping_quality" : min_quality,
+            "minimum-mapping-quality" : min_quality,
             "mismatch" : mismatch,
-            "molecule_distance" : molecule_distance,
-            "molecule_length" : molecule_length,
+            "molecule-distance" : molecule_distance,
+            "molecule-length" : molecule_length,
             "span" : span
         },
         "arcs" : {
-            "minimum_aligned_reads" : min_aligned,
-            "minimum_contig_length" : contig_length,
-            "minimum_sequence_identity" : seq_identity,
+            "minimum-aligned-reads" : min_aligned,
+            "minimum-contig-length" : contig_length,
+            "minimum-sequence-identity" : seq_identity,
             **({'extra' : arcs_extra} if arcs_extra else {})
         },
         "links" : {
-            "minimum_links" : links
+            "minimum-links" : links
         },
         "reports" : {
             "skip": skip_reports,
-            "organism_type": organism_type
+            "organism-type": organism_type
         }
     }
 

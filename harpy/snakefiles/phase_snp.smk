@@ -11,14 +11,14 @@ wildcard_constraints:
 
 bc_type           = config["linkedreads"]["type"]
 pruning           = config["phasing"]["prune"]
-map_qual          = config["phasing"]["min_map_quality"]
-base_qual         = config["phasing"]["min_base_quality"]
-molecule_distance = config["linkedreads"]["distance_threshold"]
+map_qual          = config["phasing"]["min-map-quality"]
+base_qual         = config["phasing"]["min-base-quality"]
+molecule_distance = config["linkedreads"]["distance-threshold"]
 extra             = config.get("extra", "") 
-samples_from_vcf  = config["inputs"]["vcf"]["prioritize_samples"]
+samples_from_vcf  = config["inputs"]["vcf"]["prioritize-samples"]
 variantfile       = config["inputs"]["vcf"]["file"]
 skip_reports      = config["reports"]["skip"]
-plot_contigs      = config["reports"]["plot_contigs"]
+plot_contigs      = config["reports"]["plot-contigs"]
 bamlist           = config["inputs"]["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 invalid_regex = {

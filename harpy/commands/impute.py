@@ -60,16 +60,16 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     workflow.inputs = {
         "parameters" : params.file,
         "vcf" : vcffile.file,
-        **({"biallelic_contigs" : vcffile.biallelic_file} if not region else {}), 
+        **({"biallelic-contigs" : vcffile.biallelic_file} if not region else {}), 
         "alignments" : alignments.files
     }
     workflow.config = {
         "workflow" : workflow.name,
-        **({'stitch_extra': extra_params} if extra_params else {}),
+        **({'stitch-extra': extra_params} if extra_params else {}),
         **({'region': region} if region else {}),
         "reports" : {"skip": skip_reports},
-        "grid_size": grid_size,
-        "stitch_parameters" : params.parameters,
+        "grid-size": grid_size,
+        "stitch-parameters" : params.parameters,
     }
 
     workflow.start_text = workflow_info(

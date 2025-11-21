@@ -44,8 +44,8 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     workflow.inputs = fastq.files
     workflow.config = {
         "workflow": workflow.name,
-        "kmer_length" : kmer_length,       
-        "window_size" : window_size,
+        "kmer-length" : kmer_length,       
+        "window-size" : window_size,
         "density" :  density,
         "dropout" :  dropout
     }

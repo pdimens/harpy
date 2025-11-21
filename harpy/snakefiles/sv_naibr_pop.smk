@@ -14,12 +14,12 @@ genomefile   = config["inputs"]["reference"]
 bamlist      = config["inputs"]["alignments"]
 groupfile    = config["inputs"]["groupings"]
 extra        = config.get("extra", None) 
-min_size       = config["min_size"]
-min_barcodes = config["min_barcodes"]
-min_quality  = config["min_quality"]
-mol_dist     = config["molecule_distance"]
+min_size       = config["min-size"]
+min_barcodes = config["min-barcodes"]
+min_quality  = config["min-map-quality"]
+mol_dist     = config["molecule-distance"]
 skip_reports  = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot_contigs"]    
+plot_contigs = config["reports"]["plot-contigs"]    
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"
