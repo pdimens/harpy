@@ -118,14 +118,6 @@ phase: &phase
   - 'test/vcf/test.bcf'
   - 'harpy/reports/hapcut.qmd'
   - 'harpy/scripts/parse_phaseblocks.py'
-simvars: &simvars
-  - *common
-  - *environments
-  - 'harpy/commands/simulate.py'
-  - 'harpy/commands/simulate_variants.py'
-  - 'harpy/snakefiles/simulate_snpindel.smk'
-  - 'harpy/snakefiles/simulate_variants.smk'
-  - 'test/vcf/test.bcf'
 assembly: &assembly
   - *common
   - *environments
@@ -151,6 +143,5 @@ modules:
   - *phase
   - *leviathan
   - *naibr
-  - *simvars
   - *assembly
   - *other

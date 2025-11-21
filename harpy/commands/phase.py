@@ -58,25 +58,15 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
     vcffile.match_samples(alignments.files, vcf_samples)
     fasta = FASTA(reference)
 
-    workflow.inputs = {
-        "vcf" : {
-            "file": vcffile.file,
-            "prioritize-samples" : vcf_samples
-        },
-        **({'reference': fasta.file} if reference else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "phasing" : {
-            "use-linked-info" : alignments.lr_type != "none"
-        },
-        "linkedreads": {
-            "type" : alignments.lr_type,
-            "distance-threshold" : molecule_distance
-        },
-        **({'extra': extra_params} if extra_params else {})
-    }
+    workflow.linkedreads["type"] = alignments.lr_type
+    workflow.input(vcffile.file, "vcf")
+    workflow.input(fasta.file, "reference")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(alignments.lr_type != "none", "use-linked-info")
+    workflow.param(vcf_samples, "prioritize-vcf-samples")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcffile.file)),
@@ -122,44 +112,31 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     """
     workflow = Workflow("phase", "phase_snp.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["hapcut.qmd"]
+    workflow.report_files = ["hapcut.qmd"]
     workflow.conda = ["phase", "report"]
 
     ## checks and validations ##
     alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
     vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
     vcffile.match_samples(alignments.files, vcf_samples)
-
-    if reference:
-        fasta = FASTA(reference)
     if contigs:
         vcffile.match_contigs(contigs)
 
-    workflow.inputs = {
-        "vcf" : {
-            "file": vcffile.file,
-            "prioritize-samples" : vcf_samples
-        },
-        **({'reference': fasta.file} if reference else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "phasing" : {
-            "prune" : prune_threshold,
-            "min-map-quality": min_map_quality,
-            "min-base-quality": min_base_quality
-        },
-        "linkedreads": {
-            "type" : alignments.lr_type,
-            "distance-threshold" : molecule_distance
-        },
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports,
-            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
-        }
-    }
+    workflow.linkedreads["type"] = alignments.lr_type
+    workflow.reports["skip"] = skip_reports
+    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.input(vcffile.file, "vcf")
+    if reference:
+        fasta = FASTA(reference)
+        workflow.input(fasta.file, "reference")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(prune_threshold, "prune")
+    workflow.param(min_map_quality, "min-map-quality")
+    workflow.param(min_base_quality, "min-base-quality")
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(vcf_samples, "prioritize-vcf-samples")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcffile.file)),

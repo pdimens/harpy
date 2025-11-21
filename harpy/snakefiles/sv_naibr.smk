@@ -4,26 +4,26 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-genomefile  = config["inputs"]["reference"]
-bamlist     = config["inputs"]["alignments"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
+genomefile  = config["Inputs"]["reference"]
+bamlist     = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
-extra       = config.get("extra", None) 
-mol_dist    = config["molecule-distance"]
-min_size      = config["min-size"]
-min_barcodes = config["min-barcodes"]
-min_quality  = config["min-map-quality"]
+extra       = config["Parameters"].get("extra", None) 
+mol_dist    = config["Parameters"]["molecule-distance"]
+min_size      = config["Parameters"]["min-size"]
+min_barcodes = config["Parameters"]["min-barcodes"]
+min_quality  = config["Parameters"]["min-map-quality"]
 bn          = os.path.basename(genomefile)
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno = f"workflow/reference/{bn}"
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot-contigs"]    
 
 def process_args(args):
     argsDict = {

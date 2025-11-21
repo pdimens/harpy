@@ -49,7 +49,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     """
     workflow = Workflow("qc", "qc.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["qc_bx_stats.qmd"]
+    workflow.report_files = ["qc_bx_stats.qmd"]
     workflow.conda = ["qc", "report"]
 
     ## checks and validations ##
@@ -64,19 +64,15 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     else:
         trim_adapters = False
 
-    workflow.inputs = fastq.files
-    workflow.config = {
-        "workflow" : workflow.name,
-        "linkedreads" : {
-            "type" : fastq.lr_type
-        },
-        "trim-adapters" : trim_adapters,
-        "deduplicate" : deduplicate,
-        "min-len" : min_length,
-        "max-len" : max_length,
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {"skip": skip_reports},
-    }
+    workflow.reports["skip"] = skip_reports
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.input(fastq.files)
+    workflow.param(trim_adapters, "trim-adapters")
+    workflow.param(deduplicate, "deduplicate")
+    workflow.param(min_length, "min-len")
+    workflow.param(max_length, "max-len")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),

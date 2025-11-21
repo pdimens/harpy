@@ -31,27 +31,64 @@ class Workflow():
         self.name: str = name
         self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
+        self.quiet: int = quiet
+
         self.snakemake_logfile: str = self.snakemake_log(outdir, name)
         self.snakemake_cmd_absolute: str = ""
         self.snakemake_cmd_relative: str = ""
         self.snakefile: str = snakefile
-        self.reports: list[str] =[]
+
+        self.report_files: list[str] = []
+        self.reports: dict = {}
         self.scripts: list[str] = []
-        self.inputs: Dict|list[str] = []
-        self.config: Dict = {}
-        self.profile: Dict = {}
+        self.inputs: dict = {}
+        self.linkedreads: dict = {}
+        self.parameters: dict = {}
+        self.config: dict = {"Workflow": {}, "Parameters": {}, "Inputs": {}}
+        self.profile: dict = {}
         self.hpc: str = ""
         self.clean: str = clean if clean else ""
         self.container: bool = container
         self.conda: list[str] = []
+
         self.start_text: None|Table = None
-        self.quiet: int = quiet
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
         self.summary_text: str = ""
 
         if self.quiet == 0 and "demultiplex" not in self.name and self.snakefile != "NA":
             CONSOLE.rule("[bold]Checks and Validations", style = "dim magenta")
+
+    def param(self, value, name: str):
+        """
+        Add the key `name` to self.parameters. if ':' is in the name, then add the left side as
+        a key and the right side as a key within that new dict. e.g. `tigmint:mismatch` will add
+        `tigmint: {'mismatch: value}` to self.parameters (it will append to the `tigmint` dict if it
+        already exists)
+        """
+        if ":" in name:
+            key,subkey = name.split(":")
+            if key.strip() not in self.parameters:
+                self.parameters[key.strip()] = {}
+            self.parameters[key.strip()][subkey.strip()] = value
+        else:
+            self.parameters[name] = value
+
+    def input(self, value, name: str = "_list"):
+        """
+        Add the key `name` to self.inputs. if ':' is in the name, then add the left side as
+        a key and the right side as a key within that new dict. e.g. `vcf:something` will add
+        `vcf: {'something: value}` to self.inputs (it will append to the `tigmint` dict if it
+        already exists). If no name is provided, it is assigned to "_list", which will be written
+        as a list in the workflow.yaml file.
+        """
+        if ":" in name:
+            key,subkey = name.split(":")
+            if key.strip() not in self.inputs:
+                self.inputs[key.strip()] = {}
+            self.inputs[key.strip()][subkey.strip()] = value
+        else:
+            self.inputs[name] = value
 
     def snakemake_log(self, outdir: str, workflow: str) -> str:
         """Return a snakemake logfile name. Iterates logfile run number if one exists."""
@@ -114,28 +151,32 @@ class Workflow():
         self.snakemake_cmd_absolute = " ".join(_command)
         self.snakemake_cmd_relative = " ".join(_command_rel)
 
-    def fetch_report(self, target: str) -> None:
+    def fetch_reports(self) -> None:
         """
-        Retrieve the target harpy report and write it into workdir/report
+        Copy any files in self.report_files into workdir/report
         """
         dest_dir = os.path.join(self.workflow_directory, "report")
-        dest_file = os.path.join(dest_dir, target)
         os.makedirs(dest_dir, exist_ok= True)
-        source_file = resources.files("harpy.reports") / target
-        try:
-            with resources.as_file(source_file) as _source:
-                shutil.copy2(_source, dest_file)
-        except (FileNotFoundError, KeyError):
-            print_error(
-                "report script missing",
-                f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.",
-                "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
-            )
+        
+        for target in self.report_files:
+            dest_file = os.path.join(dest_dir, target)
+            source_file = resources.files("harpy.reports") / target
+            try:
+                with resources.as_file(source_file) as _source:
+                    shutil.copy2(_source, dest_file)
+            except (FileNotFoundError, KeyError):
+                print_error(
+                    "report script missing",
+                    f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.",
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+                )
 
     def fetch_report_configs(self):
         """
-        pull yaml config file from GitHub, use local if download fails
+        If self.report_files isnt empty, pull yaml config file from GitHub, use local if download fails
         """
+        if not self.report_files:
+            return
         dest_dir = os.path.join(self.workflow_directory, "report")
         destination = os.path.join(dest_dir, "_quarto.yml")
         try:
@@ -174,7 +215,7 @@ class Workflow():
 
     def fetch_snakefile(self):
         """
-        Retrieve the target harpy rule and write it into the workdir as workflow.smk
+        Copy the workflow snakefile into workflow/workflow.smk
         """
         os.makedirs(self.workflow_directory, exist_ok= True)
         dest_file = os.path.join(self.workflow_directory,"workflow.smk")
@@ -189,23 +230,27 @@ class Workflow():
                 "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
             )
 
-    def fetch_script(self, target: str) -> None:
+    def fetch_scripts(self) -> None:
         """
-        Retrieve the target harpy script and write it into workdir/scripts
+        Copy any files in self.scripts into workdir/scripts
         """
-        dest_file = os.path.join(self.workflow_directory, "scripts", target)
-        source_file = resources.files("harpy.scripts") / target
-        try:
-            with resources.as_file(source_file) as _source:
-                shutil.copy2(_source, dest_file)
-        except (FileNotFoundError, KeyError):
-            print_error(
-                "script missing",
-                f"The required script [blue bold]{target}[/] was not found in the Harpy installation.",
-                "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
-            )
+        for target in self.scripts:
+            dest_file = os.path.join(self.workflow_directory, "scripts", target)
+            source_file = resources.files("harpy.scripts") / target
+            try:
+                with resources.as_file(source_file) as _source:
+                    shutil.copy2(_source, dest_file)
+            except (FileNotFoundError, KeyError):
+                print_error(
+                    "script missing",
+                    f"The required script [blue bold]{target}[/] was not found in the Harpy installation.",
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
+                )
 
     def fetch_hpc(self):
+        """If self.hpc exists, copy it into `workflow/hpc/config.yaml`"""
+        if not self.hpc:
+            return
         hpc_dest = os.path.join(self.workflow_directory, "hpc")
         os.makedirs(hpc_dest, exist_ok=True)
         shutil.copy2(self.hpc, os.path.join(hpc_dest, "config.yaml"))
@@ -220,13 +265,20 @@ class Workflow():
         Writes a workflow.yaml file to workdir to use with --configfile. Configs
         are expected to be a dict
         """
-        self.config["snakemake"] = {
+        self.config["Workflow"]["name"] = self.name
+        if self.linkedreads:
+            self.config["Workflow"]["linkedreads"] = self.linkedreads
+        if self.reports:
+            self.config["Workflow"]["reports"] = self.reports
+        self.config["Workflow"]["snakemake"] = {
             "log" : self.snakemake_logfile,
             "absolute": self.snakemake_cmd_absolute,
             "relative": self.snakemake_cmd_relative,
             "conda_envs": self.conda
         }
-        self.config["inputs"] = self.inputs
+        if self.parameters:
+            self.config["Parameters"] = self.parameters
+        self.config["Inputs"] = self.inputs
         with open(os.path.join(self.workflow_directory, 'workflow.yaml'), "w", encoding="utf-8") as config:
             yaml.dump(self.config, config, default_flow_style= False, sort_keys=False, width=float('inf'))
 
@@ -275,20 +327,16 @@ class Workflow():
         CONSOLE.print(datatable)
 
     def initialize(self, setup: bool = False):
-        """Using the configurations, create all necessary folders and files"""
+        """Using the configurations, create all necessary folders and files. Launches the workflow if `setup` = False"""
         self.write_workflow_config()
         self.write_snakemake_profile()
         if not self.container:
             create_conda_recipes(self.output_directory, self.conda)
         self.fetch_snakefile()
-        for i in self.reports:
-            self.fetch_report(i)
-        for i in self.scripts:
-            self.fetch_script(i)
-        if self.reports:
-            self.fetch_report_configs()
-        if self.hpc:
-            self.fetch_hpc()
+        self.fetch_reports()
+        self.fetch_scripts()
+        self.fetch_report_configs()
+        self.fetch_hpc()
         self.print_onstart()
         if not setup:
             self.launch()

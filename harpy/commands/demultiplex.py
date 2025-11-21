@@ -60,17 +60,10 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         "I1": i12_fq[0][0],
         "I2": i12_fq[1][0]
     }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "retain" : {
-            "qx-rx" : qx_rx,
-            "barcodes" : keep_unknown_barcodes,
-            "samples" : keep_unknown_samples,
-        },
-        "reports" : {
-            "skip": skip_reports
-        }
-    }
+    workflow.param("qx-rx", qx_rx)
+    workflow.param("barcodes", keep_unknown_barcodes)
+    workflow.param("samples", keep_unknown_samples)
+    workflow.reports["skip"] = skip_reports
     
     workflow.start_text = workflow_info(
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
@@ -116,18 +109,12 @@ def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, th
 
     bc_len = (3 * bc_seg_len) + (2 * spacer_length)
     bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
-    workflow.inputs = fastq.files
-    workflow.config = {
-        "workflow" : workflow.name,
-        "barcode_length" : bc_len,
-        "qc" : {
-            "minimum_length" : min_length,
-            "minimum_quality" : min_quality
-        },
-        "reports" : {
-            "skip": skip_reports
-        }
-    }
+
+    workflow.reports["skip"] = skip_reports
+    workflow.input(fastq.files)
+    workflow.param(bc_len, "barcode_length")
+    workflow.param(min_length, "minimum_length")
+    workflow.param(min_quality, "minimum_quality")
     
     workflow.start_text = workflow_info(
         ("Barcode Design:", "Iqbal [italic]et al.[/] (in prep)"),

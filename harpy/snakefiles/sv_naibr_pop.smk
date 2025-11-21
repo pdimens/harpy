@@ -4,22 +4,22 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-genomefile   = config["inputs"]["reference"]
-bamlist      = config["inputs"]["alignments"]
-groupfile    = config["inputs"]["groupings"]
-extra        = config.get("extra", None) 
-min_size       = config["min-size"]
-min_barcodes = config["min-barcodes"]
-min_quality  = config["min-map-quality"]
-mol_dist     = config["molecule-distance"]
-skip_reports  = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot-contigs"]    
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
+genomefile   = config["Inputs"]["reference"]
+bamlist      = config["Inputs"]["alignments"]
+groupfile    = config["Inputs"]["groupings"]
+extra        = config["Parameters"].get("extra", None) 
+min_size     = config["Parameters"]["min-size"]
+min_barcodes = config["Parameters"]["min-barcodes"]
+min_quality  = config["Parameters"]["min-map-quality"]
+mol_dist     = config["Parameters"]["molecule-distance"]
 bn           = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"

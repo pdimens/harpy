@@ -4,17 +4,17 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-genomefile  = config["inputs"]["reference"]
-bamlist     = config["inputs"]["alignments"]
-vcffile     = config["inputs"]["vcf"]
+genomefile  = config["Inputs"]["reference"]
+bamlist     = config["Inputs"]["alignments"]
+vcffile     = config["Inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
-extra       = config.get("extra", None) 
-mol_dist    = config["molecule-distance"]
+extra       = config["Parameters"].get("extra", None) 
+mol_dist    = config["Parameters"]["molecule-distance"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"

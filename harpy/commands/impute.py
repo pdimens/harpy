@@ -45,7 +45,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     """
     workflow = Workflow("impute", "impute.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["impute.qmd", "stitch_collate.qmd"]
+    workflow.report_files = ["impute.qmd", "stitch_collate.qmd"]
     workflow.conda = ["report", "stitch"]
 
     ## checks and validations ##
@@ -57,20 +57,19 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     if region:
         vcffile.validate_region(region)
 
-    workflow.inputs = {
-        "parameters" : params.file,
-        "vcf" : vcffile.file,
-        **({"biallelic-contigs" : vcffile.biallelic_file} if not region else {}), 
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        **({'stitch-extra': extra_params} if extra_params else {}),
-        **({'region': region} if region else {}),
-        "reports" : {"skip": skip_reports},
-        "grid-size": grid_size,
-        "stitch-parameters" : params.parameters,
-    }
+    workflow.reports["skip"] = skip_reports
+    workflow.input(params.file, "parameters")
+    workflow.input(vcffile.file, "vcf")
+    workflow.input(alignments.files, "alignments")
+    if not region:
+        workflow.input(vcffile.biallelic_file, "biallelic-contigs") 
+
+    workflow.param(grid_size, "grid-size")
+    if region:
+        workflow.param(region, "region")
+    if extra_params:
+        workflow.param(extra_params, "extra")
+    workflow.param(params.parameters, "stitch")
 
     workflow.start_text = workflow_info(
         ("Input VCF:", os.path.basename(vcf)),

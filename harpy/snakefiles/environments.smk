@@ -1,5 +1,8 @@
 
-out_envs = config.get("envs", ["align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"])
+out_envs = config.get(
+    "envs",
+    ["align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]
+)
 
 rule all:
     input:

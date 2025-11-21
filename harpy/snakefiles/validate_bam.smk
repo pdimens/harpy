@@ -4,13 +4,13 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["linkedreads"]["type"]
-bamlist = config["inputs"]
+lr_platform = config["Workflow"]["linkedreads"]["type"]
+bamlist = config["Inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 

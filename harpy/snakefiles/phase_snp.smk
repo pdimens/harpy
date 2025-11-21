@@ -4,22 +4,22 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-bc_type           = config["linkedreads"]["type"]
-pruning           = config["phasing"]["prune"]
-map_qual          = config["phasing"]["min-map-quality"]
-base_qual         = config["phasing"]["min-base-quality"]
-molecule_distance = config["linkedreads"]["distance-threshold"]
+bc_type           = config["Workflow"]["linkedreads"]["type"]
+skip_reports      = config["Workflow"]["reports"]["skip"]
+plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
+pruning           = config["Parameters"]["prune"]
+map_qual          = config["Parameters"]["min-map-quality"]
+base_qual         = config["Parameters"]["min-base-quality"]
+molecule_distance = config["Parameters"]["distance-threshold"]
 extra             = config.get("extra", "") 
-samples_from_vcf  = config["inputs"]["vcf"]["prioritize-samples"]
-variantfile       = config["inputs"]["vcf"]["file"]
-skip_reports      = config["reports"]["skip"]
-plot_contigs      = config["reports"]["plot-contigs"]
-bamlist           = config["inputs"]["alignments"]
+samples_from_vcf  = config["Inputs"]["vcf"]["prioritize-samples"]
+variantfile       = config["Inputs"]["vcf"]["file"]
+bamlist           = config["Inputs"]["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 invalid_regex = {
     "haplotagging" : "'$4 !~ /[ABCD]00/'",
@@ -37,8 +37,8 @@ if samples_from_vcf:
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
-if config["inputs"].get("reference", None):
-    genomefile = config["inputs"]["reference"]
+if config["Inputs"].get("reference", None):
+    genomefile = config["Inputs"]["reference"]
     if genomefile.lower().endswith(".gz"):
         bn = Path(Path(genomefile).stem).stem
     else:

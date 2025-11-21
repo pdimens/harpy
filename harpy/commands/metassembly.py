@@ -47,34 +47,22 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     fastq = FASTQ([fastq_r1,fastq_r2], quiet > 0)
     fastq.bc_or_bx(bx_tag)
 
-    workflow.inputs = {
-            "fastq-r1" : fastq_r1,
-            "fastq-r2" : fastq_r2
-        }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "linkedreads" : {
-            "barcode-tag" : bx_tag.upper()
-        },
-        "spades" : {
-            'ignore-barcodes' : unlinked,
-            "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
-            "max-memory" : max_memory,
-            **({'extra' : extra_params} if extra_params else {})
-        },
-        "athena" : {
-            "force" : force
-        },
-        "reports" : {
-            "skip": skip_reports,
-            "organism-type": organism_type
-        }
-    }
+    workflow.linkedreads["barcode-tag"] = bx_tag.upper()
+    workflow.reports["skip"] = skip_reports
+    workflow.reports["organism-type"] = organism_type
+    workflow.input(fastq_r1, "fastq-r1")
+    workflow.input(fastq_r2, "fastq-r2")
+    workflow.param("spades:ignore-barcodes", unlinked)
+    workflow.param("spades:k", 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)))
+    workflow.param("spades:max-memory", max_memory)
+    if extra_params:
+        workflow.param("spades:extra", extra_params)
+    workflow.param("athena:force", force)
 
     workflow.start_text = workflow_info(
         ("Barcode Tag: ", bx_tag.upper()),
-        ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
-        ("Output Folder:", os.path.relpath(output_dir) + "/"),
+        ("Kmer Length: ", workflow.parameters["spades"]["k"]),
+        ("Output Folder: ", os.path.relpath(output_dir) + "/"),
     )
 
     workflow.initialize(setup)

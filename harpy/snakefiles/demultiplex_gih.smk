@@ -1,7 +1,17 @@
-fqlist        = config["inputs"]
-skip_reports  = config["reports"]["skip"]
-bc_len        = config["barcode_length"]
-insert_min    = config["qc"]["minimum_length"]
+import os
+import re
+import logging
+
+onstart:
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
+    logger.addHandler(logfile_handler)
+wildcard_constraints:
+    sample = r"[a-zA-Z0-9._-]+"
+
+fqlist        = config["Inputs"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
+bc_len        = config["Parameters"]["barcode_length"]
+insert_min    = config["Parameters"]["minimum_length"]
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 
@@ -90,13 +100,13 @@ rule pheniqs_demux:
         "logs/pheniqs/{sample}.json"
     shell:
         """
-        pheniqs mux \\
-            --input {input.FQ1} \\
-            --input {input.FQ2} \\
-            --output {output.FQ1} \\
-            --output {output.FQ2} \\
-            -c {input.pheniqs_conf} \\
-            --quality \\
+        pheniqs mux \
+            --input {input.FQ1} \
+            --input {input.FQ2} \
+            --output {output.FQ1} \
+            --output {output.FQ2} \
+            -c {input.pheniqs_conf} \
+            --quality \
             --report {log}
         """
 

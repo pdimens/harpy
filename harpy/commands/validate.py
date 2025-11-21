@@ -44,19 +44,14 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     """
     workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["validate_bam.qmd"]
+    workflow.report_files = ["validate_bam.qmd"]
     workflow.conda = ["report"]
 
     ## checks and validations ##
     alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
 
-    workflow.inputs = alignments.files
-    workflow.config = {
-        "workflow" : workflow.name,
-        "linkedreads": {
-            "type": alignments.lr_type
-        }
-    }
+    workflow.linkedreads["type"] = alignments.lr_type
+    workflow.input(alignments.files)
 
     workflow.start_text = workflow_info(
         ("Alignment Files:", alignments.count),
@@ -90,21 +85,14 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, 
     """
     workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["validate_fastq.qmd"]
+    workflow.report_files = ["validate_fastq.qmd"]
     workflow.conda = ["report"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet > 0)
 
-    ## setup workflow ##
-
-    workflow.inputs = fastq.files
-    workflow.config = {
-        "workflow" : workflow.name,
-        "linkedreads": {
-            "type": fastq.lr_type
-        }
-    }
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.input(fastq.files)
 
     workflow.start_text = workflow_info(
         ("FASTQ Files:", fastq.count),

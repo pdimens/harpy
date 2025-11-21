@@ -54,7 +54,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.report_files = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
@@ -63,26 +63,18 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     if contigs:
         fasta.match_contigs(contigs) 
 
-    workflow.inputs = {
-        "reference": fasta.file,
-        "fastq": fastq.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "min-map-quality" : min_quality,
-        "keep-unmapped" : keep_unmapped,
-        "depth-windowsize" : depth_window,
-        "linkedreads": {
-            "type" : fastq.lr_type,
-            "standardized": fastq.bx_tag,
-            "distance_threshold" : molecule_distance,
-        },
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports,
-            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
-        }
-    }
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.reports["skip"] = skip_reports
+    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.input(fasta.file, "reference")
+    workflow.input(fastq.files, "fastq")
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(min_quality, "min-map-quality")
+    workflow.param(keep_unmapped, "keep-unmapped")
+    workflow.param(depth_window, "depth-windowsize")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
@@ -126,36 +118,27 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     """
     workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.report_files = ["align_stats.qmd", "align_bxstats.qmd"]
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
     fasta = FASTA(reference, quiet= quiet > 0)
-
     if contigs:
         fasta.match_contigs(contigs)
 
-    workflow.inputs = {
-        "reference": fasta.file,
-        "fastq": fastq.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "min-map-quality" : min_quality,
-        "keep-unmapped" : keep_unmapped,
-        "depth-windowsize" : depth_window,
-        "linkedreads": {
-            "type" : fastq.lr_type,
-            "standardized": fastq.bx_tag,
-            "distance-threshold" : molecule_distance,
-        },
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports,
-            **({'plot-contigs': contigs} if contigs else {'plot-contigs': "default"}),
-        }
-    }
+    workflow.input(fasta.file, "reference")
+    workflow.input(fastq.files,"fastq")
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(min_quality, "min-map-quality")
+    workflow.param(keep_unmapped, "keep-unmapped")
+    workflow.param(depth_window, "depth-windowsize")
+    if extra_params:
+        workflow.param(extra_params, "extra")
+    workflow.reports["skip"] = skip_reports
+    workflow.reports["plot-contigs"] = contigs if contigs else "default"
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),

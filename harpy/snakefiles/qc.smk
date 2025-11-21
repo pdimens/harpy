@@ -3,19 +3,19 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist        = config["inputs"]
-min_len 	  = config["min_len"]
-max_len 	  = config["max_len"]
-extra 	      = config.get("extra", "") 
-lr_type       = config["linkedreads"]["type"]
-trim_adapters = config.get("trim_adapters", None)
-dedup         = config["deduplicate"]
-skip_reports  = config["reports"]["skip"]
+fqlist        = config["Inputs"]
+min_len 	  = config["Parameters"]["min_len"]
+max_len 	  = config["Parameters"]["max_len"]
+extra 	      = config["Parameters"].get("extra", "") 
+lr_type       = config["Workflow"]["linkedreads"]["type"]
+trim_adapters = config["Parameters"].get("trim_adapters", None)
+dedup         = config["Parameters"]["deduplicate"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 if trim_adapters:

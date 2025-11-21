@@ -1,5 +1,6 @@
 """Perform a linked-read aware metassembly"""
 
+from ssl import ALERT_DESCRIPTION_CLOSE_NOTIFY
 import rich_click as click
 import os
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
@@ -54,41 +55,28 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
 
-    workflow.inputs = {
-        "fastq-r1" : fastq.files[0],
-        "fastq-r2" : fastq.files[1]
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "spades" : {
-            "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
-            "max-memory" : max_memory,
-            **({'extra' : extra_params} if extra_params else {})
-        },
-        "tigmint" : {
-            "minimum-mapping-quality" : min_quality,
-            "mismatch" : mismatch,
-            "molecule-distance" : molecule_distance,
-            "molecule-length" : molecule_length,
-            "span" : span
-        },
-        "arcs" : {
-            "minimum-aligned-reads" : min_aligned,
-            "minimum-contig-length" : contig_length,
-            "minimum-sequence-identity" : seq_identity,
-            **({'extra' : arcs_extra} if arcs_extra else {})
-        },
-        "links" : {
-            "minimum-links" : links
-        },
-        "reports" : {
-            "skip": skip_reports,
-            "organism-type": organism_type
-        }
-    }
+    workflow.reports["skip"] = skip_reports
+    workflow.reports["organism-type"] = organism_type
+    workflow.input(fastq.files[0], "fastq-r1")
+    workflow.input(fastq.files[1], "fastq-r2")
+    workflow.param('auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)), "spades:k")
+    workflow.param(max_memory, "spades:max-memory")
+    if extra_params:
+        workflow.param(extra_params, "spades:extra")
+    workflow.param(min_quality, "tigmint:minimum-mapping-quality")
+    workflow.param(mismatch, "tigmint:mismatch")
+    workflow.param(molecule_distance, "tigmint:molecule-distance")
+    workflow.param(molecule_length, "tigmint:molecule-length")
+    workflow.param(span, "tigmint:span")
+    workflow.param(min_aligned, "arcs:minimum-aligned-reads")
+    workflow.param(contig_length, "arcs:minimum-contig-length")
+    workflow.param(seq_identity, "arcs:minimum-sequence-identity")
+    if arcs_extra:
+        workflow.param(arcs_extra, "arcs:extra")
+    workflow.param(links, "links:minimum-links")
 
     workflow.start_text = workflow_info(
-        ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
+        ("Kmer Length: ", workflow.parameters["spades"]["k"]),
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 

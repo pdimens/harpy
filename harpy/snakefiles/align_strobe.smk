@@ -3,25 +3,25 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist      = config["inputs"]["fastq"]
-extra 		= config.get("extra", "") 
-genomefile 	= config["inputs"]["reference"]
+fqlist      = config["Inputs"]["fastq"]
+extra 		= config["Parameters"].get("extra", "") 
+genomefile 	= config["Inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
-windowsize  = config["depth-windowsize"]
-molecule_distance = config["linkedreads"]["distance-threshold"]
-ignore_bx = config["linkedreads"]["type"] == "none"
-is_standardized = config["linkedreads"]["standardized"]
-keep_unmapped = config["keep-unmapped"]
-skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot-contigs"]    
+windowsize  = config["Parameters"]["depth-windowsize"]
+molecule_distance = config["Parameters"]["distance-threshold"]
+ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
+is_standardized = config["Workflow"]["linkedreads"]["standardized"]
+keep_unmapped = config["Parameters"]["keep-unmapped"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -114,7 +114,7 @@ rule mark_duplicates:
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = config['min-map-quality']
+        quality = config["Parameters"]['min-map-quality']
     resources:
         mem_mb = 2000
     threads:

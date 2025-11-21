@@ -59,7 +59,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     """
     workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["bcftools_stats.qmd"]
+    workflow.report_files = ["bcftools_stats.qmd"]
     workflow.conda = ["report", "variants"]
 
     ## checks and validations ##
@@ -74,21 +74,17 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         shutil.copy2(regions, region)
     else:
         region = regions
+
+    workflow.reports["skip"] = skip_reports
+    workflow.input(fasta.file, "reference")
+    workflow.input(region, "regions")
     if populations:
         popfile = Populations(populations, alignments.files)
-
-    workflow.inputs = {
-        "reference" : fasta.file,
-        "regions" : region,
-        **({'groupings': popfile.file} if populations else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "ploidy" : ploidy,
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {"skip": skip_reports},
-    }
+        workflow.input(popfile.file, "groupings")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(ploidy, "ploidy")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", alignments.count),
@@ -115,7 +111,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup):
+def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Call variants from using bcftools mpileup
     
@@ -133,7 +129,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     """
     workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["bcftools_stats.qmd"]
+    workflow.report_files = ["bcftools_stats.qmd"]
     workflow.conda = ["report"]
 
     ## checks and validations ##
@@ -148,23 +144,17 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
         shutil.copy2(regions, region)
     else:
         region = regions
+
+    workflow.reports["skip"] = skip_reports
+    workflow.input(fasta.file, "reference")
+    workflow.input(region, "regions")
     if populations:
         popfile = Populations(populations, alignments.files)
-
-    workflow.inputs = {
-        "reference" : fasta.file,
-        "regions" : region,
-        **({'groupings': popfile.file} if populations else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "ploidy" : ploidy,
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports
-        }
-    }
+        workflow.input(popfile.file, "groupings")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(ploidy, "ploidy")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", alignments.count),

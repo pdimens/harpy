@@ -3,23 +3,23 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-ploidy 		= config["ploidy"]
-mp_extra 	= config.get("extra", "")
-skip_reports = config["reports"]["skip"]
-bamlist     = config["inputs"]["alignments"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+ploidy 		= config["Parameters"]["ploidy"]
+mp_extra 	= config["Parameters"].get("extra", "")
+bamlist     = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["inputs"]["reference"]
+genomefile 	= config["Inputs"]["reference"]
 bn          = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-groupings 	= config["inputs"].get("groupings", [])
-region_input = config["inputs"]["regions"]
+groupings 	= config["Inputs"].get("groupings", [])
+region_input = config["Inputs"]["regions"]
 samplenames = {Path(i).stem for i in bamlist}
 
 if os.path.isfile(region_input):

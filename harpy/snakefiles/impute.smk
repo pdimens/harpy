@@ -3,22 +3,22 @@ import re
 import logging
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-bamlist       = config["inputs"]["alignments"]
+bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
-variantfile   = config["inputs"]["vcf"]
-paramfile     = config["inputs"]["parameters"]
-region        = config.get("region", None)
-skip_reports  = config["reports"]["skip"]
-stitch_params = config["stitch-parameters"]
-stitch_extra  = config.get("stitch-extra", "None")
-grid_size     = config["grid-size"]
+variantfile   = config["Inputs"]["vcf"]
+paramfile     = config["Inputs"]["parameters"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
+region        = config["Parameters"].get("region", None)
+stitch_params = config["Parameters"]["stitch"]
+stitch_extra  = config["Parameters"].get("extra", "None")
+grid_size     = config["Parameters"]["grid-size"]
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -27,7 +27,7 @@ if region:
     # make the contig a list to fit with the existing workflow design
     contigs = [contigs]
 else:
-    biallelic = config["inputs"]["biallelic_contigs"]
+    biallelic = config["Inputs"]["biallelic_contigs"]
     with open(biallelic, "r") as f:
         contigs = [line.rstrip() for line in f]
 

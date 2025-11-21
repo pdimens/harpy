@@ -4,26 +4,26 @@ import logging
 from pathlib import Path
 
 onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
+    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
     logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-genomefile  = config["inputs"]["reference"]
-bamlist     = config["inputs"]["alignments"]
+genomefile  = config["Inputs"]["reference"]
+bamlist     = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist,bamlist))
 samplenames = {Path(i).stem for i in bamlist}
-min_size      = config["min-size"]
-min_bc      = config["min-barcodes"]
-iterations  = config["iterations"]
-small_thresh = config["variant-thresholds"]["small"]
-medium_thresh = config["variant-thresholds"]["medium"]
-large_thresh = config["variant-thresholds"]["large"]
-duplcates_thresh = config["variant-thresholds"]["duplicates"]
-extra       = config.get("extra", "") 
-skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot-contigs"]    
+min_size      = config["Parameters"]["min-size"]
+min_bc      = config["Parameters"]["min-barcodes"]
+iterations  = config["Parameters"]["iterations"]
+small_thresh = config["Parameters"]["variant-thresholds"]["small"]
+medium_thresh = config["Parameters"]["variant-thresholds"]["medium"]
+large_thresh = config["Parameters"]["variant-thresholds"]["large"]
+duplcates_thresh = config["Parameters"]["variant-thresholds"]["duplicates"]
+extra       = config["Parameters"].get("extra", "") 
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"
