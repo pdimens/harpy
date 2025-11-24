@@ -68,6 +68,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy demultiplex
         run: |
           harpy demultiplex meier2021 --quiet 2 test/demux/samples.schema test/demux/multiplex.R* test/demux/multiplex.I* && \
@@ -89,6 +91,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test validate fastq
         run: |
           harpy validate fastq test/fastq && \
@@ -115,6 +119,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy qc
         run: |
           harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
@@ -136,6 +142,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy deconvolve
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
@@ -157,6 +165,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test bwa
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
@@ -178,6 +188,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test strobealign
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
@@ -199,6 +211,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: snp mpileup
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
@@ -224,6 +238,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: snp freebayes
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
@@ -249,6 +265,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: impute
         run: |
           harpy impute --quiet 2 --grid-size 1500 test/stitch.params test/vcf/test.bcf test/bam && \
@@ -280,6 +298,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: phase
         run: |
           harpy phase --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
@@ -312,6 +332,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: leviathan
         run: |
           harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
@@ -338,6 +360,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: naibr
         run: |
           harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
@@ -374,6 +398,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
       - name: test assembly
@@ -405,6 +431,8 @@ jobs:
           pixi-version: v0.56.0
           cache: false
           activate-environment: true
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: template impute
         run: harpy template impute
       - name: template groupings
