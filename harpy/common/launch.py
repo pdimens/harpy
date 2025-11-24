@@ -221,10 +221,14 @@ class LaunchSnakemake():
                 return
             while not self.output.startswith("Job stats:") and self.exitcode < 0:
                 # print dependency text only once
-                if "Downloading and installing remote packages" in self.output or "Running post-deploy" in self.output:
+                if "Creating conda environment" in self.output or "Running post-deploy" in self.output:
                     self.deps = True
                     self.deploy_text += "[dim]Installing workflow software"
                     break
+                #if "Downloading and installing remote packages" in self.output or "Running post-deploy" in self.output:
+                #    self.deps = True
+                #    self.deploy_text += "[dim]Installing workflow software"
+                #    break
                 if "Pulling singularity image" in self.output:
                     self.deps = True
                     self.deploy_text += "[dim]Building software container"
@@ -243,8 +247,11 @@ class LaunchSnakemake():
             if self.deps:
                 progress = harpy_pulsebar(self.quiet)
                 with harpy_progresspanel(progress, quiet=self.quiet, title = self.deploy_text):
-                    progress.add_task("[dim]Working...", total = None)
+                    _taskid = progress.add_task("[dim]Working...", total = None)
                     while not self.output.startswith("Job stats:"):
+                        if "Creating conda environment" in self.output:
+                            _desc = self.output.split()[-1].removesuffix("...")
+                            progress.update(_taskid, description=_desc)
                         self.nextline()
                         if self.process.poll() or self.iserror():
                             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else 2

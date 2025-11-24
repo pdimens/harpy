@@ -43,6 +43,8 @@
 - significant rewrite of the `Workflow` class and how it expects workflow, parameter, and input delcarations
 
 ## non-breaking
+- statusbar when downloading/installing workflow dependencies now lists the environment being downloaded/installed instead of saying "working..."
+
 ### internal
 - swapped order of validations/checks
   - CLI input validations are for fast basic checks (e.g. naming conventions, presence/absence)
