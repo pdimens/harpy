@@ -6,6 +6,15 @@ import re
 from harpy.common.printing import CONSOLE, print_error
 from harpy.validation.barcodes import which_linkedread_sam
 
+def is_phased(file_path: str) -> bool:
+    with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+        for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
+            if i > 100:
+                break
+            if (record.has_tag("PS") or record.has_tag("HP")):
+                return True
+    return False
+
 class XAM():
     """
     A class to contain and validate BAM/SAM input files. If detect_bc is True, will scan the first 100
@@ -14,7 +23,7 @@ class XAM():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     """
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:bool = False):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, check_phase:bool = False, quiet:bool = False):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
@@ -82,3 +91,34 @@ class XAM():
                     "Files Scanned",
                     "\n".join(scanned)
                 )
+    
+        scanned: list[str] = []
+        _phased: list[bool] = []
+        for i,samfile in enumerate(self.files):
+            if i > 5:
+                break
+            scanned.append(os.path.basename(samfile))
+            # do lr barcode scan if enabled and not yet detected
+            if detect_bc and self.lr_type == "none":
+                self.lr_type = which_linkedread_sam(samfile)
+            # do phased scan if enabled and not yet detected
+            if check_phase and not any(_phased):
+                _phased.append(is_phased(samfile))
+
+        if not nonlinked_ok and self.lr_type == "none":
+            print_error(
+                "incompatible data",
+                "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 records of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
+                "Files Scanned",
+                "\n".join(scanned)
+            )
+
+        if check_phase and not any(_phased):
+            print_error(
+                "incompatible data",
+                "Phased alignments are required as input, but harpy was unable to find the [green]HP[/] or [green]PS[/] tags that denote phasing in the first 100 records of up to the first 5 files.",
+                "Please double-check that these data are indeed phased (contain [green]HP[/] or [green]PS[/] tags), otherwise you can phase these alignments using [green]harpy phase bam[/].",
+                "Files Scanned",
+                "\n".join(scanned)
+            )
