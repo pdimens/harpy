@@ -48,6 +48,7 @@ class LaunchSnakemake():
         self.task_ids: dict = {}
         self.total_active: int = 0
         self.progress = harpy_progressbar(self.quiet)
+        self.error_printed: bool = False
 
         try:
             self.workflow_setup()
@@ -149,6 +150,8 @@ class LaunchSnakemake():
                 continue
             merged_text += self.output
         if "====" in self.output:
+            #if ".qmd" in merged_text:
+            #    merged_text = "Error in " + merged_text.split("\nError in ")[-1]
             CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text), overflow = "ignore", crop = False)
             self.nextline()
 
@@ -201,7 +204,6 @@ class LaunchSnakemake():
             while self.output:
                 CONSOLE.print(self.output, style = "red")
                 self.nextline()
-            CONSOLE.print("STARTUP ERRORS")
 
     def workflow_setup(self):
         '''processes the workflow setup text snakemake prints to the console up to the end of the job summary table'''
@@ -246,7 +248,7 @@ class LaunchSnakemake():
             # if dependency text present, print pulsing progress bar
             if self.deps:
                 progress = harpy_pulsebar(self.quiet)
-                with harpy_progresspanel(progress, quiet=self.quiet, title = self.deploy_text):
+                with harpy_progresspanel(progress, quiet=self.quiet, title = self.deploy_text, refresh=8):
                     _taskid = progress.add_task("[dim]Working...", total = None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -293,6 +295,7 @@ class LaunchSnakemake():
                 )
             while self.output:
                 self.nextline()
+                #CONSOLE.print(self.output)
                 if self.iserror() or self.process.poll() == 1:
                     self.exitcode = EXIT_CODE_RUNTIME_ERROR
                     break
@@ -330,11 +333,9 @@ class LaunchSnakemake():
 
     def process_finish(self):
         '''final processing of the stderr text, returns early if ongoing or successful exit, otherwise processess the error text'''
-        # keep going
         if self.exitcode == -1:
             return
-
-        self.process.wait()
+        #self.process.wait()
         if self.exitcode == 0:
             return
         if self.exitcode in (1,2):
@@ -379,7 +380,10 @@ class LaunchSnakemake():
         while self.output:
             self.nextline()
             if "Error in rule" in self.output:
+                if self.error_printed:
+                    break
                 CONSOLE.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
+                self.error_printed = True
             elif self.output.strip().startswith("shell:"):
                 self.print_shellcmd()
             elif self.output.startswith("Complete log"):
