@@ -27,7 +27,7 @@ if region:
     # make the contig a list to fit with the existing workflow design
     contigs = [contigs]
 else:
-    biallelic = config["Inputs"]["biallelic_contigs"]
+    biallelic = config["Inputs"]["biallelic-contigs"]
     with open(biallelic, "r") as f:
         contigs = [line.rstrip() for line in f]
 

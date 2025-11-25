@@ -27,6 +27,7 @@ library(scales)
 
 ```{r read_input}
 comparefile <- params$compare
+#comparefile <- "/home/pdimens/Documents/harpy/Impute/high_ngen/reports/data/impute.compare.stats"
 tryCatch(
   expr = {
     gcts <- read.table(comparefile, header = F)[, c(2, 23, 25, 24, 27)]
@@ -43,7 +44,7 @@ gcts_long <- pivot_longer(gcts, -1, names_to = "Conversion", values_to = "Count"
 
 ```{r read_info_input}
 infofile <- params$info
-
+#infofile <- "/home/pdimens/Documents/harpy/Impute/high_ngen/reports/data/impute.infoscore"
 tryCatch(
   expr = {
     infos <- read.table(infofile, header = F, col.names = c("contig", "position", "info"))
@@ -338,11 +339,6 @@ Missing
 As an example, the `Homozygous Ref` is the number of missing genotypes that were imputed into
 a homozygous genotype for the reference allele. The table on the other tab is the
 underlying data used to create the visualization.
-
-```{r plot_height}
-n_samples <- length(unique(gcts_long$sample))
-figheight <- 3 + (0.6 * n_samples)
-```
 :::
 
 ##
@@ -350,20 +346,39 @@ figheight <- 3 + (0.6 * n_samples)
 gcts_long$Conversion <- gsub("AltHom","Homozygous Alt", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("Het","Heterozygote", gcts_long$Conversion)
 gcts_long$Conversion <- gsub("RefHom","Homozygous Ref", gcts_long$Conversion)
-gcts_long$Conversion <- gsub("missing","not imputed", gcts_long$Conversion)
+gcts_long$Conversion <- gsub("missing","Missing", gcts_long$Conversion)
+gcts_long$Conversion <- factor(gcts_long$Conversion, levels = c("Heterozygote", "Homozygous Ref", "Homozygous Alt", "Missing"), ordered = T)
+gcts_long$conv_num <- as.integer(gcts_long$Conversion) -1
 ```
-```{r per_indiv, fig.height=figheight}
-# | expandable: true
-hchart(gcts_long, "bar", hcaes(x = sample, y = Count, group = Conversion), stacking = "normal", animation = F) |>
+
+```{r genotypes}
+highchart() |>
+  hc_add_series(
+    data = gcts_long,
+    type = "scatter",
+    hcaes(x = Count, y = conv_num, color = Conversion, group = sample),
+    marker = list(radius = 5, symbol = "circle"),
+    animation = F
+  ) |>
   hc_colors(c("#7cb3d4", "#b18ad1", "#ffd75f", "#6f6c70")) |>
   hc_title(text = "Genotypes") |>
   hc_caption(text = "Values indicate how many genotypes were imputed into which kind of genotype") |>
-  hc_xAxis(title = list(text = "")) |>
-  hc_yAxis(title = list(text = "count")) |>
-  hc_tooltip(crosshairs = TRUE, animation = F) |>
+  hc_plotOptions(scatter = list(jitter = list(x = 0.1, y = 0.4))) |>
+  hc_yAxis(
+    title = list(text = "Genotypes"),
+    categories = levels(gcts_long$Conversion),
+    labels = list(align = "center"),
+    minorGridLineWidth = 1
+    ) |>
+  hc_xAxis(title = list(text = "Count")) |>
+  hc_tooltip(
+    animation = F,
+    pointFormat = '{point.Conversion}<br>Count: {point.x}'
+  ) |>
   hc_exporting(enabled = T, filename = "impute.samples",
     buttons = list(contextButton = list(menuItems = c("downloadPNG", "downloadJPEG", "downloadPDF", "downloadSVG")))
-  )
+  ) |>
+  hc_legend(enabled = FALSE)
 ```
 
 ###
