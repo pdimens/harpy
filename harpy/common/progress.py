@@ -57,13 +57,13 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         else:
             return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 
-def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0):
+def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0, refresh: int = 2):
     """Returns a nicely formatted live-panel with the progress bar in it"""
     return Live(
         Panel(
             progressbar, title = title, border_style="dim"
         ) if quiet != 2 else None,
-        refresh_per_second=2,
+        refresh_per_second=refresh,
         transient=True,
         console=CONSOLE
     )
