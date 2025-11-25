@@ -295,7 +295,6 @@ class LaunchSnakemake():
                 )
             while self.output:
                 self.nextline()
-                #CONSOLE.print(self.output)
                 if self.iserror() or self.process.poll() == 1:
                     self.exitcode = EXIT_CODE_RUNTIME_ERROR
                     break
