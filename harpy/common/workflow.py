@@ -348,14 +348,8 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        try:
-            sm = LaunchSnakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
-        finally:
-            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
-                f_out.write(Summary(self.config).get_text())
-            #self.purge_empty_logs()
-            #if os.path.exists(self.snakemake_logfile):
-            #    gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
+
+        sm = LaunchSnakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
         
         if self.clean:
             CONSOLE.rule("[dim]Cleaning output directory", style = "dim")
@@ -364,6 +358,11 @@ class Workflow():
                     CONSOLE.log(f"Removing: [blue]{j}/[/]")
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
         if sm.exitcode == 0:
+            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
+                f_out.write(Summary(self.config).get_text())
+            #self.purge_empty_logs()
+            #if os.path.exists(self.snakemake_logfile):
+            #    gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
             self.print_onsuccess()
         else:
             sys.exit(1)

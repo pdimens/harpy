@@ -30,7 +30,6 @@ class Rule:
     def active(self) -> int:
         return len(self.ids) 
 
-
 class LaunchSnakemake():
     """launch snakemake with the given commands and monitor its progress"""
     def __init__(self, sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
@@ -48,6 +47,7 @@ class LaunchSnakemake():
         self.task_ids: dict = {}
         self.total_active: int = 0
         self.progress = harpy_progressbar(self.quiet)
+        self.grouperror: bool = False
         self.error_printed: bool = False
 
         try:
@@ -142,6 +142,15 @@ class LaunchSnakemake():
         merged_text = ""
         _log = self.output.rstrip().split()[1]
         CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
+        #CONSOLE.log(self.output)
+        if "empty file" in self.output:
+            CONSOLE.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
+            self.nextline()
+            return
+        if "not found" in self.output:
+            CONSOLE.print(f"log file {_log} was not found\n", style = "red")
+            self.nextline()
+            return
         lines = 0
         while lines < 2:
             self.nextline()
@@ -152,7 +161,7 @@ class LaunchSnakemake():
         if "====" in self.output:
             #if ".qmd" in merged_text:
             #    merged_text = "Error in " + merged_text.split("\nError in ")[-1]
-            CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text), overflow = "ignore", crop = False)
+            CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "), overflow = "ignore", crop = False)
             self.nextline()
 
     def nextline(self, strip: bool = False):
@@ -361,15 +370,26 @@ class LaunchSnakemake():
                         CONSOLE.print(self.output.rstrip(), style = "red")
                 self.nextline()
             return
+
         if "MissingOutputException" in self.output:
             while "Shutting down, this might" not in self.output:
                 CONSOLE.print(self.output, style="red")
                 self.nextline()
+
+        if "MissingInputException" in self.output:
+            while self.output:
+                CONSOLE.print(self.output, style = "red", end = "")
+                self.nextline()
+
         # Parse rule-based errors #
         while self.output:
             self.nextline()
             if "Exiting because a job execution failed" in self.output:
                 self.nextline()
+                if "Error in group" in self.output:
+                    self.grouperror = True
+                    CONSOLE.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
+                    self.nextline()
                 if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
                     # this is the [timestamp] line
                     CONSOLE.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
@@ -378,8 +398,8 @@ class LaunchSnakemake():
         # error in rule line
         while self.output:
             self.nextline()
-            if "Error in rule" in self.output:
-                if self.error_printed:
+            if "Error in rule" in self.output or "Error in group" in self.output:
+                if self.error_printed and not self.grouperror:
                     break
                 CONSOLE.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
                 self.error_printed = True
