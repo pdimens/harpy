@@ -266,7 +266,7 @@ class Summary:
         summary.append(sm)
         return "\n\n".join(summary)
 
-    def phase(self) -> str:
+    def phase_snp(self) -> str:
         bc_type           = self.config["Workflow"]["linkedreads"]["type"]
         pruning           = self.config["Parameters"]["prune"]
         map_qual          = self.config["Parameters"]["min-map-quality"]
@@ -283,9 +283,8 @@ class Summary:
         indelarg   = "--indels 1 --ref reference.fasta" if self.config["Inputs"].get("reference", None) else ""
         hairs_params = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000"
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1"
-        extra = extra
 
-        summary = ["The harpy phase workflow ran using these parameters:"]
+        summary = ["The harpy phase bam workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {variantfile}")
         hetsplit = "The variant file was split by sample and filtered for heterozygous sites using:\n"
         hetsplit += "\tbcftools view -s SAMPLE | bcftools view -m 2 -M 2 -i \'GT=\"het\"\'"
@@ -303,6 +302,27 @@ class Summary:
         annot += "\tbcftools annotate -a sample.phased.vcf -c CHROM,POS,FMT/GT,FMT/PS,FMT/PQ,FMT/PD -m +HAPCUT\n"
         annot += "\tbcftools merge --output-type b samples.annot.bcf"
         summary.append(annot)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
+        summary.append(sm)
+        return "\n\n".join(summary)
+
+    def phase_bam(self) -> str:
+        extra             = self.config["Parameters"].get("extra", "") 
+        variantfile       = self.config["Inputs"]["vcf"]
+
+        summary = ["The harpy phase snp workflow ran using these parameters:"]
+        summary.append(f"The provided variant file: {variantfile}")
+        validsplit = "The input alignments had their records filtered for valid barcodes:\n"
+        validsplit += "\tdjinn filter-invalid --invalid filtered/sample sample.bam"
+        summary.append(validsplit)
+        phase = "Phasing was performed using whatshap:\n"
+        phaseparam = "--linked-read-distance-cutoff {moldist} --tag-supplementary copy-primary --no-supplementary-strand-match --supplementary-distance {moldist} --ignore-read-groups --skip-missing-contigs"
+        phase += f"\twhatshap haplotag --sample name --reference input.ref {phaseparam} {extra} input.vcf input.bam"
+        summary.append(phase)
+        concataln = "Invalid-barcode alignments were added back to the phased alignments using:\n"
+        concataln += "\tsamtools merge sample.phased.bam sample.invalid.bam | samtools sort -"
+        summary.append(concataln)
         sm = "The Snakemake command invoked:\n"
         sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)

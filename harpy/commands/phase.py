@@ -24,7 +24,7 @@ def phase():
 @click.option('-x', '--extra-params', panel = "Parameters", type = HapCutParams(), help = 'Additional whatshap haplotag parameters, in quotes')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/bam", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(3, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
@@ -47,7 +47,7 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.
     """
-    workflow = Workflow("phase", "phase_bam.smk", output_dir, container, clean, quiet)
+    workflow = Workflow("phase_bam", "phase_bam.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["phase"]
 
@@ -110,7 +110,7 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.
     """
-    workflow = Workflow("phase", "phase_snp.smk", output_dir, container, clean, quiet)
+    workflow = Workflow("phase_snp", "phase_snp.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.report_files = ["hapcut.qmd"]
     workflow.conda = ["phase", "report"]

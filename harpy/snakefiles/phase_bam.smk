@@ -14,7 +14,7 @@ bamlist     = config["Inputs"]["alignments"]
 vcffile     = config["Inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config["Parameters"].get("extra", None) 
-mol_dist    = config["Parameters"]["molecule-distance"]
+mol_dist    = config["Parameters"]["distance-threshold"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"
@@ -47,19 +47,26 @@ rule preprocess_reference:
         }} > {log}
         """
 
-rule index_alignments:
+rule filter_invalid:
     input:
         get_alignments
     output:
-        temp("workflow/input/bam/{sample}.bam.bai"),
-        bam = temp("workflow/input/bam/{sample}.bam")
+        temp("filtered/{sample}.bam.bai"),
+        temp("filtered/{sample}.invalid.bam"),    
+        valid = temp("filtered/{sample}.bam")
+    log:
+        "logs/{sample}.filter_invalid.log"
+    threads:
+        4
     shell:
         """
-        ln -sr {input} {output.bam}
-        samtools index {output.bam}
+        {{
+            djinn filter-invalid --invalid -t {threads} filtered/{wildcards.sample} {input}
+            samtools index {output.valid}  
+        }} 2> {log}
         """
 
-rule index_snps:
+rule index_vcf:
     input:
         vcffile
     output:
@@ -67,7 +74,7 @@ rule index_snps:
     shell:
         "bcftools index {input}"
 
-rule index_snps_gz:
+rule index_vcf_gz:
     input:
         vcffile
     output:
@@ -77,22 +84,23 @@ rule index_snps_gz:
 
 rule phase_alignments:
     input:
-        "workflow/input/bam/{sample}.bam.bai",
+        "filtered/{sample}.bam.bai",
         vcfindex,
         f"{workflow_geno}.fai",
         vcf = vcffile,
-        aln = "workflow/input/bam/{sample}.bam",
+        aln = "filtered/{sample}.bam",
         ref = workflow_geno
     output:
-        bam = "{sample}.phased.bam",
+        bam = temp("phased/{sample}.phased.bam"),
         log = "logs/{sample}.phase.log"
     params:
-        f"--linked-read-distance-cutoff {moldist}",
+        f"--linked-read-distance-cutoff {mol_dist}",
         "--tag-supplementary copy-primary",
         "--no-supplementary-strand-match",
-        f"--supplementary-distance {moldist}",
+        f"--supplementary-distance {mol_dist}",
         "--ignore-read-groups",
-        "--skip-missing-contigs"
+        "--skip-missing-contigs",
+        extra
     conda:
         "envs/phase.yaml"
     container:
@@ -106,21 +114,46 @@ rule log_phasing:
     input:
         collect("logs/{sample}.phase.log", sample = samplenames)
     output:
-        "logs/whatshap-haplotag.log"
+        "logs/phasing.summary.log"
     shell:
         """
         {{
-            echo -e "sample\\ttotal_alignments\\tphased_alignments"
+            echo -e "sample\\tvalid_alignments\\tphased_alignments"
             for i in {input}; do
-                SAMP=$(basename $i .phaselog)
+                SAMP=$(basename $i .phase.log)
                 echo -e "${{SAMP}}\\t$(grep "Total alignments" $i)\\t$(grep "could be tagged" $i)" |
                     sed 's/ \\+ /\\t/g' | cut -f1,3,5
             done
         }} > {output}
         """
 
+rule restore_invalid:
+    input:
+        "phased/{sample}.phased.bam",
+        "filtered/{sample}.invalid.bam"
+    output:
+        pipe("{sample}.phased.unsort.sam")
+    log:
+        "logs/{sample}.restore_invalid.log"
+    shell:
+        "samtools merge -O SAM {output} {input} 2> {log}"
+        
+rule sort_phased_bam:
+    input:
+        "{sample}.phased.unsort.sam"
+    output:
+        "{sample}.phased.bam"
+    log:
+        "logs/{sample}.sort.log"
+    resources:
+        mem_mb = 2000
+    threads:
+        2
+    shell:
+        "samtools sort -@ 1 -o {output} -O BAM --write-index -m {resources.mem_mb}M {input} 2> {log}"
+
 rule all:
     default_target: True
     input:
         bedpe = collect("{sample}.phased.bam", sample = samplenames),
-        phaselog = "logs/whatshap-haplotag.log"
+        phaselog = "logs/phasing.summary.log"
