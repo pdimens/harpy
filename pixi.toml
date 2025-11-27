@@ -19,6 +19,7 @@ snakemake-minimal = ">=9.13"
 samtools = "1.22.*"
 seqtk = "*"
 apptainer = ">=1.4.2,<2"
+djinn = ">=1.1,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
