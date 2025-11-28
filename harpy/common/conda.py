@@ -55,6 +55,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
             "conda-forge::r-highcharter",
+            "conda-forge::r-irkernel",
             "conda-forge::r-magrittr",
             "conda-forge::r-plotly",
             "conda-forge::r-scales",
