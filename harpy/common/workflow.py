@@ -149,6 +149,26 @@ class Workflow():
         self.snakemake_cmd_absolute = " ".join(_command)
         self.snakemake_cmd_relative = " ".join(_command_rel)
 
+    def fetch_notebooks(self) -> None:
+        """
+        Copy any files in self.report_files into workdir/report
+        """
+        dest_dir = os.path.join(self.workflow_directory, "report")
+        os.makedirs(dest_dir, exist_ok= True)
+        
+        for target in self.report_files:
+            dest_file = os.path.join(dest_dir, target)
+            source_file = resources.files("harpy.notebooks") / target
+            try:
+                with resources.as_file(source_file) as _source:
+                    shutil.copy2(_source, dest_file)
+            except (FileNotFoundError, KeyError):
+                print_error(
+                    "report notebook missing",
+                    f"The required report notebook [blue bold]{target}[/] was not found within the Harpy installation.",
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+                )
+
     def fetch_reports(self) -> None:
         """
         Copy any files in self.report_files into workdir/report
