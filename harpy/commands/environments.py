@@ -44,7 +44,6 @@ def conda(workflows):
     - phase
     - qc
     - r
-    - simulations
     - stitch
     - variants
     """
@@ -52,7 +51,7 @@ def conda(workflows):
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
     create_conda_recipes(workflow.output_directory)
     if "all" in workflows:
-        workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
+        workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "stitch", "variants"] 
     workflow.fetch_snakefile()
 
     config_params = "--config"
