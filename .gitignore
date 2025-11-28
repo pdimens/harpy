@@ -42,3 +42,5 @@ pixi.lock
 *.egg-info
 .deprecated/
 test/
+# MyST build outputs
+_build

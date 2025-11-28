@@ -10,6 +10,7 @@ from harpy.commands import environments
 from harpy.commands import impute
 from harpy.commands import qc
 from harpy.commands import phase
+from harpy.commands import reports
 from harpy.commands import snp, sv
 from harpy.commands import template
 from harpy.commands import validate
@@ -40,7 +41,7 @@ config = click.RichHelpConfiguration(
 @click.command_panel(
     "Other Commands",
     panel_styles={"border_style": "magenta"},
-    commands = sorted(["template"])
+    commands = sorted(["reports", "template"])
 )
 @click.command_panel(
     "Troubleshoot",
@@ -70,6 +71,7 @@ cli.add_command(impute.impute)
 cli.add_command(metassembly.metassembly)
 cli.add_command(phase.phase)
 cli.add_command(qc.qc)
+cli.add_command(reports.reports)
 cli.add_command(resume.resume)
 cli.add_command(snp.snp)
 cli.add_command(sv.sv)

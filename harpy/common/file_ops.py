@@ -25,7 +25,9 @@ def fetch_template(target: str, outfile = None) -> None:
     """
     source_file = resources.files("harpy.templates") / target
     if outfile:
-        os.makedirs(os.path.dirname(outfile), exist_ok=True)
+        _dir = os.path.dirname(outfile)
+        if _dir:
+            os.makedirs(_dir, exist_ok=True)
         _out = open(outfile, "w")
     else:
         _out = sys.stdout
