@@ -492,7 +492,6 @@ class Summary:
             f"-d {duplcates_thresh}",
             extra
         ])
-
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {genomefile}")
         summary.append(f"The provided populations grouping file: {groupfile}")
@@ -511,16 +510,10 @@ class Summary:
         return "\n\n".join(summary)
 
     def sv_naibr(self) -> str:
-        if "vcf" in self.config["Inputs"]:
-            if "groupings" in self.config["Inputs"]:
-                return self.naibr_phase_pop()
-            else:
-                return self.naibr_phase()
+        if "groupings" in self.config["Inputs"]:
+            return self.naibr_pop()
         else:
-            if "groupings" in self.config["Inputs"]:
-                return self.naibr_pop()
-            else:
-                return self.naibr()
+            return self.naibr()
 
     def naibr(self) -> str:
         genomefile = os.path.basename(self.config["Inputs"]["reference"])
