@@ -25,8 +25,7 @@ site:
 project:
   id: {rand_id()}
   title: Harpy Reports
-  description: The various reports produced by Harpy, aggregated into a navigable website using MyST.
-  authors: ["Pavel Dimens"]{gh_line}
+  description: The various reports produced by Harpy, aggregated into a navigable website using MyST.{gh_line}
 """
 
 @click.group(context_settings={"help_option_names" : []})
