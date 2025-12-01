@@ -1,11 +1,10 @@
 import os
-import sys
 import rich_click as click
 import shutil
 import subprocess
 import uuid
 from harpy.common.file_ops import fetch_template
-from harpy.common.printing import print_error, print_notice, CONSOLE
+from harpy.common.printing import print_error, print_notice
 
 def rand_id():
     uid = uuid.uuid4().hex
@@ -29,23 +28,23 @@ project:
 """
 
 @click.group(context_settings={"help_option_names" : []})
-def reports():
+def report():
     """
     Setup and render harpy reports
 
-    Harpy reports are provided as Jupyter Notebooks. The subsequent subcommands
+    Harpy reports are provided as Jupyter Notebooks. The subsequent commands
     will configure your project directory to make these much nicer, enabling you
     to render them as one navigable and interactive local website, publish it
-    to GitHub, etc.
+    to GitHub Pages, etc.
     """
 
-@click.command(epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
+@click.command(context_settings={"help_option_names" : ['-h', '--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-g', '--gh-pages', is_flag = True, show_default = True, default = False, help = 'Setup a GitHub Action to build the website on Push')
 def init(gh_pages):
     """
-    Configure the repository for advanced report features
+    Configure the project for advanced report features
     
-    Using MyST, the harpy reports can be rendered and built into
+    Using MyST, Harpy reports can be built into and rendered as
     an interactive website, which first requires a bit of configuration.
     Use `--gh-pages` to optionally setup a GitHub Action to build
     the website and publish to GitHub on a push to the remote repository.
@@ -72,4 +71,22 @@ def init(gh_pages):
         notices.append("- The [green]MyST[/] software is required for a locally-served report website, however it was not found in this environment.")
     if notices:
         print_notice("\n".join(notices))
-reports.add_command(init)
+
+@click.command(context_settings={"help_option_names" : ['-h', '--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
+@click.argument('directory', required=False, type=click.Path(exists=True, file_okay=False, readable=True), nargs=1)
+def render(directory):
+    """
+    Render ipynb reports as a local website
+
+    Using MyST, all the `.ipynb` reports within Harpy-generated
+    directories will be aggregated and rendered into a locally-served
+    website for you to review them from a single access point. This command
+    is expected to be executed within a git version-controlled directory, where
+    Harpy can identify the root directory of the project, otherwise provide the
+    path to a directory for Harpy to recursively scan the `.ipynb` reports. 
+    """
+    print(directory)
+    pass
+
+report.add_command(init)
+report.add_command(render)
