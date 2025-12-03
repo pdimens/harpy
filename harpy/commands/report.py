@@ -253,7 +253,7 @@ def init(gh_pages):
 @click.command(context_settings={"help_option_names" : ['--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
-@click.option('-r', '--refresh', type = click.IntRange(min = 1, max_open=True), show_default = True, default = 5, help = 'Refresh interval, in seconds')
+@click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 30, help = 'Refresh interval, in seconds')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
 def render(directory, headless, port, server_port, refresh):
@@ -290,11 +290,19 @@ def render(directory, headless, port, server_port, refresh):
                     URL += _url[0].strip()
             rprint(f"MyST live-server started: [blue bold]{URL}[/]\nTerminate it with [bold yellow]ctrl+c[/]")
             while True:
-                tracker.scan_for_reports()
-                tracker.overwrite_yaml()
-                sleep(refresh)
+                if refresh > 0:
+                    tracker.scan_for_reports()
+                    tracker.overwrite_yaml()
+                    sleep(refresh)
+                else:
+                    sleep(999999)
     except KeyboardInterrupt:
         pass
+    except Exception as e:
+        print_error(
+            "MyST server error",
+            e
+        )
 
 report.add_command(init)
 report.add_command(render)
