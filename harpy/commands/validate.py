@@ -44,7 +44,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     """
     workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["validate_bam.qmd"]
+    workflow.report_files = ["validate_bam.ipynb"]
     workflow.conda = ["report"]
 
     ## checks and validations ##

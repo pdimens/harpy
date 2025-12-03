@@ -171,7 +171,8 @@ class Workflow():
 
     def fetch_reports(self) -> None:
         """
-        Copy any files in self.report_files into workdir/report
+        Copy any files in self.report_files into workdir/report and fetch report configs if
+        reports were specified
         """
         dest_dir = os.path.join(self.workflow_directory, "report")
         os.makedirs(dest_dir, exist_ok= True)
@@ -188,6 +189,7 @@ class Workflow():
                     f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.",
                     "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
                 )
+        self.fetch_report_configs()
 
     def fetch_report_configs(self):
         """
@@ -355,10 +357,10 @@ class Workflow():
         if not self.container:
             create_conda_recipes(self.output_directory, self.conda)
         self.fetch_snakefile()
-        self.fetch_reports()
         self.fetch_scripts()
-        self.fetch_report_configs()
+        self.fetch_notebooks()
         self.fetch_hpc()
+        self.fetch_reports()
         self.print_onstart()
         if not setup:
             self.launch()

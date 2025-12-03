@@ -1,9 +1,7 @@
 """Module to bypass Harpy and run snakemake"""
 
-from ast import keyword
 from datetime import datetime
 import os
-import re
 import sys
 import yaml
 import rich_click as click
@@ -11,14 +9,17 @@ from harpy.common.conda import check_environments
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 
-def config_extract(d: dict, section:str, key: str = ""):
+def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = False):
     val = d.get(section, {})
     if not val:
-        print_error(
-            "incorrect config.yaml",
-            f"The [blue]workflow.yaml[/] file is missing the [green]{section}[/] section",
-            f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{section}[/] section (and it is not empty)."
-        )
+        if not allow_missing:
+            print_error(
+                "incorrect workflow.yaml",
+                f"The [blue]workflow.yaml[/] file is missing the [green]{section}[/] section",
+                f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{section}[/] section (and it is not empty)."
+            )
+        else:
+            return val
     if ":" in key:
         _key, _subkey = key.split(":")
         val = val.get(_key, {})
@@ -81,6 +82,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
 
     #container = snakemake_config["software-deployment-method"] == "apptainer"
     _name = config_extract(harpy_config, "Workflow", "name")
+    _allow_noparams = True if "validate" in _name else False
     _dir = snakemake_profile_extract(snakemake_config, "directory")
     _inputs = config_extract(harpy_config, "Inputs")
 
@@ -91,7 +93,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         for i,j in _inputs.items():
             workflow.input(j, i)    
 
-    workflow.parameters = config_extract(harpy_config, "Parameters")
+    workflow.parameters = config_extract(harpy_config, "Parameters", allow_missing=_allow_noparams)
 
     workflow.snakemake_cmd_relative = config_extract(harpy_config, "Workflow", "snakemake:relative")
     if absolute:
