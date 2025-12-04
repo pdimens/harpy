@@ -13,8 +13,9 @@ from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import package_absent
 
 @click.group(context_settings={"help_option_names" : []})
-@click.command_panel("Input Files", panel_styles={"border_style": "blue"})
 @click.command_panel("HPC Configurations", panel_styles={"border_style": "blue"})
+@click.command_panel("Input Files", panel_styles={"border_style": "blue"})
+@click.command_panel("Other", panel_styles={"border_style": "blue"})
 def template():
     """
     Create files and HPC configs for workflows
@@ -61,31 +62,43 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-@click.command(no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
-@click.option('-u', '--update', is_flag = True, help = 'Scan the git project for reports and update `myst.yml`')
-def report_site(update):
+#TODO FIX EPILOG
+@click.command(panel = "Other", context_settings={"help_option_names" : ["-h", "--help"]}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.option('-a', '--action', is_flag = True, default = False, help = 'Add a report-building GitHub Action to the repository')
+@click.option('-u', '--update', is_flag = True, default = False, help = 'Scan the git project for reports and update `myst.yml`')
+def report(update, action):
     """
     Repository configuration to build report website
     
-    Setup up a GitHub Action to automatically build and publish the reports as a single website
-    to GitHub on a push to the remote repository. Creates `myst.yml` at the project root and the landing page `.report/index.md` if
-    they don't already exist.
+    Creates `myst.yml` at the project root and the landing page `.report/index.md` if
+    they don't already exist. Use `--action` to also configure a GitHub Action
+    that automatically builds and publishes the reports as a single website
+    to GitHub on a push to the remote repository. 
     """
-    if not shutil.which("git"):
-        print_error(
-            "git not found",
-            "The [green]git[/] software was not found to identify the root directory of this project, therefore this is not considered to be a git-managed project."
-        )
-
-    git_dir = subprocess.run("git rev-parse --show-toplevel".split(), text = True, stdout = subprocess.PIPE).stdout.strip()
-
-    if not git_dir:
-        print_error(
-            "not git-managed",
-            "Configuring the project and GitHub Action requires this command to be run anywhere within a Git version-controlled directory, however [green]git[/] was unable to detect the root of this repository.",
-            "Please verify that this a git-managed repository, and if not, use [blue]git init[/] to set it up as one."
-        )
-    fetch_template("buildreports.yml", os.path.join(git_dir, ".github", "workflows", "buildreports.yml"))
+    git_dir = ""
+    git_dir_err = ""
+    if os.path.isdir(".git"):
+        git_dir = "."
+        pass
+    else:
+        if action:
+            if not shutil.which("git"):
+                print_error(
+                "git not found",
+                    "The [green]git[/] software was not found to identify the root directory of this project, therefore this is not considered to be a git-managed project."
+                )
+            else:
+                git_dir_proc = subprocess.Popen("git rev-parse --show-toplevel".split(), text = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+                git_dir = git_dir_proc.stdout.readline().strip()
+                git_dir_err = git_dir_proc.stderr.readline().strip()
+                if "not a git repository" in git_dir_err and action:
+                    print_error(
+                        "not git-managed",
+                        "Configuring the project and GitHub Action requires this command to be run anywhere within a Git version-controlled directory, however [green]git[/] was unable to detect the root of this repository.",
+                        "Please verify that this a git-managed repository, and if not, use [blue]git init[/] to set it up as one."
+                    )
+    if action:
+        fetch_template("buildreports.yml", os.path.join(git_dir, ".github", "workflows", "buildreports.yml"))
     if not os.path.isfile(os.path.join(git_dir, ".report", "index.md")):
         fetch_template("report_index.md", os.path.join(git_dir, ".report", "index.md"))
     _init = ReportRender(git_dir)
@@ -189,3 +202,4 @@ template.add_command(hpc_generic)
 template.add_command(hpc_googlebatch)
 template.add_command(hpc_lsf)
 template.add_command(hpc_slurm)
+template.add_command(report)

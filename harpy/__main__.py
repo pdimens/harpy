@@ -41,7 +41,7 @@ config = click.RichHelpConfiguration(
 @click.command_panel(
     "Other Commands",
     panel_styles={"border_style": "magenta"},
-    commands = sorted(["reports", "template"])
+    commands = sorted(["report", "template"])
 )
 @click.command_panel(
     "Troubleshoot",

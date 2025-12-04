@@ -2,10 +2,9 @@ common: &common
   - 'harpy/common/**'
   - 'harpy/__main__.py'
   - 'harpy/validation/**'
-  - 'resources/harpy.yaml'
+  - 'harpy/common/report.py'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
-  - 'resources/buildforCI.sh'
 environments: &environments
   - 'harpy/common/conda.py'
   - 'harpy/commands/environments.py'
@@ -20,8 +19,8 @@ validate: &validate
   - 'test/bam/**'
   - 'harpy/scripts/check_bam.py'
   - 'harpy/scripts/check_fastq.py'
-  - 'harpy/reports/validate_fastq.ipynb'
-  - 'harpy/reports/validate_bam.ipynb'
+  - 'harpy/notebooks/validate_fastq.ipynb'
+  - 'harpy/notebooks/validate_bam.ipynb'
 deconvolve: &deconvolve
   - *common
   - *environments
@@ -45,8 +44,8 @@ bwa: &bwa
   - *environments
   - 'harpy/commands/align.py'
   - 'harpy/snakefiles/align_bwa.smk'
-  - 'harpy/reports/align_stats.ipynb'
-  - 'harpy/reports/align_bxstats.ipynb'
+  - 'harpy/notebooks/align_stats.ipynb'
+  - 'harpy/notebooks/align_bxstats.ipynb'
   - 'harpy/scripts/bx_stats.py'
   - 'harpy/scripts/count_bx.py'
   - 'harpy/scripts/assign_mi.py'
@@ -57,8 +56,8 @@ strobealign: &strobealign
   - *environments
   - 'harpy/commands/align.py'
   - 'harpy/snakefiles/align_strobealign.smk'
-  - 'harpy/reports/align_stats.ipynb'
-  - 'harpy/reports/align_bxstats.ipynb'
+  - 'harpy/notebooks/align_stats.ipynb'
+  - 'harpy/notebooks/align_bxstats.ipynb'
   - 'harpy/scripts/assign_mi.py'
   - 'harpy/scripts/bx_stats.py'
   - 'harpy/scripts/count_bx.py'
@@ -69,7 +68,7 @@ mpileup: &mpileup
   - *environments
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
-  - 'harpy/reports/bcftools_stats.ipynb'
+  - 'harpy/notebooks/bcftools_stats.ipynb'
   - 'harpy/scripts/make_windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
@@ -77,7 +76,7 @@ freebayes: &freebayes
   - *environments
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_freebayes.smk'
-  - 'harpy/reports/bcftools_stats.ipynb'
+  - 'harpy/notebooks/bcftools_stats.ipynb'
   - 'harpy/scripts/make_windows.py'
   - 'test/bam/**'
 impute: &impute
@@ -87,8 +86,8 @@ impute: &impute
   - 'harpy/snakefiles/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/reports/impute.ipynb'
-  - 'harpy/reports/stitch_collate.ipynb'
+  - 'harpy/notebooks/impute.ipynb'
+  - 'harpy/notebooks/stitch_collate.ipynb'
 leviathan: &leviathan
   - *common
   - *environments
@@ -97,7 +96,7 @@ leviathan: &leviathan
   - 'test/bam/**'
   - 'harpy/scripts/concatenate_bam.py'
   - 'harpy/scripts/leviathan_bx_shim.py'
-  - 'harpy/reports/leviathan**.ipynb'
+  - 'harpy/notebooks/leviathan**.ipynb'
 naibr: &naibr
   - *common
   - *environments
@@ -107,7 +106,7 @@ naibr: &naibr
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
-  - 'harpy/reports/naibr**.ipynb'
+  - 'harpy/notebooks/naibr**.ipynb'
   - 'harpy/scripts/infer_sv.py'
 phase: &phase
   - *common
@@ -116,7 +115,7 @@ phase: &phase
   - 'harpy/snakefiles/phase.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/reports/hapcut.ipynb'
+  - 'harpy/notebooks/hapcut.ipynb'
   - 'harpy/scripts/parse_phaseblocks.py'
 assembly: &assembly
   - *common
