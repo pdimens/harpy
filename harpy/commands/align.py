@@ -54,7 +54,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.report_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##
@@ -118,7 +118,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     """
     workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["align_stats.qmd", "align_bxstats.qmd"]
+    workflow.report_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
     workflow.conda = ["align", "report", "qc"]
 
     ## checks and validations ##

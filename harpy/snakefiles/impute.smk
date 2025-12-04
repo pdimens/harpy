@@ -187,10 +187,10 @@ rule contig_report:
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
         "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        qmd = "workflow/report/stitch_collate.qmd"
+        qmd = "workflow/report/stitch_collate.ipynb"
     output:
         report = "{paramset}/reports/{contig}.{paramset}.html",
-        qmd = temp("{paramset}/reports/{contig}.{paramset}.qmd")
+        qmd = temp("{paramset}/reports/{contig}.{paramset}.ipynb")
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
@@ -209,9 +209,9 @@ rule contig_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
         """
 
 rule concat_list:
@@ -313,10 +313,10 @@ rule impute_reports:
         "{paramset}/reports/_harpy.scss",
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = "{paramset}/reports/data/impute.infoscore",
-        qmd = "workflow/report/impute.qmd"
+        qmd = "workflow/report/impute.ipynb"
     output:
         "{paramset}/reports/{paramset}.summary.html",
-        qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
+        qmd = temp("{paramset}/reports/{paramset}.summary.ipynb")
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
@@ -334,10 +334,10 @@ rule impute_reports:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         COMPARE=$(realpath {input.comparison})
         INFOSCORE=$(realpath {input.infoscore})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
         """
 
 rule all:

@@ -191,10 +191,10 @@ rule sample_reports:
         "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
         bedpe = "bedpe/{sample}.bedpe",
-        qmd   = "workflow/report/naibr.qmd"
+        qmd   = "workflow/report/naibr.ipynb"
     output:
         report = "reports/{sample}.naibr.html",
-        qmd = temp("reports/{sample}.naibr.qmd")
+        qmd = temp("reports/{sample}.naibr.ipynb")
     log:
         "logs/reports/{sample}.report.log"
     params:
@@ -208,10 +208,10 @@ rule sample_reports:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         FAIDX=$(realpath {input.faidx})
         BEDPE=$(realpath {input.bedpe})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P bedpe:$BEDPE {params}
         """
 
 rule all:

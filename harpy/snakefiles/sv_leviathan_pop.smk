@@ -232,10 +232,10 @@ rule group_reports:
         "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
         statsfile = "reports/data/{population}.sv.stats",
-        qmd       = "workflow/report/leviathan.qmd"
+        qmd       = "workflow/report/leviathan.ipynb"
     output:
         report = "reports/{population}.leviathan.html",
-        qmd = temp("reports/{population}.leviathan.qmd")
+        qmd = temp("reports/{population}.leviathan.ipynb")
     log:
         "logs/reports/{population}.report.log"
     params:
@@ -249,10 +249,10 @@ rule group_reports:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
         """
 
 rule aggregate_report:
@@ -261,10 +261,10 @@ rule aggregate_report:
         "reports/_harpy.scss",
         faidx      = f"{workflow_geno}.fai",
         statsfiles = collect("reports/data/{pop}.sv.stats", pop = populations),
-        qmd        = "workflow/report/leviathan_pop.qmd"
+        qmd        = "workflow/report/leviathan_pop.ipynb"
     output:
         report = "reports/leviathan.summary.html",
-        qmd = temp("reports/leviathan.summary.qmd")
+        qmd = temp("reports/leviathan.summary.ipynb")
     log:
         "logs/reports/summary.report.log"
     params:
@@ -278,10 +278,10 @@ rule aggregate_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         FAIDX=$(realpath {input.faidx})
         INPATH=$(realpath {params.statsdir})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsdir:$INPATH {params.contigs}
         """
 
 rule all:

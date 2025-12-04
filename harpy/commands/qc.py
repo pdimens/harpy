@@ -49,7 +49,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     """
     workflow = Workflow("qc", "qc.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["qc_bx_stats.qmd"]
+    workflow.report_files = ["qc_bx_stats.ipynb"]
     workflow.conda = ["qc", "report"]
 
     ## checks and validations ##

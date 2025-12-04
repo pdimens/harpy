@@ -59,6 +59,10 @@ class LaunchSnakemake():
                 return
             self.monitor_jobs()
         except KeyboardInterrupt:
+            if self.quiet < 2:
+                for _ in range(1):
+                    CONSOLE.file.write("\033[F\033[K")
+                CONSOLE.file.flush()
             CONSOLE.print("")
             CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
             sys.exit(1)
@@ -159,7 +163,7 @@ class LaunchSnakemake():
                 continue
             merged_text += self.output
         if "====" in self.output:
-            #if ".qmd" in merged_text:
+            #if ".ipynb" in merged_text:
             #    merged_text = "Error in " + merged_text.split("\nError in ")[-1]
             CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "), overflow = "ignore", crop = False)
             self.nextline()

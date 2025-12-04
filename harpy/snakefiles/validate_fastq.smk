@@ -75,10 +75,10 @@ rule create_report:
         "_quarto.yml",
         "_harpy.scss",
         data = "validate.fastq.tsv",
-        qmd = "workflow/report/validate_fastq.qmd"
+        qmd = "workflow/report/validate_fastq.ipynb"
     output:
         html = "validate.fastq.html",
-        qmd = temp("validate.fastq.qmd")
+        qmd = temp("validate.fastq.ipynb")
     log:
         "logs/report.log"
     params:
@@ -91,9 +91,9 @@ rule create_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
         """
 
 rule all:

@@ -59,7 +59,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     """
     workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["bcftools_stats.qmd"]
+    workflow.report_files = ["bcftools_stats.ipynb"]
     workflow.conda = ["report", "variants"]
 
     ## checks and validations ##
@@ -129,7 +129,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     """
     workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["bcftools_stats.qmd"]
+    workflow.report_files = ["bcftools_stats.ipynb"]
     workflow.conda = ["report"]
 
     ## checks and validations ##

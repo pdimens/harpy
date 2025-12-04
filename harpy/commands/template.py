@@ -2,11 +2,15 @@
 
 import os
 import re
+import shutil
+import subprocess
 import sys
 import glob
 import rich_click as click
+from harpy.commands.report import ReportRender
 from harpy.common.printing import print_error, print_notice, CONSOLE
 from harpy.common.file_ops import fetch_template
+from harpy.common.system_ops import package_absent
 
 @click.group(context_settings={"help_option_names" : []})
 @click.command_panel("Input Files", panel_styles={"border_style": "blue"})
@@ -57,9 +61,37 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-import rich_click as click
-from harpy.common.file_ops import fetch_template
-from harpy.common.system_ops import package_absent
+@click.command(no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.option('-u', '--update', is_flag = True, help = 'Scan the git project for reports and update `myst.yml`')
+def report_site(update):
+    """
+    Repository configuration to build report website
+    
+    Setup up a GitHub Action to automatically build and publish the reports as a single website
+    to GitHub on a push to the remote repository. Creates `myst.yml` at the project root and the landing page `.report/index.md` if
+    they don't already exist.
+    """
+    if not shutil.which("git"):
+        print_error(
+            "git not found",
+            "The [green]git[/] software was not found to identify the root directory of this project, therefore this is not considered to be a git-managed project."
+        )
+
+    git_dir = subprocess.run("git rev-parse --show-toplevel".split(), text = True, stdout = subprocess.PIPE).stdout.strip()
+
+    if not git_dir:
+        print_error(
+            "not git-managed",
+            "Configuring the project and GitHub Action requires this command to be run anywhere within a Git version-controlled directory, however [green]git[/] was unable to detect the root of this repository.",
+            "Please verify that this a git-managed repository, and if not, use [blue]git init[/] to set it up as one."
+        )
+    fetch_template("buildreports.yml", os.path.join(git_dir, ".github", "workflows", "buildreports.yml"))
+    if not os.path.isfile(os.path.join(git_dir, ".report", "index.md")):
+        fetch_template("report_index.md", os.path.join(git_dir, ".report", "index.md"))
+    _init = ReportRender(git_dir)
+    if update:
+        _init.scan_for_reports()
+        _init.update_yaml()
 
 @click.command(panel = "HPC Configurations")
 def hpc_generic():

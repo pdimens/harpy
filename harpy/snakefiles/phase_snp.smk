@@ -255,10 +255,10 @@ rule phase_report:
         "reports/_quarto.yml",
         "reports/_harpy.scss",
         data = "reports/blocks.summary.gz",
-        qmd = "workflow/report/hapcut.qmd"
+        qmd = "workflow/report/hapcut.ipynb"
     output:
         html = "reports/phase.html",
-        qmd = temp("reports/phase.qmd")
+        qmd = temp("reports/phase.ipynb")
     log:
         "logs/report.log"
     params:
@@ -271,9 +271,9 @@ rule phase_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P blockfile:$INFILE
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P blockfile:$INFILE
         """
 
 rule workflow_summary:

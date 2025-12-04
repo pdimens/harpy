@@ -112,7 +112,7 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     """
     workflow = Workflow("phase_snp", "phase_snp.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["hapcut.qmd"]
+    workflow.report_files = ["hapcut.ipynb"]
     workflow.conda = ["phase", "report"]
 
     ## checks and validations ##

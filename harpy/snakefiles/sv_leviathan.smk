@@ -186,10 +186,10 @@ rule sample_reports:
         "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
         statsfile = "reports/data/{sample}.sv.stats",
-        qmd       = "workflow/report/leviathan.qmd"
+        qmd       = "workflow/report/leviathan.ipynb"
     output:
         report = "reports/{sample}.leviathan.html",
-        qmd = temp("reports/{sample}.leviathan.qmd")
+        qmd = temp("reports/{sample}.leviathan.ipynb")
     log:
         "logs/reports/{sample}.report.log"
     params:
@@ -203,10 +203,10 @@ rule sample_reports:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         FAIDX=$(realpath {input.faidx})
         STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
         """
 
 rule all:

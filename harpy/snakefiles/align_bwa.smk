@@ -229,10 +229,10 @@ rule sample_reports:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
         coverage = "reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"workflow/report/align_stats.qmd"
+        qmd = f"workflow/report/align_stats.ipynb"
     output:
         report = "reports/{sample}.html",
-        qmd = temp("reports/{sample}.qmd")
+        qmd = temp("reports/{sample}.ipynb")
     params:
         mol_dist = f"-P mol_dist:{molecule_distance}",
         window_size = f"-P windowsize:{windowsize}",
@@ -248,11 +248,11 @@ rule sample_reports:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         BXSTATS=$(realpath {input.bxstats})
         COVFILE=$(realpath {input.coverage})
         MOLCOV=$(realpath {input.molecule_coverage})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
         """
 
 if ignore_bx:
@@ -309,10 +309,10 @@ rule barcode_report:
         f"reports/_quarto.yml",
         f"reports/_harpy.scss",
         collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"workflow/report/align_bxstats.qmd"
+        qmd = f"workflow/report/align_bxstats.ipynb"
     output:
         report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.qmd")
+        qmd = temp("reports/barcode.summary.ipynb")
     params:
         f"reports/data/bxstats/"
     log:
@@ -325,9 +325,9 @@ rule barcode_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INPATH=$(realpath {params})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P indir:$INPATH
         """
 
 rule all:

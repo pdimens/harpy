@@ -68,6 +68,7 @@ def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: in
         console=CONSOLE
     )
 
+
 def harpy_progressbar(quiet: int) -> Progress:
     """
     The pre-configured transient progress bar that workflows and validations use

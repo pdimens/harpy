@@ -61,9 +61,9 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     vcaller = "sv_leviathan" if not populations else "sv_leviathan_pop"
     workflow = Workflow("sv_leviathan", f"{vcaller}.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["leviathan.qmd"]
+    workflow.report_files = ["leviathan.ipynb"]
     if populations:
-        workflow.report_files.append("leviathan_pop.qmd")
+        workflow.report_files.append("leviathan_pop.ipynb")
     workflow.conda = ["align", "report", "variants"]
 
     ## checks and validations ##
@@ -136,9 +136,9 @@ def naibr(inputs, output_dir, reference, min_size, min_barcodes, min_quality, th
     vcaller = "sv_naibr" if not populations else "sv_naibr_pop"
     workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["naibr.qmd"]
+    workflow.report_files = ["naibr.ipynb"]
     if populations:
-        workflow.report_files.append("naibr_pop.qmd")
+        workflow.report_files.append("naibr_pop.ipynb")
     workflow.conda = ["report", "variants"]
 
     ## checks and validations ##

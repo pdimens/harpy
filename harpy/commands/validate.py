@@ -85,7 +85,7 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, 
     """
     workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["validate_fastq.qmd"]
+    workflow.report_files = ["validate_fastq.ipynb"]
     workflow.conda = ["report"]
 
     ## checks and validations ##

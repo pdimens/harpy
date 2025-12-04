@@ -44,3 +44,5 @@ pixi.lock
 test/
 # MyST build outputs
 _build
+.report/
+myst.yml

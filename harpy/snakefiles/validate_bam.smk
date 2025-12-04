@@ -60,10 +60,10 @@ rule create_report:
         "_quarto.yml",
         "_harpy.scss",
         data = "validate.bam.tsv",
-        qmd = "workflow/report/validate_bam.qmd"
+        qmd = "workflow/report/validate_bam.ipynb"
     output:
         html = "validate.bam.html",
-        qmd = temp("validate.bam.qmd")
+        qmd = temp("validate.bam.ipynb")
     params:
         lr_platform
     log:
@@ -76,9 +76,9 @@ rule create_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
         """
 
 rule all:

@@ -89,10 +89,10 @@ rule barcode_report:
         "reports/_quarto.yml",
         "reports/_harpy.scss",
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"workflow/report/qc_bx_stats.qmd"
+        qmd = f"workflow/report/qc_bx_stats.ipynb"
     output:
         report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.qmd")
+        qmd = temp("reports/barcode.summary.ipynb")
     params:
         f"logs/bxcount/"
     log:
@@ -105,9 +105,9 @@ rule barcode_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INPATH=$(realpath {params})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P indir:$INPATH
         """
 
 rule qc_report:

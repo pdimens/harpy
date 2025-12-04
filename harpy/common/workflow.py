@@ -360,7 +360,7 @@ class Workflow():
         self.fetch_scripts()
         self.fetch_notebooks()
         self.fetch_hpc()
-        self.fetch_reports()
+        #self.fetch_reports()
         self.print_onstart()
         if not setup:
             self.launch()

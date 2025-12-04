@@ -189,10 +189,10 @@ rule variant_report:
         "reports/_quarto.yml",
         "reports/_harpy.scss",
         data = "reports/data/variants.{type}.stats",
-        qmd  = "workflow/report/bcftools_stats.qmd"
+        qmd  = "workflow/report/bcftools_stats.ipynb"
     output:
         report = "reports/variants.{type}.html",
-        qmd = temp("reports/variants.{type}.qmd")
+        qmd = temp("reports/variants.{type}.ipynb")
     params:
         lambda wc: "-P vcf:variants." + wc.get("type")
     log:
@@ -205,9 +205,9 @@ rule variant_report:
         3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
+        cp -f {input.ipynb} {output.ipynb}
         INPATH=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INPATH {params}
+        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INPATH {params}
         """
 
 rule all:
