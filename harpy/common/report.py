@@ -208,7 +208,10 @@ def myst_yaml() -> dict:
     """
     Returns a dict with the contents of a harpy-configured `mysy.yml` file
     """
-    git_url = subprocess.run("git remote get-url origin".split(), text = True, stdout = subprocess.PIPE).stdout.strip().removesuffix(".git")
+    try:
+        git_url = subprocess.run("git remote get-url origin".split(), text = True, stdout = subprocess.PIPE).stdout.strip().removesuffix(".git")
+    except Exception:
+        git_url = ""
     d = {
         "version" : 1,
         "site" : {
