@@ -5,11 +5,9 @@ import glob
 import os
 from pathlib import Path
 import uuid
-import shutil
 import subprocess
 import yaml
-from harpy.common.file_ops import fetch_template
-from harpy.common.printing import print_error, print_notice
+from harpy.common.printing import print_error
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -43,7 +41,6 @@ class ReportRender():
         """
         if not self.filechanges:
             return
-        #self.clean_filetree()
         self.config["project"]["toc"] = self.filetree_to_toc()
         with open(self.configfile, "w") as yml:
             yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
