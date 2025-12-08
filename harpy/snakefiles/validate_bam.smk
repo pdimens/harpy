@@ -43,45 +43,32 @@ rule concat_results:
         }} > {output}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("_quarto.yml"),
-        scss = temp("_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule create_report:
     input:
-        "_quarto.yml",
-        "_harpy.scss",
         data = "validate.bam.tsv",
-        qmd = "workflow/report/validate_bam.ipynb"
+        ipynb = "workflow/report/validate_bam.ipynb"
     output:
-        html = "validate.bam.html",
-        qmd = temp("validate.bam.ipynb")
+        tmp = temp("validate.bam.tmp.ipynb"),
+        ipynb = "validate.bam.ipynb"
     params:
-        lr_platform
+        lr_platform = lr_platform,
+        static = "--no-progress-bar --log-level ERROR -k ir",
+        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-input"/g'
     log:
         "logs/report.log"
     conda:
         "envs/report.yaml"
     container:
         "docker://pdimens/harpy:report_latest"
-    retries:
-        3
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INFILE=$(realpath {input.data})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        {{
+            papermill {params.static} {input.ipynb} {output.tmp} -p infile {input.data} -p platform {params.lr_platform}
+            sed '{params.sed_replace}' {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
     default_target: True
     input:
-        "validate.bam.html"
+        "validate.bam.ipynb"

@@ -43,6 +43,7 @@ class ReportRender():
         """
         if not self.filechanges:
             return
+        #self.clean_filetree()
         self.config["project"]["toc"] = self.filetree_to_toc()
         with open(self.configfile, "w") as yml:
             yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
@@ -51,40 +52,35 @@ class ReportRender():
     def scan_for_reports(self):
         """
         Recursively search `self.root` for files ending in `.ipynb`, filtering out those found in the _build/ directory
-        and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`.
+        and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
         """
         original = copy.deepcopy(self.filetree)
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
         for path in _ipynb:
             # ignore the 'reports' folder name when building the tree
             parts = [i for i in Path(path).parts if i != "reports"]
-
             if len(parts) == 1:
                 # Root level file
                 if '__root__' not in self.filetree:
                     self.filetree['__root__'] = []
                 self.filetree['__root__'].append(parts[0])
-            else:
-                # Navigate to parent directory, creating dicts as needed
-                current = self.filetree
-                for part in parts[:-2]:
+                continue
+
+            current = self.filetree
+            for idx,part in enumerate(parts,1):
+                if isinstance(current, set):
+                    # terminal file
+                    current.add(path)
+                elif idx == len(parts)-1:
+                    if part not in current:
+                        current[part] = set()
+                    current = current[part]
+                else:
                     if part not in current:
                         current[part] = {}
                     current = current[part]
 
-                # Add the file to its parent directory
-                parent_dir = parts[-2]
-
-                if parent_dir not in current:
-                    current[parent_dir] = set()
-
-                # If it's already a set, add to it
-                if isinstance(current[parent_dir], set):
-                    current[parent_dir].add(path)
-                # If it's a dict, it has subdirs, so we need to keep it as dict
-                # (this handles cases where a dir has both files and subdirs)
         if original != self.filetree:
-            self.clean_filetree()
             self.filechanges = True
         else:
             self.filechanges = False
@@ -95,28 +91,28 @@ class ReportRender():
         in an empty value
         """
         def remove_nonexistent_files(d):
-            if not isinstance(d, dict):
-                return d
             cleaned = {}
             for key, value in d.items():
                 if isinstance(value, dict):
                     # Recursively process nested dictionaries
-                    cleaned_value = remove_nonexistent_files(value)
+                    cleaned_files = remove_nonexistent_files(value)
                     # Only keep if the cleaned dict is not empty
-                    if cleaned_value:
-                        cleaned[key] = cleaned_value
-                elif isinstance(value, set):
-                    # Filter out non-existent files from the list
-                    existing_files = set(f for f in value if os.path.exists(f))
-                    # Only keep the key if there are existing files
-                    if existing_files:
-                        cleaned[key] = existing_files
+                    if cleaned_files:
+                        cleaned[key] = cleaned_files
                 else:
-                    # For non-dict, non-list values, keep as is (unless explicitly empty)
-                    if value: # not in (None, '', [], {}, (), set()):
-                        cleaned[key] = value
+                    if isinstance(value, set):
+                        # Filter out non-existent files from the list
+                        cleaned_files = set(f for f in value if os.path.isfile(f))
+                        cleaned[key] = cleaned_files
+                        # For non-dict, non-list values, keep as is (unless explicitly empty)
+                    elif value not in (None, '', [], {}, (), set()):
+                        cleaned[key] = value 
+
             return cleaned
-        self.filetree = remove_nonexistent_files(self.filetree)
+        _ = remove_nonexistent_files(self.filetree)
+        if self.filetree != _:
+            self.filechanges = True
+            self.filetree = _
 
     def filetree_to_toc(self):
         """
@@ -159,17 +155,19 @@ class ReportRender():
 
     def toc_to_filetree(self, toc):
         """
-        Recursively parses a `toc` (as interpreted in myst.yml) to format it as a nested `dict` stored in `self.filetree`
+        Recursively parses a `toc` (as interpreted in myst.yml) to format it as a nested `dict` stored in `self.filetree`.
+        Removes path trees that don't exist.
         """
         def recursive_transform(transformed):
             if isinstance(transformed, list):
                 result = {}
-                root_files = []
+                root_files = set()#[]
 
                 for item in transformed:
                     # Handle case where item is just {"file": filename} at top level
                     if 'file' in item and 'title' not in item:
-                        root_files.append(item['file'])
+                        #root_files.append(item['file'])
+                        root_files.add(item['file'])
                         continue
 
                     title = item['title']
@@ -182,7 +180,7 @@ class ReportRender():
                             result[title] = recursive_transform(children)
                         elif 'file' in children[0]:
                             # Terminal list of files - extract filenames
-                            result[title] = [child['file'] for child in children]
+                            result[title] = set(child['file'] for child in children)
                     else:
                         # Children is some other structure (shouldn't happen with our format)
                         result[title] = children
@@ -198,6 +196,7 @@ class ReportRender():
 
         # merge the dicts
         self.filetree = recursive_transform(toc)
+        self.clean_filetree()
 
 def rand_id() -> str:
     """
@@ -219,7 +218,11 @@ def myst_yaml() -> dict:
             "template": "book-theme",
             "options" : {
                 "favicon" : "PLACEHOLDER",
-                "logo" : "PLACEHOLDER"
+                "logo" : "PLACEHOLDER",
+                "logo_text" : "Harpy Reports",
+                "hide_footer_links" : True,
+                "hide_myst_branding" : True,
+                "edit_url" : "null"
             },
         },
         "project" : {

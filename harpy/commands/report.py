@@ -34,12 +34,12 @@ def report(directory, headless, port, server_port, refresh):
 
     tracker = ReportRender(directory if directory else "")
     tracker.scan_for_reports()
-    tracker.filetree_to_toc()
+    #tracker.filetree_to_toc()
     tracker.update_yaml()
     URL = ""
     myst_error = ""
     try:
-        panel = Panel("Starting the MyST live-server[dim]...", border_style = "medium_purple4", title = "[default bold]Harpy report", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
+        panel = Panel("Starting the MyST live-server[dim]…", border_style = "medium_purple4", title = "[default bold]Harpy report", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
         with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = CONSOLE, auto_refresh = False, transient = True) as live:
             while not URL:
                 if serve.poll():
@@ -49,7 +49,7 @@ def report(directory, headless, port, server_port, refresh):
                 _url = re.findall(r'http://\S+\s', _myst_output)
                 if _url:
                     URL += _url[0].strip()
-            panel.renderable = f"MyST live-server started: [blue bold]{URL}[/]"
+            panel.renderable = f"Report live-server running: [blue bold]{URL}[/]"
             live.refresh()
             while True:
                 if serve.poll():

@@ -78,7 +78,7 @@ def report(update, action):
     git_dir = ""
     git_dir_err = ""
     if os.path.isdir(".git"):
-        git_dir = "."
+        git_dir = os.getcwd() # or "."
         pass
     else:
         if action:
