@@ -9,7 +9,7 @@ from harpy.common.printing import print_error, CONSOLE
 from harpy.common.report import ReportRender
 
 @click.command(context_settings={"help_option_names" : ['--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
-@click.option('-d', '--debug', is_flag = True, help = 'Dump all the output to the terminal')
+@click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 30, help = 'Refresh interval, in seconds')
