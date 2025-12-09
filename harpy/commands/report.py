@@ -1,3 +1,4 @@
+import os
 from time import sleep
 import re
 import rich_click as click
@@ -8,12 +9,13 @@ from harpy.common.printing import print_error, CONSOLE
 from harpy.common.report import ReportRender
 
 @click.command(context_settings={"help_option_names" : ['--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
+@click.option('-d', '--debug', is_flag = True, help = 'Dump all the output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 30, help = 'Refresh interval, in seconds')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
-def report(directory, headless, port, server_port, refresh):
+def report(directory, debug, headless, port, server_port, refresh):
     """
     Render ipynb reports as a local website
 
@@ -38,6 +40,9 @@ def report(directory, headless, port, server_port, refresh):
     tracker.update_yaml()
     URL = ""
     myst_error = ""
+    if debug:
+        os.system(" ".join(cmd))
+        return
     try:
         panel = Panel("Starting the MyST live-server[dim]…", border_style = "medium_purple4", title = "[default bold]Harpy report", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
         with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = CONSOLE, auto_refresh = False, transient = True) as live:
