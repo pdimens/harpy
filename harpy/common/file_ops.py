@@ -32,8 +32,11 @@ def fetch_template(target: str, outfile = None) -> None:
     else:
         _out = sys.stdout
     try:
-        with resources.as_file(source_file) as _source, open(_source, 'r') as f:
-            _out.write(f.read() + "\n")
+        if target.lower().endswith(".png"):
+            shutil.copy(str(source_file), outfile)
+        else:
+            with resources.as_file(source_file) as _source, open(_source, 'r') as f:
+                _out.write(f.read() + "\n")
     except (FileNotFoundError, KeyError):
         print_error(
             "template file missing",

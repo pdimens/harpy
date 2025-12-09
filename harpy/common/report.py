@@ -7,6 +7,7 @@ from pathlib import Path
 import uuid
 import subprocess
 import yaml
+from harpy.common.file_ops import fetch_template
 from harpy.common.printing import print_error
 
 class ReportRender():
@@ -24,6 +25,11 @@ class ReportRender():
         else:
             with open(self.configfile, "r") as yml:
                 _yml = yaml.full_load(yml)
+
+        if not os.path.isfile(os.path.join(root, ".report", "index.md")):
+            fetch_template("report_index.md", os.path.join(root, ".report", "index.md"))
+        if not os.path.isfile(os.path.join(root, ".report", "favicon.svg")):
+            fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
 
         if not isinstance(_yml, dict) or "project" not in _yml:
             print_error(
@@ -216,13 +222,14 @@ def myst_yaml() -> dict:
         "version" : 1,
         "site" : {
             "template": "book-theme",
+            "actions" : [{"title": "Documentation", "url": "https://pdimens.github.io/harpy"}],
             "options" : {
-                "favicon" : "PLACEHOLDER",
-                "logo" : "PLACEHOLDER",
+                "favicon" : ".report/favicon.svg",
+                "logo" : ".report/favicon.svg",
                 "logo_text" : "Harpy Reports",
                 "hide_footer_links" : True,
                 "hide_myst_branding" : True,
-                "edit_url" : "null"
+                "edit_url" : None
             },
         },
         "project" : {

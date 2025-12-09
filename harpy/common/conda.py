@@ -50,7 +50,6 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::pysam=0.23"
         ],
         "report" : [
-            #"conda-forge::quarto",
             "conda-forge::papermill",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
@@ -62,7 +61,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::r-tidyr",
             "conda-forge::r-viridislite", 
             "conda-forge::r-xml2",
-            "r::r-biocircos"
+            "r::r-biocircos",
         ],
         "stitch" : [
             "bioconda::r-stitch>=1.8.4"

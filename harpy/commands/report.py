@@ -24,7 +24,7 @@ def report(directory, headless, port, server_port, refresh):
     Harpy can identify the root directory of the project, otherwise provide the
     path to a directory for Harpy to recursively scan the `.ipynb` reports. 
     """
-    cmd = ["myst", "start"]
+    cmd = ["jupyter", "book", "start"]
     if headless:
         cmd.append("--headless")
     if port:
@@ -57,9 +57,11 @@ def report(directory, headless, port, server_port, refresh):
                 if refresh > 0:
                     tracker.scan_for_reports()
                     tracker.update_yaml()
+                    live.refresh()
                     sleep(refresh)
                 else:
-                    sleep(999999)
+                    live.refresh()
+                    sleep(999)
     except KeyboardInterrupt:
         # clear the top part of the panel
         for _ in range(1):

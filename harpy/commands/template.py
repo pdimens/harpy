@@ -99,8 +99,6 @@ def report(update, action):
                     )
     if action:
         fetch_template("buildreports.yml", os.path.join(git_dir, ".github", "workflows", "buildreports.yml"))
-    if not os.path.isfile(os.path.join(git_dir, ".report", "index.md")):
-        fetch_template("report_index.md", os.path.join(git_dir, ".report", "index.md"))
     _init = ReportRender(git_dir)
     if update:
         _init.scan_for_reports()

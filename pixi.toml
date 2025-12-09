@@ -20,7 +20,8 @@ samtools = "1.22.*"
 seqtk = "*"
 apptainer = ">=1.4.2,<2"
 djinn = ">=1.1,<2"
-mystmd = ">=1.6.6,<2"
+jupyter-book = ">=2.1.0,<3"
+mystmd = ">=1.7.0,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}

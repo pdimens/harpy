@@ -53,7 +53,7 @@ rule create_report:
     params:
         lr_platform = lr_platform,
         static = "--no-progress-bar --log-level ERROR -k ir",
-        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-input"/g'
+        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
     log:
         "logs/report.log"
     conda:
