@@ -1,6 +1,5 @@
 """Harpy module to create a sample grouping file"""
 
-import copy
 import glob
 import os
 from pathlib import Path
@@ -51,13 +50,13 @@ class ReportRender():
         with open(self.configfile, "w") as yml:
             yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
         del self.config["project"]["toc"]
+        self.filechanges = False
 
     def scan_for_reports(self):
         """
         Recursively search `self.root` for files ending in `.ipynb`, filtering out those found in the _build/ directory
         and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
         """
-        original = copy.deepcopy(self.filetree)
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
         for path in _ipynb:
             # ignore the 'reports' folder name when building the tree
@@ -65,28 +64,26 @@ class ReportRender():
             if len(parts) == 1:
                 # Root level file
                 if '__root__' not in self.filetree:
+                    self.filechanges = True
                     self.filetree['__root__'] = []
                 self.filetree['__root__'].append(parts[0])
                 continue
-
             current = self.filetree
             for idx,part in enumerate(parts,1):
                 if isinstance(current, set):
                     # terminal file
+                    self.filechanges = self.filechanges or path not in current
                     current.add(path)
                 elif idx == len(parts)-1:
                     if part not in current:
+                        self.filechanges = True
                         current[part] = set()
                     current = current[part]
                 else:
                     if part not in current:
+                        self.filechanges = True
                         current[part] = {}
                     current = current[part]
-
-        if original != self.filetree:
-            self.filechanges = True
-        else:
-            self.filechanges = False
 
     def clean_filetree(self):
         """
@@ -106,7 +103,8 @@ class ReportRender():
                     if isinstance(value, set):
                         # Filter out non-existent files from the list
                         cleaned_files = set(f for f in value if os.path.isfile(f))
-                        cleaned[key] = cleaned_files
+                        if cleaned_files:
+                            cleaned[key] = cleaned_files
                         # For non-dict, non-list values, keep as is (unless explicitly empty)
                     elif value not in (None, '', [], {}, (), set()):
                         cleaned[key] = value 
