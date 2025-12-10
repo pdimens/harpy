@@ -36,7 +36,6 @@ def report(directory, debug, headless, port, server_port, refresh):
 
     tracker = ReportRender(directory if directory else "")
     tracker.scan_for_reports()
-    #tracker.filetree_to_toc()
     tracker.update_yaml()
     URL = ""
     myst_error = ""
@@ -62,11 +61,10 @@ def report(directory, debug, headless, port, server_port, refresh):
                 if refresh > 0:
                     tracker.scan_for_reports()
                     tracker.update_yaml()
-                    live.refresh()
                     sleep(refresh)
                 else:
-                    live.refresh()
                     sleep(999)
+                live.refresh()
     except KeyboardInterrupt:
         # clear the top part of the panel
         for _ in range(1):
