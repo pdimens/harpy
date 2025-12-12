@@ -53,6 +53,7 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::papermill",
             "conda-forge::r-dt",
             "conda-forge::r-dplyr",
+            "conda-forge::r-formattable",
             "conda-forge::r-highcharter",
             "conda-forge::r-irkernel",
             "conda-forge::r-magrittr",
