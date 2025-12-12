@@ -58,15 +58,18 @@ class ReportRender():
         and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
         """
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
+        _ipynb = _ipynb | set(i for i in glob.iglob("**/*.html", root_dir = self.root, recursive = True) if "_build" not in i)
+        #TODO figure out how to incorporate html files
         for path in _ipynb:
             # ignore the 'reports' folder name when building the tree
             parts = [i for i in Path(path).parts if i != "reports"]
             if len(parts) == 1:
                 # Root level file
-                if '__root__' not in self.filetree:
+                if 'root' not in self.filetree:
+                    self.filetree['root'] = set()
+                if path not in self.filetree['root']:
+                    self.filetree['root'].add(path)
                     self.filechanges = True
-                    self.filetree['__root__'] = []
-                self.filetree['__root__'].append(parts[0])
                 continue
             current = self.filetree
             for idx,part in enumerate(parts,1):
@@ -132,7 +135,7 @@ class ReportRender():
                 if tree.get("root", []):
                     result += [{'file': filename} for filename in tree.get("root", [])]
 
-                for key, value in tree.items():
+                for key, value in sorted(tree.items()):
                     if key == 'root':
                         continue    
                     if isinstance(value, dict):
@@ -145,7 +148,7 @@ class ReportRender():
                         # Value is a list (leaf node) - convert filenames to {'file': filename}
                         result.append({
                             'title': key,
-                            'children': [{'file': filename} for filename in value]
+                            'children': [{'file': filename} for filename in sorted(value)]
                         })
                 return result
             else:

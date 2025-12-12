@@ -24,12 +24,12 @@ else:
     trim_arg = "--disable_adapter_trimming"
 
 def get_fq1(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    '''returns a list of fastq files for read 1 based on *wildcards.sample*'''
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]1|[_\.]F|[_\.]R1(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
 def get_fq2(wildcards):
-    # returns a list of fastq files for read 2 based on *wildcards.sample*, e.g.
+    '''returns a list of fastq files for read 2 based on *wildcards.sample*'''
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
@@ -85,29 +85,28 @@ rule configure_report:
             shutil.copy(i,o)
 
 rule barcode_report:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
+    input:
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
-        qmd = f"workflow/report/qc_bx_stats.ipynb"
+        ipynb = f"workflow/report/qc_bx_stats.ipynb"
     output:
-        report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.ipynb")
+        tmp = temp("reports/barcode.summary.tmp.ipynb"),
+        ipynb = "reports/barcode.summary.ipynb"
     params:
-        f"logs/bxcount/"
+        indir = "logs/bxcount",
+        static = "--no-progress-bar --log-level ERROR -k ir",
+        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
     log:
         "logs/barcode.report.log"
     conda:
         "envs/report.yaml"
     container:
         "docker://pdimens/harpy:report_latest"
-    retries:
-        3
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INPATH=$(realpath {params})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P indir:$INPATH
+        {{
+            papermill {params.static} {input.ipynb} {output.tmp} -p indir $(realpath {params.indir})
+            sed '{params.sed_replace}' {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule qc_report:
@@ -134,5 +133,5 @@ rule all:
     default_target: True
     input:
         fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
-        bx_report = "reports/barcode.summary.html" if not skip_reports and lr_type != "none" else [],
+        bx_report = "reports/barcode.summary.ipynb" if not skip_reports and lr_type != "none" else [],
         agg_report = "reports/qc.report.html" if not skip_reports else []    
