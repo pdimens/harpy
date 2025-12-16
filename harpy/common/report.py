@@ -2,6 +2,7 @@
 
 import glob
 import os
+from os.path import isfile
 from pathlib import Path
 import uuid
 import subprocess
@@ -38,8 +39,8 @@ class ReportRender():
                 "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has a [green]project[/] section."
             )
         if "toc" in _yml["project"]:
-            #self.toc_to_filetree(_yml["project"].pop("toc"))
-            _yml["project"].pop("toc")
+            self.toc_to_filetree(_yml["project"].pop("toc"))
+            #_yml["project"].pop("toc")
         self.config: dict = _yml
 
     def update_yaml(self):
@@ -83,41 +84,83 @@ class ReportRender():
                 self.filechanges = True
             current['_items'].add(final_dir)
         
-        CONSOLE.print("FILETREE AFTER SCAN", self.filetree)
-        #exit(0)
-
     def clean_filetree(self):
         """
-        Scans the filetree for nonexistant files and removes them, then recusively cleans up keys that terminate
-        in an empty value
+        Scans the filetree for nonexistant files or folders without ipynb files
+        and removes them, then recusively cleans up keys that terminate in an
+        empty value
         """
-        def remove_nonexistent_files(d):
-            cleaned = {}
-            for key, value in d.items():
-                if isinstance(value, dict):
-                    # Recursively process nested dictionaries
-                    cleaned_files = remove_nonexistent_files(value)
-                    # Only keep if the cleaned dict is not empty
-                    if cleaned_files:
-                        cleaned[key] = cleaned_files
-                else:
-                    if isinstance(value, set):
-                        _passed = set()
-                        for _dir in value:
-                            empty = True
-                            for _ in os.scandir(_dir):
-                                _passed.add(_dir)
-                                break
-                            if _passed:
-                                cleaned[key] = _passed
-                    elif value not in (None, '', [], {}, (), set()):
-                        cleaned[key] = value 
-            return cleaned
+        def clean_paths(nested_dict, base_path=''):
+            """
+            Traverse nested dict, build complete paths, and remove entries for 
+            non-existent paths or directories with no .ipynb files.
 
-        _ = remove_nonexistent_files(self.filetree)
-        if self.filetree != _:
-            self.filechanges = True
-            self.filetree = _
+            Returns True if the current dict should be kept, False if it should be removed.
+            """
+            if '_items' in nested_dict:
+                # We're at a terminal node
+                items_to_remove = set()
+
+                for item in nested_dict['_items']:
+                    # Build complete path
+                    if base_path:
+                        full_path = os.path.join(base_path, item)
+                    else:
+                        # For root items, use them as-is
+                        full_path = item
+
+                    # Check if path exists and has .ipynb files
+                    should_remove = False
+
+                    if not os.path.exists(full_path):
+                        should_remove = True
+                    elif os.path.isfile(full_path):
+                        # For files (like root items), keep them if they exist
+                        should_remove = False
+                    elif os.path.isdir(full_path):
+                        # Check if directory contains any .ipynb files
+                        has_ipynb = False
+                        for root, dirs, files in os.walk(full_path):
+                            if any(f.endswith('.ipynb') for f in files):
+                                has_ipynb = True
+                                break
+
+                        if not has_ipynb:
+                            should_remove = True
+
+                    if should_remove:
+                        items_to_remove.add(item)
+
+                # Remove invalid items
+                nested_dict['_items'] -= items_to_remove
+
+                # If _items is now empty, this node should be removed
+                return len(nested_dict['_items']) > 0
+
+            else:
+                # We're at an intermediate node, recurse into children
+                keys_to_remove = []
+
+                for key, value in list(nested_dict.items()):
+                    # Special handling for 'root' - don't add it to the path
+                    if key == 'root':
+                        new_base_path = ''
+                    else:
+                        # Build the path for this level
+                        new_base_path = os.path.join(base_path, key) if base_path else key
+
+                    # Recursively clean
+                    should_keep = clean_paths(value, new_base_path)
+
+                    if not should_keep:
+                        keys_to_remove.append(key)
+                # Remove empty branches
+                for key in keys_to_remove:
+                    del nested_dict[key]
+                # Keep this node if it has any remaining children
+                return len(nested_dict) > 0
+
+        self.filechanges = clean_paths(self.filetree)
 
     def filetree_to_toc(self):
         """
@@ -175,53 +218,58 @@ class ReportRender():
         Recursively parses a `toc` (as interpreted in myst.yml) to format it as a nested `dict` stored in `self.filetree`.
         Removes path trees that don't exist.
         """
-        def recursive_transform(transformed):
-            if isinstance(transformed, list):
-                result = {}
-                root_files = set()
 
-                for item in transformed:
-                    # Handle case where item is just {"file": filename} at top level
-                    if 'file' in item and 'title' not in item:
-                        root_files.add(item['file'])
-                        continue
+        def parse_toc(toc_list):
+            result = {}
+            
+            def add_path_to_dict(path, target_dict):
+                """Add a file path to the nested dictionary structure"""
+                parts = path.split('/')
+                current = target_dict
+                
+                # Navigate/create nested structure for all but the last part
+                for part in parts[:-1]:
+                    if part not in current:
+                        current[part] = {}
+                    current = current[part]
+                
+                # Add the final directory to _items set
+                final_part = parts[-1]
+                if '_items' not in current:
+                    current['_items'] = set()
+                current['_items'].add(final_part)
+            
+            def process_item(item):
+                # If it's a top-level file, add to root
+                if 'file' in item:
+                    if 'root' not in result:
+                        result['root'] = {'_items': set()}
+                    result['root']['_items'].add(item['file'])
+                    return
+                
+                # If it has children, process them recursively
+                if 'children' in item:
+                    for child in item['children']:
+                        # If child has a pattern, extract and add the path
+                        if 'pattern' in child:
+                            pattern = child['pattern']
+                            # Remove the glob pattern to get just the directory path
+                            path = pattern.split('/*')[0]  # This handles any /** pattern
+                            add_path_to_dict(path, result)
+                        else:
+                            # Continue processing nested items
+                            process_item(child)
+            
+            # Process each top-level item
+            for item in toc_list:
+                process_item(item)
 
-                    title = item['title']
-                    children = item.get('children', None)
-                    if not children:
-                        children = item.get('pattern', None)
+            return result
 
-                    if not children:
-                        continue
-
-                    # If children is a list of dicts with 'title' key, make recursive
-                    if isinstance(children, list) and isinstance(children[0], dict):
-                        if 'title' in children[0]:
-                            # Nested structure
-                            result[title] = recursive_transform(children)
-                        elif 'file' in children[0]:
-                            # Terminal list of files - extract filenames
-                            result[title] = set(child['file'] for child in children)
-                        elif isinstance(children, str):
-                            if title not in result:
-                                result[title] = set()
-                            result[title].add(children)
-                    else:
-                        # Children is some other structure (shouldn't happen with our format)
-                        result[title] = children
-
-                # Add root files if any were found
-                if root_files:
-                    result['root'] = root_files
-
-                return result
-            else:
-                # If it's not a list, return as-is
-                return transformed
-
-        # merge the dicts
-        self.filetree = recursive_transform(toc)
+        self.filetree = parse_toc(toc)
         self.clean_filetree()
+        CONSOLE.print(self.filetree, style = "magenta")
+        exit(0)
 
 def rand_id() -> str:
     """
