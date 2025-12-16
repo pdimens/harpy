@@ -43,7 +43,7 @@ def report(directory, debug, headless, use_cached, port, server_port, refresh):
     tracker = ReportRender(directory if directory else "")
     tracker.scan_for_reports()
     tracker.update_yaml()
-
+    exit(0)
     URL = ""
     myst_error = ""
     if debug:

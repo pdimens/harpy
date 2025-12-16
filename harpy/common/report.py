@@ -7,7 +7,7 @@ import uuid
 import subprocess
 import yaml
 from harpy.common.file_ops import fetch_template
-from harpy.common.printing import print_error
+from harpy.common.printing import CONSOLE, print_error
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -19,6 +19,7 @@ class ReportRender():
         if not os.path.exists(self.configfile):
             _yml = myst_yaml()
             self.scan_for_reports()
+            print(self.filetree)
             with open(self.configfile, "w") as yml:
                 yaml.dump(_yml, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
         else:
@@ -37,18 +38,22 @@ class ReportRender():
                 "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has a [green]project[/] section."
             )
         if "toc" in _yml["project"]:
-            self.toc_to_filetree(_yml["project"].pop("toc"))
+            #self.toc_to_filetree(_yml["project"].pop("toc"))
+            _yml["project"].pop("toc")
         self.config: dict = _yml
 
     def update_yaml(self):
         """
         Convert self.filelist to a MyST-formatted table of contents and overwrite `self.configfile` with the updated table of contents
         """
+        import sys
         if not self.filechanges:
             return
         self.config["project"]["toc"] = self.filetree_to_toc()
-        with open(self.configfile, "w") as yml:
-            yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+        #with open(sys.stdout, "w") as yml:
+        #with open(self.configfile, "w") as yml:
+        #    yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+        yaml.dump(self.config, sys.stdout, default_flow_style= False, sort_keys=False, width=float('inf'))
         del self.config["project"]["toc"]
         self.filechanges = False
 
@@ -58,35 +63,28 @@ class ReportRender():
         and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
         """
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
-        _ipynb = _ipynb | set(i for i in glob.iglob("**/*.html", root_dir = self.root, recursive = True) if "_build" not in i)
-        #TODO figure out how to incorporate html files
-        for path in _ipynb:
-            # ignore the 'reports' folder name when building the tree
-            parts = [i for i in Path(path).parts if i != "reports"]
-            if len(parts) == 1:
-                # Root level file
-                if 'root' not in self.filetree:
-                    self.filetree['root'] = set()
-                if path not in self.filetree['root']:
-                    self.filetree['root'].add(path)
-                    self.filechanges = True
-                continue
-            current = self.filetree
-            for idx,part in enumerate(parts,1):
-                if isinstance(current, set):
-                    # terminal file
-                    self.filechanges = self.filechanges or path not in current
-                    current.add(path)
-                elif idx == len(parts)-1:
-                    if part not in current:
-                        self.filechanges = True
-                        current[part] = set()
-                    current = current[part]
-                else:
-                    if part not in current:
-                        self.filechanges = True
-                        current[part] = {}
-                    current = current[part]
+        _dirs = set(os.path.dirname(i) for i in _ipynb)
+        result = self.filetree
+        
+        for path in _dirs:
+            parts = Path(path).parts
+            current = result           
+            # Navigate/create nested structure
+            for part in parts[:-1]:
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+            
+            # Add final directory to a set
+            final_dir = parts[-1]
+            if '_items' not in current:
+                current['_items'] = set()
+            if path not in current['_items']:
+                self.filechanges = True
+            current['_items'].add(final_dir)
+        
+        CONSOLE.print("FILETREE AFTER SCAN", self.filetree)
+        #exit(0)
 
     def clean_filetree(self):
         """
@@ -104,15 +102,18 @@ class ReportRender():
                         cleaned[key] = cleaned_files
                 else:
                     if isinstance(value, set):
-                        # Filter out non-existent files from the list
-                        cleaned_files = set(f for f in value if os.path.isfile(f))
-                        if cleaned_files:
-                            cleaned[key] = cleaned_files
-                        # For non-dict, non-list values, keep as is (unless explicitly empty)
+                        _passed = set()
+                        for _dir in value:
+                            empty = True
+                            for _ in os.scandir(_dir):
+                                _passed.add(_dir)
+                                break
+                            if _passed:
+                                cleaned[key] = _passed
                     elif value not in (None, '', [], {}, (), set()):
                         cleaned[key] = value 
-
             return cleaned
+
         _ = remove_nonexistent_files(self.filetree)
         if self.filetree != _:
             self.filechanges = True
@@ -122,7 +123,7 @@ class ReportRender():
         """
         Recursively parses `self.filetree` to format it as a MyST table of contents and return it
         """
-        def recursive_transform(tree):
+        def recursive_transform(tree, origpath = ""):
             """
             Transform a nested dict into a format where dict values become 
             {'title': key, 'children': transformed_value}.
@@ -130,32 +131,44 @@ class ReportRender():
             
             Returns a transformed structure with title/children format
             """
+            build_path = origpath
             if isinstance(tree, dict):
                 result = []
-                if tree.get("root", []):
-                    result += [{'file': filename} for filename in tree.get("root", [])]
 
                 for key, value in sorted(tree.items()):
-                    if key == 'root':
-                        continue    
+                    #build_path = os.path.join(build_path)
                     if isinstance(value, dict):
                         # Recursively transform the nested dict
                         result.append({
                             'title': key,
-                            'children': recursive_transform(value)
+                            'children': recursive_transform(value, os.path.join(build_path, key))
                         })
-                    else:
-                        # Value is a list (leaf node) - convert filenames to {'file': filename}
+                    elif isinstance(value, set):
+                        # Value is a terminal directory
+                        for i in value:
+                            if "reports" in i:
+                                result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
+                            else:
+                                result.append({
+                                    'title': i,
+                                    'children': recursive_transform(value, os.path.join(origpath, i))
+                                })
+                    elif isinstance(value, str):
                         result.append({
-                            'title': key,
-                            'children': [{'file': filename} for filename in sorted(value)]
+                            'title': value,
+                            'potato': os.path.join(origpath, key)
                         })
                 return result
             else:
-                # If it's not a dict (shouldn't happen at top level), return as-is
-                return tree
+                # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}
+                wildcard = os.path.join(origpath, "**.ipynb")
+                return [{'pattern': wildcard}]
 
+
+        #yaml.dump(recursive_transform(self.filetree))
         return recursive_transform(self.filetree)
+        #CONSOLE.print("\n[yellow]TOC[/]", recursive_transform(self.filetree))
+        #exit(0)
 
     def toc_to_filetree(self, toc):
         """
@@ -165,26 +178,34 @@ class ReportRender():
         def recursive_transform(transformed):
             if isinstance(transformed, list):
                 result = {}
-                root_files = set()#[]
+                root_files = set()
 
                 for item in transformed:
                     # Handle case where item is just {"file": filename} at top level
                     if 'file' in item and 'title' not in item:
-                        #root_files.append(item['file'])
                         root_files.add(item['file'])
                         continue
 
                     title = item['title']
-                    children = item['children']
+                    children = item.get('children', None)
+                    if not children:
+                        children = item.get('pattern', None)
 
-                    # If children is a list of dicts with 'title' key, recurse
-                    if isinstance(children, list) and children and isinstance(children[0], dict):
+                    if not children:
+                        continue
+
+                    # If children is a list of dicts with 'title' key, make recursive
+                    if isinstance(children, list) and isinstance(children[0], dict):
                         if 'title' in children[0]:
                             # Nested structure
                             result[title] = recursive_transform(children)
                         elif 'file' in children[0]:
                             # Terminal list of files - extract filenames
                             result[title] = set(child['file'] for child in children)
+                        elif isinstance(children, str):
+                            if title not in result:
+                                result[title] = set()
+                            result[title].add(children)
                     else:
                         # Children is some other structure (shouldn't happen with our format)
                         result[title] = children
@@ -225,12 +246,12 @@ def myst_yaml() -> dict:
             "template": "book-theme",
             "actions" : [{"title": "Documentation", "url": "https://pdimens.github.io/harpy"}],
             "options" : {
-                "favicon" : ".report/favicon.svg",
-                "logo" : ".report/favicon.svg",
+                "favicon" : ".report/favicon.png",
+                "logo" : ".report/favicon.png",
                 "logo_text" : "Harpy Reports",
                 "hide_footer_links" : True,
                 "hide_myst_branding" : True,
-                "edit_url" : None
+                "folders": True
             },
         },
         "project" : {
