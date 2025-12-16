@@ -1,14 +1,14 @@
 """Harpy module to create a sample grouping file"""
 
+import copy
 import glob
 import os
-from os.path import isfile
 from pathlib import Path
 import uuid
 import subprocess
 import yaml
 from harpy.common.file_ops import fetch_template
-from harpy.common.printing import CONSOLE, print_error
+from harpy.common.printing import print_error
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -20,7 +20,6 @@ class ReportRender():
         if not os.path.exists(self.configfile):
             _yml = myst_yaml()
             self.scan_for_reports()
-            print(self.filetree)
             with open(self.configfile, "w") as yml:
                 yaml.dump(_yml, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
         else:
@@ -32,29 +31,25 @@ class ReportRender():
         if not os.path.isfile(os.path.join(root, ".report", "favicon.svg")):
             fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
 
-        if not isinstance(_yml, dict) or "project" not in _yml:
+        if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
             print_error(
                 "invalid MyST configuration",
                 "The [blue]myst.yml[/] file that was found is improperly formatted.",
-                "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has a [green]project[/] section."
+                "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has keys for [green]project[/] and [green]site[/]."
             )
         if "toc" in _yml["project"]:
             self.toc_to_filetree(_yml["project"].pop("toc"))
-            #_yml["project"].pop("toc")
         self.config: dict = _yml
 
     def update_yaml(self):
         """
         Convert self.filelist to a MyST-formatted table of contents and overwrite `self.configfile` with the updated table of contents
         """
-        import sys
         if not self.filechanges:
             return
         self.config["project"]["toc"] = self.filetree_to_toc()
-        #with open(sys.stdout, "w") as yml:
-        #with open(self.configfile, "w") as yml:
-        #    yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
-        yaml.dump(self.config, sys.stdout, default_flow_style= False, sort_keys=False, width=float('inf'))
+        with open(self.configfile, "w") as yml:
+            yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
         del self.config["project"]["toc"]
         self.filechanges = False
 
@@ -65,25 +60,25 @@ class ReportRender():
         """
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
         _dirs = set(os.path.dirname(i) for i in _ipynb)
-        result = self.filetree
-        
+        orig = copy.copy(self.filetree)
+
         for path in _dirs:
             parts = Path(path).parts
-            current = result           
+            current = self.filetree           
             # Navigate/create nested structure
             for part in parts[:-1]:
                 if part not in current:
                     current[part] = {}
                 current = current[part]
-            
+
             # Add final directory to a set
             final_dir = parts[-1]
             if '_items' not in current:
                 current['_items'] = set()
-            if path not in current['_items']:
-                self.filechanges = True
             current['_items'].add(final_dir)
         
+        self.filechanges = orig != self.filetree
+
     def clean_filetree(self):
         """
         Scans the filetree for nonexistant files or folders without ipynb files
@@ -129,6 +124,7 @@ class ReportRender():
                             should_remove = True
 
                     if should_remove:
+                        self.filechanges = True
                         items_to_remove.add(item)
 
                 # Remove invalid items
@@ -160,7 +156,7 @@ class ReportRender():
                 # Keep this node if it has any remaining children
                 return len(nested_dict) > 0
 
-        self.filechanges = clean_paths(self.filetree)
+        clean_paths(self.filetree)
 
     def filetree_to_toc(self):
         """
@@ -177,11 +173,15 @@ class ReportRender():
             build_path = origpath
             if isinstance(tree, dict):
                 result = []
+                [result.append({"file" : i}) for i in tree.get("root", {}).get("_items", [])]
 
-                for key, value in sorted(tree.items()):
-                    #build_path = os.path.join(build_path)
+                for key, value in sorted(tree.items(), key=lambda x: x[0].casefold()):
+                    if key == "root":
+                        continue
                     if isinstance(value, dict):
-                        # Recursively transform the nested dict
+                        # Recursively transform the nested dict, but skip over "reports"
+                        if key == "reports":
+                            return recursive_transform(value, os.path.join(build_path, key))
                         result.append({
                             'title': key,
                             'children': recursive_transform(value, os.path.join(build_path, key))
@@ -196,22 +196,13 @@ class ReportRender():
                                     'title': i,
                                     'children': recursive_transform(value, os.path.join(origpath, i))
                                 })
-                    elif isinstance(value, str):
-                        result.append({
-                            'title': value,
-                            'potato': os.path.join(origpath, key)
-                        })
                 return result
             else:
                 # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}
                 wildcard = os.path.join(origpath, "**.ipynb")
                 return [{'pattern': wildcard}]
 
-
-        #yaml.dump(recursive_transform(self.filetree))
         return recursive_transform(self.filetree)
-        #CONSOLE.print("\n[yellow]TOC[/]", recursive_transform(self.filetree))
-        #exit(0)
 
     def toc_to_filetree(self, toc):
         """
@@ -267,9 +258,7 @@ class ReportRender():
             return result
 
         self.filetree = parse_toc(toc)
-        self.clean_filetree()
-        CONSOLE.print(self.filetree, style = "magenta")
-        exit(0)
+        self.clean_filetree()        
 
 def rand_id() -> str:
     """
@@ -295,17 +284,17 @@ def myst_yaml() -> dict:
             "actions" : [{"title": "Documentation", "url": "https://pdimens.github.io/harpy"}],
             "options" : {
                 "favicon" : ".report/favicon.png",
-                "logo" : ".report/favicon.png",
-                "logo_text" : "Harpy Reports",
+                "folders": True,
                 "hide_footer_links" : True,
                 "hide_myst_branding" : True,
-                "folders": True
+                "logo" : ".report/favicon.png",
+                "logo_text" : "Harpy Reports"
             },
         },
         "project" : {
             "id": rand_id(),
             "github" : git_url if git_url else {},
-            "title" : "Harpy Reports",
+            "title" : "Harpy Reports (v0.0.0)",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }
