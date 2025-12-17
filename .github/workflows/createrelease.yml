@@ -68,11 +68,12 @@ jobs:
         run: |
           sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/__main__.py
           sed -i "s/0\.0\.0/${{ github.ref_name }}/g" pyproject.toml         
+          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/templates/report_index.md
       - name: Build project
         # This builds the release tarball, stripped of unneccessary things
         run: |
           mkdir artifacts
-          tar --exclude="test" --exclude=".deprecated" --exclude="resources" --exclude="artifacts" --exclude=".git" --exclude=".github" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
+          tar --exclude="test" --exclude="harpy.egg-info" --exclude=".pixi" --exclude=".deprecated" --exclude="resources" --exclude="artifacts" --exclude=".git*" --exclude=".environments" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
       - name: Create Release with Assets
         uses: softprops/action-gh-release@v2
         with:
