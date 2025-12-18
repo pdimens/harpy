@@ -59,7 +59,7 @@ rule create_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_dev"
     shell:
         """
         {{

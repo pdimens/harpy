@@ -79,7 +79,7 @@ rule error_correction:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_latest"
+        "docker://pdimens/harpy:assembly_dev"
     shell:
         "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 

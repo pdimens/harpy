@@ -61,14 +61,15 @@ jobs:
         # this removes the :*_latest tag and replaces with versioned container
         run: |
           for i in harpy/snakefiles/*.smk; do
-            sed -i "s/_latest/_${{ github.ref_name }}/g" $i
+            sed -i "s/_dev/_${{ github.ref_name }}/g" $i
           done
       - name: Bump Harpy Version
-        # this removes the :latest tag and replaces with versioned container
+        # this removes the dev placeholder and replaces with git tag 
         run: |
           sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/__main__.py
           sed -i "s/0\.0\.0/${{ github.ref_name }}/g" pyproject.toml         
           sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/templates/report_index.md
+          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/common/report.py
       - name: Build project
         # This builds the release tarball, stripped of unneccessary things
         run: |

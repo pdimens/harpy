@@ -104,7 +104,7 @@ rule phase_alignments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_latest"
+        "docker://pdimens/harpy:phase_dev"
     threads:
         4
     shell:

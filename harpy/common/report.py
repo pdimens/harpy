@@ -281,7 +281,10 @@ def myst_yaml() -> dict:
         "version" : 1,
         "site" : {
             "template": "book-theme",
-            "actions" : [{"title": "Documentation", "url": "https://pdimens.github.io/harpy"}],
+            "actions" : [
+                {"title": "🗨️ Discuss", "url": "https://github.com/pdimens/harpy/discussions"},
+                {"title": "📖 Docs", "url": "https://pdimens.github.io/harpy"}
+            ],
             "options" : {
                 "favicon" : ".report/favicon.png",
                 "folders": True,
@@ -293,7 +296,7 @@ def myst_yaml() -> dict:
         },
         "project" : {
             "id": rand_id(),
-            "github" : git_url if git_url else {},
+            **({"github" : git_url} if git_url else {}),
             "title" : "Harpy Reports (v0.0.0)",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]

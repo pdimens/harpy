@@ -58,7 +58,7 @@ rule fastp:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_latest"
+        "docker://pdimens/harpy:qc_dev"
     shell: 
         "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 
@@ -72,18 +72,6 @@ rule barcode_stats:
     shell:
         "count_bx {params} {input} > {output}"
 
-rule configure_report:
-    input:
-        yaml = f"workflow/report/_quarto.yml",
-        scss = f"workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule barcode_report:
     input:
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
@@ -93,6 +81,7 @@ rule barcode_report:
         ipynb = "reports/barcode.summary.ipynb"
     params:
         indir = "logs/bxcount",
+        lr_type = lr_type,
         static = "--no-progress-bar --log-level ERROR -k ir",
         sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
     log:
@@ -100,11 +89,11 @@ rule barcode_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_dev"
     shell:
         """
         {{
-            papermill {params.static} {input.ipynb} {output.tmp} -p indir $(realpath {params.indir})
+            papermill {params.static} {input.ipynb} {output.tmp} -p indir $(realpath {params.indir}) -p platform {params.lr_type}
             sed '{params.sed_replace}' {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
@@ -125,7 +114,7 @@ rule qc_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_latest"
+        "docker://pdimens/harpy:qc_dev"
     shell: 
         "multiqc {params} > {output} 2> {log}"
 

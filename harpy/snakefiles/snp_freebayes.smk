@@ -103,7 +103,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_latest"
+        "docker://pdimens/harpy:variants_dev"
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
@@ -200,7 +200,7 @@ rule variant_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_dev"
     retries:
         3
     shell:
