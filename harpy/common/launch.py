@@ -111,7 +111,10 @@ class LaunchSnakemake():
         key = _split[0]
         vals = [i.strip() for i in _split[1].split(",")]
         if len(vals) == 1:
-            CONSOLE.print(f"[bold default]{key}: [/][red]" + "".join(vals))
+            if key == "conda-env":
+                CONSOLE.print(f"[bold default]{key}: [/][red]" + os.path.relpath(vals[0]))
+            else:
+                CONSOLE.print(f"[bold default]{key}: [/][red]" + "".join(vals))
             return
         CONSOLE.print(f"[bold default]{key}: [/]\n  [red]" + "\n  ".join(vals))
 
