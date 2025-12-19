@@ -50,7 +50,7 @@ def report(directory, debug, headless, use_cached, port, server_port, refresh):
         return
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if use_cached else "Fetching site template[dim]…[/]"
-        panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
+        panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report[/]", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
         with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = CONSOLE, auto_refresh = False, transient = True) as live:
             while not URL:
                 if serve.poll():

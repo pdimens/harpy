@@ -12,6 +12,7 @@ fqlist       = config["Inputs"]["fastq"]
 molecule_distance = config["Parameters"]["distance-threshold"]
 ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
 is_standardized = config["Workflow"]["linkedreads"]["standardized"]
+lr_type = config["Workflow"]["linkedreads"]["type"]
 keep_unmapped = config["Parameters"]["keep-unmapped"]
 extra 		= config["Parameters"].get("extra", "") 
 genomefile 	= config["Inputs"]["reference"]
@@ -209,50 +210,37 @@ rule alignment_coverage:
         "reports/data/coverage/{sample}.cov.gz"
     shell:
         "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
-
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-        
+      
 rule sample_reports:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
+    input:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
         coverage = "reports/data/coverage/{sample}.cov.gz",
         molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"workflow/report/align_stats.ipynb"
+        ipynb = f"workflow/report/align_stats.ipynb"
     output:
-        report = "reports/{sample}.html",
-        qmd = temp("reports/{sample}.ipynb")
+        tmp = temp("reports/{sample}.tmp.ipynb"),
+        ipynb = "reports/{sample}.ipynb"
     params:
-        mol_dist = f"-P mol_dist:{molecule_distance}",
-        window_size = f"-P windowsize:{windowsize}",
-        contigs = f"-P contigs:{plot_contigs}",
-        samplename = lambda wc: "-P sample:" + wc.get("sample")
+        lr_type = f"-p platform {lr_type}",
+        mol_dist = f"-p mol_dist {molecule_distance}",
+        window_size = f"-p windowsize {windowsize}",
+        contigs = f"-p contigs {plot_contigs}",
+        samplename = lambda wc: "-p samplename " + wc.get("sample"),
+        static = "--no-progress-bar --log-level ERROR -k ir",
+        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g',
+        sed_title = lambda wc: f's/# SAMPLENAME/# {wc.get("sample").upper()}/g'
     log:
-        "logs/reports/{sample}.alignstats.log"
+        "logs/{sample}.report.log"
     conda:
         "envs/report.yaml"
     container:
         "docker://pdimens/harpy:report_dev"
-    retries:
-        3
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        BXSTATS=$(realpath {input.bxstats})
-        COVFILE=$(realpath {input.coverage})
-        MOLCOV=$(realpath {input.molecule_coverage})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
+        {{
+            papermill {params.static} {input.ipynb} {output.tmp} {params.lr_type} {params.mol_dist} {params.window_size} {params.contigs} {params.samplename}
+            sed '{params.sed_replace}' {output.tmp} | sed '{params.sed_title}'
+        }} 2> {log} > {output.ipynb}
         """
 
 if ignore_bx:
@@ -305,29 +293,28 @@ rule samtools_report:
         "multiqc {params} > {output} 2> {log}"
 
 rule barcode_report:
-    input: 
-        f"reports/_quarto.yml",
-        f"reports/_harpy.scss",
+    input:
         collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"workflow/report/align_bxstats.ipynb"
+        ipynb = f"workflow/report/align_bxstats.ipynb"
     output:
-        report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.ipynb")
+        ipynb = "reports/barcode.summary.ipynb",
+        tmp = temp("reports/barcode.summary.tmp.ipynb")
     params:
-        f"reports/data/bxstats/"
+        indir = "-p indir reports/data/bxstats/",
+        static = "--no-progress-bar --log-level ERROR -k ir",
+        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
     log:
         f"logs/reports/bxstats.report.log"
     conda:
         "envs/report.yaml"
     container:
         "docker://pdimens/harpy:report_dev"
-    retries:
-        3
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INPATH=$(realpath {params})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P indir:$INPATH
+        {{
+            papermill {params.static} {input.ipynb} {output.tmp} {params.indir}
+            sed '{params.sed_replace}' {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
@@ -335,5 +322,5 @@ rule all:
     input:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
-        reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        bx_report = "reports/barcode.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
