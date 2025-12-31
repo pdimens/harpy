@@ -7,7 +7,7 @@ from rich.live import Live
 from rich.panel import Panel
 import subprocess
 from harpy.common.printing import print_error, CONSOLE
-from harpy.common.report import ReportRender
+from harpy.report.render import ReportRender
 
 @click.command(context_settings={"help_option_names" : ['--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
