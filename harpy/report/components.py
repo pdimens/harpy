@@ -22,7 +22,7 @@ class colored_boxes:
     _html = _html.format(color, width, height, label, _val)
     self.boxes.append(_html)
 
-  def show(self, gap = 15):
+  def render(self, gap = 15):
     '''Display all the colored boxes stored in `self.boxes` in one continuous wrapped row'''
     html_content = '<div style="display: flex; flex-wrap: wrap; gap: {}px; width: 100%;">{}</div>'
     return display(HTML(html_content.format(gap, "\n".join(self.boxes))))
