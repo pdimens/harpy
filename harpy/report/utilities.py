@@ -1,10 +1,8 @@
-import altair as alt
-
 def trunc_digits(x: float,y: int) -> float:
   '''Trucate the input float `x` at decimal digit `y` without rounding'''
   return float(f"%.{y}f" % x)
 
-def get_spaced_colors(n_colors: int, palette: list[str]=[]):
+def palette(n_colors: int, palette: list[str]=[]):
     """
     Return a list of n equally-spaced colors from a palette. Palette, if given, must
     be a `list` of hex colors (e.g. `"#372466"`). If no palette is given, uses the
@@ -26,103 +24,3 @@ def get_spaced_colors(n_colors: int, palette: list[str]=[]):
     selected_colors = [palette[min(int(i * step), len(palette) - 1)] for i in range(n_colors)]
     
     return selected_colors
-
-@alt.theme.register("harpy_theme", enable=True)
-def harpy_theme() -> alt.theme.ThemeConfig:
-    # Okabe Ito colorblindsafe palette
-    # https://thenode.biologists.com/data-visualization-with-flying-colors/research/
-
-    markColor = "#0072B2"  # blue, fifth color from category palette
-    category_palette = ["#E69F00",
-                        "#56B4E9",
-                        "#009E73",
-                        "#F0E442",
-                        "#0072B2",
-                        "#D55E00",
-                        "#CC79A7",
-                        "#000000"
-                   ]
-    sequential_palette = ["#cfe8f3", 
-                          "#a2d4ec", 
-                          "#73bfe2", 
-                          "#46abdb", 
-                          "#1696d2", 
-                          "#12719e", 
-                         ]
-    return {
-        "width": "container",
-        "height": 400,
-        "config": {
-            "title": {
-                "anchor": "start",
-                "dy": -15,
-                "fontSize": 18,
-            },
-            "arc": {"fill": markColor},
-            "axis": {
-                "domainColor": "#979797",
-                "domainWidth": 0.5,
-                "gridWidth": 0.2,
-                "grid" : False,
-                "labelColor": "#979797",
-                "tickColor": "#979797",
-                "tickWidth": 0.2,
-                "titleColor": "#979797",
-            },
-            "axisBand": {"grid": False},
-            "axisX": {"grid": True, "tickSize": 10},
-            "axisY": {"domain": False, "grid": True, "tickSize": 0},
-            "background": "white",
-            "legend": {
-                "labelFontSize": 12,
-                "symbolSize": 100,
-                "symbolType": "square",
-                "titleFontSize": 12,
-                "titlePadding": 10,
-                "title": "",
-            },
-
-           "range": {
-               "category": category_palette,
-               "diverging": sequential_palette,
-           },
-           "area": {
-               "fill": markColor,
-               "fillOpacity": 0.7
-           },
-           "line": {
-               "color": markColor,
-               "stroke": markColor,
-               "strokewidth": 5,
-           },
-           "trail": {
-               "color": markColor,
-               "stroke": markColor,
-               "strokeWidth": 0,
-               "size": 1,
-           },
-           "path": {
-               "stroke": markColor,
-               "strokeWidth": 0.5,
-           },
-           "point": {
-               "filled": True,
-           },
-           "text": {
-               "color": markColor,
-               "fontSize": 11,
-               "align": "right",
-               "fontWeight": 400,
-               "size": 11,
-           }, 
-           "bar": {
-                "fill": markColor,
-                "stroke": False,
-            }, 
-            "view": {
-               "stroke": "none",
-               "continuousWidth": 660,
-               "continuousHeight": 400
-           },
-        }
-    }

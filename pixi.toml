@@ -25,6 +25,7 @@ mystmd = ">=1.7.0,<2"
 itables = ">=2.6.2,<3"
 pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
+pyzmq = ">=27.1.0,<28"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}

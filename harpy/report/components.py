@@ -1,15 +1,18 @@
+from typing import Any, Self
+
+
 from datetime import datetime
 from IPython.display import display, HTML
 import itables
 
 class colored_boxes:
+  '''
+  The colored boxes class that draws boxes at the top of the reports.
+  '''
   def __init__(self):
-    '''
-    The colored boxes class that draws boxes at the top of the reports.
-    '''
-    self.boxes = []
+    self.boxes: list[str] = []
 
-  def add(self, value, label, color = "#aeaeaeff", width = "200px", height = "90px"):
+  def add(self, value, label, color = "#aeaeaeff", width = "200px", height = "90px") -> Self:
     '''
     Return the html of a colored box object with `value` and `label`
     '''
