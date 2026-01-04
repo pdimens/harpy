@@ -8,7 +8,7 @@ def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
-        alt.when(highlight).then(alt.value("lightgrey"))
+        alt.when(highlight).then(alt.value("#5a5a5a"))
         .otherwise(alt.value("transparent"))
     )
 
@@ -21,7 +21,7 @@ def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
                 .axis(alt.Axis(title='Position (Mb)', labelExpr='datum.value / 1000000')),
             x2='end:Q',
             y='variant:N',
-            color='variant:N',
+            color=alt.Color('variant:N').legend(None),
             tooltip=['variant:N', 'chromosome:N', 'start:Q', 'end:Q'],
             stroke=stroke_color
         )
@@ -42,7 +42,7 @@ def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = 
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
-        alt.when(highlight).then(alt.value("lightgrey"))
+        alt.when(highlight).then(alt.value("#5a5a5a"))
         .otherwise(alt.value("transparent"))
     )
 
