@@ -27,6 +27,21 @@ class colored_boxes:
     self.boxes.append(_html)
     return self
 
+  def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width = "200px", height = "90px"):
+    '''
+    Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
+    the value by 100 for printing purposes.
+    The `color` is either yellow or green depending on what is determined better or worse than the `cutoff`:
+    - `lower_bad=True`: `color` = yellow when value < cutoff (default)
+    - `lower_bad=False`: `color` = yellow when value >= cutoff 
+    '''
+    if lower_bad:
+      color = "#f6ab3c" if value < cutoff else "#68ae6b"
+    else:
+      color = "#f6ab3c" if value >= cutoff else "#68ae6b"
+
+    return self.add(value if not as_percent else value * 100, label, color, width = width, height = height)
+
   def render(self, gap = 15):
     '''Display all the colored boxes stored in `self.boxes` in one continuous wrapped row'''
     html_content = '<div style="display: flex; flex-wrap: wrap; gap: {}px; width: 100%;">{}</div>'
