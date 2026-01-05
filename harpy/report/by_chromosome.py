@@ -8,19 +8,19 @@ def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
-        alt.when(highlight).then(alt.value("#5a5a5a"))
+        alt.when(highlight).then(alt.value("#7ae00d"))
         .otherwise(alt.value("transparent"))
     )
 
     return (
         alt.Chart(variants)
-        .mark_rect(strokeWidth=1.5, cornerRadius=8)
+        .mark_bar(strokeWidth=1.5, cornerRadius=8)
         .encode(
             x=alt.X('start:Q')
                 .scale(alt.Scale(domain=[0, length_param]))
                 .axis(alt.Axis(title='Position (Mb)', labelExpr='datum.value / 1000000')),
             x2='end:Q',
-            y='variant:N',
+            y=alt.Y('variant:N', title = "Variant Type"),
             color=alt.Color('variant:N').legend(None),
             tooltip=['variant:N', 'chromosome:N', 'start:Q', 'end:Q'],
             stroke=stroke_color
@@ -42,7 +42,7 @@ def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = 
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
-        alt.when(highlight).then(alt.value("#5a5a5a"))
+        alt.when(highlight).then(alt.value("#7ae00d"))
         .otherwise(alt.value("transparent"))
     )
 
