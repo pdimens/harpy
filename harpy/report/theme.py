@@ -78,7 +78,9 @@ def harpy_theme() -> alt.theme.ThemeConfig:
                 "anchor": "start",
                 "dy": -15,
                 "fontSize": 18,
-                "color": textColor
+                "color": textColor,
+                "subtitleColor": textColor,
+                "subtitleFontSize": 14
             },
             "arc": {"fill": markColor},
             "axis": {
@@ -117,7 +119,8 @@ def harpy_theme() -> alt.theme.ThemeConfig:
            "area": {
                "fill": markColor,
                "fillOpacity": 0.7,
-               "line": True
+               "line": True,
+               "strokeOpacity": 0.7
            },
            "line": {
                "color": markColor,

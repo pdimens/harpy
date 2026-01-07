@@ -1,6 +1,3 @@
-from typing import Any, Self
-
-
 from datetime import datetime
 from IPython.display import display, HTML
 import itables
@@ -12,22 +9,25 @@ class colored_boxes:
   def __init__(self):
     self.boxes: list[str] = []
 
-  def add(self, value, label, color = "#aeaeaeff", width = "200px", height = "90px") -> Self:
+  def add(self, value, label, color = "#aeaeaeff", width: int = 200, height: int = 90):
     '''
-    Return the html of a colored box object with `value` and `label`
+    Return the html of a colored box object with `value` and `label`. Width given in pixels.
     '''
-    _val = f"{value:,.2f}".rstrip('0').rstrip('.')
+    if isinstance(value, str):
+      _val = value
+    else:
+      _val = f"{value:,.2f}".rstrip('0').rstrip('.')
     _html = '''<div style="background-color: {}; width: {}; height: {}; display: flex;\
   flex-direction: column; align-items: center; justify-content: center;\
   color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);\
   padding: 20px; box-sizing: border-box;"><div style="font-size: 14px; font-weight: normal;\
     margin-bottom: 2px; margin-top: 13px; opacity: 0.9; text-transform: uppercase;\
   letter-spacing: 1px;">{}</div><div style="font-size: 43px; font-weight: bold;">{}</div></div>'''
-    _html = _html.format(color, width, height, label, _val)
+    _html = _html.format(color, f"{width}px", f"{height}px", label, _val)
     self.boxes.append(_html)
     return self
 
-  def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width = "200px", height = "90px"):
+  def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width:int = 200, height:int = 90):
     '''
     Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
     the value by 100 for printing purposes.
@@ -40,7 +40,7 @@ class colored_boxes:
     else:
       color = "#f6ab3c" if value >= cutoff else "#68ae6b"
 
-    return self.add(value if not as_percent else value * 100, label, color, width = width, height = height)
+    return self.add(value if not as_percent else f"{value * 100}%", label, color, width = width, height = height)
 
   def render(self, gap = 15):
     '''Display all the colored boxes stored in `self.boxes` in one continuous wrapped row'''
@@ -52,6 +52,12 @@ def print_time(*args):
     _now = datetime.now().strftime("🗓️ %d %B, %Y 🕔 %H:%M")
     _html = "<p>{}<p>".format("<br>".join([_now] + [str(i) for i in [*args]]))
     return display(HTML(_html))
+
+def print_html(*args):
+    '''HTML-print all arguments with line breaks between them'''
+    return display(HTML(
+        "<p>{}<p>".format("<br>".join(str(i) for i in [*args]))
+    ))
 
 def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
     '''
