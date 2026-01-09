@@ -35,7 +35,7 @@ def nxx(lengths: list[int]|pd.Series, X:int = 50):
         if cum_sum >= threshold:
             return i
 
-def binned_histogram(data: pd.Series, bin_size: int, max_val: int = 0):
+def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = False):
     '''
     Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`
     with columns ['bin','count']. If `max_val` is provided, returns percents of `max_val` instead of a count
@@ -44,21 +44,18 @@ def binned_histogram(data: pd.Series, bin_size: int, max_val: int = 0):
     col_max = int(data.max())
     # Creates bins [0-500), [500-1000), etc.
     bins = np.arange(0, col_max + bin_size, bin_size)
-    labels = [f"{i}" for i in range(0, col_max, bin_size)]
-
-    binned = pd.cut(data, bins=bins, labels=labels[:len(bins)-1], include_lowest=True)
-    binned_counts = binned.value_counts().sort_index()
-
-    if max_val:
-        return pd.DataFrame({
-            'bin': binned_counts.index,
-            'proportion': (binned_counts.values / max_val)
-        })
+    if isinstance(bin_size, int):
+        labels = [f"{i}" for i in range(0, col_max, bin_size)]
     else:
-        return pd.DataFrame({
-            'bin': binned_counts.index,
-            'count': binned_counts.values
-        })    
+        labels = [f"{round(x * bin_size,2)}" for x in range(0, int(1 / bin_size) + 1)]
+    binned = pd.cut(data, bins=bins, labels=labels[:len(bins)-1], include_lowest=True)
+    colname = 'proportion' if normalize else 'count'
+
+    binned_counts = binned.value_counts(normalize = normalize).sort_index()
+    return pd.DataFrame({
+                'bin': binned_counts.index,
+                colname: binned_counts.values
+            })
 
 def trunc_digits(x: float,y: int) -> float:
   '''Trucate the input float `x` at decimal digit `y` without rounding'''

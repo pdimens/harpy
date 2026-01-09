@@ -1,6 +1,7 @@
 from datetime import datetime
 from IPython.display import display, HTML
 import itables
+itables.options.warn_on_undocumented_option=False
 
 class colored_boxes:
   '''
@@ -55,8 +56,8 @@ def print_time(*args):
 
 def print_html(*args):
     '''HTML-print all arguments with line breaks between them'''
-    return display(HTML(
-        "<p>{}<p>".format("<br>".join(str(i) for i in [*args]))
+    display(HTML(
+        "<p>{}</p>".format("<br>".join(str(i) for i in [*args]))
     ))
 
 def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
@@ -78,6 +79,9 @@ def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|
         columnControl = [["order", "searchDropdown"]],
         showIndex= False,
         scrollX =  True,
+        autoWidth=True,
+        searching = False,
+        style = "width:100%",
         classes = "display nowrap compact",
         allow_html=html,
         columnDefs = coldefs

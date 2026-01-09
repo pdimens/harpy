@@ -100,6 +100,13 @@ def harpy_theme() -> alt.theme.ThemeConfig:
             "axisX": {"grid": True, "tickSize": 10},
             "axisY": {"domain": False, "grid": True, "tickSize": 0},
             "background": "transparent",
+            "header": {
+                "labelFontSize": 15,
+                "labelColor": textColor,
+                "titleFontSize": 15,
+                "titleFontWeight": 600,
+                "titleColor": textColor
+            },
             "legend": {
                 "labelFont": "sans-serif",
                 "labelFontSize": 12,

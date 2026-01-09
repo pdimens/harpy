@@ -36,10 +36,10 @@ def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = 
     chromosome dropdown option that dynamically changes which chromosome's
     depths you see in the plot view.
     '''
-    labels = records['chromosome'].unique()
-    input_dropdown = alt.binding_select(options=labels, name='Chromosome: ')
-    selection = alt.selection_point("chrom_choice", fields=['chromosome'], value=labels[0], bind=input_dropdown)
-    length_param = alt.param(expr='data("data_0")[0].length')
+    labels = records['contig'].unique()
+    input_dropdown = alt.binding_select(options=labels, name='Contig: ')
+    selection = alt.selection_point("chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
+    length_param = alt.param(expr='max(pluck(data("data_0"), "position_end"))')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
         alt.when(highlight).then(alt.value("#7ae00d"))
@@ -48,10 +48,9 @@ def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = 
 
     return (
         alt.Chart(records)        
-        .mark_bar(strokeWidth=2, cornerRadius=2)
+        .mark_bar(strokeWidth=2)
         .encode(
-            x=alt.X('binned_cov:Q')
-                .bin(step = window)
+            x=alt.X('position:Q')
                 .scale(alt.Scale(domain=[0, length_param]))
                 .axis(alt.Axis(title='Position (Mb)', labelExpr='datum.value / 1000000')),
             y = 'count()',
@@ -59,7 +58,7 @@ def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = 
             stroke = stroke_color
         )
         .transform_filter(selection)
-        .transform_bin('binned_cov', field='depth')
         .add_params(selection, length_param, highlight)
         .properties(title= title)
+        facet(row='key:N')
     )
