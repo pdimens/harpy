@@ -198,22 +198,9 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
 
 rule variant_report:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         data = "reports/data/variants.{type}.stats",
         qmd  = "workflow/report/bcftools_stats.ipynb"
     output:
