@@ -97,8 +97,8 @@ def harpy_theme() -> alt.theme.ThemeConfig:
                 "titleColor": textColor,
             },
             "axisBand": {"grid": False},
-            "axisX": {"grid": True, "tickSize": 10},
-            "axisY": {"domain": False, "grid": True, "tickSize": 0},
+            "axisX": {"grid": True, "tickSize": 10, "domainCap" : 'round'},
+            "axisY": {"domain": False, "grid": True, "tickSize": 0, "domainCap" : 'round'},
             "background": "transparent",
             "header": {
                 "labelFontSize": 15,

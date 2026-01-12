@@ -1,5 +1,4 @@
 import gzip
-from altair import Data
 import numpy as np
 import pandas as pd
 
@@ -35,11 +34,10 @@ def nxx(lengths: list[int]|pd.Series, X:int = 50):
         if cum_sum >= threshold:
             return i
 
-def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = False):
+def binned_histogramBAK(data: pd.Series, bin_size: int|float, normalize: bool = False):
     '''
     Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`
-    with columns ['bin','count']. If `max_val` is provided, returns percents of `max_val` instead of a count
-    with columns ['bin', 'propportion'].
+    with columns ['bin','count']. If `normalize=True`, returns a DataFrame with columns ['bin', 'propportion'].
     '''
     col_max = int(data.max())
     # Creates bins [0-500), [500-1000), etc.
@@ -54,6 +52,26 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
     binned_counts = binned.value_counts(normalize = normalize).sort_index()
     return pd.DataFrame({
                 'bin': binned_counts.index,
+                colname: binned_counts.values
+            })
+
+def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = False, max_val = 0, precision = 2):
+    '''
+    Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`
+    with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
+    '''
+    col_max = max_val if max_val else int(data.max())
+    bins = np.arange(0, col_max + (3*bin_size), bin_size).round(precision)
+    labels = []
+    for i in bins:
+        _i = round(i, precision)
+        labels.append(f"{_i}-{round(_i + bin_size, precision)}")
+    binned = pd.cut(data, bins=bins, labels=bins.astype(str)[:-1], include_lowest=True)
+    colname = 'proportion' if normalize else 'count'
+    binned_counts = binned.value_counts(normalize = normalize).sort_index()
+    return pd.DataFrame({
+                'bin': binned_counts.index,
+                'interval': labels[:-1],
                 colname: binned_counts.values
             })
 
