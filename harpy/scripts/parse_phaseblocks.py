@@ -20,7 +20,7 @@ def main():
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found\n")
 
-    samplename = args.input.replace(".blocks", "")
+    samplename = os.path.basename(args.input).replace(".blocks", "")
 
     with open(args.input, "r", encoding="utf-8") as blocks:
         FIRST_LINE = True
