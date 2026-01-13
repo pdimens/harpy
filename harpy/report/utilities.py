@@ -25,11 +25,12 @@ def nxx(lengths: list[int]|pd.Series, X:int = 50):
     '''
     threshold = sum(lengths) * (X/100)
     if isinstance(lengths, pd.Series):
-        lengths.sort_values(ascending=False, inplace = True)
+        _l = list(lengths)
     else:
-        _ = lengths.sort(reverse = True)
+        _l = lengths
+    _l.sort(reverse = True)
     cum_sum = 0 
-    for i in lengths:
+    for i in _l:
         cum_sum += i
         if cum_sum >= threshold:
             return i
@@ -60,7 +61,7 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
     Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`
     with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
     '''
-    col_max = max_val if max_val else int(data.max())
+    col_max = max_val if max_val else data.max().astype(int)
     bins = np.arange(0, col_max + (3*bin_size), bin_size).round(precision)
     labels = []
     for i in bins:

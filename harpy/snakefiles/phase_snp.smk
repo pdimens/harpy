@@ -16,9 +16,9 @@ pruning           = config["Parameters"]["prune"]
 map_qual          = config["Parameters"]["min-map-quality"]
 base_qual         = config["Parameters"]["min-base-quality"]
 molecule_distance = config["Parameters"]["distance-threshold"]
+samples_from_vcf  = config["Parameters"]["prioritize-vcf-samples"]
 extra             = config.get("extra", "") 
-samples_from_vcf  = config["Inputs"]["vcf"]["prioritize-samples"]
-variantfile       = config["Inputs"]["vcf"]["file"]
+variantfile       = config["Inputs"]["vcf"]
 bamlist           = config["Inputs"]["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 invalid_regex = {
@@ -26,6 +26,7 @@ invalid_regex = {
     "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
     "tellseq": "'$4 !~ /N/'"
 }
+
 if bc_type == "none":
     fragfile = "extract_hairs/{sample}.unlinked.frags"
     linkarg = "--10x 0"
@@ -37,6 +38,7 @@ if samples_from_vcf:
     samplenames = bcfquery.stdout.read().decode().split()
 else:
     samplenames = [Path(i).stem for i in bamlist]
+
 if config["Inputs"].get("reference", None):
     genomefile = config["Inputs"]["reference"]
     if genomefile.lower().endswith(".gz"):
@@ -238,27 +240,12 @@ rule summarize_blocks:
         }} | gzip > {output}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule phase_report:
     input:
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         data = "reports/blocks.summary.gz",
-        qmd = "workflow/report/hapcut.ipynb"
+        ipynb = "workflow/report/hapcut.ipynb"
     output:
-        html = "reports/phase.html",
-        qmd = temp("reports/phase.ipynb")
+        ipynb = temp("reports/phase.ipynb")
     log:
         "logs/report.log"
     params:
@@ -271,13 +258,11 @@ rule phase_report:
         3
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INFILE=$(realpath {input.data})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P blockfile:$INFILE
+        touch {output}
         """
 
 rule workflow_summary:
     default_target: True
     input:
         vcf = "variants.phased.bcf",
-        reports = "reports/phase.html" if not skip_reports else []
+        reports = "reports/phase.ipynb" if not skip_reports else []

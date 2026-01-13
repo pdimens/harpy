@@ -26,12 +26,19 @@ okabe_sequential = [
     "#12719e", 
 ]
 
-def get_okabe(index:int, palette: str = "cat"):
-    '''Return a color from the `okabe_category` or `okabe_sequential` palettes by index'''
+def get_okabe(index:int|list[int], palette: str = "cat"):
+    '''Return a color (or colors) from the `okabe_category` or `okabe_sequential` palettes by index'''
     if palette == "cat":
-        return okabe_category[index]
+        if isinstance(index, int):
+            return okabe_category[index]
+        else:
+            return [okabe_category[i] for i in index]
     else:
-        return okabe_sequential[index]
+        if isinstance(index, int):
+            return okabe_sequential[index]
+        else:
+            return [okabe_sequential[i] for i in index]
+
 
 def palette(n_colors: int, palette: list[str]=[]):
     """
