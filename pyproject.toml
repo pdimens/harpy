@@ -37,6 +37,7 @@ molecule_coverage = "harpy.scripts:molecule_coverage.main"
 parse_phaseblocks = "harpy.scripts:parse_phaseblocks.main"
 rename_bam = "harpy.scripts:rename_bam.main"
 standardize_barcodes_sam = "harpy.scripts:standardize_barcodes_sam.main"
+update_placeholders = "harpy.scripts:update_placeholders.main"
 
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"

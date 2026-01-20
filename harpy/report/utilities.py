@@ -17,7 +17,6 @@ def last_line(filename: str):
                 last_line = line
             return last_line.strip()
 
-
 def nxx(lengths: list[int]|pd.Series, X:int = 50):
     '''
     Calculte and return the NX value of a list of numbers, where `X` is
@@ -79,3 +78,4 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
 def trunc_digits(x: float,y: int) -> float:
   '''Trucate the input float `x` at decimal digit `y` without rounding'''
   return float(f"%.{y}f" % x)
+    
