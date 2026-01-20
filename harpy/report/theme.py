@@ -69,7 +69,7 @@ def sv_colors(name) -> str:
         "INV": "#56B4E9",
         "DEL": "#E69F00",
         "DUP": "#009E73",
-        "BND": "#F0E442"
+        "BND": "#CC79A7"
     }
     return d.get(name, "#CC79A7")
 

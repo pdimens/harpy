@@ -168,28 +168,14 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
 
 rule sample_reports:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         faidx     = f"{workflow_geno}.fai",
         statsfile = "reports/data/{sample}.sv.stats",
-        qmd       = "workflow/report/leviathan.ipynb"
+        ipynb       = "workflow/report/leviathan.ipynb"
     output:
-        report = "reports/{sample}.leviathan.html",
-        qmd = temp("reports/{sample}.leviathan.ipynb")
+        ipynb = temp("reports/{sample}.leviathan.ipynb")
     log:
         "logs/reports/{sample}.report.log"
     params:
@@ -214,4 +200,4 @@ rule all:
     input: 
         vcf = collect("vcf/{sample}.bcf", sample = samplenames),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect("reports/{sample}.leviathan.html", sample = samplenames) if not skip_reports else []
+        reports = collect("reports/{sample}.leviathan.ipynb", sample = samplenames) if not skip_reports else []

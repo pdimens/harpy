@@ -86,7 +86,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.param(sharing_thresholds[0], "variant-thresholds:small")
     workflow.param(sharing_thresholds[1], "variant-thresholds:medium")
     workflow.param(sharing_thresholds[2], "variant-thresholds:large")
-    workflow.param(duplicates, "duplicates")
+    workflow.param(duplicates, "variant-thresholds:duplicates")
     if extra_params:
         workflow.param(extra_params, "extra")
 

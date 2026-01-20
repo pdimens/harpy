@@ -1,10 +1,14 @@
 import altair as alt
 import pandas as pd
 
-def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
-    labels = variants['chromosome'].unique()
-    input_dropdown = alt.binding_select(options=labels, name='Chromosome: ')
-    selection = alt.selection_point("chrom_choice", fields=['chromosome'], value=labels[0], bind=input_dropdown)
+def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
+    '''
+    Return an Altair chart of SVs and their positions in a chromosome. This includes
+    a dropdown selection to display a specific chromosome.
+    '''
+    labels = variants['contig'].unique()
+    input_dropdown = alt.binding_select(options=labels, name='Contig: ')
+    selection = alt.selection_point("chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
@@ -22,7 +26,7 @@ def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
             x2='end:Q',
             y=alt.Y('variant:N', title = "Variant Type"),
             color=alt.Color('variant:N').legend(None),
-            tooltip=['variant:N', 'chromosome:N', 'start:Q', 'end:Q'],
+            tooltip=['variant:N', 'contig:N', 'start:Q', 'end:Q'],
             stroke=stroke_color
         )
         .transform_filter(selection)
@@ -30,7 +34,7 @@ def by_chromosome_plot(variants: pd.DataFrame, title:str = ""):
         .properties(title= title)
     )
 
-def depth_by_chromosome(records: pd.DataFrame, window: int = 50000, title:str = ""):
+def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
     '''
     Return an Altair chart of alignment depth in `window` bp intervals with a
     chromosome dropdown option that dynamically changes which chromosome's
