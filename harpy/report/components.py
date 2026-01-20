@@ -10,7 +10,7 @@ class colored_boxes:
   def __init__(self):
     self.boxes: list[str] = []
 
-  def add(self, value, label, color = "#aeaeaeff", width: int = 200, height: int = 90):
+  def add(self, value, label, color = "#aeaeaeff", width: int = 200, height: int = 85, fontsize = 42):
     '''
     Return the html of a colored box object with `value` and `label`. Width given in pixels.
     '''
@@ -20,15 +20,15 @@ class colored_boxes:
       _val = f"{value:,.2f}".rstrip('0').rstrip('.')
     _html = '''<div style="background-color: {}; width: {}; height: {}; display: flex;\
   flex-direction: column; align-items: center; justify-content: center;\
-  color: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);\
-  padding: 20px; box-sizing: border-box;"><div style="font-size: 14px; font-weight: normal;\
-    margin-bottom: 2px; margin-top: 13px; opacity: 0.9; text-transform: uppercase;\
-  letter-spacing: 1px;">{}</div><div style="font-size: 43px; font-weight: bold;">{}</div></div>'''
-    _html = _html.format(color, f"{width}px", f"{height}px", label, _val)
+  color: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.19);\
+  padding: 15px; box-sizing: border-box;"><div style="font-size: 14px; font-weight: normal;\
+    margin-bottom: 0px; margin-top: 3px; opacity: 0.9; text-transform: uppercase;\
+  letter-spacing: 1px;">{}</div><div style="font-size: {}px; font-weight: bold;">{}</div></div>'''
+    _html = _html.format(color, f"{width}px", f"{height}px", label, fontsize, _val)
     self.boxes.append(_html)
     return self
 
-  def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width:int = 200, height:int = 90):
+  def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width:int = 200, height:int = 85):
     '''
     Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
     the value by 100 for printing purposes.

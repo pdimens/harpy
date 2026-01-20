@@ -163,22 +163,8 @@ rule index_vcf:
         bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("{paramset}/reports/_quarto.yml"),
-        scss = temp("{paramset}/reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule contig_report:
     input:
-        "{paramset}/reports/_harpy.scss",
-        "{paramset}/reports/_quarto.yml",
         "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
         "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
         "{paramset}/contigs/{contig}/plots/hapSum_log.png",
@@ -187,10 +173,9 @@ rule contig_report:
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
         "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        qmd = "workflow/report/stitch_collate.ipynb"
+        ipynb = "workflow/report/stitch_collate.ipynb"
     output:
-        report = "{paramset}/reports/{contig}.{paramset}.html",
-        qmd = temp("{paramset}/reports/{contig}.{paramset}.ipynb")
+        ipynb = ("{paramset}/reports/{contig}.{paramset}.ipynb")
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
@@ -203,10 +188,6 @@ rule contig_report:
         s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
-    conda:
-        "envs/report.yaml"
-    retries:
-        3
     shell:
         """
         cp -f {input.ipynb} {output.ipynb}
@@ -279,7 +260,7 @@ rule general_stats:
 rule extract_region:
     input:
         "workflow/input/vcf/input.sorted.bcf.csi",
-        orig    = "workflow/input/vcf/input.sorted.bcf"
+        orig = "workflow/input/vcf/input.sorted.bcf"
     output:
         temp("workflow/input/vcf/region.bcf.csi"),
         bcf = temp("workflow/input/vcf/region.bcf")
@@ -289,7 +270,7 @@ rule extract_region:
         None
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
-        
+
 rule compare_stats:
     input:
         orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
@@ -309,14 +290,11 @@ rule compare_stats:
 
 rule impute_reports:
     input:
-        "{paramset}/reports/_quarto.yml",
-        "{paramset}/reports/_harpy.scss",
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = "{paramset}/reports/data/impute.infoscore",
-        qmd = "workflow/report/impute.ipynb"
+        ipynb = "workflow/report/impute.ipynb"
     output:
-        "{paramset}/reports/{paramset}.summary.html",
-        qmd = temp("{paramset}/reports/{paramset}.summary.ipynb")
+        ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
@@ -328,10 +306,6 @@ rule impute_reports:
         s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
         extra   = f"-P extra:{stitch_extra}"
-    conda:
-        "envs/report.yaml"
-    retries:
-        3
     shell:
         """
         cp -f {input.ipynb} {output.ipynb}
@@ -344,5 +318,5 @@ rule all:
     default_target: True
     input: 
         vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
-        agg_report = collect("{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
-        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []
+        agg_report = collect("{paramset}/reports/{paramset}.summary.ipynb", paramset = stitch_params.keys()) if not skip_reports else [],
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.ipynb", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []
