@@ -178,7 +178,7 @@ def log(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    err_dir = os.path.join(directory, "logs", "snakemake")
+    err_dir = os.path.join(directory, ".snakemake", "log")
     err_file = "There are no log files"
     if not os.path.exists(err_dir):
         print_error(
