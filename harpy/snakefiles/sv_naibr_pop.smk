@@ -206,28 +206,13 @@ rule preprocess_reference:
         }} 2> {log}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule group_reports:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
         bedpe = "bedpe/{population}.bedpe",
-        qmd   = "workflow/report/naibr.ipynb"
+        ipynb   = "workflow/report/naibr.ipynb"
     output:
-        report = "reports/{population}.naibr.html",
-        qmd = temp("reports/{population}.naibr.ipynb")
+        ipynb = temp("reports/{population}.naibr.ipynb")
     log:
         "logs/reports/{population}.report.log"
     params:
@@ -281,5 +266,4 @@ rule all:
     input:
         bedpe = collect("bedpe/{pop}.bedpe", pop = populations),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports = collect("reports/{pop}.naibr.html", pop = populations) if not skip_reports else [],
-        agg_report = "reports/naibr.summary.html" if not skip_reports else []
+        agg_report = "reports/naibr.summary.ipynb" if not skip_reports else []

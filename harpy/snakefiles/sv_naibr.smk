@@ -3,9 +3,10 @@ import re
 import logging
 from pathlib import Path
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
+#onstart:
+#    logfile_handler = LoggerManager._default_filehandler(config["Workflow"]["snakemake"]["log"])
+#    logger.addHandler(logfile_handler)
+#    LoggerManager.logfile_handlers[handler] = config["Workflow"]["snakemake"]["log"]
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
@@ -120,9 +121,7 @@ rule aggregate_variants:
     input:
         collect("bedpe/{sample}.bedpe", sample = samplenames)
     output:
-        "inversions.bedpe",
-        "deletions.bedpe",
-        "duplications.bedpe"
+        collect("{vartype}.bedpe", vartype = ["inversions", "deletions","duplications"])
     run:
         from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
@@ -135,7 +134,6 @@ rule aggregate_variants:
                 with open(varfile, "r") as f_in:
                     # read the header to skip it
                     f_in.readline()
-                    # read the rest of it
                     while True:
                         line = f_in.readline()
                         if not line:
@@ -173,32 +171,16 @@ rule preprocess_reference:
         }} 2> {log}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
-rule sample_reports:
+rule report:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         faidx = f"{workflow_geno}.fai",
-        bedpe = "bedpe/{sample}.bedpe",
-        qmd   = "workflow/report/naibr.ipynb"
+        bedpe = collect("{vartype}.bedpe", vartype = ['inversions', 'deletions', 'duplications']),
+        ipynb   = "workflow/report/naibr.ipynb"
     output:
-        report = "reports/{sample}.naibr.html",
-        qmd = temp("reports/{sample}.naibr.ipynb")
+        ipynb = temp("reports/naibr.summary.ipynb")
     log:
-        "logs/reports/{sample}.report.log"
+        "logs/report.log"
     params:
-        sample= lambda wc: "-P sample:" + wc.get('sample'),
         contigs= f"-P contigs:{plot_contigs}"
     conda:
         "envs/report.yaml"
@@ -219,4 +201,4 @@ rule all:
     input:
         bedpe = collect("bedpe/{sample}.bedpe", sample = samplenames),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications"]),
-        reports =  collect("reports/{sample}.naibr.html", sample = samplenames) if not skip_reports else []
+        reports =  "reports/naibr.summary.ipynb" if not skip_reports else []

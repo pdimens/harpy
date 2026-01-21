@@ -176,7 +176,7 @@ rule variant_stats:
     shell:
         """
         {{
-            echo -e "population\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs"
+            echo -e "sample\\tcontig\\tposition_start\\tposition_end\\tlength\\ttype\\tn_barcodes\\tn_pairs"
             bcftools query -f '{wildcards.population}\\t%CHROM\\t%POS\\t%END\\t%SVLEN\\t%SVTYPE\\t%BARCODES\\t%PAIRS\\n' {input}
         }} > {output}
         """
@@ -214,57 +214,13 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
-rule group_reports:
+rule report:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
-        faidx     = f"{workflow_geno}.fai",
-        statsfile = "reports/data/{population}.sv.stats",
-        qmd       = "workflow/report/leviathan.ipynb"
-    output:
-        report = "reports/{population}.leviathan.html",
-        qmd = temp("reports/{population}.leviathan.ipynb")
-    log:
-        "logs/reports/{population}.report.log"
-    params:
-        sample= lambda wc: "-P sample:" + wc.get('population'),
-        contigs= f"-P contigs:{plot_contigs}"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
-    shell:
-        """
-        cp -f {input.ipynb} {output.ipynb}
-        FAIDX=$(realpath {input.faidx})
-        STATS=$(realpath {input.statsfile})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
-        """
-
-rule aggregate_report:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         faidx      = f"{workflow_geno}.fai",
         statsfiles = collect("reports/data/{pop}.sv.stats", pop = populations),
-        qmd        = "workflow/report/leviathan_pop.ipynb"
+        ipynb        = "workflow/report/leviathan_pop.ipynb"
     output:
-        report = "reports/leviathan.summary.html",
-        qmd = temp("reports/leviathan.summary.ipynb")
+        ipynb = temp("reports/leviathan.summary.ipynb")
     log:
         "logs/reports/summary.report.log"
     params:
@@ -289,5 +245,4 @@ rule all:
     input:
         vcf = collect("vcf/{pop}.bcf", pop = populations),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect("reports/{pop}.leviathan.html", pop = populations) if not skip_reports else [],
-        agg_report = "reports/leviathan.summary.html" if not skip_reports else []
+        agg_report = "reports/leviathan.summary.ipynb" if not skip_reports else []

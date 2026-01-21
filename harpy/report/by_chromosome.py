@@ -10,42 +10,43 @@ def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
     _sv  = ["Inversion", "Deletion", "Duplication", "Breakend"]
     _col = [sv_colors(i) for i in ['INV', 'DEL', 'DUP', 'BND']]
 
-    labels = variants['contig'].unique()
+    labels = variants['Contig'].unique()
     input_dropdown = alt.binding_select(options=labels, name='Contig: ')
-    selection = alt.selection_point(name = "chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
+    selection = alt.selection_point(name = "chrom_choice", fields=['Contig'], value=labels[0], bind=input_dropdown)
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     zoom = alt.selection_interval(bind='scales', encodings=['x'])
     stroke_color = (
         alt.when(highlight)
         .then(alt.value("#7ae00d"))
-        .otherwise(alt.Color('type:N').scale(domain = _sv, range = _col))
+        .otherwise(alt.Color('Type:N').scale(domain = _sv, range = _col))
     )
-    dynamic_title = alt.Title(alt.expr(f'"Structural Variants on " + {selection.name}.contig'), subtitle = "Variants should be considered putative")
+    dynamic_title = alt.Title(alt.expr(f'"Structural Variants on " + {selection.name}.Contig'), subtitle = "Variants should be considered putative")
 
     return (
         alt.Chart(variants)
+        .transform_calculate(var_length = 'datum.End - datum.Start')
+        .transform_filter(selection)
         .mark_bar(strokeWidth = 2, cornerRadius=8, opacity = 0.7)
         .encode(
-            x=alt.X('position_start:Q')
+            x=alt.X('Start:Q')
                 .scale(domain=[0, length_param])
                 .axis(title='Position (Mb)', labelExpr='datum.value / 1000000'),
-            x2='position_end:Q',
-            y=alt.Y('type:N', title = "Variant Type"),
-            color=alt.Color('type:N', legend = None)
+            x2='End:Q',
+            y=alt.Y('Type:N', title = "Variant Type"),
+            color=alt.Color('Type:N', legend = None)
                 .scale(domain = _sv, range = _col),
             tooltip=[
-                alt.Tooltip('type:N', title = "Variant Type"),
-                alt.Tooltip('contig:N', title = "Contig"),
-                alt.Tooltip('position_start:Q', title = "Start", format = ','),
-                alt.Tooltip('position_end:Q', title = "End", format = ','),
+                alt.Tooltip('Type:N', title = "Variant Type"),
+                alt.Tooltip('Contig:N', title = "Contig"),
+                alt.Tooltip('Start:Q', title = "Start", format = ','),
+                alt.Tooltip('End:Q', title = "End", format = ','),
                 alt.Tooltip('var_length:Q', title = "Length", format = ','),
-                alt.Tooltip('n_samples:Q', title = "# Samples"),
-                alt.Tooltip('samples:N', title = "Samples")
+                alt.Tooltip('N Samples:Q', title = "# Samples"),
+                alt.Tooltip('Samples:N', title = "Samples")
             ],
             stroke=stroke_color
         )
-        .transform_filter(selection)
         .add_params(selection, length_param, highlight, zoom)
         .properties(title= dynamic_title)
     )
