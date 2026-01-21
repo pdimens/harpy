@@ -1,37 +1,53 @@
 import altair as alt
 import pandas as pd
+from harpy.report.theme import sv_colors
 
 def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
     '''
     Return an Altair chart of SVs and their positions in a chromosome. This includes
     a dropdown selection to display a specific chromosome.
     '''
+    _sv  = ["Inversion", "Deletion", "Duplication", "Breakend"]
+    _col = [sv_colors(i) for i in ['INV', 'DEL', 'DUP', 'BND']]
+
     labels = variants['contig'].unique()
     input_dropdown = alt.binding_select(options=labels, name='Contig: ')
-    selection = alt.selection_point("chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
+    selection = alt.selection_point(name = "chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
     length_param = alt.param(expr='data("data_0")[0].length')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
+    zoom = alt.selection_interval(bind='scales', encodings=['x'])
     stroke_color = (
-        alt.when(highlight).then(alt.value("#7ae00d"))
-        .otherwise(alt.value("transparent"))
+        alt.when(highlight)
+        .then(alt.value("#7ae00d"))
+        .otherwise(alt.Color('type:N').scale(domain = _sv, range = _col))
     )
+    dynamic_title = alt.Title(alt.expr(f'"Structural Variants on " + {selection.name}.contig'), subtitle = "Variants should be considered putative")
 
     return (
         alt.Chart(variants)
-        .mark_bar(strokeWidth=1.5, cornerRadius=8)
+        .mark_bar(strokeWidth = 2, cornerRadius=8, opacity = 0.7)
         .encode(
-            x=alt.X('start:Q')
-                .scale(alt.Scale(domain=[0, length_param]))
-                .axis(alt.Axis(title='Position (Mb)', labelExpr='datum.value / 1000000')),
-            x2='end:Q',
-            y=alt.Y('variant:N', title = "Variant Type"),
-            color=alt.Color('variant:N').legend(None),
-            tooltip=['variant:N', 'contig:N', 'start:Q', 'end:Q'],
+            x=alt.X('position_start:Q')
+                .scale(domain=[0, length_param])
+                .axis(title='Position (Mb)', labelExpr='datum.value / 1000000'),
+            x2='position_end:Q',
+            y=alt.Y('type:N', title = "Variant Type"),
+            color=alt.Color('type:N', legend = None)
+                .scale(domain = _sv, range = _col),
+            tooltip=[
+                alt.Tooltip('type:N', title = "Variant Type"),
+                alt.Tooltip('contig:N', title = "Contig"),
+                alt.Tooltip('position_start:Q', title = "Start", format = ','),
+                alt.Tooltip('position_end:Q', title = "End", format = ','),
+                alt.Tooltip('var_length:Q', title = "Length", format = ','),
+                alt.Tooltip('n_samples:Q', title = "# Samples"),
+                alt.Tooltip('samples:N', title = "Samples")
+            ],
             stroke=stroke_color
         )
         .transform_filter(selection)
-        .add_params(selection, length_param, highlight)
-        .properties(title= title)
+        .add_params(selection, length_param, highlight, zoom)
+        .properties(title= dynamic_title)
     )
 
 def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
@@ -42,21 +58,21 @@ def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
     '''
     labels = records['contig'].unique()
     input_dropdown = alt.binding_select(options=labels, name='Contig: ')
-    selection = alt.selection_point("chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
+    selection = alt.selection_point(name = "chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)
     length_param = alt.param(expr='max(pluck(data("data_0"), "position_end"))')
     highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
     stroke_color = (
-        alt.when(highlight).then(alt.value("#7ae00d"))
+        alt.when(highlight)
+        .then(alt.value("#7ae00d"))
         .otherwise(alt.value("transparent"))
     )
-
     return (
         alt.Chart(records)        
         .mark_bar(strokeWidth=2)
         .encode(
             x=alt.X('position:Q')
-                .scale(alt.Scale(domain=[0, length_param]))
-                .axis(alt.Axis(title='Position (Mb)', labelExpr='datum.value / 1000000')),
+                .scale(domain=[0, length_param])
+                .axis(title='Position (Mb)', labelExpr='datum.value / 1000000'),
             y = 'count()',
             color = 'type:N',
             stroke = stroke_color
@@ -64,5 +80,5 @@ def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
         .transform_filter(selection)
         .add_params(selection, length_param, highlight)
         .properties(title= title)
-        facet(row='key:N')
+        .facet(row='key:N')
     )

@@ -1,4 +1,3 @@
-from typing import Hashable
 import altair as alt
 
 # Okabe Ito colorblindsafe palette
