@@ -1,10 +1,6 @@
 import os
-import logging
 from pathlib import Path
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
@@ -33,7 +29,7 @@ else:
     intervals = [region_input]
     regions = {f"{region_input}" : f"{region_input}"}
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
