@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from harpy.common.printing import CONSOLE, print_notice, print_error
 
@@ -28,7 +29,7 @@ class Populations():
             )
 
         in_samples = [Path(i).stem for i in infiles]
-        popsamples = [i[-1] for i in rows]
+        popsamples = [i[-1].split()[0] for i in rows]
         missing_samples = [x for x in popsamples if x not in in_samples]
         overlooked = [x for x in in_samples if x not in popsamples]
         if len(overlooked) > 0:
@@ -41,3 +42,12 @@ class Populations():
                 "The samples causing this error are",
                 ", ".join(sorted(missing_samples))
             )
+    def copy_to_workflow(self, dir):
+        '''
+        Copy the populations file to the workflow `dir`, omitting lines starting with a comment (`#`)
+        '''
+        _outf = os.path.join(dir, "workflow", "sample.groups")
+        with open(self.file, "r") as infile, open(_outf, "w") as outfile:
+            for line in infile:
+                if not line.lstrip().startswith("#"):
+                    outfile.write(line)
