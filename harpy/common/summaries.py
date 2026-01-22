@@ -432,13 +432,8 @@ class Summary:
         return "\n\n".join(summary)
 
     def sv_leviathan(self) -> str:
-        if "groupings" in self.config["Inputs"]:
-            return self.leviathan_pop()
-        else:
-            return self.leviathan()
-
-    def leviathan(self) -> str:
         genomefile = os.path.basename(self.config["Inputs"]["reference"])
+        groupfile 	= self.config["Inputs"].get("groupings", None)
         min_size = self.config["Parameters"]["min-size"]
         min_bc = self.config["Parameters"]["min-barcodes"]
         iterations = self.config["Parameters"]["iterations"]
@@ -460,44 +455,11 @@ class Summary:
 
         summary = ["The harpy sv leviathan workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {genomefile}")
-        bc_idx = "The barcodes were indexed using:\n"
-        bc_idx += "\tLRez index bam -p -b INPUT"
-        summary.append(bc_idx)
-        svcall = "Leviathan was called using:\n"
-        svcall += f"\tLEVIATHAN -b INPUT -i INPUT.BCI -g GENOME {params}"
-        summary.append(svcall)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-
-    def leviathan_pop(self) -> str:
-        groupfile 	= self.config["Inputs"]["groupings"]
-        genomefile 	= os.path.basename(self.config["Inputs"]["reference"])
-        extra 		= self.config["Parameters"].get("extra", "") 
-        min_size      = self.config["Parameters"]["min-size"]
-        min_bc      = self.config["min-barcodes"]
-        iterations  = self.config["Parameters"]["iterations"]
-        small_thresh = self.config["Parameters"]["variant-thresholds"]["small"]
-        medium_thresh = self.config["Parameters"]["variant-thresholds"]["medium"]
-        large_thresh = self.config["Parameters"]["variant-thresholds"]["large"]
-        duplcates_thresh = self.config["Parameters"]["variant-thresholds"]["duplicates"]
-        params = " ".join([
-            f"-v {min_size}",
-            f"-c {min_bc}",
-            f"-B {iterations}",
-            f"-s {small_thresh}",
-            f"-m {medium_thresh}",
-            f"-l {large_thresh}",
-            f"-d {duplcates_thresh}",
-            extra
-        ])
-        summary = ["The harpy sv leviathan workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {genomefile}")
-        summary.append(f"The provided populations grouping file: {groupfile}")
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam --bx -b samples.list > groupname.bam"
-        summary.append(concat)
+        if groupfile:
+            summary.append(f"The provided populations grouping file: {groupfile}")
+            concat = "The alignments were concatenated using:\n"
+            concat += "\tconcatenate_bam --bx -b samples.list > groupname.bam"
+            summary.append(concat)
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "\tLRez index bam -p -b INPUT"
         summary.append(bc_idx)

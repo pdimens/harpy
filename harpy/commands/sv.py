@@ -58,13 +58,10 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     you expect to find, try lowering `--sharing-thresholds`, _e.g._ `90,90,90`. The thresholds don't
     have to be the same across the different size classes.
     """
-    vcaller = "sv_leviathan" if not populations else "sv_leviathan_pop"
-    workflow = Workflow("sv_leviathan", f"{vcaller}.smk", output_dir, container, clean, quiet)
+    workflow = Workflow("sv_leviathan", "sv_leviathan.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["leviathan.ipynb"]
-    if populations:
-        workflow.report_files.append("leviathan_pop.ipynb")
-    workflow.conda = ["align", "report", "variants"]
+    workflow.report_files = ["sv.ipynb"]
+    workflow.conda = ["align", "variants"]
 
     ## checks and validations ##
     alignments = XAM(inputs)
@@ -75,6 +72,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     workflow.input(fasta.file, "reference")
     if populations:
         popfile = Populations(populations, alignments.files)
+        popfile.copy_to_workflow(output_dir)
         workflow.input(popfile.file, "groupings")
     workflow.input(alignments.files, "alignments")
 

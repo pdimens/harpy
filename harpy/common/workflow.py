@@ -382,9 +382,6 @@ class Workflow():
         if sm.exitcode == 0:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())
-            #self.purge_empty_logs()
-            #if os.path.exists(self.snakemake_logfile):
-            #    gzip_file(os.path.join(self.output_directory, self.snakemake_logfile))
             self.print_onsuccess()
         else:
             sys.exit(1)

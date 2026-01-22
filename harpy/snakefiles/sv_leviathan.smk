@@ -1,30 +1,27 @@
 import os
-import re
-import logging
 from pathlib import Path
+import re
+from harpy.common.file_ops import pop_manifest
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["Workflow"]["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     population = r"[a-zA-Z0-9._-]+"
 
-genomefile  = config["Inputs"]["reference"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
+genomefile 	= config["Inputs"]["reference"]
 bamlist     = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist,bamlist))
-samplenames = {Path(i).stem for i in bamlist}
-min_size      = config["Parameters"]["min-size"]
+target      = {Path(i).stem for i in bamlist}
+groupfile 	= config["Inputs"].get("groupings", None)
+extra 		= config["Parameters"].get("extra", "") 
+min_size    = config["Parameters"]["min-size"]
 min_bc      = config["Parameters"]["min-barcodes"]
 iterations  = config["Parameters"]["iterations"]
 small_thresh = config["Parameters"]["variant-thresholds"]["small"]
 medium_thresh = config["Parameters"]["variant-thresholds"]["medium"]
 large_thresh = config["Parameters"]["variant-thresholds"]["large"]
 duplcates_thresh = config["Parameters"]["variant-thresholds"]["duplicates"]
-extra       = config["Parameters"].get("extra", "") 
-skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
-bn          = os.path.basename(genomefile)
+bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"
 else:
@@ -36,28 +33,15 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-rule index_barcodes:
-    input: 
-        get_alignments
-    output:
-        temp("lrez_index/{sample}.bci")
-    log:
-        "logs/process_alignments/{sample}.log"
-    threads:
-        min(10, workflow.cores)
-    conda:
-        "envs/variants.yaml"
-    container:
-        "docker://pdimens/harpy:variants_dev"
-    shell:
-        """
-        {{
-            samtools index {input}
-            LRez index bam --threads {threads} -p -b {input} -o {output}
-        }} 2> {log}
-        """
+if groupfile:
+    popdict = pop_manifest(groupfile, bamlist)
+    populations = popdict.keys()
+    target = populations
+else:
+    popdict = None
+    populations = None
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -79,9 +63,69 @@ rule preprocess_reference:
         }} 2> {log}
         """
 
+rule concat_groups:
+    input: 
+        bamfiles = lambda wc: collect("{samples}", samples = popdict[wc.population]) 
+    output:
+        bam = temp("workflow/input/{population}.bam"),
+        bai = temp("workflow/input/{population}.bam.bai")
+    log:
+        "logs/concat_groups/{population}.concat.log"
+    resources:
+        mem_mb = 2000
+    threads:
+        workflow.cores
+    shell:
+        """
+        {{
+            concatenate_bam --bx {input} | 
+            samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
+        }} 2> {log}
+        """
+
+if popdict:
+    rule index_barcodes:
+        input: 
+            bam = "workflow/input/{population}.bam",
+            bai = "workflow/input/{population}.bam.bai"
+        output:
+            temp("lrez_index/{population}.bci")
+        log:
+            "logs/lrez_index/{population}.concat.log"
+        threads:
+            min(5, workflow.cores)
+        conda:
+            "envs/variants.yaml"
+        container:
+            "docker://pdimens/harpy:variants_dev"
+        shell:
+            "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
+else:
+    rule index_barcodes:
+        input: 
+            get_alignments
+        output:
+            temp("lrez_index/{sample}.bci")
+        log:
+            "logs/process_alignments/{sample}.log"
+        threads:
+            min(10, workflow.cores)
+        conda:
+            "envs/variants.yaml"
+        container:
+            "docker://pdimens/harpy:variants_dev"
+        shell:
+            """
+            {{
+                samtools index {input}
+                LRez index bam --threads {threads} -p -b {input} -o {output}
+            }} 2> {log}
+            """
+
 rule call_variants:
     input:
-        bam = get_alignments,
+        bam    = "workflow/input/{sample}.bam" if popdict else get_alignments,
+        bai    = "workflow/input/{sample}.bam.bai" if popdict else [],
         bc_idx = "lrez_index/{sample}.bci",
         genome = workflow_geno,
         genidx = multiext(workflow_geno, ".fai", ".ann", ".bwt", ".pac", ".sa", ".amb")
@@ -89,7 +133,7 @@ rule call_variants:
         vcf = temp("vcf/{sample}.vcf"),
         candidates = "logs/leviathan/{sample}.candidates"
     log:  
-        runlog = "logs/leviathan/{sample}.leviathan.log"
+        runlog = "logs/leviathan/{sample}.leviathan.log",
     params:
         min_size = f"-v {min_size}",
         min_bc = f"-c {min_bc}",
@@ -114,13 +158,15 @@ rule sort_variants:
         "vcf/{sample}.vcf"
     output:
         "vcf/{sample}.bcf"
+    params:
+        lambda wc: wc.sample
     shell:        
         "bcftools sort -Ob --output {output} {input} 2> /dev/null"
 
 rule variant_stats:
     input: 
         "vcf/{sample}.bcf"
-    output: 
+    output:
         temp("reports/data/{sample}.sv.stats")
     shell:
         """
@@ -132,19 +178,14 @@ rule variant_stats:
 
 rule aggregate_variants:
     input:
-        collect("reports/data/{sample}.sv.stats", sample = samplenames)
+        collect("reports/data/{sample}.sv.stats", sample = target)
     output:
         "inversions.bedpe",
         "deletions.bedpe",
         "duplications.bedpe",
         "breakends.bedpe"
     run:
-        with (
-            open(output[0], "w") as inversions,
-            open(output[1], "w") as deletions,
-            open(output[2], "w") as duplications,
-            open(output[3], "w") as breakends
-        ):
+        with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications, open(output[3], "w") as breakends:
             header = ["sample","contig","position_start","position_end","length","type","n_barcodes","n_pairs"]
             _ = inversions.write("\t".join(header) + "\n")
             _ = deletions.write("\t".join(header) + "\n")
@@ -168,36 +209,30 @@ rule aggregate_variants:
                         elif record[5] == "BND":
                             _ = breakends.write(line)
 
-
-rule sample_reports:
+rule report:
     input: 
-        faidx     = f"{workflow_geno}.fai",
-        statsfile = "reports/data/{sample}.sv.stats",
-        ipynb       = "workflow/report/leviathan.ipynb"
+        faidx = f"{workflow_geno}.fai",
+        stats = collect("reports/data/{sample}.sv.stats", sample = target),
+        ipynb = "workflow/report/sv.ipynb"
     output:
-        ipynb = temp("reports/{sample}.leviathan.ipynb")
+        tmp = temp("reports/leviathan.summary.tmp.ipynb"),
+        ipynb = "reports/leviathan.summary.ipynb"
     log:
-        "logs/reports/{sample}.report.log"
+        "logs/report.log"
     params:
-        sample= lambda wc: "-P sample:" + wc.get('sample'),
-        contigs= f"-P contigs:{plot_contigs}"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
+        faidx = f"-p faidx {workflow_geno}.fai",
+        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        FAIDX=$(realpath {input.faidx})
-        STATS=$(realpath {input.statsfile})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P faidx:$FAIDX -P statsfile:$STATS {params}
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook LEVIATHAN {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
     default_target: True
-    input: 
-        vcf = collect("vcf/{sample}.bcf", sample = samplenames),
+    input:
+        vcf = collect("vcf/{sample}.bcf", sample = target),
         bedpe_agg = collect("{sv}.bedpe", sv = ["inversions", "deletions","duplications", "breakends"]),
-        reports = collect("reports/{sample}.leviathan.ipynb", sample = samplenames) if not skip_reports else []
+        agg_report = "reports/leviathan.summary.ipynb" if not skip_reports else []
