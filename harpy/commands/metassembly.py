@@ -48,8 +48,8 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     fastq.bc_or_bx(bx_tag)
 
     workflow.linkedreads["barcode-tag"] = bx_tag.upper()
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["organism-type"] = organism_type
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["organism-type"] = organism_type
     workflow.input(fastq_r1, "fastq-r1")
     workflow.input(fastq_r2, "fastq-r2")
     workflow.param("spades:ignore-barcodes", unlinked)

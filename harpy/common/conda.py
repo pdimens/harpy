@@ -49,21 +49,6 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23"
         ],
-        "report" : [
-            "conda-forge::papermill",
-            "conda-forge::r-dt",
-            "conda-forge::r-dplyr",
-            "conda-forge::r-formattable",
-            "conda-forge::r-highcharter",
-            "conda-forge::r-irkernel",
-            "conda-forge::r-magrittr",
-            "conda-forge::r-plotly",
-            "conda-forge::r-scales",
-            "conda-forge::r-tidyr",
-            "conda-forge::r-viridislite", 
-            "conda-forge::r-xml2",
-            "r::r-biocircos",
-        ],
         "stitch" : [
             "bioconda::r-stitch>=1.8.4"
         ],

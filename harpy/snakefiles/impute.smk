@@ -159,38 +159,6 @@ rule index_vcf:
         bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule contig_report:
-    input:
-        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
-        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
-        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
-        "{paramset}/contigs/{contig}/plots/hapSum.png",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
-        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        ipynb = "workflow/report/stitch_collate.ipynb"
-    output:
-        ipynb = ("{paramset}/reports/{contig}.{paramset}.ipynb")
-    log:
-        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
-    params:
-        params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
-        plotdir = lambda wc: "-P plotdir:" + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
-        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-P extra:{stitch_extra}"
-    shell:
-        """
-        cp -f {input.ipynb} {output.ipynb}
-        STATS=$(realpath {input.statsfile})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
-        """
-
 rule concat_list:
     input:
         cntg = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
@@ -284,30 +252,65 @@ rule compare_stats:
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
+rule contig_report:
+    input:
+        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
+        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        ipynb = "workflow/stitch_collate.ipynb"
+    output:
+        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb")
+        ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
+    log:
+        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
+    params:
+        statsfile = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
+        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-P extra:{stitch_extra}"
+    shell:
+        """
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
+        }} 2> {log} > {output.ipynb}
+        """
+
 rule impute_reports:
     input:
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = "{paramset}/reports/data/impute.infoscore",
-        ipynb = "workflow/report/impute.ipynb"
+        ipynb = "workflow/impute.ipynb"
     output:
+        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb")
         ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
-        param   = lambda wc: f"-P id:{wc.paramset}",
-        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-P extra:{stitch_extra}"
+        basedir = lambda wc: "-p basedir " + os.path.abspath("{wc.paramset}/reports/data/"),
+        model   = lambda wc: f"-p model:{stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx:{stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k:{stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s:{stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen:{stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-p extra:{stitch_extra}"
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        COMPARE=$(realpath {input.comparison})
-        INFOSCORE=$(realpath {input.infoscore})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook {wildcards.paramset} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:

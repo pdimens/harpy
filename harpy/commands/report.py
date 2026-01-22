@@ -12,12 +12,12 @@ from harpy.report.render import ReportRender
 @click.command(context_settings={"help_option_names" : ['--help']}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
-@click.option('-c', '--use-cached', is_flag = True, default = False, help = 'Do not remove `_build` directory prior to server launch')
+@click.option('-c', '--clear-cache', is_flag = True, default = False, help = 'Remove `_build` directory prior to server launch')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
-@click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 30, help = 'Refresh interval, in seconds')
+@click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 0, help = 'Refresh interval, in seconds (disabled with `0`)')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
-def report(directory, debug, headless, use_cached, port, server_port, refresh):
+def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     """
     Render ipynb reports as a local website
 
@@ -37,7 +37,7 @@ def report(directory, debug, headless, use_cached, port, server_port, refresh):
         cmd += ["--server-port", f"{server_port}"]
 
     # clear out the existing build dir, if present
-    if os.path.isdir("_build") and not use_cached:
+    if os.path.isdir("_build") and clear_cache:
         rmtree("_build", ignore_errors=True)
 
     tracker = ReportRender(directory if directory else "")
@@ -49,8 +49,8 @@ def report(directory, debug, headless, use_cached, port, server_port, refresh):
         os.system(" ".join(cmd))
         return
     try:
-        start_text = "Starting the MyST live-server[dim]…[/]" if use_cached else "Fetching site template[dim]…[/]"
-        panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report[/]", subtitle= "[default]Terminate it with[/] [bold yellow]ctrl+c[/]")
+        start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"
+        panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report[/]", subtitle= "[default]Terminate server with[/] [bold yellow]ctrl+c[/]")
         with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = CONSOLE, auto_refresh = False, transient = True) as live:
             while not URL:
                 if serve.poll():
@@ -76,7 +76,7 @@ def report(directory, debug, headless, use_cached, port, server_port, refresh):
                     tracker.update_yaml()
                     sleep(refresh)
                 else:
-                    sleep(999)
+                    sleep(9999)
                 live.refresh()
     except KeyboardInterrupt:
         # clear the top part of the panel

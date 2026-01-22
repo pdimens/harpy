@@ -60,7 +60,7 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     """
     workflow = Workflow("sv_leviathan", "sv_leviathan.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["sv.ipynb"]
+    workflow.notebook_files = ["sv.ipynb"]
     workflow.conda = ["align", "variants"]
 
     ## checks and validations ##
@@ -76,8 +76,8 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
         workflow.input(popfile.file, "groupings")
     workflow.input(alignments.files, "alignments")
 
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.param(min_barcodes, "min-barcodes")
     workflow.param(min_size, "min-size")
     workflow.param(iterations, "iterations")
@@ -125,19 +125,14 @@ def naibr(inputs, output_dir, reference, min_size, min_barcodes, min_quality, th
 
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
     in alignment records. If your bam files do not have either of these phasing tags
-    (e.g. BWA/strobealign do not phase alignments), then provide a **phased** `--vcf` file such
-     as that created by `harpy phase` and Harpy will use [whatshap haplotag](https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag)
-    to phase your input bam files prior to calling variants with NAIBR.
+    (e.g. BWA/strobealign do not phase alignments), use `harpy phase bam` to do so.
 
     Optionally specify `--populations` for population-pooled variant calling (**harpy template** can create that file).
     """
-    vcaller = "sv_naibr" if not populations else "sv_naibr_pop"
-    workflow = Workflow("sv_naibr", f"{vcaller}.smk", output_dir, container, clean, quiet)
+    workflow = Workflow("sv_naibr", "sv_naibr.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["naibr.ipynb"]
-    if populations:
-        workflow.report_files.append("naibr_pop.ipynb")
-    workflow.conda = ["report", "variants"]
+    workflow.notebook_files = ["sv.ipynb"]
+    workflow.conda = ["variants"]
 
     ## checks and validations ##
     alignments = XAM(inputs, check_phase = True, quiet = quiet > 0)
@@ -145,11 +140,12 @@ def naibr(inputs, output_dir, reference, min_size, min_barcodes, min_quality, th
     if contigs:
         fasta.match_contigs(contigs)
 
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(fasta.file, "reference")
     if populations:
         popfile = Populations(populations, alignments.files)
+        popfile.copy_to_workflow(output_dir)
         workflow.input(popfile.file, "groupings")
     workflow.input(alignments.files, "alignments")
     workflow.param(min_barcodes, "min-barcodes")

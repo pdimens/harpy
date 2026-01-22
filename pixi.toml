@@ -3,7 +3,7 @@ name = "harpy"
 authors = ["pdimens <pdimens@gmail.com>"]
 channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
-version = "3.2.0"
+version = "4.0"
 
 [tasks]
 
@@ -21,10 +21,10 @@ seqtk = "*"
 apptainer = ">=1.4.2,<2"
 djinn = ">=1.1,<2"
 jupyter-book = ">=2.1.0,<3"
-mystmd = ">=1.7.0,<2"
 itables = ">=2.6.2,<3"
 pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
+papermill = ">=2.6.0,<3"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}

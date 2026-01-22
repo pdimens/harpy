@@ -1,6 +1,7 @@
 """Basic functions to write the workflow summaries"""
 import os
 import re
+from harpy.common.file_ops import naibr_extra
 
 class Summary:
     def __init__(self, config: dict):
@@ -409,7 +410,6 @@ class Summary:
 
     def validate_bam(self) -> str:
         lr_platform = self.config["Workflow"]["linkedreads"]["type"]
-
         summary = ["The harpy validate bam workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
@@ -421,7 +421,6 @@ class Summary:
 
     def validate_fastq(self) -> str:
         lr_platform = self.config["Workflow"]["linkedreads"]["type"]
-        
         summary = ["The harpy validate fastq workflow ran using these parameters:"]
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_fastq {lr_platform} sample.fastq > sample.txt"
@@ -472,69 +471,24 @@ class Summary:
         return "\n\n".join(summary)
 
     def sv_naibr(self) -> str:
-        if "groupings" in self.config["Inputs"]:
-            return self.naibr_pop()
-        else:
-            return self.naibr()
-
-    def naibr(self) -> str:
-        genomefile = os.path.basename(self.config["Inputs"]["reference"])
-        extra = self.config["Parameters"].get("extra", None) 
-        min_size = self.config["Parameters"]["min-size"]
-        min_barcodes = self.config["Parameters"]["min-barcodes"]
-        min_quality  = self.config["Parameters"]["min-map-quality"]
-        mol_dist    = self.config["Parameters"]["molecule-distance"]
-        argdict = {
-        "min_mapq" : min_quality,
-        "d"        : mol_dist,
-        "min_sv"   : min_size,
-        "k"        : min_barcodes
-        }
-        if extra:
-            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2], strict = True):
-                if "blacklist" in i or "candidates" in i:
-                    argdict[i[0].lstrip("-")] = i[1]
-        
-        summary = ["The harpy sv naibr workflow ran using these parameters:"]
-        summary.append(f"The provided reference genome: {genomefile}")
-        naibr = "naibr variant calling ran using these configurations:\n"
-        naibr += "\tbam_file=BAMFILE\n"
-        naibr += "\tprefix=PREFIX\n"
-        naibr += "\toutdir=Variants/naibr/PREFIX\n"
-        naibr += "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
-        summary.append(naibr)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
-        summary.append(sm)
-        return "\n\n".join(summary)
-
-    def naibr_pop(self) -> str:
         genomefile   = os.path.basename(self.config["Inputs"]["reference"])
-        groupfile    = self.config["Inputs"]["groupings"]
+        groupfile    = self.config["Inputs"].get("groupings", None)
         extra        = self.config["Parameters"].get("extra", None) 
         min_size     = self.config["Parameters"]["min-size"]
         min_barcodes = self.config["Parameters"]["min-barcodes"]
         min_quality  = self.config["Parameters"]["min-map-quality"]
         mol_dist     = self.config["Parameters"]["molecule-distance"]
-        argdict = {
-        "min_mapq" : min_quality,
-        "d"        : mol_dist,
-        "min_sv"   : min_size,
-        "k"        : min_barcodes
-        }
-        if extra:
-            words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
-            for i in zip(words[::2], words[1::2], strict = True):
-                if "blacklist" in i or "candidates" in i:
-                    argdict[i[0].lstrip("-")] = i[1]
-
+        argdict = naibr_extra(
+            {"min_mapq" : min_quality, "d" : mol_dist, "min_sv" : min_size, "k": min_barcodes},
+            extra
+        )
         summary = ["The harpy sv naibr workflow ran using these parameters:"]
         summary.append(f"The provided reference genome: {genomefile}")
         summary.append(f"The provided populations grouping file: {groupfile}")
-        concat = "The alignments were concatenated using:\n"
-        concat += "\tconcatenate_bam -b samples.list > groupname.bam"
-        summary.append(concat)
+        if groupfile:
+            concat = "The alignments were concatenated using:\n"
+            concat += "\tconcatenate_bam -b samples.list > groupname.bam"
+            summary.append(concat)
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"
         naibr += "\tprefix=PREFIX\n"

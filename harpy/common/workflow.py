@@ -7,7 +7,6 @@ import os
 import shutil
 import sys
 import time as _time
-from typing import Dict
 import urllib.request
 import urllib.error
 import yaml
@@ -38,8 +37,8 @@ class Workflow():
         self.snakemake_cmd_relative: str = ""
         self.snakefile: str = snakefile
 
-        self.report_files: list[str] = []
-        self.reports: dict = {}
+        self.notebook_files: list[str] = []
+        self.notebooks: dict = {}
         self.scripts: list[str] = []
         self.inputs: dict = {}
         self.linkedreads: dict = {}
@@ -151,13 +150,12 @@ class Workflow():
 
     def fetch_notebooks(self) -> None:
         """
-        Copy any files in self.report_files into workdir/report
+        Copy any files in self.notebook_files into workdir/report
         """
-        dest_dir = os.path.join(self.workflow_directory, "report")
-        os.makedirs(dest_dir, exist_ok= True)
+        os.makedirs(self.workflow_directory, exist_ok= True)
         
-        for target in self.report_files:
-            dest_file = os.path.join(dest_dir, target)
+        for target in self.notebook_files:
+            dest_file = os.path.join(self.workflow_directory, target)
             source_file = resources.files("harpy.notebooks") / target
             try:
                 with resources.as_file(source_file) as _source:
@@ -168,70 +166,6 @@ class Workflow():
                     f"The required report notebook [blue bold]{target}[/] was not found within the Harpy installation.",
                     "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
                 )
-
-    def fetch_reports(self) -> None:
-        """
-        Copy any files in self.report_files into workdir/report and fetch report configs if
-        reports were specified
-        """
-        dest_dir = os.path.join(self.workflow_directory, "report")
-        os.makedirs(dest_dir, exist_ok= True)
-        
-        for target in self.report_files:
-            dest_file = os.path.join(dest_dir, target)
-            source_file = resources.files("harpy.reports") / target
-            try:
-                with resources.as_file(source_file) as _source:
-                    shutil.copy2(_source, dest_file)
-            except (FileNotFoundError, KeyError):
-                print_error(
-                    "report script missing",
-                    f"The required report script [blue bold]{target}[/] was not found within the Harpy installation.",
-                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
-                )
-        self.fetch_report_configs()
-
-    def fetch_report_configs(self):
-        """
-        If self.report_files isnt empty, pull yaml config file from GitHub, use local if download fails
-        """
-        if not self.report_files:
-            return
-        dest_dir = os.path.join(self.workflow_directory, "report")
-        destination = os.path.join(dest_dir, "_quarto.yml")
-        try:
-            _yaml = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_quarto.yml"
-            with urllib.request.urlopen(_yaml) as response, open(destination, 'w') as yaml_out:
-                yaml_out.write(response.read().decode("utf-8"))
-        except (urllib.error.URLError, OSError, IOError):
-            source_file = resources.files("harpy.reports") / "_quarto.yml"
-            try:
-                with resources.as_file(source_file) as _source:
-                    shutil.copy2(_source, destination)
-            except (FileNotFoundError, KeyError):
-                print_error(
-                    "report configuration missing",
-                    "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_quarto.yml[/] that comes with a Harpy installation.",
-                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
-                )
-
-        # same for the scss file
-        destination = os.path.join(dest_dir, "_harpy.scss")
-        try:
-            scss = "https://github.com/pdimens/harpy/raw/refs/heads/main/harpy/reports/_harpy.scss"
-            with urllib.request.urlopen(scss) as response, open(destination, 'w') as scss_out:
-                scss_out.write(response.read().decode("utf-8"))
-        except (urllib.error.URLError, OSError, IOError):
-            source_file = resources.files("harpy.reports") / "_harpy.scss"
-            try:
-                with resources.as_file(source_file) as _source:
-                    shutil.copy2(_source, destination)
-            except (FileNotFoundError, KeyError):
-                print_error(
-                    "report configuration missing",
-                    "The required quarto configuration could not be downloaded from the Harpy repository, nor found in the local file [blue bold]_harpy.scss[/] that comes with a Harpy installation.",
-                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
-                    )
 
     def fetch_snakefile(self):
         """
@@ -288,8 +222,8 @@ class Workflow():
         self.config["Workflow"]["name"] = self.name
         if self.linkedreads:
             self.config["Workflow"]["linkedreads"] = self.linkedreads
-        if self.reports:
-            self.config["Workflow"]["reports"] = self.reports
+        if self.notebooks:
+            self.config["Workflow"]["reports"] = self.notebooks
         self.config["Workflow"]["snakemake"] = {
             "log" : self.snakemake_logfile,
             "absolute": self.snakemake_cmd_absolute,
@@ -360,7 +294,6 @@ class Workflow():
         self.fetch_scripts()
         self.fetch_notebooks()
         self.fetch_hpc()
-        #self.fetch_reports()
         self.print_onstart()
         if not setup:
             self.launch()
@@ -370,9 +303,8 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-
         sm = LaunchSnakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
-        
+
         if self.clean:
             CONSOLE.rule("[dim]Cleaning output directory", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):

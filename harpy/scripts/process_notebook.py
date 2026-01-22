@@ -3,12 +3,14 @@
 import argparse
 from datetime import datetime
 import sys
+import random
+import string
 
 def main():
     parser = argparse.ArgumentParser(
         prog='process_notebook',
-        description='Replace all instances of PLACEHOLDER in a Jupyter notebook with the input arguments, sequentially. In other words, the first instance is replaced with the first argument, second with the second, etc. Also replaces the date-time placeholder with the actual date and adds the remove-cell tag to injected paramters.',
-        usage = "update_placeholders arg1 arg2... input.ipynb > output.ipynb",
+        description='Replace all instances of PLACEHOLDER in a Jupyter notebook with the input arguments, sequentially. In other words, the first instance is replaced with the first argument, second with the second, etc. Also replaces the date-time placeholder with the actual date, adds the remove-cell tag to injected paramters, and replaces lowercase instances of placeholder with a 15 digit random alphanumeric string.',
+        usage = "process_notebook arg1 arg2... input.ipynb > output.ipynb",
         )
     parser.add_argument('text', nargs='+', help = 'text items to replace PLACEHOLDER, separated by spaces')
     parser.add_argument('notebook', type=argparse.FileType('r'), help = "Input Jupyter notebook")
@@ -20,6 +22,7 @@ def main():
         sys.exit(1)
 
     _date = datetime.now().strftime('%Y-%m-%d')
+    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
 
     for line in args.notebook:
         if 'PLACEHOLDER' in line:
@@ -32,4 +35,6 @@ def main():
             line = line.replace("9999-12-31", _date)
         elif "injected-parameters" in line:
             line = line.replace('"injected-parameters"', '"injected-parameters",\n"remove-cell"')
+        if "placeholder" in line:
+            line = line.replace("placeholder", random_string)
         sys.stdout.write(line)

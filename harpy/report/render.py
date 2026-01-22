@@ -58,7 +58,7 @@ class ReportRender():
         Recursively search `self.root` for files ending in `.ipynb`, filtering out those found in the _build/ directory
         and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
         """
-        _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/report" not in i)
+        _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/" not in i)
         _dirs = set(os.path.dirname(i) for i in _ipynb)
         orig = copy.copy(self.filetree)
 

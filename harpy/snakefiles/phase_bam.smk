@@ -27,7 +27,7 @@ def get_alignments(wildcards):
     aln = list(filter(r.match, bamlist))
     return aln[0]
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 

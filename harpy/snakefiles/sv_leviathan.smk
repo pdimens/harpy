@@ -5,13 +5,12 @@ from harpy.common.file_ops import pop_manifest
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
-    population = r"[a-zA-Z0-9._-]+"
 
 skip_reports = config["Workflow"]["reports"]["skip"]
 plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
+plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 genomefile 	= config["Inputs"]["reference"]
 bamlist     = config["Inputs"]["alignments"]
-target      = {Path(i).stem for i in bamlist}
 groupfile 	= config["Inputs"].get("groupings", None)
 extra 		= config["Parameters"].get("extra", "") 
 min_size    = config["Parameters"]["min-size"]
@@ -21,7 +20,10 @@ small_thresh = config["Parameters"]["variant-thresholds"]["small"]
 medium_thresh = config["Parameters"]["variant-thresholds"]["medium"]
 large_thresh = config["Parameters"]["variant-thresholds"]["large"]
 duplcates_thresh = config["Parameters"]["variant-thresholds"]["duplicates"]
-bn 			= os.path.basename(genomefile)
+popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
+populations  = popdict.keys() if groupfile else None
+target       = populations if groupfile else {Path(i).stem for i in bamlist}
+bn 			 = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"
 else:
@@ -32,14 +34,6 @@ def get_alignments(wildcards):
     r = re.compile(fr".*/({wildcards.sample})\.(bam|sam)$", flags = re.IGNORECASE)
     aln = list(filter(r.match, bamlist))
     return aln[0]
-
-if groupfile:
-    popdict = pop_manifest(groupfile, bamlist)
-    populations = popdict.keys()
-    target = populations
-else:
-    popdict = None
-    populations = None
 
 rule process_reference:
     input:
@@ -65,12 +59,12 @@ rule process_reference:
 
 rule concat_groups:
     input: 
-        bamfiles = lambda wc: collect("{samples}", samples = popdict[wc.population]) 
+        bamfiles = lambda wc: collect("{samples}", samples = popdict[wc.sample]) 
     output:
-        bam = temp("workflow/input/{population}.bam"),
-        bai = temp("workflow/input/{population}.bam.bai")
+        bam = temp("workflow/input/{sample}.bam"),
+        bai = temp("workflow/input/{sample}.bam.bai")
     log:
-        "logs/concat_groups/{population}.concat.log"
+        "logs/concat_groups/{sample}.concat.log"
     resources:
         mem_mb = 2000
     threads:
@@ -86,12 +80,12 @@ rule concat_groups:
 if popdict:
     rule index_barcodes:
         input: 
-            bam = "workflow/input/{population}.bam",
-            bai = "workflow/input/{population}.bam.bai"
+            bam = "workflow/input/{sample}.bam",
+            bai = "workflow/input/{sample}.bam.bai"
         output:
-            temp("lrez_index/{population}.bci")
+            temp("lrez_index/{sample}.bci")
         log:
-            "logs/lrez_index/{population}.concat.log"
+            "logs/lrez_index/{sample}.concat.log"
         threads:
             min(5, workflow.cores)
         conda:
@@ -212,16 +206,17 @@ rule aggregate_variants:
 rule report:
     input: 
         faidx = f"{workflow_geno}.fai",
-        stats = collect("reports/data/{sample}.sv.stats", sample = target),
-        ipynb = "workflow/report/sv.ipynb"
+        stats = collect("{var}.bedpe", var = ['inversions', 'deletions', 'duplications', 'breakends']),
+        ipynb = "workflow/sv.ipynb"
     output:
         tmp = temp("reports/leviathan.summary.tmp.ipynb"),
         ipynb = "reports/leviathan.summary.ipynb"
     log:
         "logs/report.log"
     params:
-        faidx = f"-p faidx {workflow_geno}.fai",
-        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
+        f"-p indir {os.getcwd()}",
+        f"-p faidx {workflow_geno}.fai",
+        f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
         {{

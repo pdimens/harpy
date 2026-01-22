@@ -49,8 +49,8 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     """
     workflow = Workflow("qc", "qc.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["qc_bx_stats.ipynb"]
-    workflow.conda = ["qc", "report"]
+    workflow.notebook_files = ["qc_bx_stats.ipynb"]
+    workflow.conda = ["qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
@@ -64,7 +64,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     else:
         trim_adapters = False
 
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.input(fastq.files)
     workflow.param(trim_adapters, "trim-adapters")

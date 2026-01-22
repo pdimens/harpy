@@ -33,16 +33,7 @@ else:
     intervals = [regions_input]
     regions = {f"{regions_input}" : f"{regions_input}"}
 
-rule preprocess_groups:
-    input:
-        grp = groupings
-    output:
-        grp = "workflow/sample.groups"
-    run:
-        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
-            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
-
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -168,42 +159,23 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule variant_report:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         data = "reports/data/variants.{type}.stats",
-        qmd  = "workflow/report/bcftools_stats.ipynb"
+        ipynb  = "workflow/bcftools_stats.ipynb"
     output:
         report = "reports/variants.{type}.html",
-        qmd = temp("reports/variants.{type}.ipynb")
-    params:
-        lambda wc: "-P vcf:variants." + wc.get("type")
+        ipynb = temp("reports/variants.{type}.ipynb")
     log:
         "logs/variants.{type}.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
+    params:
+        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INPATH=$(realpath {input.data})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INPATH {params}
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook variants.{wildcards.type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:

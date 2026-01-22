@@ -59,8 +59,8 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     """
     workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["bcftools_stats.ipynb"]
-    workflow.conda = ["report", "variants"]
+    workflow.notebook_files = ["bcftools_stats.ipynb"]
+    workflow.conda = ["variants"]
 
     ## checks and validations ##
     alignments = XAM(inputs, quiet = quiet > 0)
@@ -75,7 +75,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     else:
         region = regions
 
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(region, "regions")
     if populations:
@@ -129,8 +129,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     """
     workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["bcftools_stats.ipynb"]
-    workflow.conda = ["report"]
+    workflow.notebook_files = ["bcftools_stats.ipynb"]
 
     ## checks and validations ##
     alignments = XAM(inputs, quiet = quiet > 0)
@@ -145,7 +144,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     else:
         region = regions
 
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(region, "regions")
     if populations:

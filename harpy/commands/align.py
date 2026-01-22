@@ -54,8 +54,8 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
-    workflow.conda = ["align", "report", "qc"]
+    workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
+    workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
@@ -65,8 +65,8 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.linkedreads["standardized"] = fastq.bx_tag
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
     workflow.param(molecule_distance, "distance-threshold")
@@ -118,8 +118,8 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     """
     workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
-    workflow.conda = ["align", "report", "qc"]
+    workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
+    workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
@@ -137,8 +137,8 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     workflow.param(depth_window, "depth-windowsize")
     if extra_params:
         workflow.param(extra_params, "extra")
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),

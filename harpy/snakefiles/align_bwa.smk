@@ -17,7 +17,8 @@ workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
+plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 windowsize  = config["Parameters"]["depth-windowsize"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -28,7 +29,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -64,7 +65,7 @@ rule preprocess_reference:
         }} 2> {log}
         """
 
-rule make_depth_intervals:
+rule set_depth_intervals:
     input:
         fai = f"{workflow_geno}.fai"
     output:
@@ -207,38 +208,6 @@ rule alignment_coverage:
     shell:
         "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
       
-rule sample_reports:
-    input:
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
-        ipynb = f"workflow/report/align_stats.ipynb"
-    output:
-        tmp = temp("reports/{sample}.tmp.ipynb"),
-        ipynb = "reports/{sample}.ipynb"
-    params:
-        lr_type = f"-p platform {lr_type}",
-        mol_dist = f"-p mol_dist {molecule_distance}",
-        window_size = f"-p windowsize {windowsize}",
-        contigs = f"-p contigs {plot_contigs}",
-        samplename = lambda wc: "-p samplename " + wc.get("sample"),
-        static = "--no-progress-bar --log-level ERROR -k ir",
-        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g',
-        sed_title = lambda wc: f's/# SAMPLENAME/# {wc.get("sample").upper()}/g'
-    log:
-        "logs/{sample}.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    shell:
-        """
-        {{
-            papermill {params.static} {input.ipynb} {output.tmp} {params.lr_type} {params.mol_dist} {params.window_size} {params.contigs} {params.samplename}
-            sed '{params.sed_replace}' {output.tmp} | sed '{params.sed_title}'
-        }} 2> {log} > {output.ipynb}
-        """
-
 if ignore_bx:
     rule index_bam:
         input:
@@ -288,28 +257,49 @@ rule samtools_report:
     shell:
         "multiqc {params} > {output} 2> {log}"
 
-rule barcode_report:
+rule sample_reports:
     input:
-        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        ipynb = f"workflow/report/align_bxstats.ipynb"
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = "reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        ipynb = f"workflow/align_stats.ipynb"
     output:
-        ipynb = "reports/barcode.summary.ipynb",
-        tmp = temp("reports/barcode.summary.tmp.ipynb")
+        tmp = temp("reports/{sample}.tmp.ipynb"),
+        ipynb = "reports/{sample}.ipynb"
     params:
-        indir = "-p indir reports/data/bxstats/",
-        static = "--no-progress-bar --log-level ERROR -k ir",
-        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
+        lr_type = lr_type,
+        basedir = "-p basedir " + os.path.abspath("reports/data"),
+        mol_dist = f"-p mol_dist {molecule_distance}",
+        window_size = f"-p windowsize {windowsize}",
+        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
+        samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
-        f"logs/reports/bxstats.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
+        "logs/{sample}.report.log"
     shell:
         """
         {{
-            papermill {params.static} {input.ipynb} {output.tmp} {params.indir}
-            sed '{params.sed_replace}' {output.tmp}
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p {params}
+            process_notebook BWA-MEM2 {wildcards.sample} {params.lr_type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
+        """
+
+rule barcode_report:
+    input:
+        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        ipynb = f"workflow/align_bxstats.ipynb"
+    output:
+        tmp = temp("reports/barcode.summary.tmp.ipynb"),
+        ipynb = "reports/barcode.summary.ipynb"
+    params:
+        lr_type = lr_type,
+        indir = "-p indir " + os.path.abspath("reports/data/bxstats")
+    log:
+        f"logs/reports/bxstats.report.log"
+    shell:
+        """
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            process_notebook {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

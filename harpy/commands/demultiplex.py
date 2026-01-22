@@ -63,7 +63,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.param("qx-rx", qx_rx)
     workflow.param("barcodes", keep_unknown_barcodes)
     workflow.param("samples", keep_unknown_samples)
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     
     workflow.start_text = workflow_info(
         ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
@@ -110,7 +110,7 @@ def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, th
     bc_len = (3 * bc_seg_len) + (2 * spacer_length)
     bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
 
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     workflow.input(fastq.files)
     workflow.param(bc_len, "barcode_length")
     workflow.param(min_length, "minimum_length")

@@ -123,3 +123,11 @@ def pop_manifest(groupingfile, filelist) -> dict:
             else:
                 d[pop].append(sampl)
     return d
+
+def naibr_extra(argsDict: dict, extra) -> dict:
+    if extra:
+        words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+        for i in zip(words[::2], words[1::2]):
+            if "blacklist" in i or "candidates" in i:
+                argsDict[i[0].lstrip("-")] = i[1]
+    return argsDict

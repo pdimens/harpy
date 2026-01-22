@@ -112,7 +112,7 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     """
     workflow = Workflow("phase_snp", "phase_snp.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["hapcut.ipynb"]
+    workflow.notebook_files = ["hapcut.ipynb"]
     workflow.conda = ["phase", "report"]
 
     ## checks and validations ##
@@ -123,8 +123,8 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
         vcffile.match_contigs(contigs)
 
     workflow.linkedreads["type"] = alignments.lr_type
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["plot-contigs"] = contigs if contigs else "default"
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(vcffile.file, "vcf")
     if reference:
         fasta = FASTA(reference)

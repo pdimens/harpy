@@ -71,26 +71,20 @@ rule barcode_stats:
 rule barcode_report:
     input:
         data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
-        ipynb = f"workflow/report/qc_bx_stats.ipynb"
+        ipynb = f"workflow/qc_bx_stats.ipynb"
     output:
         tmp = temp("reports/barcode.summary.tmp.ipynb"),
         ipynb = "reports/barcode.summary.ipynb"
-    params:
-        indir = "logs/bxcount",
-        lr_type = lr_type,
-        static = "--no-progress-bar --log-level ERROR -k ir",
-        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
     log:
         "logs/barcode.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
+    params:
+        indir = "-p indir " + os.path.abspath("logs/bxcount"),
+        lr = lr_type
     shell:
         """
         {{
-            papermill {params.static} {input.ipynb} {output.tmp} -p indir $(realpath {params.indir}) -p platform {params.lr_type}
-            sed '{params.sed_replace}' {output.tmp}
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            process_notebook {params.lr} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

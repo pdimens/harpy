@@ -55,8 +55,8 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     ## checks and validations ##
     fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
 
-    workflow.reports["skip"] = skip_reports
-    workflow.reports["organism-type"] = organism_type
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["organism-type"] = organism_type
     workflow.input(fastq.files[0], "fastq-r1")
     workflow.input(fastq.files[1], "fastq-r2")
     workflow.param('auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)), "spades:k")

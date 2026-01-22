@@ -57,25 +57,19 @@ rule concat_results:
 rule create_report:
     input:
         data = "validate.fastq.tsv",
-        ipynb = "workflow/report/validate_fastq.ipynb"
+        ipynb = "workflow/validate_fastq.ipynb"
     output:
         tmp = temp("validate.fastq.tmp.ipynb"),
         ipynb = "validate.fastq.ipynb"
     params:
-        lr_platform = lr_platform,
-        static = "--no-progress-bar --log-level ERROR -k ir",
-        sed_replace = 's/"injected-parameters"/"injected-parameters",\\n"remove-cell"/g'
+        lr_platform
     log:
         "logs/report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
     shell:
         """
         {{
-            papermill {params.static} {input.ipynb} {output.tmp} -p infile {input.data} -p platform {params.lr_platform}
-            sed '{params.sed_replace}' {output.tmp}
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp}
+            process_notebook {params} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

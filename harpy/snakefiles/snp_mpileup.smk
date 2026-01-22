@@ -53,15 +53,6 @@ rule process_reference:
         }} 2> {log}
         """
 
-rule preprocess_groups:
-    input:
-        grp = groupings
-    output:
-        grp = "workflow/sample.groups"
-    run:
-        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
-            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
-
 rule index_alignments:
     input:
         lambda wc: bamdict[wc.bam]
@@ -194,29 +185,23 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-
 rule variant_report:
     input: 
         data = "reports/data/variants.{type}.stats",
-        qmd  = "workflow/report/bcftools_stats.ipynb"
+        ipynb  = "workflow/bcftools_stats.ipynb"
     output:
         report = "reports/variants.{type}.html",
-        qmd = temp("reports/variants.{type}.ipynb")
-    params:
-        lambda wc: "-P vcf:variants." + wc.get("type")
+        ipynb = temp("reports/variants.{type}.ipynb")
     log:
         "logs/variants.{type}.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
+    params:
+        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INPATH=$(realpath {input.data})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P infile:$INPATH {params}
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook variants.{wildcards.type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:

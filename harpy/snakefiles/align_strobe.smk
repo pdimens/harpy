@@ -27,7 +27,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -187,8 +187,8 @@ rule alignment_coverage:
 
 rule configure_report:
     input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
+        yaml = "workflow/_quarto.yml",
+        scss = "workflow/_harpy.scss"
     output:
         yaml = temp("reports/_quarto.yml"),
         scss = temp("reports/_harpy.scss")
@@ -196,39 +196,6 @@ rule configure_report:
         import shutil
         for i,o in zip(input,output):
             shutil.copy(i,o)
-
-rule sample_reports:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
-        qmd = "workflow/report/align_stats.ipynb"
-    output:
-        report = "reports/{sample}.html",
-        qmd = temp("reports/{sample}.ipynb")
-    params:
-        mol_dist = f"-P mol_dist:{molecule_distance}",
-        window_size = f"-P windowsize:{windowsize}",
-        contigs = f"-P contigs:{plot_contigs}",
-        samplename = lambda wc: "-P sample:" + wc.get("sample")
-    log:
-        "logs/reports/{sample}.alignstats.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
-    shell:
-        """
-        cp -f {input.ipynb} {output.ipynb}
-        BXSTATS=$(realpath {input.bxstats})
-        COVFILE=$(realpath {input.coverage})
-        MOLCOV=$(realpath {input.molecule_coverage})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
-        """
 
 if ignore_bx:
     rule index_bam:
@@ -279,30 +246,50 @@ rule samtools_report:
     shell:
         "multiqc {params} > {output} 2> {log}"
 
-rule barcode_report:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
-        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = "workflow/report/align_bxstats.ipynb"
+rule sample_reports:
+    input:
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = "reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        ipynb = f"workflow/align_stats.ipynb"
     output:
-        report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.ipynb")
+        tmp = temp("reports/{sample}.tmp.ipynb"),
+        ipynb = "reports/{sample}.ipynb"
     params:
-        "reports/data/bxstats/"
+        lr_type = lr_type,
+        basedir = "-p basedir " + os.path.abspath("reports/data"),
+        mol_dist = f"-p mol_dist {molecule_distance}",
+        window_size = f"-p windowsize {windowsize}",
+        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
+        samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
-        "logs/reports/bxstats.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
+        "logs/{sample}.report.log"
     shell:
         """
-        cp -f {input.ipynb} {output.ipynb}
-        INPATH=$(realpath {params})
-        quarto render {output.ipynb} --no-cache --log {log} --quiet -P indir:$INPATH
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p {params}
+            process_notebook strobealign {wildcards.sample} {params.lr_type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
+        """
+
+rule barcode_report:
+    input:
+        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        ipynb = f"workflow/align_bxstats.ipynb"
+    output:
+        tmp = temp("reports/barcode.summary.tmp.ipynb"),
+        ipynb = "reports/barcode.summary.ipynb"
+    params:
+        lr_type = lr_type,
+        indir = "-p indir " + os.path.abspath("reports/data/bxstats")
+    log:
+        f"logs/reports/bxstats.report.log"
+    shell:
+        """
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            process_notebook {params.lr_type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule workflow_summary:

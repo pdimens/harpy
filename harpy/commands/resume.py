@@ -113,7 +113,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         check_environments(_dir, workflow.conda)
 
     # inherit workflow report part, if present
-    workflow.reports = harpy_config["Workflow"].get("reports", {"skip" : False})
+    workflow.notebooks = harpy_config["Workflow"].get("reports", {"skip" : False})
 
     # inherit workflow report part, if present
     workflow.linkedreads = harpy_config["Workflow"].get("linkedreads", {"type" : "none"})

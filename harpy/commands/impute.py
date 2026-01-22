@@ -45,8 +45,8 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     """
     workflow = Workflow("impute", "impute.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.report_files = ["impute.ipynb", "stitch_collate.ipynb"]
-    workflow.conda = ["report", "stitch"]
+    workflow.notebook_files = ["impute.ipynb", "stitch_collate.ipynb"]
+    workflow.conda = ["stitch"]
 
     ## checks and validations ##
     params = ImputeParams(parameters, quiet > 0)
@@ -57,7 +57,7 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
     if region:
         vcffile.validate_region(region)
 
-    workflow.reports["skip"] = skip_reports
+    workflow.notebooks["skip"] = skip_reports
     workflow.input(params.file, "parameters")
     workflow.input(vcffile.file, "vcf")
     workflow.input(alignments.files, "alignments")

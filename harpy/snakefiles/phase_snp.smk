@@ -8,6 +8,7 @@ wildcard_constraints:
 bc_type           = config["Workflow"]["linkedreads"]["type"]
 skip_reports      = config["Workflow"]["reports"]["skip"]
 plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
+plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 pruning           = config["Parameters"]["prune"]
 map_qual          = config["Parameters"]["min-map-quality"]
 base_qual         = config["Parameters"]["min-base-quality"]
@@ -91,7 +92,7 @@ rule index_alignments:
         "samtools index {input}"
 
 if indels:
-    rule preprocess_reference:
+    rule process_reference:
         input:
             genomefile
         output: 
@@ -239,22 +240,21 @@ rule summarize_blocks:
 rule phase_report:
     input:
         data = "reports/blocks.summary.gz",
-        ipynb = "workflow/report/hapcut.ipynb"
+        ipynb = "workflow/hapcut.ipynb"
     output:
-        ipynb = temp("reports/phase.ipynb")
+        tmp = temp("reports/phase.tmp.ipynb")
+        ipynb = "reports/phase.ipynb"
     log:
         "logs/report.log"
     params:
-        f"-P contigs:{plot_contigs}"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_dev"
-    retries:
-        3
+        "-p blockfile " + os.path.abspath("reports/blocks.summary.gz")
+        f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
-        touch {output}
+        {{
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook {wildcards.paramset} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule workflow_summary:
