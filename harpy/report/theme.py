@@ -122,7 +122,7 @@ def harpy_theme() -> alt.theme.ThemeConfig:
                 "titleFontSize": 12,
                 "titlePadding": 10,
                 "titleColor": textColor,
-                "title": "",
+                "title": None,
             },
 
            "range": {
@@ -138,17 +138,13 @@ def harpy_theme() -> alt.theme.ThemeConfig:
            "line": {
                "color": markColor,
                "stroke": markColor,
-               "strokewidth": 5,
+               "strokeWidth": 5,
            },
            "trail": {
                "color": markColor,
                "stroke": markColor,
                "strokeWidth": 0,
                "size": 1,
-           },
-           "path": {
-               "stroke": markColor,
-               "strokeWidth": 0.5,
            },
            "point": {
                "filled": True,
@@ -162,10 +158,10 @@ def harpy_theme() -> alt.theme.ThemeConfig:
            }, 
            "bar": {
                 "fill": markColor,
-                "stroke": False,
+                "stroke": None,
             }, 
             "view": {
-               "stroke": "none",
+               "stroke": None,
                "continuousWidth": 660,
                "continuousHeight": 400
            },
