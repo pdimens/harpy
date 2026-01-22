@@ -11,7 +11,7 @@ class Populations():
         self.quiet: bool = quiet
 
         if not self.quiet:
-            CONSOLE.log("Validating all samples are present between input and populations files")
+            CONSOLE.log("Validating all input samples are present in populations file")
 
         rows = []
         with open(self.file, "r", encoding="utf-8") as f:

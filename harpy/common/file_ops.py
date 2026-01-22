@@ -1,12 +1,13 @@
 """Module with helper function to set up Harpy workflows"""
 
-import os
 import glob
 import gzip
 import importlib.resources as resources
+import os
+from pathlib import Path
+import re
 import shutil
 import sys
-from pathlib import Path
 from harpy.common.printing import print_error
 
 def filepath(infile: str) -> str:
@@ -103,3 +104,22 @@ def is_plaintext(file_path: str) -> bool:
         return True
     except UnicodeDecodeError:
         return False
+
+def pop_manifest(groupingfile, filelist) -> dict:
+    '''
+    Create dictionary of population => filenames to make it easier to
+    set the snakemake rules/wildcards for population grouping
+    '''
+    d = {}
+    with open(groupingfile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
+            sampl = list(filter(r.match, filelist))[0]
+            if pop not in d.keys():
+                d[pop] = [sampl]
+            else:
+                d[pop].append(sampl)
+    return d
