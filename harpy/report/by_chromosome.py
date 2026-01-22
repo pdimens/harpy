@@ -27,7 +27,7 @@ def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
         alt.Chart(variants)
         .transform_calculate(var_length = 'datum.End - datum.Start')
         .transform_filter(selection)
-        .mark_bar(strokeWidth = 2, cornerRadius=8, opacity = 0.7)
+        .mark_bar(strokeWidth = 2, cornerRadius=8, opacity = 0.75)
         .encode(
             x=alt.X('Start:Q')
                 .scale(domain=[0, length_param])
