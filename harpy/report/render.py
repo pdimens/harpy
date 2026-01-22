@@ -297,6 +297,7 @@ def myst_yaml() -> dict:
         "project" : {
             "id": rand_id(),
             **({"github" : git_url} if git_url else {}),
+            "edit_url": 'null',
             "title" : "Harpy Reports (v0.0.0)",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
