@@ -7,9 +7,7 @@ from rich import box
 from rich.table import Table
 from .printing import print_error
 
-def create_conda_recipes(outdir: str, envs: list= []) -> None:
-    """Create the YAML files of the workflow conda dependencies"""
-    environ = {
+CONDA_ENVS = {
         "align" : [
             "bioconda::bwa-mem2",
             "bioconda::bwa",
@@ -28,12 +26,11 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
-        "deconvolution" : [
-            "bioconda::quickdeconvolution"
-        ],
-
         "demultiplex": [
             "bioconda::dmox>=0.2"
+        ],
+        "impute" : [
+            "bioconda::r-stitch>=1.8.4"
         ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
@@ -47,10 +44,8 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::multiqc=1.30",
+            "bioconda::quickdeconvolution",
             "bioconda::pysam=0.23"
-        ],
-        "stitch" : [
-            "bioconda::r-stitch>=1.8.4"
         ],
         "variants" : [
             "bioconda::bcftools=1.22",
@@ -60,23 +55,26 @@ def create_conda_recipes(outdir: str, envs: list= []) -> None:
             "conda-forge::setuptools"
         ]
     }
+
+def create_conda_recipes(outdir: str, envs: list= []) -> None:
+    """Create the YAML files of the workflow conda dependencies"""
     _out = os.path.join(outdir, "workflow", "envs")
     os.makedirs(_out, exist_ok = True)
     # if none provided, use all
     if not envs:
-        envs = list(environ.keys())
+        envs = list(CONDA_ENVS.keys())
 
     for i in envs:
         try:
             env_dict = {
                 "name" : i,
                 "channels" : ["conda-forge", "bioconda"],
-                "dependencies": environ[i]
+                "dependencies": CONDA_ENVS[i]
             }
             if i == "report":
                 env_dict["channels"].append("r")
         except KeyError:
-            sys.stderr.write(f"Key '{i}' is not an available conda environment name. The options are: " + ", ".join(environ.keys()))
+            sys.stderr.write(f"Key '{i}' is not an available conda environment name. The options are: " + ", ".join(CONDA_ENVS.keys()))
             sys.exit(1)
         with open(os.path.join(_out, f"{i}.yaml"), "w", encoding="utf-8") as recipe:
             yaml.dump(env_dict, recipe, default_flow_style= False, sort_keys=False, width=float('inf'), indent=2)
@@ -111,4 +109,4 @@ def check_environments(dirpath: str, envs: list) -> None:
             "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",
             "Expected environment files",
             errtable
-            )
+        )

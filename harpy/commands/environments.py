@@ -3,7 +3,7 @@
 import os
 import shutil
 import rich_click as click
-from harpy.common.conda import create_conda_recipes
+from harpy.common.conda import CONDA_ENVS, create_conda_recipes
 from harpy.common.create_pixi import create_pixi_dockerfiles
 from harpy.common.workflow import Workflow
 
@@ -28,7 +28,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
-@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "simulations", "stitch", "variants"]), nargs = -1)
+@click.argument('workflows', nargs = -1, required = True, type= click.Choice(["all"] + list(CONDA_ENVS.keys())))
 def conda(workflows):
     """
     Install workflow dependencies via conda
@@ -40,18 +40,17 @@ def conda(workflows):
     - all
     - align
     - assembly
+    - impute
     - metassembly
     - phase
     - qc
-    - r
-    - stitch
     - variants
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", None, False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
     create_conda_recipes(workflow.output_directory)
     if "all" in workflows:
-        workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "stitch", "variants"] 
+        workflows = list(CONDA_ENVS.keys())
     workflow.fetch_snakefile()
 
     config_params = "--config"
