@@ -278,7 +278,7 @@ rule sample_reports:
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p {params}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p {params}
             process_notebook BWA-MEM2 {wildcards.sample} {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
@@ -298,7 +298,7 @@ rule barcode_report:
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             process_notebook {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

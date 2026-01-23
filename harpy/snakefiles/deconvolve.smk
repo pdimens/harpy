@@ -48,9 +48,9 @@ rule deconvolve:
     threads:
         2
     conda:
-        "envs/deconvolution.yaml"
+        "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:deconvolution_dev"
+        "docker://pdimens/harpy:qc_dev"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 

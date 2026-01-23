@@ -127,6 +127,8 @@ rule impute:
         workflow.cores - 1
     conda:
         "envs/stitch.yaml"
+    container:
+        "docker://pdimens/harpy:impute_dev"        
     shell:
         """
         mkdir -p {output.tmpdir}
@@ -150,8 +152,6 @@ rule index_vcf:
         "{paramset}/contigs/{contig}.vcf.gz.tbi",
         vcf   = "{paramset}/contigs/{contig}.vcf.gz",
         stats = "{paramset}/reports/data/contigs/{contig}.stats"
-    container:
-        None
     shell:
         """
         cp {input} {output.vcf}
@@ -178,8 +178,6 @@ if len(contigs) == 1:
             bcf = "{paramset}/{paramset}.bcf"
         log:
             "logs/concat/{paramset}.concat.log"
-        container:
-            None
         shell:
             "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}"
 
@@ -195,8 +193,6 @@ else:
             "logs/concat/{paramset}.concat.log"
         threads:
             workflow.cores
-        container:
-            None
         shell:
             "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> {log}"
 
@@ -205,8 +201,6 @@ else:
             "{paramset}/{paramset}.bcf"
         output:
             "{paramset}/{paramset}.bcf.csi"
-        container:
-            None
         shell:
             "bcftools index {input}"
 
@@ -216,8 +210,6 @@ rule general_stats:
         bcf = "{paramset}/{paramset}.bcf"
     output:
         "{paramset}/reports/data/impute.stats"
-    container:
-        None
     shell:
         "bcftools stats -s \"-\" {input.bcf} > {output}"
 
@@ -230,8 +222,6 @@ rule extract_region:
         bcf = temp("workflow/input/vcf/region.bcf")
     params:
         f"-r {region}" if region else ""
-    container:
-        None
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
 
@@ -244,8 +234,6 @@ rule compare_stats:
     output:
         compare = "{paramset}/reports/data/impute.compare.stats",
         info_sc = temp("{paramset}/reports/data/impute.infoscore")
-    container:
-        None
     shell:
         """
         bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
@@ -281,7 +269,7 @@ rule contig_report:
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
@@ -308,7 +296,7 @@ rule impute_reports:
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

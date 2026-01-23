@@ -247,12 +247,12 @@ rule phase_report:
     log:
         "logs/report.log"
     params:
-        "-p blockfile " + os.path.abspath("reports/blocks.summary.gz")
+        "-p blockfile " + os.path.abspath("reports/blocks.summary.gz"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

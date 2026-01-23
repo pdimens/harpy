@@ -1,11 +1,8 @@
-out_envs = config.get(
-    "envs",
-    ["align", "assembly", "metassembly", "phase", "qc", "simulations", "stitch", "variants"]
-)
+from harpy.common.conda import CONDA_ENVS
 
 rule all:
     input:
-        collect("{conda}.env", conda = out_envs)
+        collect("{conda}.env", conda = config.get("envs", list(CONDA_ENVS.keys())))
 
 rule conda_env:
     output: "{conda}.env"

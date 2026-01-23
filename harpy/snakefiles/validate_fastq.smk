@@ -62,14 +62,15 @@ rule create_report:
         tmp = temp("validate.fastq.tmp.ipynb"),
         ipynb = "validate.fastq.ipynb"
     params:
-        lr_platform
+        lr_platform - lr_platform,
+        infile = "-p infile " + os.path.abspath("validate.fastq.tsv")
     log:
         "logs/report.log"
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp}
-            process_notebook {params} {output.tmp}
+            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            process_notebook {params.lr_platform} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

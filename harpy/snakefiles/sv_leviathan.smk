@@ -215,12 +215,12 @@ rule report:
         "logs/report.log"
     params:
         f"-p indir {os.getcwd()}",
-        f"-p faidx {workflow_geno}.fai",
+        f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook LEVIATHAN {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
