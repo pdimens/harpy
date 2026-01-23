@@ -64,10 +64,9 @@ def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: in
             progressbar, title = title, border_style="dim"
         ) if quiet != 2 else None,
         refresh_per_second=refresh,
-        transient=True,
+        transient= quiet > 0,
         console=CONSOLE
     )
-
 
 def harpy_progressbar(quiet: int) -> Progress:
     """
@@ -80,7 +79,7 @@ def harpy_progressbar(quiet: int) -> Progress:
         BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
         TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if quiet == 0 else TaskProgressColumn(style = "blue"),
         PausableTimeElapsedColumn(),
-        transient = True,
+        transient = quiet > 0,
         auto_refresh = True,
         disable = quiet == 2,
         refresh_per_second=2,
