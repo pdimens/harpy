@@ -4,6 +4,7 @@
   - `stall`: same as previous `diagnose` behavior, where it runs snakemake with `--dry-run --debug-dag`
   - `rule`: attempt to directly run the failing rule of a workflow as identified in the snakemake log, will attempt to run snakemake to generate missing inputs if necessary
 - `phase bam` added for more fine-tuned and configurable alignment phasing
+- `report` added to render new ipython reports as a MySTmd website
 ### options
 - `resume` has new `--direct` option to call Snakemake directly without harpy intervention
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
@@ -38,12 +39,20 @@
 - minimum mapping quality has been consistenlty named `min-map-quality` in all `workflow.yaml` files 
 ### function
 - `sv naibr` no longer phases input alignment files, use the new `phase bam` module for that
-
+### reports
+Reports have been completely rewritten (for the third time), moving away from R/Quarto to Python/Jupyter. This change was necessary to achieve specific quality-of-life improvements that were not possible with the current setup:
+- report generation is significantly faster because Quarto isn't trying to render each as a standalone HTML file
+- IPython notebooks store the results within themselves, which can be accessed whenever via JupyterLab/VScode/etc
+- all harpy-generated (non-MultiQC) reports can be bound and built into a singular report website using `harpy report` with navigation between pages, searching, etc.
+- plots are now generated with Altair (Vega/Vegalite) plotting library, which is very fast, interactive, and reactive, with a more permissible license than Highcharts, which use a restrictive software license
 ### internal
 - significant rewrite of the `Workflow` class and how it expects workflow, parameter, and input delcarations
+- 4 SV reports consolidated into 1
 
 ## non-breaking
 - statusbar when downloading/installing workflow dependencies now lists the environment being downloaded/installed instead of saying "working..."
+- progress bar does not disappear with default `--quiet` setting
+- minor progress bar tweaks 
 
 ### internal
 - swapped order of validations/checks
@@ -53,6 +62,9 @@
   - the new internals are easier to develop and should hopefully have more consistent exiting behavior
 - `resume` logic reorganized updated to match new workflow configuration design
 - the `--workflow-profile` part of the snakemake command (when using hpc) has been moved to `config.yaml` to further reduce the length of the snakemake call
+- grouped and single-sample leviathan variant calling now use a single consolidated snakefile
+- grouped and single-sample naibr variant calling now use a single consolidated snakefile
+
 
 # fixes
 - removed redundant validations between CLI checks and harpy checks

@@ -205,10 +205,13 @@ class LaunchSnakemake():
                     self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]…")
                 else:
                     self.progress.update(task_id, advance = 1, refresh = True, active = _active)
-                self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = self.total_active)
+                self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = f"[bold]{self.total_active}")
                 if self.progress.tasks[self.task_ids[job]].completed == self.progress.tasks[task_id].total:
                     self.progress.update(self.task_ids[job], refresh = True, description = f"[dim]{details.name}", active = "[dim blue]✓")
                 break
+        if self.progress.tasks[self.task_ids["total_progress"]].completed == self.progress.tasks[self.task_ids["total_progress"]].total:
+            self.progress.update(self.task_ids["total_progress"], refresh=True, active = " ")
+
 
     def check_startup(self):
         '''monitors the process for startup errors or things already being done'''
@@ -306,8 +309,9 @@ class LaunchSnakemake():
             return
         with harpy_progresspanel(self.progress, quiet = self.quiet):
             self.task_ids["total_progress"] = self.progress.add_task(
-                    "[bold blue]Total" if self.quiet == 0 else "[bold blue]Progress",
-                    total= self.job_inventory["total"].total, active = 0
+                    "[bold blue]Progress",
+                    total= self.job_inventory["total"].total,
+                    active = "[bold]0"
                 )
             while self.output:
                 self.nextline()
@@ -340,7 +344,7 @@ class LaunchSnakemake():
                                 self.progress.update(self.task_ids[rule], active = self.job_inventory[rule].active())
                                 # update total
                                 self.update_total_active()
-                                self.progress.update(self.task_ids["total_progress"], refresh = True, active = self.total_active)
+                                self.progress.update(self.task_ids["total_progress"], refresh = True, active = f"[bold]{self.total_active}")
                             break
                 # check which rule the job is associated with and update the corresponding progress bar
                 if self.output.startswith("Finished jobid: "):
@@ -348,10 +352,7 @@ class LaunchSnakemake():
 
     def process_finish(self):
         '''final processing of the stderr text, returns early if ongoing or successful exit, otherwise processess the error text'''
-        if self.exitcode == -1:
-            return
-        #self.process.wait()
-        if self.exitcode == 0:
+        if self.exitcode <= 0:
             return
         if self.exitcode in (1,2):
             print_setup_error(self.exitcode)

@@ -271,15 +271,15 @@ rule sample_reports:
         basedir = "-p basedir " + os.path.abspath("reports/data"),
         mol_dist = f"-p mol_dist {molecule_distance}",
         window_size = f"-p windowsize {windowsize}",
-        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
+        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else "",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
         "logs/{sample}.report.log"
     shell:
         """
         {{
-            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p {params}
-            process_notebook BWA-MEM2 {wildcards.sample} {params.lr_type} {output.tmp}
+            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            process_notebook {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
