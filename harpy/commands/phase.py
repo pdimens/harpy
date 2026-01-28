@@ -12,7 +12,7 @@ from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
-@click.group(context_settings={"help_option_names" : []})
+@click.group(context_settings={"help_option_names" : ['--help']})
 def phase():
     """
     Phase SNPs or alignments
@@ -33,6 +33,7 @@ def phase():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference',required = True, type=FASTAfile(), nargs = 1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
@@ -97,6 +98,7 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, clean, container, contigs, setup):

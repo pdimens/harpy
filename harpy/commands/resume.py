@@ -52,6 +52,7 @@ def snakemake_profile_extract(d: dict, key: str):
 @click.option('-t', '--threads', type = click.IntRange(2, 999, clamp = True), help = 'Change the number of threads (>1)')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False, readable=True, resolve_path=True), nargs=1)
 def resume(directory, absolute, direct, threads, clean, quiet):
     """

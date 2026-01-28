@@ -14,7 +14,7 @@ from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
 from harpy.validation.xam import XAM
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
 def snp():
     """
@@ -39,6 +39,7 @@ def snp():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):
@@ -109,6 +110,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):

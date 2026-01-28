@@ -5,7 +5,7 @@ Processes and validations relating to identifying barcodes and/or linked-read ty
 import pysam
 import re
 import subprocess
-import sys
+import shutil
 from harpy.common.file_ops import is_gzip, safe_read
 from harpy.common.printing import print_error
 from harpy.common.progress import harpy_progresspanel, harpy_progressbar
@@ -217,22 +217,13 @@ def process_stagger(fastq_file :str, output_file: str, exp_ids: list[str], pad_l
     qpad = ["IIIIIII", "IIIIII", "IIIII", "IIII", "III", "II", "I", ""]
 
     BATCH_SIZE = batchsize
-
-    try:
-        compressor = subprocess.Popen(
-            ['pigz', '-c', '-p', f'{threads}'],
-            stdin=subprocess.PIPE,
-            stdout=open(output_file, 'wb'),
-            bufsize=1024*1024
-        )
-    except FileNotFoundError:
-        compressor = subprocess.Popen(
-            ['gzip', '-c'],
-            stdin=subprocess.PIPE,
-            stdout=open(output_file, 'wb'),
-            bufsize=1024*1024
-        )
-
+    _cmd = ['pigz', '-c', '-p', f'{max(threads-1, 1)}'] if shutil.which("pigz") else ['gzip', '-c']
+    compressor = subprocess.Popen(
+        _cmd,
+        stdin=subprocess.PIPE,
+        stdout=open(output_file, 'wb'),
+        bufsize=1024*1024
+    )
     batch = []
 
     try:

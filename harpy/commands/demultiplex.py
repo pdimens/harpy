@@ -9,7 +9,7 @@ from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
 def demultiplex():
     """
     Demultiplex haplotagged FASTQ files
@@ -36,6 +36,7 @@ def demultiplex():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('schema', required = True, type=DemuxSchema())
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
@@ -87,6 +88,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):

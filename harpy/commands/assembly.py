@@ -38,6 +38,7 @@ from harpy.validation.fastq import FASTQ
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
 def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, clean, container, threads, snakemake, quiet, hpc, setup, skip_reports):

@@ -26,6 +26,7 @@ from harpy.validation.vcf import VCF
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--vcf-samples', panel = "Parameters",  is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for imputation rather than those found in the inputs')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('parameters', required = True, type=click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), nargs=1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs=1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)

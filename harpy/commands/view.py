@@ -67,7 +67,8 @@ def parse_file(infile: str):
     echo_via_pager(_read_file(infile), color = n_colors > 0)
     return infile
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ["-h", "--help"]})
+@click.group(options_metavar='')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def view():
     """
     View a workflow's components
@@ -79,6 +80,7 @@ def view():
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def config(directory, edit):
     """
     View/edit a workflow's config file
@@ -116,6 +118,7 @@ def config(directory, edit):
     )
 
 @click.command()
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('program', required=False, type=str, nargs=1)
 def environments(program):
     """
@@ -162,6 +165,7 @@ def environments(program):
     return
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def log(directory):
     """
@@ -206,6 +210,7 @@ def log(directory):
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakefile(directory, edit):
     """
@@ -244,6 +249,7 @@ def snakefile(directory, edit):
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory, edit):
     """

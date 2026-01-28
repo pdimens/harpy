@@ -10,7 +10,8 @@ from harpy.common.workflow import Workflow
 from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def validate():
     """
     File format checks for linked-read data
@@ -21,14 +22,15 @@ def validate():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
+@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
     """
@@ -61,14 +63,15 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
     """

@@ -12,10 +12,11 @@ from harpy.common.printing import print_error, print_notice, CONSOLE
 from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import package_absent
 
-@click.group(context_settings={"help_option_names" : []})
+@click.group()
 @click.command_panel("HPC Configurations", panel_styles={"border_style": "blue"})
 @click.command_panel("Input Files", panel_styles={"border_style": "blue"})
 @click.command_panel("Other", panel_styles={"border_style": "blue"})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def template():
     """
     Create files and HPC configs for workflows
@@ -25,6 +26,7 @@ def template():
 
 @click.command(panel = "Input Files", no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def groupings(inputdir):
     """
     Create a template sample-grouping file
@@ -63,9 +65,10 @@ def groupings(inputdir):
     print_notice("Please review the resulting file, as all samples have been grouped into a single population")
 
 #TODO FIX EPILOG
-@click.command(panel = "Other", context_settings={"help_option_names" : ["-h", "--help"]}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.option('-a', '--action', is_flag = True, default = False, help = 'Add a report-building GitHub Action to the repository')
 @click.option('-u', '--update', is_flag = True, default = False, help = 'Scan the git project for reports and update `myst.yml`')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def report(update, action):
     """
     Repository configuration to build report website
@@ -105,6 +108,7 @@ def report(update, action):
         _init.update_yaml()
 
 @click.command(panel = "HPC Configurations")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def hpc_generic():
     """
     Create a template config for a generic scheduler
@@ -148,6 +152,7 @@ def hpc_generic():
     #rerun-incomplete: True
 
 @click.command(panel = "HPC Configurations")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def hpc_lsf():
     """
     Create a template config for LSF
@@ -159,6 +164,7 @@ def hpc_lsf():
     package_absent("snakemake-executor-plugin-lsf")
 
 @click.command(panel = "HPC Configurations")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def hpc_slurm():
     """
     Create a template config for SLURM
@@ -170,6 +176,7 @@ def hpc_slurm():
     package_absent("snakemake-executor-plugin-slurm")
 
 @click.command(panel = "HPC Configurations")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def hpc_googlebatch():
     """
     Create a template config for Google Batch
@@ -182,6 +189,7 @@ def hpc_googlebatch():
 
 
 @click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def impute():
     """
     Create a template imputation parameter file

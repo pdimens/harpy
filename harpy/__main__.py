@@ -30,7 +30,7 @@ config = click.RichHelpConfiguration(
     options_table_help_sections = ["required", "help", "default"]
 )
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []} )
+@click.group(options_metavar='')
 @click.rich_config(config)
 @click.version_option("0.0.0", prog_name="harpy", hidden = True)
 @click.command_panel(
@@ -48,6 +48,7 @@ config = click.RichHelpConfiguration(
     panel_styles={"border_style": "yellow"},
     commands = sorted(["view", "resume", "diagnose", "validate", "deps"])
 )
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def cli():
     """
     Automated workflows for linked-read data

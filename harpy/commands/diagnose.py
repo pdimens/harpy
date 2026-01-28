@@ -7,13 +7,15 @@ import rich_click as click
 from harpy.common.printing import print_error, CONSOLE, print_shellcmd_simple
 from harpy.common.file_ops import safe_read
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def diagnose():
     """
     Attempt to resolve workflow errors
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def stall(directory):
     """
@@ -79,6 +81,7 @@ def stall(directory):
         sys.exit(1)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def rule(directory):
     """

@@ -8,6 +8,7 @@ from harpy.common.create_pixi import create_pixi_dockerfiles
 from harpy.common.workflow import Workflow
 
 @click.command(hidden = True)
+@click.help_option('--help', hidden = True)
 def containerize():
     """
     Configure the harpy container
@@ -28,6 +29,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
+@click.help_option('--help', hidden = True)
 @click.argument('workflows', nargs = -1, required = True, type= click.Choice(["all"] + list(CONDA_ENVS.keys())))
 def conda(workflows):
     """
@@ -61,7 +63,8 @@ def conda(workflows):
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
-@click.command(context_settings={"help_option_names" : ["-h", "--help"]})
+@click.command()
+@click.help_option('--help', hidden = True)
 def container():
     """
     Install workflow dependency containers
