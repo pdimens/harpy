@@ -26,6 +26,7 @@
   - `downsample` (replaced by `Djinn` software)
   - `simulate` (replaced by `Mimick` and `VISOR-HACks` softwares)
 ### renamed
+- `demultiplex` is now `preprocess` to better reflect what the commands do
 - `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
 - `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow
 - `--setup-only` replaced with the more succinct `--setup`

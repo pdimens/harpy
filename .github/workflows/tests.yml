@@ -28,7 +28,7 @@ jobs:
     outputs:
       validate: ${{ steps.filter.outputs.validate }}
       deconvolve: ${{ steps.filter.outputs.deconvolve }}
-      demux: ${{ steps.filter.outputs.demux }}
+      preproc: ${{ steps.filter.outputs.preproc }}
       qc: ${{ steps.filter.outputs.qc }}
       bwa: ${{ steps.filter.outputs.bwa }}
       strobealign: ${{ steps.filter.outputs.strobealign }}
@@ -54,8 +54,8 @@ jobs:
 
   dmux_meier2021:
     needs: changes
-    if: ${{ needs.changes.outputs.demux == 'true' }}
-    name: demux meier2021
+    if: ${{ needs.changes.outputs.preproc == 'true' }}
+    name: preprocess meier2021
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -72,7 +72,7 @@ jobs:
         run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy demultiplex
         run: |
-          harpy demultiplex meier2021 --quiet 2 test/demux/samples.schema test/demux/multiplex.R* test/demux/multiplex.I* && \
+          harpy preprocess meier2021 --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
           ls -lh Demultiplex
 
   validate:

@@ -26,13 +26,13 @@ deconvolve: &deconvolve
   - *environments
   - 'harpy/commands/deconvolve.py'
   - 'harpy/snakefiles/deconvolve.smk'
-demux: &demux
+preproc: &preproc
   - *common
   - *environments
-  - 'harpy/commands/demultiplex.py'
-  - 'harpy/snakefiles/demultiplex**.smk'
+  - 'harpy/commands/preprocess.py'
+  - 'harpy/snakefiles/preprocess**.smk'
   - 'haplotag_acbd.py'
-  - 'test/data/demux/**'
+  - 'test/data/preproc/**'
 qc: &qc
   - *common
   - *environments
@@ -130,7 +130,7 @@ other: &other
   - 'harpy/commands/hpc.py'
 modules:
   - *common
-  - *demux
+  - *preproc
   - *deconvolve
   - *validate
   - *qc

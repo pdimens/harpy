@@ -5,7 +5,7 @@ from harpy.commands import align
 from harpy.commands import assembly, metassembly
 from harpy.commands import diagnose, resume, view
 from harpy.commands import deconvolve
-from harpy.commands import demultiplex
+from harpy.commands import preprocess
 from harpy.commands import environments
 from harpy.commands import impute
 from harpy.commands import qc
@@ -36,7 +36,7 @@ config = click.RichHelpConfiguration(
 @click.command_panel(
     "Data Processing",
     panel_styles={"border_style": "blue"},
-    commands = sorted(["align", "deconvolve", "demultiplex","qc","snp","sv","impute","phase", "assembly", "metassembly"])
+    commands = sorted(["align", "deconvolve", "preprocess","qc","snp","sv","impute","phase", "assembly", "metassembly"])
 )
 @click.command_panel(
     "Other Commands",
@@ -64,7 +64,7 @@ def cli():
 cli.add_command(align.align)
 cli.add_command(assembly.assembly)
 cli.add_command(deconvolve.deconvolve)
-cli.add_command(demultiplex.demultiplex)
+cli.add_command(preprocess.preprocess)
 cli.add_command(diagnose.diagnose)
 cli.add_command(environments.containerize)
 cli.add_command(environments.deps)

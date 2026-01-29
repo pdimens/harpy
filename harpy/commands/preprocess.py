@@ -9,10 +9,11 @@ from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
-def demultiplex():
+@click.group(options_metavar='')
+@click.help_option('--help', hidden = True)
+def preprocess():
     """
-    Demultiplex haplotagged FASTQ files
+    preprocess haplotagging FASTQ files
 
     Check that you are using the correct haplotagging method/technology, since the different
     barcoding approaches have very different demultiplexing strategies.
@@ -20,7 +21,6 @@ def demultiplex():
     **Haplotagging Technologies**
     - `meier2021`: the original haplotagging barcode strategy
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
-    
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
@@ -36,10 +36,10 @@ def demultiplex():
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('schema', required = True, type=DemuxSchema())
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
@@ -88,9 +88,9 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Demultiplex FASTQ files haplotagged with the Genomics Innovation Hub protocol
@@ -128,4 +128,5 @@ def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, th
 
     workflow.initialize(setup)
 
-demultiplex.add_command(gih)
+preprocess.add_command(meier2021)
+preprocess.add_command(gih)
