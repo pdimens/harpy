@@ -267,7 +267,7 @@ rule sample_reports:
     shell:
         """
         {{
-            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
             process_notebook {wildcards.sample} strobealign {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
@@ -287,7 +287,7 @@ rule barcode_report:
     shell:
         """
         {{
-            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             process_notebook {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

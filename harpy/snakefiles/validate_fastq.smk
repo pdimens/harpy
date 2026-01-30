@@ -69,7 +69,7 @@ rule create_report:
     shell:
         """
         {{
-            papermill --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            papermill -k python3 --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
             process_notebook {params.lr_platform} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

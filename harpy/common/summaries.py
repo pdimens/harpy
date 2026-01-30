@@ -315,7 +315,7 @@ class Summary:
         summary = ["The harpy phase snp workflow ran using these parameters:"]
         summary.append(f"The provided variant file: {variantfile}")
         validsplit = "The input alignments had their records filtered for valid barcodes:\n"
-        validsplit += "\tdjinn filter-invalid --invalid filtered/sample sample.bam"
+        validsplit += "\tdjinn sam filter-invalid --invalid sample.bam"
         summary.append(validsplit)
         phase = "Phasing was performed using whatshap:\n"
         phaseparam = "--linked-read-distance-cutoff {moldist} --tag-supplementary copy-primary --no-supplementary-strand-match --supplementary-distance {moldist} --ignore-read-groups --skip-missing-contigs"

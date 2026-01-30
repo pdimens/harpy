@@ -269,7 +269,7 @@ rule contig_report:
     shell:
         """
         {{
-            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
@@ -296,7 +296,7 @@ rule impute_reports:
     shell:
         """
         {{
-            papermill --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

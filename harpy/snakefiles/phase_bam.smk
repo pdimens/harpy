@@ -57,7 +57,7 @@ rule filter_invalid:
     shell:
         """
         {{
-            djinn filter-invalid --invalid -t {threads} filtered/{wildcards.sample} {input}
+            djinn sam filter-invalid --invalid -t {threads} {input} > {output.valid}
             samtools index {output.valid}  
         }} 2> {log}
         """
