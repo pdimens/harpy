@@ -12,8 +12,9 @@ from click import echo_via_pager
 import rich_click as click
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich import print as rprint
-from harpy.common.printing import print_error
+from harpy.common.printing import harpy_table, print_error
 from harpy.common.file_ops import is_gzip
 
 def check_terminal_colors():
@@ -157,23 +158,27 @@ def environments(program):
             console.print()
             console.rule(i.removesuffix('.yaml'), style = "blue")
             for d in deps.split():
-                if program and program.lower() in d:
-                    console.print(f"→ {d}", style = "bold green")
+                if program:
+                    if program.lower() in d:
+                        console.print(f"→ {d}", style = "bold blue", highlight = False)
+                    else:
+                        console.print(f"- {d}", style = "dim", highlight=False)
                 else:
                     console.print(f"- {d}", style = "default", highlight=False)
             console.print()
     return
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def log(directory):
+def log(directory, choose):
     """
-    View a workflow's last log file
+    View a workflow's Snakemake log file
     
     The log file contains everything Snakemake printed during runtime.
-    The only required input is the output folder previously created by Harpy where you can find
-    `logs/snakemake/`. Navigate with the typical `less` keyboard bindings, e.g.:
+    The only required input is an output folder created by Harpy where you can find
+    `.snakemake/log`. Use `--choose` to pick from a list of all Snakemake logfiles in
+    the `directory`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -195,7 +200,30 @@ def log(directory):
             "files not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
-    target_file = sorted(files, key = os.path.getmtime)[-1]
+
+    files = sorted(files, key = os.path.getmtime, reverse = True)
+    if choose and len(files) > 1:
+        console = Console()
+        console.print()
+        console.rule('Snakemake Log Files', style = "green")
+        _tb = harpy_table()
+        _tb.add_column("Number", justify="left", style="bold green", no_wrap=True)
+        _tb.add_column("File", justify="left")
+        for i,j in enumerate(files,1):
+            _tb.add_row(str(i), os.path.basename(j))
+        console.print(_tb)
+        console.rule('[dim]sorted newest (top) to oldest (bottom)[/]', style = 'dim')
+        selection = Prompt.ask(
+            "\n[bold blue]Select a log file by number[/]",
+            choices=list(str(i) for i in range(1,len(files) + 1)),
+            show_choices=False
+        )
+        
+        selected_idx = int(selection) - 1
+        target_file = files[selected_idx]
+    else:
+        target_file = files[0]
+
     parse_file(target_file)
     rprint(
         Panel(
@@ -214,7 +242,7 @@ def log(directory):
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakefile(directory, edit):
     """
-    View/edit a workflow's snakefile
+    View/edit a workflow's Snakefile
     
     The snakefile contains all the instructions for a workflow. The only required input is the output folder
     previously created by Harpy where you can find `workflow/workflow.smk`.
@@ -253,7 +281,7 @@ def snakefile(directory, edit):
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory, edit):
     """
-    View/edit a workflow's snakemake configurations
+    View/edit a workflow's Snakemake configurations
     
     The snakemake configuration file has the runtime parameters snakemake was invoked with (i.e.,
     computational specifics that don't impact your results). The only required input is the output folder
