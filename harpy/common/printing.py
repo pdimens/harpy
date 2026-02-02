@@ -9,8 +9,31 @@ from rich import box
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
+from rich.theme import Theme
 
-CONSOLE = Console(stderr=True, log_path=False)
+
+CONSOLE = Console(
+    stderr=True,
+    log_path=False,
+    theme = Theme({"log.time": "dim magenta"})
+)
+
+def harpy_table(title = None, caption = None, tstyle = None, cstyle = None):
+    '''
+    Insantiate a generic but standardized table style for harpy output
+    `tstyle` and `cstyle` refer to the title and caption styles, respectively.
+    '''
+    return Table(
+        title = title,
+        caption = caption,
+        show_header=False,
+        pad_edge=False,
+        show_edge=False,
+        padding = (0,0),
+        box=box.SIMPLE,
+        title_style="default" if not tstyle else tstyle,
+        caption_style="dim" if not cstyle else cstyle
+    )
 
 def print_error(
     errortitle: str,
@@ -106,11 +129,11 @@ def print_onerror(logfile: str, time) -> None:
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
     time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-    datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    datatable = harpy_table()
     datatable.add_column("detail", justify="left", style="red", no_wrap=True)
     datatable.add_column("value", justify="left")
     datatable.add_row("Duration:", time_text)
-    datatable.add_row("Workflow Log: ", os.path.relpath(logfile) + ".gz")
+    datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
     CONSOLE.rule("[bold]Workflow Error[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print("The workflow stopped due to an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
@@ -120,13 +143,7 @@ def print_shellcmd_simple(text):
     """
     Prints the input text string as syntax-highlighted SHELL code to stderr 
     """
-    _table = Table(
-        show_header=False,
-        pad_edge=False,
-        show_edge=False,
-        padding=(0,0),
-        box=box.SIMPLE,
-    )
+    _table = harpy_table()
     _table.add_column("Lpadding", justify="left")
     _table.add_column("shell", justify="left")
     _table.add_column("Rpadding", justify="left")
@@ -141,7 +158,7 @@ def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     Accepts an unlimited number of length-2 lists or tuples and returns a rich.Table with the value of the first indices as the row names and the second indices as the values
     Use None instead of a list to ignore that entry (useful for conditionals). The second value will always be converted to a string.
     """
-    table = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    table = harpy_table()
     table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     table.add_column("value", justify="left")
     for i in arg:

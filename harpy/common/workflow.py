@@ -1,20 +1,16 @@
 """Contains the WorkFlow class"""
 
 from datetime import datetime
-import glob
 import importlib.resources as resources
 import os
 import shutil
 import sys
 import time as _time
-import urllib.request
-import urllib.error
 import yaml
-from rich import box
 from rich.table import Table
 from harpy.common.conda import create_conda_recipes
-from harpy.common.file_ops import filepath, purge_empty_logs
-from harpy.common.printing import CONSOLE, print_error
+from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
+from harpy.common.printing import CONSOLE, harpy_table, print_error
 from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
 
@@ -32,7 +28,6 @@ class Workflow():
         self.workflow_directory = os.path.join(outdir, 'workflow')
         self.quiet: int = quiet
 
-        self.snakemake_logfile: str = self.snakemake_log(outdir, name)
         self.snakemake_cmd_absolute: str = ""
         self.snakemake_cmd_relative: str = ""
         self.snakefile: str = snakefile
@@ -88,16 +83,6 @@ class Workflow():
             self.inputs[key.strip()][subkey.strip()] = value
         else:
             self.inputs[name] = value
-
-    def snakemake_log(self, outdir: str, workflow: str) -> str:
-        """Return a snakemake logfile name. Iterates logfile run number if one exists."""
-        attempts = glob.glob(os.path.join(outdir, "logs", "snakemake", "*.log*"))
-        timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
-        if not attempts:
-            os.makedirs(os.path.join(outdir, "logs", "snakemake"), exist_ok=True)
-            return os.path.join("logs", "snakemake", f"{workflow}.1.{timestamp}")
-        increment = sorted([int(i.split(".")[1]) for i in attempts])[-1] + 1
-        return os.path.join("logs", "snakemake", f"{workflow}.{increment}.{timestamp}")
 
     def setup_snakemake(self, threads: int, hpc: str|None = None, sm_extra: str|None = None):
         """
@@ -225,7 +210,6 @@ class Workflow():
         if self.notebooks:
             self.config["Workflow"]["reports"] = self.notebooks
         self.config["Workflow"]["snakemake"] = {
-            "log" : self.snakemake_logfile,
             "absolute": self.snakemake_cmd_absolute,
             "relative": self.snakemake_cmd_relative,
             "conda-envs": self.conda
@@ -274,14 +258,17 @@ class Workflow():
             return
         _relpath = os.path.relpath(self.output_directory)
         time_text = self.time_elapsed()
-        datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+        datatable = harpy_table()
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)
         datatable.add_column("value", justify="left")
+        datatable.add_row("End Time:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
         datatable.add_row("Duration:", time_text)
         if self.summary:
             datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))
-        datatable.add_row("Workflow Log:", os.path.join(_relpath, "logs", "snakemake", os.path.basename(f"{self.snakemake_logfile}.gz")))
-        CONSOLE.rule("[bold]Workflow Finished[/] [default dim]" + _time.strftime('%d %b %Y @ %H:%M'), style="green")
+        _smlog = last_sm_log(self.output_directory)
+        if _smlog:
+            datatable.add_row("Workflow Log:", os.path.join(_relpath, ".snakemake", 'log', _smlog))
+        CONSOLE.rule("[bold]Workflow Finished[/]", style="green")
         CONSOLE.print(datatable)
 
     def initialize(self, setup: bool = False):
@@ -303,7 +290,7 @@ class Workflow():
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        sm = LaunchSnakemake(cmd, self.output_directory, self.snakemake_logfile, self.quiet)
+        sm = LaunchSnakemake(cmd, self.output_directory, self.quiet)
 
         if self.clean:
             CONSOLE.rule("[dim]Cleaning output directory", style = "dim")

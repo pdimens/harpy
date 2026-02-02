@@ -5,11 +5,9 @@ import re
 import os
 import sys
 import subprocess
-from rich import box
 from rich.syntax import Syntax
-from rich.table import Table
-from harpy.common.file_ops import gzip_file, purge_empty_logs
-from harpy.common.printing import CONSOLE, print_onerror, print_setup_error
+from harpy.common.file_ops import last_sm_log, purge_empty_logs
+from harpy.common.printing import CONSOLE, harpy_table, print_onerror, print_setup_error
 from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 
 EXIT_CODE_SUCCESS = 0
@@ -32,12 +30,11 @@ class Rule:
 
 class LaunchSnakemake():
     """launch snakemake with the given commands and monitor its progress"""
-    def __init__(self, sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
+    def __init__(self, sm_args, outdir, quiet, CONSOLE = CONSOLE):
         self.exitcode = -1
         self.start_time = datetime.now()
         self.deps: bool = False
         self.deploy_text: str = ""
-        self.logfile = sm_logfile
         self.quiet = quiet
         self.cmd: list[str] = sm_args.split()
         self.outdir: str = outdir
@@ -71,8 +68,6 @@ class LaunchSnakemake():
             self.process_finish()
             self.process.terminate()
             self.process.wait()
-            if os.path.exists(os.path.join(outdir,sm_logfile)):
-                gzip_file(os.path.join(outdir,sm_logfile))
             purge_empty_logs(outdir)
 
     def is_done(self) -> bool:
@@ -120,13 +115,7 @@ class LaunchSnakemake():
 
     def print_shellcmd(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
-        _table = Table(
-            show_header=False,
-            pad_edge=False,
-            show_edge=False,
-            padding=(0,0),
-            box=box.SIMPLE,
-        )
+        _table = harpy_table()
         _table.add_column("Lpadding", justify="left")
         _table.add_column("shell", justify="left")
         _table.add_column("Rpadding", justify="left")
@@ -357,7 +346,7 @@ class LaunchSnakemake():
         if self.exitcode in (1,2):
             print_setup_error(self.exitcode)
         elif self.exitcode == 3:
-            print_onerror(os.path.join(os.path.basename(self.outdir), self.logfile), datetime.now() - self.start_time)
+            print_onerror(last_sm_log(self.outdir), datetime.now() - self.start_time)
         CONSOLE.tab_size = 4
         CONSOLE._highlight = False
         # shortcut to FileNotFoundError #

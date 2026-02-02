@@ -55,6 +55,14 @@ def gzip_file(infile: str) -> None:
             shutil.copyfileobj(f_in, f_out)
         os.remove(infile)
 
+def last_sm_log(directory) -> str:
+    '''Find and return the name of the last snakemake log file, otherwise return an empty string'''
+    err_dir = os.path.join(directory, ".snakemake", "log")
+    if not os.path.exists(err_dir) or not os.path.exists(directory):
+        return ""
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    return os.path.basename(sorted(files, key = os.path.getmtime)[-1])
+
 def purge_empty_logs(output_directory):
     """scan target_dir and remove empty files, then scan it again and remove empty directories"""
     for logfile in glob.glob(f"{output_directory}/logs/**/*", recursive = True):
