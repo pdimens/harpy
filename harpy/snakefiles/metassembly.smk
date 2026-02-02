@@ -1,9 +1,5 @@
 import os
-import logging
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 
 FQ1 = config["inputs"]["fastq_r1"]
 FQ2 = config["inputs"]["fastq_r2"]

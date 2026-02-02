@@ -1,10 +1,6 @@
 import os
-import logging
 from pathlib import Path
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 

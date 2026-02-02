@@ -1,10 +1,6 @@
 import os
 import random
-import logging
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 
 variant = config["workflow"].split("_")[-1]
 simuG_variant = variant.upper() if variant == "cnv" else variant

@@ -1,10 +1,6 @@
 import os
 import random
-import logging
 
-onstart:
-    logfile_handler = logger_manager._default_filehandler(config["snakemake"]["log"])
-    logger.addHandler(logfile_handler)
 
 genome = config["inputs"]["genome"]
 snp_vcf = config["snp"].get("vcf", None)

@@ -8,7 +8,7 @@ import subprocess
 from rich import box
 from rich.syntax import Syntax
 from rich.table import Table
-from harpy.common.file_ops import gzip_file, purge_empty_logs
+from harpy.common.file_ops import last_sm_log, purge_empty_logs
 from harpy.common.printing import CONSOLE, print_onerror, print_setup_error
 from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 
@@ -92,7 +92,7 @@ def highlight_params(text: str):
         return f"\n[blue]{text}[/]"
     return text
 
-def launch_snakemake(sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
+def launch_snakemake(sm_args, outdir, quiet, CONSOLE = CONSOLE):
     """launch snakemake with the given commands"""
     exitcode = None
     sm_start = datetime.now()
@@ -227,7 +227,7 @@ def launch_snakemake(sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
             if exitcode in (1,2):
                 print_setup_error(exitcode)
             elif exitcode == 3:
-                print_onerror(os.path.join(os.path.basename(outdir), sm_logfile), datetime.now() - sm_start)
+                print_onerror(last_sm_log(outdir), datetime.now() - sm_start)
 
             CONSOLE.tab_size = 4
             CONSOLE._highlight = False
@@ -302,6 +302,5 @@ def launch_snakemake(sm_args, outdir, sm_logfile, quiet, CONSOLE = CONSOLE):
         CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
         process.terminate()
         process.wait()
-        gzip_file(os.path.join(outdir,sm_logfile))
         purge_empty_logs(outdir)
         sys.exit(1)

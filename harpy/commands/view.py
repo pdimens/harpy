@@ -12,8 +12,10 @@ from click import echo_via_pager
 import rich_click as click
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
+from rich.table import Table
 from rich import print as rprint
-from harpy.common.printing import print_error
+from harpy.common.printing import harpy_table, print_error
 from harpy.common.file_ops import is_gzip
 
 def check_terminal_colors():
@@ -41,7 +43,7 @@ def check_terminal_colors():
 
 def parse_file(infile: str):
     '''
-    take a list of input file name, get the most recent by modificiation time, and print it via pygmentized less
+    take an input file name, get the most recent by modificiation time, and print it via pygmentized less
     returns a string of the file that was viewed
     '''
     if not os.access(infile, os.R_OK):
@@ -162,14 +164,15 @@ def environments(program):
     return
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.option("-c", "--choose", is_flag=True, default=False, help = "From one from all the logs")
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def log(directory):
+def log(directory, choose):
     """
     View a workflow's last log file
     
     The log file contains everything Snakemake printed during runtime.
     The only required input is the output folder previously created by Harpy where you can find
-    `logs/snakemake/`. Navigate with the typical `less` keyboard bindings, e.g.:
+    `.snakemake/log`. Navigate with the typical `less` keyboard bindings, e.g.:
     
     | key                     | function                   |
     | :---------------------- | :------------------------- |
@@ -178,7 +181,7 @@ def log(directory):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    err_dir = os.path.join(directory, "logs", "snakemake")
+    err_dir = os.path.join(directory, ".snakemake", "log")
     err_file = "There are no log files"
     if not os.path.exists(err_dir):
         print_error(
@@ -191,7 +194,30 @@ def log(directory):
             "files not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
-    target_file = sorted(files, key = os.path.getmtime)[-1]
+
+    files = sorted(files, key = os.path.getmtime, reverse = True)
+    if choose:
+        console = Console()
+        console.print()
+        console.rule('Snakemake Log Files', style = "green")
+        _tb = harpy_table()
+        _tb.add_column("Number", justify="left", style="bold green", no_wrap=True)
+        _tb.add_column("File", justify="left")
+        for i,j in enumerate(files,1):
+            _tb.add_row(str(i), os.path.basename(j))
+        console.print(_tb)
+        console.rule('[dim]sorted newest (top) to oldest (bottom)[/]', style = 'dim')
+        selection = Prompt.ask(
+            "\n[bold blue]Select a log file by number[/]",
+            choices=list(str(i) for i in range(1,len(files) + 1)),
+            show_choices=False
+        )
+        
+        selected_idx = int(selection) - 1
+        target_file = files[selected_idx]
+    else:
+        target_file = files[0]
+
     parse_file(target_file)
     rprint(
         Panel(

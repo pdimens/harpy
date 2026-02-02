@@ -12,6 +12,10 @@ from rich.panel import Panel
 
 CONSOLE = Console(stderr=True, log_path=False)
 
+def harpy_table(title = None, caption = None):
+    '''Insantiate a generic but standardized table style for harpy output'''
+    return Table(title = title, caption = caption, show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+
 def print_error(
     errortitle: str,
     errortext: RenderableType|str,
@@ -106,7 +110,7 @@ def print_onerror(logfile: str, time) -> None:
     minutes = (seconds % 3600) // 60
     seconds = seconds % 60
     time_text = f"{days} days, {hours} hours, {minutes} minutes, {seconds} seconds"
-    datatable = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    datatable = harpy_table()
     datatable.add_column("detail", justify="left", style="red", no_wrap=True)
     datatable.add_column("value", justify="left")
     datatable.add_row("Duration:", time_text)
@@ -117,13 +121,7 @@ def print_onerror(logfile: str, time) -> None:
     CONSOLE.rule("[bold]Where Error Occurred", style = "red")
 
 def print_shellcmd_simple(text):
-    _table = Table(
-        show_header=False,
-        pad_edge=False,
-        show_edge=False,
-        padding=(0,0),
-        box=box.SIMPLE,
-    )
+    _table = harpy_table()
     _table.add_column("Lpadding", justify="left")
     _table.add_column("shell", justify="left")
     _table.add_column("Rpadding", justify="left")
@@ -138,7 +136,7 @@ def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     Accepts an unlimited number of length-2 lists or tuples and returns a rich.Table with the value of the first indices as the row names and the second indices as the values
     Use None instead of a list to ignore that entry (useful for conditionals). The second value will always be converted to a string.
     """
-    table = Table(show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+    table = harpy_table()
     table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     table.add_column("value", justify="left")
     for i in arg:
