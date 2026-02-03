@@ -16,6 +16,7 @@ from harpy.commands import simulate
 from harpy.commands import snp, sv
 from harpy.commands import template
 from harpy.commands import validate
+from harpy.common.version import VERSION
 
 config = click.RichHelpConfiguration(
     max_width=80,
@@ -34,7 +35,7 @@ config = click.RichHelpConfiguration(
 
 @click.group(options_metavar='', context_settings={"help_option_names" : []} )
 @click.rich_config(config)
-@click.version_option("0.0.0", prog_name="harpy", hidden = True)
+@click.version_option(f"{VERSION}", prog_name="harpy", hidden = True)
 @click.command_panel(
     "Data Processing",
     panel_styles={"border_style": "blue"},

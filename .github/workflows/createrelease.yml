@@ -57,17 +57,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Version the Container
-        # this removes the :*_latest tag and replaces with versioned container
-        run: |
-          for i in harpy/snakefiles/*.smk; do
-            sed -i "s/_latest/_${{ github.ref_name }}/g" $i
-          done
-      - name: Bump Harpy Version
-        # this removes the :latest tag and replaces with versioned container
-        run: |
-          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" harpy/__main__.py
-          sed -i "s/0\.0\.0/${{ github.ref_name }}/g" pyproject.toml         
       - name: Build project
         # This builds the release tarball, stripped of unneccessary things
         run: |

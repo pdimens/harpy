@@ -45,7 +45,7 @@ rule cloudspades:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_latest"
+        "docker://pdimens/harpy:assembly_3.2"
     threads:
         workflow.cores
     resources:
@@ -100,7 +100,7 @@ rule scaffolding:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_latest"
+        "docker://pdimens/harpy:assembly_3.2"
     shell:
         """
         arcs-make arcs-tigmint -C {params} 2> {log}
@@ -126,7 +126,7 @@ rule QUAST_assessment:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_latest"
+        "docker://pdimens/harpy:assembly_3.2"
     shell:
         "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -148,7 +148,7 @@ rule BUSCO_analysis:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_latest"
+        "docker://pdimens/harpy:assembly_3.2"
     shell:
         "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
@@ -166,7 +166,7 @@ rule build_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_latest"
+        "docker://pdimens/harpy:qc_3.2"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 

@@ -131,7 +131,7 @@ rule phase_alignments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_latest"
+        "docker://pdimens/harpy:phase_3.2"
     shell:
         "whatshap haplotag --sample {wildcards.sample} --linked-read-distance-cutoff {params} --ignore-read-groups --tag-supplementary --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
 
@@ -224,7 +224,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_latest"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -308,7 +308,7 @@ rule sample_reports:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:
@@ -337,7 +337,7 @@ rule aggregate_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:

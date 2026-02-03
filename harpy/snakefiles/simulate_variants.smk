@@ -56,7 +56,7 @@ rule simulate_haploid:
     conda:
         "envs/simulations.yaml"
     container:
-        "docker://pdimens/harpy:simulations_latest"
+        "docker://pdimens/harpy:simulations_3.2"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.parameters} > {log}"
 
@@ -113,7 +113,7 @@ rule simulate_diploid:
     conda:
         "envs/simulations.yaml"
     container:
-        "docker://pdimens/harpy:simulations_latest"
+        "docker://pdimens/harpy:simulations_3.2"
     shell:
         "simuG -refseq {input.geno} -prefix {params.prefix} {params.vcf_arg} {input.hap} > {log}"
 

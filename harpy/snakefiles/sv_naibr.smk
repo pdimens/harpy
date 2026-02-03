@@ -91,7 +91,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"     
     container:
-        "docker://pdimens/harpy:variants_latest"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -199,7 +199,7 @@ rule sample_reports:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:

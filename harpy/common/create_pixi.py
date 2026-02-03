@@ -3,77 +3,10 @@
 import shutil
 import subprocess
 import os
-
-environ = {
-    "align" : [
-        "bwa-mem2",
-        "bwa",
-        "samtools==1.22",
-        "seqtk",
-        "strobealign",
-        "tabix"
-    ],
-    "assembly" : [
-        "arcs",
-        "bwa",
-        "cloudspades",
-        "links",
-        "quast",
-        "busco",
-        "samtools",
-        "tigmint"
-    ],
-    "deconvolution" : [
-        "quickdeconvolution"
-    ],
-
-    "demultiplex": [
-        "dmox>=0.2"
-    ],
-    "metassembly": [
-        "athena_meta==1.2"
-    ],
-    "phase" : [
-        "hapcut2",
-        "whatshap"
-    ],
-    "qc" : [
-        "click==8.2.1",
-        "falco==1.2.5",
-        "fastp",
-        "multiqc==1.30",
-        "pysam==0.23"
-    ],
-    "report" : [
-        "quarto",
-        "r-dt",
-        "r-dplyr",
-        "r-highcharter",
-        "r-magrittr",
-        "r-plotly",
-        "r-scales",
-        "r-tidyr",
-        "r-viridislite", 
-        "r-xml2",
-        "r-biocircos"
-    ],
-    "simulations" : [
-        "simug>=1.0.1"
-    ],
-    "stitch" : [
-        "r-stitch>=1.8.4"
-    ],
-    "variants" : [
-        "bcftools==1.22",
-        "freebayes==1.3.9",
-        "leviathan",
-        "naibr-plus",
-        "setuptools"
-    ]
-}
+from harpy.common.version import VERSION
 
 dockerfile_text = """
-FROM ghcr.io/prefix-dev/pixi:0.56.0 AS build
+FROM ghcr.io/prefix-dev/pixi:0.62.0 AS build
 
 # copy source code, pixi.toml and pixi.lock to the container
 WORKDIR /app
@@ -96,12 +29,84 @@ COPY --from=build /app/.pixi/envs/default /app/.pixi/envs/default
 ENTRYPOINT ["/app/entrypoint.sh"]
 """
 
-def create_pixi_dockerfiles():
+def create_pixi_dockerfiles(env):
     '''
     Using the defined environments, create a series of folders where each has a dockerfile
     and pixi.toml file to create one of the environments.
     '''
     shutil.rmtree("container", ignore_errors=True)
+
+    environ = {
+        "align" : [
+            "bwa-mem2",
+            "bwa",
+            "samtools==1.22",
+            "seqtk",
+            "strobealign",
+            "tabix"
+        ],
+        "assembly" : [
+            "arcs",
+            "bwa",
+            "cloudspades",
+            "links",
+            "quast",
+            "busco",
+            "samtools",
+            "tigmint"
+        ],
+        "deconvolution" : [
+            "quickdeconvolution"
+        ],
+
+        "demultiplex": [
+            "dmox>=0.2"
+        ],
+        "metassembly": [
+            "athena_meta==1.2"
+        ],
+        "phase" : [
+            "hapcut2",
+            "whatshap"
+        ],
+        "qc" : [
+            "click==8.2.1",
+            "falco==1.2.5",
+            "fastp",
+            "multiqc==1.30",
+            "pysam==0.23"
+        ],
+        "report" : [
+            "quarto",
+            "r-dt",
+            "r-dplyr",
+            "r-highcharter",
+            "r-magrittr",
+            "r-plotly",
+            "r-scales",
+            "r-tidyr",
+            "r-viridislite", 
+            "r-xml2",
+            "r-biocircos"
+        ],
+        "simulations" : [
+            "simug>=1.0.1"
+        ],
+        "stitch" : [
+            "r-stitch>=1.8.4"
+        ],
+        "variants" : [
+            "bcftools==1.22",
+            "freebayes==1.3.9",
+            "leviathan",
+            "naibr-plus",
+            "setuptools"
+        ]
+    }
+
+    if env != "all":
+        environ = {env: environ.get(env)}
+
     for env,deps in environ.items():
         os.makedirs(f"container/{env}", exist_ok=True)
         with open(f"container/{env}/Dockerfile", "w") as dockerfile:
@@ -117,8 +122,19 @@ def create_pixi_dockerfiles():
                 check = True    
             )
 
+        with open(f"container/{env}/pixi.toml", "r") as toml:
+            with open(f"container/{env}/pixi.fix.toml", "w") as out:
+                for line in toml:
+                    if line.startswith("version"):
+                        line = f"version = \"{VERSION}\"\n"
+                    out.write(line)
+
+        os.remove(f"container/{env}/pixi.toml")
+        shutil.copy2(f"container/{env}/pixi.fix.toml", f"container/{env}/pixi.toml")
+
         subprocess.run(
             ["pixi", "add", "--no-progress", "--manifest-path", f"container/{env}/pixi.toml", *deps],
             check = True
         )
+
         shutil.rmtree("container/.pixi", ignore_errors=True)

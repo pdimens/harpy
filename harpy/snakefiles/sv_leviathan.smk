@@ -44,7 +44,7 @@ rule index_barcodes:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_latest"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         """
         {{
@@ -65,7 +65,7 @@ rule preprocess_reference:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_latest"
+        "docker://pdimens/harpy:align_3.2"
     shell: 
         """
         {{
@@ -100,7 +100,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_latest"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -194,7 +194,7 @@ rule sample_reports:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:

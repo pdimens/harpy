@@ -8,14 +8,15 @@ from harpy.common.create_pixi import create_pixi_dockerfiles
 from harpy.common.workflow import Workflow
 
 @click.command(hidden = True)
-def containerize():
+@click.argument('env', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]))
+def containerize(env):
     """
     Configure the harpy container
 
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    create_pixi_dockerfiles()
+    create_pixi_dockerfiles(env)
 
 @click.group(options_metavar='')
 def deps():

@@ -67,7 +67,7 @@ rule create_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:

@@ -79,7 +79,7 @@ rule align:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_latest"
+        "docker://pdimens/harpy:align_3.2"
     shell:
         """
         {{
@@ -218,7 +218,7 @@ rule sample_reports:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:
@@ -275,7 +275,7 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_latest"
+        "docker://pdimens/harpy:qc_3.2"
     shell:
         "multiqc {params} > {output} 2> {log}"
 
@@ -295,7 +295,7 @@ rule barcode_report:
     conda:
         "envs/report.yaml"
     container:
-        "docker://pdimens/harpy:report_latest"
+        "docker://pdimens/harpy:report_3.2"
     retries:
         3
     shell:
