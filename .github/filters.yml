@@ -7,7 +7,7 @@ common: &common
   - '.github/filters.yml'
   - 'resources/buildforCI.sh'
 environments: &environments
-  - 'harpy/common/conda.py'
+  - 'harpy/common/environments.py'
   - 'harpy/commands/environments.py'
   - 'harpy/environments.smk'
 validate: &validate

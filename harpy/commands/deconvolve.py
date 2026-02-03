@@ -35,7 +35,7 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     is_arm(allowed = False)
     workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, container, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["deconvolution"]
+    workflow.conda = ["qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs)
