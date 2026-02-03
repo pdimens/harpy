@@ -10,7 +10,7 @@ import urllib.request
 import urllib.error
 import yaml
 from rich.table import Table
-from harpy.common.conda import create_conda_recipes
+from harpy.common.environments import HarpyEnvs
 from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
 from harpy.common.printing import CONSOLE, harpy_table, print_error
 from harpy.common.launch import launch_snakemake
@@ -252,7 +252,7 @@ class Workflow():
         self.write_workflow_config()
         self.write_snakemake_profile()
         if not self.container:
-            create_conda_recipes(self.output_directory, self.conda)
+            HarpyEnvs().write_recipes(self.output_directory, self.conda)
         self.fetch_snakefile()
         for i in self.reports:
             self.fetch_report(i)

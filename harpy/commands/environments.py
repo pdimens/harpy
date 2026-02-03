@@ -3,9 +3,9 @@
 import os
 import shutil
 import rich_click as click
-from harpy.common.conda import create_conda_recipes
-from harpy.common.create_pixi import create_pixi_dockerfiles
+from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
+
 
 @click.command(hidden = True)
 @click.argument('env', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]))
@@ -16,7 +16,7 @@ def containerize(env):
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    create_pixi_dockerfiles(env)
+    HarpyEnvs().prepare_container(env)
 
 @click.group(options_metavar='')
 def deps():
@@ -51,7 +51,7 @@ def conda(workflows):
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
-    create_conda_recipes(workflow.output_directory)
+    HarpyEnvs().write_recipes(workflow.output_directory)
     if "all" in workflows:
         workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
     workflow.fetch_snakefile()
@@ -74,7 +74,7 @@ def container():
     """
     workflow = Workflow("localcontainer", "environments.smk", "localenv/", True, 1)
     workflow.fetch_snakefile()
-    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
+    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
