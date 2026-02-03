@@ -44,7 +44,7 @@ jobs:
         with:
           context: container/${{ matrix.env }}
           push: true
-          tags: pdimens/harpy:$${{ matrix.env }}_{{ github.ref_name }}
+          tags: pdimens/harpy:${{ matrix.env }}_${{ github.ref_name }}
 
   build_tarball:
     needs: build_versioned_containers
