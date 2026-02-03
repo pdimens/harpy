@@ -47,7 +47,7 @@ harpy module options... args...
 ```
 
 ## 🌈 Getting Started
-No data? No problem! Use [HACk](https://davidebolo1993.github.io/visordoc/usecases/usecases.html#visor-hack) to simulate genomic variants from an existing genome and use [Mimick]((https://pdimens.github.io/mimick/#/)) to create linked-read data from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without investing a single cent! A real-world walkthrough of how we did this for a benchmarking experiment can be found [here](https://pdimens.github.io/LRInversionSimulations/).
+No data? No problem! Use [HACk](https://davidebolo1993.github.io/visordoc/usecases/usecases.html#visor-hack) to simulate genomic variants from an existing genome and use [Mimick](https://pdimens.github.io/mimick/#/) to create linked-read data from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without investing a single cent! A real-world walkthrough of how we did this for a benchmarking experiment can be found [here](https://pdimens.github.io/LRInversionSimulations/).
 
 ## Citation
 >Dimens PV, Franckowiak RP, Iqbal A, Grenier JK, Munn PR, Therkildsen NO. Harpy: a pipeline for processing haplotagging linked-read data. Bioinform Adv. 2025 Jun 5;5(1):vbaf133. doi: [10.1093/bioadv/vbaf133](https://pubmed.ncbi.nlm.nih.gov/40575478/). PMID: 40575478; PMCID: PMC12198493.
