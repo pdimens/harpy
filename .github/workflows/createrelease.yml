@@ -14,7 +14,7 @@ jobs:
       pull-requests: write
     strategy:
       matrix:
-        env: [align, assembly, deconvolution, demultiplex, metassembly, phase, qc, report, simulations, stitch, variants]
+        env: [align, assembly, demultiplex, metassembly, phase, qc, report, simulations, stitch, variants]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
