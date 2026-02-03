@@ -5,6 +5,7 @@ import sys
 import glob
 import gzip
 import curses
+from datetime import datetime
 from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import get_formatter_by_name
@@ -205,16 +206,20 @@ def log(directory, choose):
     if choose and len(files) > 1:
         console = Console()
         console.print()
-        console.rule('Snakemake Log Files', style = "green")
+        #console.rule('Snakemake Log Files', style = "green")
         _tb = harpy_table()
-        _tb.add_column("Number", justify="left", style="bold green", no_wrap=True)
-        _tb.add_column("File", justify="left")
+        _tb.show_header=True
+        _tb.add_column("[bold green]#", style="bold green", min_width=2)
+        _tb.add_column("[dim yellow]Last Modification",style = "dim yellow")
+        _tb.add_column("Log File", justify="right", no_wrap=True)
         for i,j in enumerate(files,1):
-            _tb.add_row(str(i), os.path.basename(j))
+            filename = os.path.basename(j).removesuffix(".snakemake.log") + "[dim].snakemake.log[/]"
+            modtime = datetime.fromtimestamp(os.path.getmtime(j)).strftime('%Y-%m-%d %H:%M')
+            _tb.add_row(str(i), modtime , filename)
         console.print(_tb)
-        console.rule('[dim]sorted newest (top) to oldest (bottom)[/]', style = 'dim')
+        #console.rule('[dim]second column shows last modification time[/]', style = 'dim')
         selection = Prompt.ask(
-            "\n[bold blue]Select a log file by number[/]",
+            "\n[bold blue]Select a log file by number ([bold green]#[/])[/]",
             choices=list(str(i) for i in range(1,len(files) + 1)),
             show_choices=False
         )
