@@ -6,9 +6,10 @@ import rich_click as click
 from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
+env_list = ["all", "align", "assembly", "demultiplex", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]
 
 @click.command(hidden = True)
-@click.argument('env', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]))
+@click.argument('env', required = True, type= click.Choice(env_list))
 def containerize(env):
     """
     Configure the harpy container
@@ -29,7 +30,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
-@click.argument('workflows', required = True, type= click.Choice(["all", "align", "assembly", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]), nargs = -1)
+@click.argument('workflows', required = True, type= click.Choice(env_list), nargs = -1)
 def conda(workflows):
     """
     Install workflow dependencies via conda
@@ -41,6 +42,7 @@ def conda(workflows):
     - all
     - align
     - assembly
+    - demultiplex
     - metassembly
     - phase
     - qc
@@ -64,7 +66,7 @@ def conda(workflows):
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
-@click.command(context_settings={"help_option_names" : ["-h", "--help"]})
+@click.command(context_settings={"help_option_names" : ["--help"]})
 def container():
     """
     Install workflow dependency containers
