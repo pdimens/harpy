@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_versioned_containers:
-    name: Build and Push versioned container
+    name: Build/Push container
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -31,7 +31,7 @@ jobs:
 #      - name: Clear Space
 #        uses: jlumbroso/free-disk-space@main
       - name: Recreate containers
-        run: harpy containerize
+        run: harpy containerize ${{ matrix.env }}
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to Docker Hub
