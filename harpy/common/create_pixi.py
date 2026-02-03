@@ -55,10 +55,6 @@ def create_pixi_dockerfiles(env):
             "samtools",
             "tigmint"
         ],
-        "deconvolution" : [
-            "quickdeconvolution"
-        ],
-
         "demultiplex": [
             "dmox>=0.2"
         ],
@@ -75,6 +71,7 @@ def create_pixi_dockerfiles(env):
             "fastp",
             "multiqc==1.30",
             "pysam==0.23"
+            "quickdeconvolution"
         ],
         "report" : [
             "quarto",
