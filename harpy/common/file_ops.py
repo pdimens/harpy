@@ -1,10 +1,14 @@
 """Module with helper function to set up Harpy workflows"""
 
-import os
 import glob
 import gzip
-import shutil
+import importlib.resources as resources
+import os
 from pathlib import Path
+import re
+import shutil
+import sys
+from harpy.common.printing import print_error
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -14,6 +18,35 @@ def symlink(original: str, destination: str) -> None:
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
         Path(destination).symlink_to(Path(original).resolve())
+
+def fetch_template(target: str, outfile = None) -> None:
+    """
+    Retrieve the target file from harpy.templates and print to outfile. Prints
+    to stdout if no outfile provided.
+    """
+    source_file = resources.files("harpy.templates") / target
+    if outfile:
+        _dir = os.path.dirname(outfile)
+        if _dir:
+            os.makedirs(_dir, exist_ok=True)
+        _out = open(outfile, "w")
+    else:
+        _out = sys.stdout
+    try:
+        if target.lower().endswith(".png"):
+            shutil.copy(str(source_file), outfile)
+        else:
+            with resources.as_file(source_file) as _source, open(_source, 'r') as f:
+                _out.write(f.read() + "\n")
+    except (FileNotFoundError, KeyError):
+        print_error(
+            "template file missing",
+            f"The required template file [blue bold]{target}[/] was not found within the Harpy installation.",
+            "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
+        )
+    finally:
+        if outfile:
+            _out.close()
 
 def gzip_file(infile: str) -> None:
     """gzip a file and delete the original, using only python"""
@@ -79,3 +112,30 @@ def is_plaintext(file_path: str) -> bool:
         return True
     except UnicodeDecodeError:
         return False
+
+def pop_manifest(groupingfile, filelist) -> dict:
+    '''
+    Create dictionary of population => filenames to make it easier to
+    set the snakemake rules/wildcards for population grouping
+    '''
+    d = {}
+    with open(groupingfile) as f:
+        for line in f:
+            samp, pop = line.rstrip().split()
+            if samp.lstrip().startswith("#"):
+                continue
+            r = re.compile(fr".*/({samp.lstrip()})\.(bam|sam)$", flags = re.IGNORECASE)
+            sampl = list(filter(r.match, filelist))[0]
+            if pop not in d.keys():
+                d[pop] = [sampl]
+            else:
+                d[pop].append(sampl)
+    return d
+
+def naibr_extra(argsDict: dict, extra) -> dict:
+    if extra:
+        words = [i for i in re.split(r"\s|=", extra) if len(i) > 0]
+        for i in zip(words[::2], words[1::2]):
+            if "blacklist" in i or "candidates" in i:
+                argsDict[i[0].lstrip("-")] = i[1]
+    return argsDict

@@ -11,7 +11,7 @@ from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.fastq import FASTQ
 
-@click.group(context_settings={"help_option_names" : []})
+@click.group(context_settings={"help_option_names" : ['--help']})
 def align():
     """
     Align sequences to a reference genome
@@ -31,16 +31,18 @@ def align():
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs',  panel = "Workflow Options", type = ContigList(), help = 'File or list of contigs to plot')
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):
     """
     Align sequences to reference genome using BWA MEM2
     
@@ -51,37 +53,29 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, quiet)
+    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
-    workflow.conda = ["align", "report", "qc"]
+    workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
+    workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc = not unlinked)
-    fasta = FASTA(reference)
+    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     if contigs:
         fasta.match_contigs(contigs) 
 
-    workflow.inputs = {
-        "reference": fasta.file,
-        "fastq": fastq.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "alignment_quality" : min_quality,
-        "keep_unmapped" : keep_unmapped,
-        "depth_windowsize" : depth_window,
-        "linkedreads": {
-            "type" : fastq.lr_type,
-            "standardized": fastq.bx_tag,
-            "distance_threshold" : molecule_distance,
-        },
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        }
-    }
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
+    workflow.input(fasta.file, "reference")
+    workflow.input(fastq.files, "fastq")
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(min_quality, "min-map-quality")
+    workflow.param(keep_unmapped, "keep-unmapped")
+    workflow.param(depth_window, "depth-windowsize")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
@@ -90,7 +84,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
@@ -101,16 +95,18 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, container, contigs, setup_only):
+def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):
     """
     Align sequences to reference genome using strobealign
  
@@ -122,38 +118,29 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, quiet)
+    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["align_stats.qmd", "align_bxstats.qmd"]
-    workflow.conda = ["align", "report", "qc"]
+    workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
+    workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc= not unlinked)
-    fasta = FASTA(reference)
-
+    fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
+    fasta = FASTA(reference, quiet= quiet > 0)
     if contigs:
         fasta.match_contigs(contigs)
 
-    workflow.inputs = {
-        "reference": fasta.file,
-        "fastq": fastq.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "alignment_quality" : min_quality,
-        "keep_unmapped" : keep_unmapped,
-        "depth_windowsize" : depth_window,
-        "linkedreads": {
-            "type" : fastq.lr_type,
-            "standardized": fastq.bx_tag,
-            "distance_threshold" : molecule_distance,
-        },
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports,
-            **({'plot_contigs': contigs} if contigs else {'plot_contigs': "default"}),
-        }
-    }
+    workflow.input(fasta.file, "reference")
+    workflow.input(fastq.files,"fastq")
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(min_quality, "min-map-quality")
+    workflow.param(keep_unmapped, "keep-unmapped")
+    workflow.param(depth_window, "depth-windowsize")
+    if extra_params:
+        workflow.param(extra_params, "extra")
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
@@ -162,7 +149,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)
 
 align.add_command(bwa)
 align.add_command(strobe)

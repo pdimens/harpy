@@ -5,11 +5,11 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-schemafile = config["inputs"]["demultiplex_schema"]
-skip_reports = config["reports"]["skip"]
-qxrx = config["retain"]["qx_rx"]
-unknown_samples = config["retain"]["samples"]
-unknown_barcodes = config["retain"]["barcodes"]
+schemafile = config["Inputs"]["schema"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+qxrx = config["Parameters"]["qx-rx"]
+unknown_samples = config["Parameters"]["samples"]
+unknown_barcodes = config["Parameters"]["barcodes"]
 
 samplenames = set()
 duplicates = False
@@ -38,10 +38,10 @@ rule barcode_segments:
 
 rule demultiplex:
     input:
-        R1 = config["inputs"]["R1"],
-        R2 = config["inputs"]["R2"],
-        I1 = config["inputs"]["I1"],
-        I2 = config["inputs"]["I2"],
+        R1 = config["Inputs"]["R1"],
+        R2 = config["Inputs"]["R2"],
+        I1 = config["Inputs"]["I1"],
+        I2 = config["Inputs"]["I2"],
         segment_a = "workflow/segment_A.bc",
         segment_b = "workflow/segment_B.bc",
         segment_c = "workflow/segment_C.bc",

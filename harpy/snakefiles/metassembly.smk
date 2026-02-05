@@ -1,17 +1,16 @@
 import os
 
-
-FQ1 = config["inputs"]["fastq_r1"]
-FQ2 = config["inputs"]["fastq_r2"]
-BX_TAG = config["linkedreads"]["barcode_tag"]
-max_mem = config["spades"]["max_memory"]
-k_param = config["spades"]["k"]
-ignore_bx = config["spades"]["ignore_barcodes"]
-extra = config["spades"].get("extra", "")
+FQ1 = config["Inputs"]["fastq_r1"]
+FQ2 = config["Inputs"]["fastq_r2"]
+BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]
+max_mem = config["Parameters"]["spades"]["max_memory"]
+k_param = config["Parameters"]["spades"]["k"]
+ignore_bx = config["Parameters"]["spades"]["ignore_barcodes"]
+extra = config["Parameters"]["spades"].get("extra", "")
 spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
-force_athena = config["athena"]["force"]
-skip_reports  = config["reports"]["skip"]
-organism = config["reports"]["organism_type"]
+force_athena = config["Parameters"]["athena"]["force"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
+organism = config["Workflow"]["reports"]["organism_type"]
 lineage_map = {
     "eukaryote": "eukaryota",
     "fungus": "fungi",

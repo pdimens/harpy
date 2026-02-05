@@ -16,13 +16,15 @@ from harpy.common.workflow import Workflow
 @click.option('-a', '--dropout', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Minimum cloud size to deconvolve')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Deconvolve", show_default=True,  help = 'Output directory name')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, container, setup_only):
+def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, threads, snakemake, quiet, hpc, clean, container, setup):
     """
     Resolve barcode sharing in unrelated molecules
 
@@ -33,25 +35,22 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
     is_arm(allowed = False)
-    workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, container, quiet)
+    workflow = Workflow("deconvolve", "deconvolve.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs)
+    fastq = FASTQ(inputs, quiet= quiet > 0)
     
-    workflow.inputs = fastq.files
-    workflow.config = {
-        "workflow": workflow.name,
-        "kmer_length" : kmer_length,       
-        "window_size" : window_size,
-        "density" :  density,
-        "dropout" :  dropout
-    }
+    workflow.input(fastq.files)
+    workflow.param(kmer_length, "kmer-length")       
+    workflow.param(window_size, "window-size")
+    workflow.param(density, "density")
+    workflow.param(dropout, "dropout")
 
     workflow.start_text = workflow_info(
         ("Samples:", fastq.count),
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
     
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)

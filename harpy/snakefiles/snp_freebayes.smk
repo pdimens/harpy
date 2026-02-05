@@ -4,13 +4,13 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-ploidy 		= config["ploidy"]
-extra 	    = config.get("extra", "") 
-regions_input = config["inputs"]["regions"]
-skip_reports = config["reports"]["skip"]
-bamlist     = config["inputs"]["alignments"]
+ploidy 		= config["Parameters"]["ploidy"]
+extra 	    = config["Parameters"].get("extra", "") 
+regions_input = config["Inputs"]["regions"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+bamlist     = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["inputs"]["reference"]
+genomefile 	= config["Inputs"]["reference"]
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     genome_zip  = True
@@ -18,7 +18,7 @@ if bn.lower().endswith(".gz"):
 else:
     genome_zip  = False
 workflow_geno = f"workflow/reference/{bn}"
-groupings 	= config["inputs"].get("groupings", [])
+groupings 	= config["Inputs"].get("groupings", [])
 samplenames = {Path(i).stem for i in bamlist}
 sampldict = dict(zip(bamlist, samplenames))
 
@@ -33,16 +33,7 @@ else:
     intervals = [regions_input]
     regions = {f"{regions_input}" : f"{regions_input}"}
 
-rule preprocess_groups:
-    input:
-        grp = groupings
-    output:
-        grp = "workflow/sample.groups"
-    run:
-        with open(input.grp, "r") as infile, open(output.grp, "w") as outfile:
-            _ = [outfile.write(i) for i in infile.readlines() if not i.lstrip().startswith("#")]
-
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -168,42 +159,23 @@ rule general_stats:
         bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule variant_report:
     input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
         data = "reports/data/variants.{type}.stats",
-        qmd  = "workflow/report/bcftools_stats.qmd"
+        ipynb  = "workflow/bcftools_stats.ipynb"
     output:
         report = "reports/variants.{type}.html",
-        qmd = temp("reports/variants.{type}.qmd")
-    params:
-        lambda wc: "-P vcf:variants." + wc.get("type")
+        ipynb = temp("reports/variants.{type}.ipynb")
     log:
         "logs/variants.{type}.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_3.2"
-    retries:
-        3
+    params:
+        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        INPATH=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INPATH {params}
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook variants.{wildcards.type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:

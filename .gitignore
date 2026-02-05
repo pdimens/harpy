@@ -4,6 +4,8 @@
 .environments/
 .cache/
 *.egg
+snakemake_*/
+snakemake-*/
 container/
 localenv/
 hpc/
@@ -40,3 +42,7 @@ pixi.lock
 *.egg-info
 .deprecated/
 test/
+# MyST build outputs
+_build
+.report/
+myst.yml

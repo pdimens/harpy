@@ -42,20 +42,18 @@ def conda(workflows):
     - all
     - align
     - assembly
-    - demultiplex
+    - impute
     - metassembly
     - phase
     - qc
-    - r
-    - simulations
-    - stitch
     - variants
     """
-    workflow = Workflow("localenv", "environments.smk", "localenv/", False, 1)
+    workflow = Workflow("localenv", "environments.smk", "localenv/", None, False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
-    HarpyEnvs().write_recipes(workflow.output_directory)
+    _he = HarpyEnvs()
+    _he.write_recipes(workflow.output_directory)
     if "all" in workflows:
-        workflows = ["align", "assembly", "metassembly", "phase", "qc", "r", "simulations", "stitch", "variants"] 
+        workflows = list(_he.environments().keys())
     workflow.fetch_snakefile()
 
     config_params = "--config"
@@ -74,7 +72,7 @@ def container():
     Manually pull the harpy dependency container from dockerhub and convert it
     into an Apptainer .sif. To use, run this command again without arguments.
     """
-    workflow = Workflow("localcontainer", "environments.smk", "localenv/", True, 1)
+    workflow = Workflow("localcontainer", "environments.smk", "localenv/", None, True, 1)
     workflow.fetch_snakefile()
     workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
     workflow.launch()

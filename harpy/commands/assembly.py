@@ -1,5 +1,6 @@
 """Perform a linked-read aware metassembly"""
 
+from ssl import ALERT_DESCRIPTION_CLOSE_NOTIFY
 import rich_click as click
 import os
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
@@ -30,15 +31,17 @@ from harpy.validation.fastq import FASTQ
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Assembly", show_default=True,  help = 'Output directory name')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', panel = "Assembly Parameters", type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
-def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, container, threads, snakemake, quiet, hpc, setup_only, skip_reports):
+def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_params,arcs_extra,contig_length,links,min_quality,min_aligned,mismatch,molecule_distance,molecule_length,seq_identity,span, organism_type, clean, container, threads, snakemake, quiet, hpc, setup, skip_reports):
     """
     Assemble linked reads into a genome
 
@@ -46,49 +49,36 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
     separated by commas and without spaces (e.g. `-k 15,23,51`). It is strongly recommended to first deconvolve
     the input FASTQ files with `harpy deconvolve`.
     """
-    workflow = Workflow("assembly", "assembly.smk", output_dir, container, quiet)
+    workflow = Workflow("assembly", "assembly.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2])
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
 
-    workflow.inputs = {
-        "fastq_r1" : fastq.files[0],
-        "fastq_r2" : fastq.files[1]
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "spades" : {
-            "k" : 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)),
-            "max_memory" : max_memory,
-            **({'extra' : extra_params} if extra_params else {})
-        },
-        "tigmint" : {
-            "minimum_mapping_quality" : min_quality,
-            "mismatch" : mismatch,
-            "molecule_distance" : molecule_distance,
-            "molecule_length" : molecule_length,
-            "span" : span
-        },
-        "arcs" : {
-            "minimum_aligned_reads" : min_aligned,
-            "minimum_contig_length" : contig_length,
-            "minimum_sequence_identity" : seq_identity,
-            **({'extra' : arcs_extra} if arcs_extra else {})
-        },
-        "links" : {
-            "minimum_links" : links
-        },
-        "reports" : {
-            "skip": skip_reports,
-            "organism_type": organism_type
-        }
-    }
+    workflow.notebooks["skip"] = skip_reports
+    workflow.notebooks["organism-type"] = organism_type
+    workflow.input(fastq.files[0], "fastq-r1")
+    workflow.input(fastq.files[1], "fastq-r2")
+    workflow.param('auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)), "spades:k")
+    workflow.param(max_memory, "spades:max-memory")
+    if extra_params:
+        workflow.param(extra_params, "spades:extra")
+    workflow.param(min_quality, "tigmint:minimum-mapping-quality")
+    workflow.param(mismatch, "tigmint:mismatch")
+    workflow.param(molecule_distance, "tigmint:molecule-distance")
+    workflow.param(molecule_length, "tigmint:molecule-length")
+    workflow.param(span, "tigmint:span")
+    workflow.param(min_aligned, "arcs:minimum-aligned-reads")
+    workflow.param(contig_length, "arcs:minimum-contig-length")
+    workflow.param(seq_identity, "arcs:minimum-sequence-identity")
+    if arcs_extra:
+        workflow.param(arcs_extra, "arcs:extra")
+    workflow.param(links, "links:minimum-links")
 
     workflow.start_text = workflow_info(
-        ("Kmer Length: ", "auto") if kmer_length == "auto" else ("Kmer Length: ", ",".join(map(str,kmer_length))),
+        ("Kmer Length: ", workflow.parameters["spades"]["k"]),
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)

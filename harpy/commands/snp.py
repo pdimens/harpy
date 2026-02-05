@@ -12,9 +12,9 @@ from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
-from harpy.validation.sam import SAM
+from harpy.validation.xam import XAM
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
 def snp():
     """
@@ -32,15 +32,17 @@ def snp():
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Call variants using freebayes
     
@@ -56,14 +58,14 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, quiet)
+    workflow = Workflow("snp_freebayes", "snp_freebayes.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["bcftools_stats.qmd"]
-    workflow.conda = ["report", "variants"]
+    workflow.notebook_files = ["bcftools_stats.ipynb"]
+    workflow.conda = ["variants"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
-    fasta = FASTA(reference)
+    alignments = XAM(inputs, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
@@ -73,21 +75,17 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         shutil.copy2(regions, region)
     else:
         region = regions
+
+    workflow.notebooks["skip"] = skip_reports
+    workflow.input(fasta.file, "reference")
+    workflow.input(region, "regions")
     if populations:
         popfile = Populations(populations, alignments.files)
-
-    workflow.inputs = {
-        "reference" : fasta.file,
-        "regions" : region,
-        **({'groupings': popfile.file} if populations else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "ploidy" : ploidy,
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {"skip": skip_reports},
-    }
+        workflow.input(popfile.file, "groupings")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(ploidy, "ploidy")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", alignments.count),
@@ -96,7 +94,7 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
@@ -106,14 +104,16 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup-only', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, container, setup_only):
+def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Call variants from using bcftools mpileup
     
@@ -129,14 +129,13 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
-    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, quiet)
+    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.reports = ["bcftools_stats.qmd"]
-    workflow.conda = ["report"]
+    workflow.notebook_files = ["bcftools_stats.ipynb"]
 
     ## checks and validations ##
-    alignments = SAM(inputs)
-    fasta = FASTA(reference)
+    alignments = XAM(inputs, quiet = quiet > 0)
+    fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
@@ -146,23 +145,17 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
         shutil.copy2(regions, region)
     else:
         region = regions
+
+    workflow.notebooks["skip"] = skip_reports
+    workflow.input(fasta.file, "reference")
+    workflow.input(region, "regions")
     if populations:
         popfile = Populations(populations, alignments.files)
-
-    workflow.inputs = {
-        "reference" : fasta.file,
-        "regions" : region,
-        **({'groupings': popfile.file} if populations else {}),
-        "alignments" : alignments.files
-    }
-    workflow.config = {
-        "workflow" : workflow.name,
-        "ploidy" : ploidy,
-        **({'extra': extra_params} if extra_params else {}),
-        "reports" : {
-            "skip": skip_reports
-        }
-    }
+        workflow.input(popfile.file, "groupings")
+    workflow.input(alignments.files, "alignments")
+    workflow.param(ploidy, "ploidy")
+    if extra_params:
+        workflow.param(extra_params, "extra")
 
     workflow.start_text = workflow_info(
         ("Samples:", alignments.count),
@@ -171,7 +164,7 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
         ("Output Folder:", os.path.relpath(output_dir) + "/")
     )
 
-    workflow.initialize(setup_only)
+    workflow.initialize(setup)
 
 snp.add_command(mpileup)
 snp.add_command(freebayes)

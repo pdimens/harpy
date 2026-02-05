@@ -4,8 +4,8 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["linkedreads"]["type"]
-fqlist = config["inputs"]
+lr_platform = config["Workflow"]["linkedreads"]["type"]
+fqlist = config["Inputs"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
@@ -54,46 +54,28 @@ rule concat_results:
         }} > {output}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("_quarto.yml"),
-        scss = temp("_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule create_report:
     input:
-        "_quarto.yml",
-        "_harpy.scss",
         data = "validate.fastq.tsv",
-        qmd = "workflow/report/validate_fastq.qmd"
+        ipynb = "workflow/validate_fastq.ipynb"
     output:
-        html = "validate.fastq.html",
-        qmd = temp("validate.fastq.qmd")
+        tmp = temp("validate.fastq.tmp.ipynb"),
+        ipynb = "validate.fastq.ipynb"
+    params:
+        lr_platform - lr_platform,
+        infile = "-p infile " + os.path.abspath("validate.fastq.tsv")
     log:
         "logs/report.log"
-    params:
-        lr_platform
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_3.2"
-    retries:
-        3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        {{
+            papermill -k python3 --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            process_notebook {params.lr_platform} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
     default_target: True
     input:
-        "validate.fastq.html"
+        "validate.fastq.ipynb"
 

@@ -6,15 +6,15 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-bamlist       = config["inputs"]["alignments"]
+bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
-variantfile   = config["inputs"]["vcf"]
-paramfile     = config["inputs"]["parameters"]
-region        = config.get("region", None)
-skip_reports  = config["reports"]["skip"]
-stitch_params = config["stitch_parameters"]
-stitch_extra  = config.get("stitch_extra", "None")
-grid_size     = config["grid_size"]
+variantfile   = config["Inputs"]["vcf"]
+paramfile     = config["Inputs"]["parameters"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
+region        = config["Parameters"].get("region", None)
+stitch_params = config["Parameters"]["stitch"]
+stitch_extra  = config["Parameters"].get("extra", "None")
+grid_size     = config["Parameters"]["grid-size"]
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -23,7 +23,7 @@ if region:
     # make the contig a list to fit with the existing workflow design
     contigs = [contigs]
 else:
-    biallelic = config["inputs"]["biallelic_contigs"]
+    biallelic = config["Inputs"]["biallelic-contigs"]
     with open(biallelic, "r") as f:
         contigs = [line.rstrip() for line in f]
 
@@ -127,6 +127,8 @@ rule impute:
         workflow.cores - 1
     conda:
         "envs/stitch.yaml"
+    container:
+        "docker://pdimens/harpy:impute_dev"        
     shell:
         """
         mkdir -p {output.tmpdir}
@@ -150,64 +152,11 @@ rule index_vcf:
         "{paramset}/contigs/{contig}.vcf.gz.tbi",
         vcf   = "{paramset}/contigs/{contig}.vcf.gz",
         stats = "{paramset}/reports/data/contigs/{contig}.stats"
-    container:
-        None
     shell:
         """
         cp {input} {output.vcf}
         tabix {output.vcf}
         bcftools stats -s "-" {input} > {output.stats}
-        """
-
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("{paramset}/reports/_quarto.yml"),
-        scss = temp("{paramset}/reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
-rule contig_report:
-    input:
-        "{paramset}/reports/_harpy.scss",
-        "{paramset}/reports/_quarto.yml",
-        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
-        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
-        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
-        "{paramset}/contigs/{contig}/plots/hapSum.png",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
-        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
-        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
-        qmd = "workflow/report/stitch_collate.qmd"
-    output:
-        report = "{paramset}/reports/{contig}.{paramset}.html",
-        qmd = temp("{paramset}/reports/{contig}.{paramset}.qmd")
-    log:
-        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
-    params:
-        params  = lambda wc: f"-P id:{wc.paramset}-{wc.contig}",
-        plotdir = lambda wc: "-P plotdir:" + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
-        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-P extra:{stitch_extra}"
-    conda:
-        "envs/report.yaml"
-    retries:
-        3
-    shell:
-        """
-        cp -f {input.qmd} {output.qmd}
-        STATS=$(realpath {input.statsfile})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P statsfile:$STATS {params}
         """
 
 rule concat_list:
@@ -229,8 +178,6 @@ if len(contigs) == 1:
             bcf = "{paramset}/{paramset}.bcf"
         log:
             "logs/concat/{paramset}.concat.log"
-        container:
-            None
         shell:
             "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}"
 
@@ -246,8 +193,6 @@ else:
             "logs/concat/{paramset}.concat.log"
         threads:
             workflow.cores
-        container:
-            None
         shell:
             "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> {log}"
 
@@ -256,8 +201,6 @@ else:
             "{paramset}/{paramset}.bcf"
         output:
             "{paramset}/{paramset}.bcf.csi"
-        container:
-            None
         shell:
             "bcftools index {input}"
 
@@ -267,25 +210,21 @@ rule general_stats:
         bcf = "{paramset}/{paramset}.bcf"
     output:
         "{paramset}/reports/data/impute.stats"
-    container:
-        None
     shell:
         "bcftools stats -s \"-\" {input.bcf} > {output}"
 
 rule extract_region:
     input:
         "workflow/input/vcf/input.sorted.bcf.csi",
-        orig    = "workflow/input/vcf/input.sorted.bcf"
+        orig = "workflow/input/vcf/input.sorted.bcf"
     output:
         temp("workflow/input/vcf/region.bcf.csi"),
         bcf = temp("workflow/input/vcf/region.bcf")
     params:
         f"-r {region}" if region else ""
-    container:
-        None
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
-        
+
 rule compare_stats:
     input:
         orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
@@ -295,50 +234,76 @@ rule compare_stats:
     output:
         compare = "{paramset}/reports/data/impute.compare.stats",
         info_sc = temp("{paramset}/reports/data/impute.infoscore")
-    container:
-        None
     shell:
         """
         bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
         bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
         """
 
+rule contig_report:
+    input:
+        "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
+        "{paramset}/contigs/{contig}/plots/alphaMat.normalized.png",
+        "{paramset}/contigs/{contig}/plots/hapSum_log.png",
+        "{paramset}/contigs/{contig}/plots/hapSum.png",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
+        "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
+        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        ipynb = "workflow/stitch_collate.ipynb"
+    output:
+        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb")
+        ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
+    log:
+        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
+    params:
+        statsfile = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
+        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-P extra:{stitch_extra}"
+    shell:
+        """
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
+        }} 2> {log} > {output.ipynb}
+        """
+
 rule impute_reports:
     input:
-        "{paramset}/reports/_quarto.yml",
-        "{paramset}/reports/_harpy.scss",
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = "{paramset}/reports/data/impute.infoscore",
-        qmd = "workflow/report/impute.qmd"
+        ipynb = "workflow/impute.ipynb"
     output:
-        "{paramset}/reports/{paramset}.summary.html",
-        qmd = temp("{paramset}/reports/{paramset}.summary.qmd")
+        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb")
+        ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
-        param   = lambda wc: f"-P id:{wc.paramset}",
-        model   = lambda wc: f"-P model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-P usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-P bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-P k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-P s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-P ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-P extra:{stitch_extra}"
-    conda:
-        "envs/report.yaml"
-    retries:
-        3
+        basedir = lambda wc: "-p basedir " + os.path.abspath("{wc.paramset}/reports/data/"),
+        model   = lambda wc: f"-p model:{stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx:{stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k:{stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s:{stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen:{stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-p extra:{stitch_extra}"
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        COMPARE=$(realpath {input.comparison})
-        INFOSCORE=$(realpath {input.infoscore})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P compare:$COMPARE -P info:$INFOSCORE {params}
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            process_notebook {wildcards.paramset} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
     default_target: True
     input: 
         vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
-        agg_report = collect("{paramset}/reports/{paramset}.summary.html", paramset = stitch_params.keys()) if not skip_reports else [],
-        contig_report = collect("{paramset}/reports/{contig}.{paramset}.html", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []
+        agg_report = collect("{paramset}/reports/{paramset}.summary.ipynb", paramset = stitch_params.keys()) if not skip_reports else [],
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.ipynb", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []

@@ -9,12 +9,31 @@ from rich import box
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
+from rich.theme import Theme
 
-CONSOLE = Console(stderr=True, log_path=False)
 
-def harpy_table(title = None, caption = None):
-    '''Insantiate a generic but standardized table style for harpy output'''
-    return Table(title = title, caption = caption, show_header=False,pad_edge=False, show_edge=False, padding = (0,0), box=box.SIMPLE)
+CONSOLE = Console(
+    stderr=True,
+    log_path=False,
+    theme = Theme({"log.time": "dim magenta"})
+)
+
+def harpy_table(title = None, caption = None, tstyle = None, cstyle = None):
+    '''
+    Insantiate a generic but standardized table style for harpy output
+    `tstyle` and `cstyle` refer to the title and caption styles, respectively.
+    '''
+    return Table(
+        title = title,
+        caption = caption,
+        show_header=False,
+        pad_edge=False,
+        show_edge=False,
+        padding = (0,0),
+        box=box.SIMPLE,
+        title_style="default" if not tstyle else tstyle,
+        caption_style="dim" if not cstyle else cstyle
+    )
 
 def print_error(
     errortitle: str,
@@ -25,7 +44,7 @@ def print_error(
     _exit: bool = True
     ) -> None:
     """
-    Print a yellow panel with error text, exits with error code 1 by default, but exit
+    Print a yellow panel with error text to stderr, exits with error code 1 by default, but exit
     can be disabled with _exit = False. Prints a blue-panel solution if `solutiontext` is provided,
     prints `offenders` after solution if proivded.    
     """
@@ -59,7 +78,7 @@ def print_error(
         sys.exit(1)
 
 def print_notice(noticetext: str) -> None:
-    """Print a white panel with information text text"""
+    """Print a white panel with information text to stderr"""
     CONSOLE.print(
         Panel(
             noticetext,
@@ -71,13 +90,13 @@ def print_notice(noticetext: str) -> None:
     )
 
 def print_onstart(text: str, title: str) -> None:
-    """Print a panel of info on workflow run"""
+    """Print a panel of info on workflow run to stderr"""
     CONSOLE.print("")
     CONSOLE.rule(f"[bold]harpy {title}", style = "light_steel_blue")
     CONSOLE.print(text)
 
 def print_setup_error(exitcode: int) -> None:
-    """Print a red panel with snakefile or conda/singularity error text"""
+    """Print a red panel with snakefile or conda/singularity error text to stderr"""
     if exitcode == 1:
         errortype = "Snakefile Error"
         errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
@@ -95,13 +114,13 @@ def print_setup_error(exitcode: int) -> None:
                 errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
         except ModuleNotFoundError:
             pass
-    CONSOLE.rule(f"[bold]{errortype}[/] [dim]" + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
+    CONSOLE.rule(f"[bold]{errortype}[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
     CONSOLE.print(errortext)
     CONSOLE.rule("[bold]Error Reported by Snakemake", style = "red")
 
 def print_onerror(logfile: str, time) -> None:
     """
-    Print a red panel with error text. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
+    Print a red panel with error text to stderr. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
     time must be of class datetime
     """
     days = time.days
@@ -113,14 +132,18 @@ def print_onerror(logfile: str, time) -> None:
     datatable = harpy_table()
     datatable.add_column("detail", justify="left", style="red", no_wrap=True)
     datatable.add_column("value", justify="left")
+    datatable.add_row("Time:", _time.strftime('%d %b %Y @ %H:%M'))
     datatable.add_row("Duration:", time_text)
-    datatable.add_row("Workflow Log: ", os.path.relpath(logfile) + ".gz")
-    CONSOLE.rule("[bold]Workflow Error[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
-    CONSOLE.print("The workflow stopped because of an error. See the information Snakemake reported below.")
+    datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
+    CONSOLE.rule("[bold]Workflow Error[/]", style = "red")
+    CONSOLE.print("The workflow stopped due to an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
-    CONSOLE.rule("[bold]Where Error Occurred", style = "red")
+    CONSOLE.rule("[bold]Cause of Error", style = "red")
 
 def print_shellcmd_simple(text):
+    """
+    Prints the input text string as syntax-highlighted SHELL code to stderr 
+    """
     _table = harpy_table()
     _table.add_column("Lpadding", justify="left")
     _table.add_column("shell", justify="left")
@@ -139,6 +162,7 @@ def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     table = harpy_table()
     table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     table.add_column("value", justify="left")
+    table.add_row("Start:", _time.strftime('%d %b %Y @ %H:%M'))
     for i in arg:
         if i:
             table.add_row(i[0], str(i[1]))

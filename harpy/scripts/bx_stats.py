@@ -6,21 +6,27 @@ import subprocess
 import argparse
 import pysam
 
+def process_molecule(chrom: str, mol, values: dict) -> bytes:
+    '''process the molecule values and return it formatted as a table row for writing'''
+    inferred = values['end'] - values['start']
+    try:
+        cov_bp = max(0, round(min(values["bp"] / inferred, 1.0),5))
+        cov_ins = max(0, round(min(values["insert_len"] / inferred, 1.0), 5))
+    except ZeroDivisionError:
+        cov_bp = 0
+        cov_ins = 0
+    # replace "invalidBX" (if present) with -1
+    mol_name = -1 if mol == "invalidBX" else mol
+    return (
+        f"{chrom}\t{mol_name}\t{values['n']}\t{values['start']}\t{values['end']}\t{inferred}"
+        f"\t{values['bp']}\t{values['insert_len']}\t{cov_bp}\t{cov_ins}\n"
+    ).encode("utf-8")
+
 def writestats(x, writechrom, destination):
     """write to file the bx stats dictionary as a table"""
     for _mi in list(x.keys()):
-        x[_mi]["inferred"] = x[_mi]["end"] - x[_mi]["start"]
-        try:
-            cov_bp = max(0, round(min(x[_mi]["bp"] / x[_mi]["inferred"], 1.0),5))
-            cov_ins = max(0, round(min(x[_mi]["insert_len"] / x[_mi]["inferred"], 1.0), 5))
-        except ZeroDivisionError:
-            cov_bp = 0
-            cov_ins = 0
-        x[_mi]["covered_bp"] = cov_bp
-        x[_mi]["covered_inserts"] = cov_ins
-        outtext = f"{writechrom}\t{_mi}\t"
-        outtext += "\t".join([str(x[_mi][i]) for i in ["n", "start","end", "inferred", "bp", "insert_len", "covered_bp", "covered_inserts"]])
-        destination.stdin.write(f"{outtext}\n".encode("utf-8"))
+        molstats = process_molecule(writechrom, _mi, x[_mi])
+        destination.stdin.write(molstats)
         # delete the entry after processing to ease up system memory
         del x[_mi]
 
@@ -52,9 +58,11 @@ def main():
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
 
-    with pysam.AlignmentFile(args.input) as alnfile:
-        gzip = subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout)
-        gzip.stdin.write(b"contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
+    with (
+        pysam.AlignmentFile(args.input) as alnfile,
+        subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout) as gz_out
+    ):
+        gz_out.stdin.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n".encode("utf-8"))
 
         d = {}
         all_bx = set()
@@ -65,7 +73,7 @@ def main():
             # check if the current chromosome is different from the previous one
             # if so, print the dict to file and empty it (a consideration for RAM usage)
             if LAST_CONTIG and chrom != LAST_CONTIG:
-                writestats(d, LAST_CONTIG, gzip)
+                writestats(d, LAST_CONTIG, gz_out)
                 d = {}
             LAST_CONTIG = chrom
             # skip duplicates, unmapped, and secondary alignments
@@ -84,7 +92,6 @@ def main():
                 mi = read.get_tag("MI")
                 bx = read.get_tag("BX")
                 valid = bool(int(read.get_tag("VX")))
-                # do a regex search to find X00 pattern in the BX
                 if not valid:
                     if "invalidBX" not in d:
                         d["invalidBX"] = {
@@ -150,10 +157,13 @@ def main():
                     d[mi]["n"]  += 1
                 d[mi]["bp"] += bp
                 d[mi]["insert_len"] += isize
-                d[mi]["start"] = min(pos_start, d[mi]["start"])
-                d[mi]["end"] = max(pos_end, d[mi]["end"])
+                d[mi]["start"] = min(pos_start, pos_end, d[mi]["start"])
+                d[mi]["end"] = max(pos_end, pos_start, d[mi]["end"])
+
+                #d[mi]["start"] = min(pos_start, d[mi]["start"])
+                #d[mi]["end"] = max(pos_end, d[mi]["end"])
 
         # print the last entry
-        writestats(d, LAST_CONTIG, gzip)
+        writestats(d, LAST_CONTIG, gz_out)
         # write comment on the last line with the total number of unique BX barcodes
-        gzip.stdin.write(f"#total unique barcodes: {len(all_bx)}\n".encode("utf-8"))
+        gz_out.stdin.write(f"#total unique barcodes: {len(all_bx)}\n".encode("utf-8"))

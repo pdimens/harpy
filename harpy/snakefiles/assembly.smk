@@ -1,10 +1,9 @@
 import os
 
-
-FQ1 = config["inputs"]["fastq_r1"]
-FQ2 = config["inputs"]["fastq_r2"]
-skip_reports  = config["reports"]["skip"]
-organism = config["reports"]["organism_type"]
+FQ1 = config["Inputs"]["fastq-r1"]
+FQ2 = config["Inputs"]["fastq-r2"]
+skip_reports  = config["Workflow"]["reports"]["skip"]
+organism = config["Workflow"]["reports"]["organism-type"]
 lineage_map = {
     "eukaryote": "eukaryota",
     "fungus": "fungi",
@@ -13,20 +12,20 @@ lineage_map = {
 lineagedb = lineage_map.get(organism, "bacteria")
 odb_version = 12
 # SPADES
-max_mem      = config["spades"]["max_memory"]
-k_param      = config["spades"]["k"]
-spades_extra = config["spades"].get("extra", "")
+max_mem      = config["Parameters"]["spades"]["max-memory"]
+k_param      = config["Parameters"]["spades"]["k"]
+spades_extra = config["Parameters"]["spades"].get("extra", "")
 # ARCS
-mapq       = config["tigmint"]["minimum_mapping_quality"]
-mismatch   = config["tigmint"]["mismatch"]
-mol_dist   = config["tigmint"]["molecule_distance"]
-mol_len    = config["tigmint"]["molecule_length"]
-span       = config["tigmint"]["span"]
-min_align  = config["arcs"]["minimum_aligned_reads"]
-min_contig = config["arcs"]["minimum_contig_length"]
-seq_id     = config["arcs"]["minimum_sequence_identity"]
-arcs_extra = config["arcs"].get("extra", "")
-links      = config["links"]["minimum_links"]
+mapq       = config["Parameters"]["tigmint"]["minimum_mapping-quality"]
+mismatch   = config["Parameters"]["tigmint"]["mismatch"]
+mol_dist   = config["Parameters"]["tigmint"]["molecule-distance"]
+mol_len    = config["Parameters"]["tigmint"]["molecule-length"]
+span       = config["Parameters"]["tigmint"]["span"]
+min_align  = config["Parameters"]["arcs"]["minimum-aligned-reads"]
+min_contig = config["Parameters"]["arcs"]["minimum-contig-length"]
+seq_id     = config["Parameters"]["arcs"]["minimum-sequence-identity"]
+arcs_extra = config["Parameters"]["arcs"].get("extra", "")
+links      = config["Parameters"]["links"]["minimum-links"]
 
 rule cloudspades:
     input:

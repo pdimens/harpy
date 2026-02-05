@@ -4,11 +4,11 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist      = config["inputs"]
-kmer_length = config["kmer_length"]
-window_size = config["window_size"]
-density 	= config["density"] 
-dropout     = config["dropout"]
+fqlist      = config["Inputs"]
+kmer_length = config["Parameters"]["kmer-length"]
+window_size = config["Parameters"]["window-size"]
+density 	= config["Parameters"]["density"] 
+dropout     = config["Parameters"]["dropout"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 

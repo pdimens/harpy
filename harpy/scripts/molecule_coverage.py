@@ -40,7 +40,8 @@ def print_depth_counts(contig, counter_obj, intervals):
     """Print the Counter object to stdout"""
     for idx,int_bin in enumerate(intervals):
         try:
-            sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{counter_obj[idx]/len(int_bin)}\n")
+            molcov = round(counter_obj[idx]/len(int_bin),4)
+            sys.stdout.write(f"{contig}\t{int_bin.start}\t{int_bin.stop}\t{molcov}\n")
         except ZeroDivisionError:
             continue
 def main():

@@ -7,13 +7,15 @@ import rich_click as click
 from harpy.common.printing import print_error, CONSOLE, print_shellcmd_simple
 from harpy.common.file_ops import safe_read
 
-@click.group(options_metavar='', context_settings={"help_option_names" : []})
+@click.group(options_metavar='')
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 def diagnose():
     """
     Attempt to resolve workflow errors
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def stall(directory):
     """
@@ -79,6 +81,7 @@ def stall(directory):
         sys.exit(1)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.help_option('--help', panel = "Workflow Options", hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def rule(directory):
     """
@@ -98,11 +101,11 @@ def rule(directory):
     # get the lastest snakemake log file
     list_of_files = glob.glob(f'{directory}/logs/snakemake/*')
     if not list_of_files:
-        print_error("missing log folder", f"Log directory [blue]{directory}/logs/snakemake[/] does not have any log files in it")
+        print_error("missing log files", f"Log directory [blue]{directory}/logs/snakemake[/] does not have any log files in it")
 
     latest_log = max(list_of_files, key=os.path.getctime)
 
-    CONSOLE.rule(f"Latest log: [bold]{os.path.basename(latest_log)}", style = "yellow")
+    CONSOLE.rule(f"Latest log: [bold default]{os.path.basename(latest_log)}", style = "yellow")
     failed_rule = ""
     _shellblock = False
     infiles = []
@@ -138,7 +141,7 @@ def rule(directory):
     if failed_rule:
         CONSOLE.log(f"Failing rule: [yellow]{failed_rule}")
     else:
-        CONSOLE.log(f"No errors found in {os.path.basename(latest_log)}", style = "green")
+        CONSOLE.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
         sys.exit(0)
     if infiles:
         if not os.path.exists(CONFIG_FILE):

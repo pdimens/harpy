@@ -5,8 +5,8 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["linkedreads"]["type"]
-bamlist = config["inputs"]
+lr_platform = config["Workflow"]["linkedreads"]["type"]
+bamlist = config["Inputs"]
 bamdict = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 
@@ -39,45 +39,27 @@ rule concat_results:
         }} > {output}
         """
 
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("_quarto.yml"),
-        scss = temp("_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
 rule create_report:
     input:
-        "_quarto.yml",
-        "_harpy.scss",
         data = "validate.bam.tsv",
-        qmd = "workflow/report/validate_bam.qmd"
+        ipynb = "workflow/validate_bam.ipynb"
     output:
-        html = "validate.bam.html",
-        qmd = temp("validate.bam.qmd")
+        tmp = temp("validate.bam.tmp.ipynb"),
+        ipynb = "validate.bam.ipynb"
     params:
-        lr_platform
+        lr_platform = lr_platform,
+        infile = "-p infile " + os.path.abspath("validate.bam.tsv")
     log:
         "logs/report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_3.2"
-    retries:
-        3
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        INFILE=$(realpath {input.data})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P infile:$INFILE -P platform:{params}
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            process_notebook {params.lr_platform} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
     default_target: True
     input:
-        "validate.bam.html"
+        "validate.bam.ipynb"

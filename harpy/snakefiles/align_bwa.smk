@@ -4,20 +4,22 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist       = config["inputs"]["fastq"]
-molecule_distance = config["linkedreads"]["distance_threshold"]
-ignore_bx = config["linkedreads"]["type"] == "none"
-is_standardized = config["linkedreads"]["standardized"]
-keep_unmapped = config["keep_unmapped"]
-extra 		= config.get("extra", "") 
-genomefile 	= config["inputs"]["reference"]
+fqlist       = config["Inputs"]["fastq"]
+molecule_distance = config["Parameters"]["distance-threshold"]
+ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
+is_standardized = config["Workflow"]["linkedreads"]["standardized"]
+lr_type = config["Workflow"]["linkedreads"]["type"]
+keep_unmapped = config["Parameters"]["keep-unmapped"]
+extra 		= config["Parameters"].get("extra", "") 
+genomefile 	= config["Inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-skip_reports = config["reports"]["skip"]
-plot_contigs = config["reports"]["plot_contigs"]    
-windowsize  = config["depth_windowsize"]
+skip_reports = config["Workflow"]["reports"]["skip"]
+plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
+plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+windowsize  = config["Parameters"]["depth-windowsize"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -27,7 +29,7 @@ def get_fq(wildcards):
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
-rule preprocess_reference:
+rule process_reference:
     input:
         genomefile
     output: 
@@ -63,7 +65,7 @@ rule preprocess_reference:
         }} 2> {log}
         """
 
-rule make_depth_intervals:
+rule set_depth_intervals:
     input:
         fai = f"{workflow_geno}.fai"
     output:
@@ -131,7 +133,7 @@ rule mark_duplicates:
     params: 
         tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = config['alignment_quality']
+        quality = config["Parameters"]['min-map-quality']
     resources:
         mem_mb = 2000
     threads:
@@ -205,52 +207,7 @@ rule alignment_coverage:
         "reports/data/coverage/{sample}.cov.gz"
     shell:
         "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
-
-rule configure_report:
-    input:
-        yaml = "workflow/report/_quarto.yml",
-        scss = "workflow/report/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-        
-rule sample_reports:
-    input: 
-        "reports/_quarto.yml",
-        "reports/_harpy.scss",
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
-        qmd = f"workflow/report/align_stats.qmd"
-    output:
-        report = "reports/{sample}.html",
-        qmd = temp("reports/{sample}.qmd")
-    params:
-        mol_dist = f"-P mol_dist:{molecule_distance}",
-        window_size = f"-P windowsize:{windowsize}",
-        contigs = f"-P contigs:{plot_contigs}",
-        samplename = lambda wc: "-P sample:" + wc.get("sample")
-    log:
-        "logs/reports/{sample}.alignstats.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_3.2"
-    retries:
-        3
-    shell:
-        """
-        cp -f {input.qmd} {output.qmd}
-        BXSTATS=$(realpath {input.bxstats})
-        COVFILE=$(realpath {input.coverage})
-        MOLCOV=$(realpath {input.molecule_coverage})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P bxstats:$BXSTATS -P coverage:$COVFILE -P molcov:$MOLCOV {params}
-        """
-
+      
 if ignore_bx:
     rule index_bam:
         input:
@@ -300,30 +257,50 @@ rule samtools_report:
     shell:
         "multiqc {params} > {output} 2> {log}"
 
-rule barcode_report:
-    input: 
-        f"reports/_quarto.yml",
-        f"reports/_harpy.scss",
-        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        qmd = f"workflow/report/align_bxstats.qmd"
+rule sample_reports:
+    input:
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        coverage = "reports/data/coverage/{sample}.cov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        ipynb = f"workflow/align_stats.ipynb"
     output:
-        report = "reports/barcode.summary.html",
-        qmd = temp("reports/barcode.summary.qmd")
+        tmp = temp("reports/{sample}.tmp.ipynb"),
+        ipynb = "reports/{sample}.ipynb"
     params:
-        f"reports/data/bxstats/"
+        lr_type = lr_type,
+        basedir = "-p basedir " + os.path.abspath("reports/data"),
+        mol_dist = f"-p mol_dist {molecule_distance}",
+        window_size = f"-p windowsize {windowsize}",
+        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else "",
+        samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
-        f"logs/reports/bxstats.report.log"
-    conda:
-        "envs/report.yaml"
-    container:
-        "docker://pdimens/harpy:report_3.2"
-    retries:
-        3
+        "logs/{sample}.report.log"
     shell:
         """
-        cp -f {input.qmd} {output.qmd}
-        INPATH=$(realpath {params})
-        quarto render {output.qmd} --no-cache --log {log} --quiet -P indir:$INPATH
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            process_notebook {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
+        """
+
+rule barcode_report:
+    input:
+        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        ipynb = f"workflow/align_bxstats.ipynb"
+    output:
+        tmp = temp("reports/barcode.summary.tmp.ipynb"),
+        ipynb = "reports/barcode.summary.ipynb"
+    params:
+        lr_type = lr_type,
+        indir = "-p indir " + os.path.abspath("reports/data/bxstats")
+    log:
+        f"logs/reports/bxstats.report.log"
+    shell:
+        """
+        {{
+            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            process_notebook {params.lr_type} {output.tmp}
+        }} 2> {log} > {output.ipynb}
         """
 
 rule all:
@@ -331,5 +308,5 @@ rule all:
     input:
         bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
-        reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        bx_report = "reports/barcode.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
