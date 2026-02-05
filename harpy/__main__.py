@@ -49,7 +49,7 @@ config = click.RichHelpConfiguration(
     panel_styles={"border_style": "yellow"},
     commands = sorted(["view", "resume", "diagnose", "validate", "deps"])
 )
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def cli():
     """
     Automated workflows for linked-read data

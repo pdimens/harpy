@@ -29,7 +29,7 @@ from harpy.validation.fastq import FASTQ
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('fastq_r1', required=True, type=FASTQfile(single=True), nargs=1)
 @click.argument('fastq_r2', required=True, type=FASTQfile(single=True), nargs=1)
 def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, output_dir, extra_params, force, clean, container, threads, snakemake, quiet, hpc, organism_type, setup, skip_reports):

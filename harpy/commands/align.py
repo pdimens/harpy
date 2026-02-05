@@ -11,7 +11,8 @@ from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.fastq import FASTQ
 
-@click.group(context_settings={"help_option_names" : ['--help']})
+@click.group()
+@click.help_option('--help', hidden = True)
 def align():
     """
     Align sequences to a reference genome
@@ -39,7 +40,7 @@ def align():
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):
@@ -103,7 +104,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):

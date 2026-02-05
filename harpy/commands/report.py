@@ -16,7 +16,7 @@ from harpy.report.render import ReportRender
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 0, help = 'Refresh interval, in seconds (disabled with `0`)')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
 def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     """

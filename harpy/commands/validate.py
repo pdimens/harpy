@@ -11,7 +11,7 @@ from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
 
 @click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def validate():
     """
     File format checks for linked-read data
@@ -30,7 +30,7 @@ def validate():
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
     """
@@ -71,7 +71,7 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
     """
