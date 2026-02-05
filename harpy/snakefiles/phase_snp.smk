@@ -128,7 +128,7 @@ rule extract_hairs:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        "docker://pdimens/harpy:phase_4.0"
     shell:
         """
         extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
@@ -149,7 +149,7 @@ rule link_fragments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        "docker://pdimens/harpy:phase_4.0"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
@@ -169,7 +169,7 @@ rule phase:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        "docker://pdimens/harpy:phase_4.0"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 

@@ -79,7 +79,7 @@ rule align:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_3.2"
+        "docker://pdimens/harpy:align_4.0"
     shell:
         """
         {{
@@ -242,7 +242,7 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        "docker://pdimens/harpy:qc_4.0"
     shell:
         "multiqc {params} > {output} 2> {log}"
 
