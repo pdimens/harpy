@@ -16,6 +16,7 @@ concurrency:
 
 env:
   CACHE_NUMBER: 0  # increase to reset cache manually
+  PIXI_VERSION: v0.62.0
 
 jobs:
   changes:
@@ -52,7 +53,7 @@ jobs:
         with:
           filters: .github/filters.yml
 
-  dmux_meier2021:
+  preprocess:
     needs: changes
     if: ${{ needs.changes.outputs.preproc == 'true' }}
     name: preprocess meier2021
@@ -65,7 +66,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -88,7 +89,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -116,7 +117,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -139,7 +140,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -162,7 +163,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -185,7 +186,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -208,7 +209,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -235,7 +236,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -262,7 +263,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -295,7 +296,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -334,7 +335,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -362,7 +363,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -400,7 +401,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar
@@ -433,7 +434,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.2
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: set envvar

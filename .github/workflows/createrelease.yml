@@ -23,7 +23,7 @@ jobs:
       - name: Install Harpy
         uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
+          pixi-version: ${{ PIXI_VERSION }}
           cache: false
           activate-environment: true
       - name: Clear space
