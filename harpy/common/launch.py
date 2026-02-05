@@ -2,7 +2,6 @@
 
 from datetime import datetime
 import re
-import os
 import sys
 import subprocess
 from rich.syntax import Syntax

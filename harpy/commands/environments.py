@@ -3,20 +3,21 @@
 import os
 import shutil
 import rich_click as click
-from harpy.common.conda import CONDA_ENVS, create_conda_recipes
-from harpy.common.create_pixi import create_pixi_dockerfiles
+from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
+env_list = ["all", "align", "assembly", "demultiplex", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]
+
 @click.command(hidden = True)
-@click.help_option('--help', hidden = True)
-def containerize():
+@click.argument('env', required = True, type= click.Choice(env_list))
+def containerize(env):
     """
     Configure the harpy container
 
     **INTERNAL USE ONLY**. Used to recreate all the conda environments required
     by the workflows and build a dockerfile from that.
     """
-    create_pixi_dockerfiles()
+    HarpyEnvs().prepare_container(env)
 
 @click.group(options_metavar='')
 def deps():
@@ -29,8 +30,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
-@click.help_option('--help', hidden = True)
-@click.argument('workflows', nargs = -1, required = True, type= click.Choice(["all"] + list(CONDA_ENVS.keys())))
+@click.argument('workflows', required = True, type= click.Choice(env_list), nargs = -1)
 def conda(workflows):
     """
     Install workflow dependencies via conda
@@ -50,9 +50,10 @@ def conda(workflows):
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", None, False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
-    create_conda_recipes(workflow.output_directory)
+    _he = HarpyEnvs()
+    _he.write_recipes(workflow.output_directory)
     if "all" in workflows:
-        workflows = list(CONDA_ENVS.keys())
+        workflows = list(_he.environments().keys())
     workflow.fetch_snakefile()
 
     config_params = "--config"
@@ -63,8 +64,7 @@ def conda(workflows):
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
-@click.command()
-@click.help_option('--help', hidden = True)
+@click.command(context_settings={"help_option_names" : ["--help"]})
 def container():
     """
     Install workflow dependency containers
@@ -74,7 +74,7 @@ def container():
     """
     workflow = Workflow("localcontainer", "environments.smk", "localenv/", None, True, 1)
     workflow.fetch_snakefile()
-    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "conda apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
+    workflow.snakemake_cmd_relative = " ".join(["snakemake", "-s", os.path.join(workflow.workflow_directory, "workflow.smk"), "--sdm", "apptainer", "--cores 2", "--apptainer-prefix ../.environments", "--directory localenv"])
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 

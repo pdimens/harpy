@@ -8,7 +8,7 @@ wildcard_constraints:
 bc_type           = config["Workflow"]["linkedreads"]["type"]
 skip_reports      = config["Workflow"]["reports"]["skip"]
 plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 pruning           = config["Parameters"]["prune"]
 map_qual          = config["Parameters"]["min-map-quality"]
 base_qual         = config["Parameters"]["min-base-quality"]
@@ -128,7 +128,7 @@ rule extract_hairs:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_dev"
+        "docker://pdimens/harpy:phase_3.2"
     shell:
         """
         extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
@@ -149,7 +149,7 @@ rule link_fragments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_dev"
+        "docker://pdimens/harpy:phase_3.2"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
@@ -169,7 +169,7 @@ rule phase:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_dev"
+        "docker://pdimens/harpy:phase_3.2"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 

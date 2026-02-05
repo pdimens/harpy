@@ -5,7 +5,7 @@ import os
 import sys
 import yaml
 import rich_click as click
-from harpy.common.conda import check_environments
+from harpy.common.environments import check_environments
 from harpy.common.printing import print_error, workflow_info
 from harpy.common.workflow import Workflow
 

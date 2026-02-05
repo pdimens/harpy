@@ -8,8 +8,8 @@ import sys
 import time as _time
 import yaml
 from rich.table import Table
-from harpy.common.conda import create_conda_recipes
-from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
+from harpy.common.environments import HarpyEnvs
+from harpy.common.file_ops import filepath, last_sm_log
 from harpy.common.printing import CONSOLE, harpy_table, print_error
 from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
@@ -261,7 +261,7 @@ class Workflow():
         datatable = harpy_table()
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)
         datatable.add_column("value", justify="left")
-        datatable.add_row("End Time:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        datatable.add_row("End:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
         datatable.add_row("Duration:", time_text)
         if self.summary:
             datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))
@@ -276,7 +276,7 @@ class Workflow():
         self.write_workflow_config()
         self.write_snakemake_profile()
         if not self.container:
-            create_conda_recipes(self.output_directory, self.conda)
+            HarpyEnvs().write_recipes(self.output_directory, self.conda)
         self.fetch_snakefile()
         self.fetch_scripts()
         self.fetch_notebooks()

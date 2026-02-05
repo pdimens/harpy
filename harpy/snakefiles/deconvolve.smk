@@ -50,7 +50,7 @@ rule deconvolve:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_dev"
+        "docker://pdimens/harpy:qc_3.2"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 

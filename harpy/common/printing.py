@@ -132,9 +132,10 @@ def print_onerror(logfile: str, time) -> None:
     datatable = harpy_table()
     datatable.add_column("detail", justify="left", style="red", no_wrap=True)
     datatable.add_column("value", justify="left")
+    datatable.add_row("Time:", _time.strftime('%d %b %Y @ %H:%M'))
     datatable.add_row("Duration:", time_text)
     datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
-    CONSOLE.rule("[bold]Workflow Error[/][default dim] " + _time.strftime('%d %b %Y @ %H:%M'), style = "red")
+    CONSOLE.rule("[bold]Workflow Error[/]", style = "red")
     CONSOLE.print("The workflow stopped due to an error. See the information Snakemake reported below.")
     CONSOLE.print(datatable)
     CONSOLE.rule("[bold]Cause of Error", style = "red")
@@ -161,6 +162,7 @@ def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
     table = harpy_table()
     table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
     table.add_column("value", justify="left")
+    table.add_row("Start:", _time.strftime('%d %b %Y @ %H:%M'))
     for i in arg:
         if i:
             table.add_row(i[0], str(i[1]))

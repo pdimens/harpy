@@ -90,7 +90,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_dev"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |

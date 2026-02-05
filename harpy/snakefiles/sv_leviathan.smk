@@ -47,7 +47,7 @@ rule process_reference:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_dev"
+        "docker://pdimens/harpy:align_3.2"
     shell: 
         """
         {{
@@ -142,7 +142,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_dev"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 

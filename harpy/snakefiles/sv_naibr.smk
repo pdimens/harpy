@@ -123,7 +123,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_dev"
+        "docker://pdimens/harpy:variants_3.2"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -192,7 +192,7 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
+        """s
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process_notebook NAIBR {output.tmp}
