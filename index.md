@@ -40,6 +40,9 @@ Great! Only want to call variants? Awesome! All modules are called by `harpy <wo
 | [!badge corners="pill" text="snp"](Workflows/snp.md)                    | Call SNPs and small indels                                           |
 | [!badge corners="pill" text="sv"](Workflows/SV/SV.md)                   | Call large structural variants (inversions, deletions, duplications) |
 
+## Harpy Scripts
+An installation of Harpy also includes a series of [scripts/utilities](Getting_Started/Resources/utilities.md) that are exported along with the `harpy` package. These scripts are used within Harpy workflows, but you can also use them outside of Harpy workflows.
+
 ## Using Harpy
 You can call `harpy` without any arguments (or with `--help`) to print the docstring to your terminal. You can likewise call any of the modules without arguments or with `--help` to see their usage  (e.g. `harpy align --help`).
 ``` harpy --help                                                      
