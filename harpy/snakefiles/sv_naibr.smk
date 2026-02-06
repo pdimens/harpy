@@ -6,6 +6,7 @@ from harpy.common.file_ops import naibr_extra, pop_manifest
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 skip_reports = config["Workflow"]["reports"]["skip"]
 plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
 plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
@@ -123,7 +124,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_4.0"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 

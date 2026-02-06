@@ -10,6 +10,7 @@ from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
 from rich.theme import Theme
+from harpy.common.version import VERSION
 
 class HarpyPrint():
     def __init__(self, quiet: bool = False):
@@ -123,7 +124,9 @@ class HarpyPrint():
                     errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
             except ModuleNotFoundError:
                 pass
-        self.console.rule(f"[bold]{errortype}[/][default dim] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'), style = "red")
+        self.console.rule(f"[bold]{errortype}[/][default dim]", style = "red")
+        self.console.print("[red]Time:[/] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        self.console.print(f"[red]Harpy Version:[/] {VERSION}")
         self.console.print(errortext)
         self.console.rule("[bold]Error Reported by Snakemake", style = "red")
 
@@ -141,12 +144,13 @@ class HarpyPrint():
         datatable = self.table()
         datatable.add_column("detail", justify="left", style="red", no_wrap=True)
         datatable.add_column("value", justify="left")
+        datatable.add_row("Harpy Version:", f"{VERSION}")
         datatable.add_row("Time:", _time.strftime('%d %b %Y @ %H:%M'))
         datatable.add_row("Duration:", time_text)
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
         self.console.rule("[bold]Workflow Error[/]", style = "red")
-        self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.")
         self.console.print(datatable)
+        self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.")
         self.console.rule("[bold]Cause of Error", style = "red")
 
     def shell(self, text) -> None:

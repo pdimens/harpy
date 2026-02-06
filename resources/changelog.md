@@ -58,6 +58,8 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - workflow start and end time moved to row in each of the output tables rather than appear inline
 - no more custom snakemake logfile handling (backported into `v3.2`)
   - `harpy view log` now points to the `.snakemake/log` folder, but is otherwise the same
+- snakefiles have harpy version at the top
+- workflow errors now include harpy version
 
 ### internal
 - swapped order of validations/checks

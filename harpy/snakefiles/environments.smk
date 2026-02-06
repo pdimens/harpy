@@ -1,5 +1,7 @@
 from harpy.common.conda import CONDA_ENVS
 
+VERSION = 4.0
+
 rule all:
     input:
         collect("{conda}.env", conda = config.get("envs", list(CONDA_ENVS.keys())))
@@ -7,4 +9,5 @@ rule all:
 rule conda_env:
     output: "{conda}.env"
     conda: "envs/{conda}.yaml"
+    container: "docker://pdimens/harpy:{conda}_" + f"{VERSION}"
     shell: "touch {output}"

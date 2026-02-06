@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 lr_type       = config["Workflow"]["linkedreads"]["type"]
 skip_reports  = config["Workflow"]["reports"]["skip"]
 fqlist        = config["Inputs"]
@@ -54,7 +55,7 @@ rule fastp:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell: 
         "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 
@@ -104,7 +105,7 @@ rule qc_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell: 
         "multiqc {params} > {output} 2> {log}"
 

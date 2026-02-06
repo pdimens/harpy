@@ -6,6 +6,7 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
+VERSION = 4.0
 bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["Inputs"]["vcf"]
@@ -128,7 +129,7 @@ rule impute:
     conda:
         "envs/impute.yaml"
     container:
-        "docker://pdimens/harpy:impute_4.0"        
+        f"docker://pdimens/harpy:impute_{VERSION}"        
     shell:
         """
         mkdir -p {output.tmpdir}

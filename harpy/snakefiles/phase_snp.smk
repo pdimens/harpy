@@ -5,6 +5,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 bc_type           = config["Workflow"]["linkedreads"]["type"]
 skip_reports      = config["Workflow"]["reports"]["skip"]
 plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
@@ -128,7 +129,7 @@ rule extract_hairs:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_4.0"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         """
         extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
@@ -149,7 +150,7 @@ rule link_fragments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_4.0"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
@@ -169,7 +170,7 @@ rule phase:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_4.0"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 

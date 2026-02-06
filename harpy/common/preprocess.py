@@ -8,7 +8,7 @@ import shutil
 
 def stagger_info(info_file: str):
     """
-    Parse sample_info.txt. Returns (exp_ids: list[str], pad_lens: list[int]) if staggered, None otherwise
+    Parse `sample_info.txt` from `cutadapt`. Returns (exp_ids: `list[str]`, pad_lens: `list[int]`) if staggered, `None` otherwise.
     """
     exp_ids = []
     pad_lens = []

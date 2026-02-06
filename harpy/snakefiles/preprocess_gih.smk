@@ -1,11 +1,12 @@
 import os
 import re
 import shutil
-from harpy.validation.barcodes import stagger_info, process_stagger
+from harpy.common.preprocess import stagger_info, process_stagger
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 fqlist       = config["Inputs"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 bc_len       = config["Parameters"]["barcode_length"]
@@ -69,7 +70,7 @@ rule haplotagging_padUMI:
         else:
             shell(f"ln -sr {input.fq} {output.fq}")
 
-rule pheniqs_demux:
+rule move_barcodes:
     input:
         FQ1 = ,
         FQ2 = ,

@@ -6,6 +6,7 @@ from harpy.common.file_ops import pop_manifest
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 
+VERSION = 4.0
 skip_reports = config["Workflow"]["reports"]["skip"]
 plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
 plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
@@ -47,7 +48,7 @@ rule process_reference:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_4.0"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell: 
         """
         {{
@@ -91,7 +92,7 @@ if popdict:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_4.0"
+            f"docker://pdimens/harpy:variants_{VERSION}"
         shell:
             "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 else:
@@ -107,7 +108,7 @@ else:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_4.0"
+            f"docker://pdimens/harpy:variants_{VERSION}"
         shell:
             """
             {{
@@ -142,7 +143,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_4.0"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 

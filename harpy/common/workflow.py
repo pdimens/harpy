@@ -7,7 +7,6 @@ import shutil
 import sys
 import time as _time
 import yaml
-from rich.table import Table
 from harpy.common.environments import HarpyEnvs
 from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint 

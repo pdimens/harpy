@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 fqlist       = config["Inputs"]["fastq"]
 molecule_distance = config["Parameters"]["distance-threshold"]
 ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
@@ -44,7 +45,7 @@ rule process_reference:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_4.0"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell: 
         """
         {{
@@ -102,7 +103,7 @@ rule align:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_4.0"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         {{
@@ -253,7 +254,7 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} > {output} 2> {log}"
 

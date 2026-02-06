@@ -56,7 +56,7 @@ def cli():
     to go from raw data to genotypes (or phased haplotypes).
     Batteries included.
     
-    **demultiplex >> qc >> align >> snp >> impute >> phase >> sv**
+    **preprocess >> qc >> align >> snp >> impute >> phase >> sv**
     
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """

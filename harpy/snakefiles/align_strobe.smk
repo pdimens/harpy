@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 fqlist      = config["Inputs"]["fastq"]
 extra 		= config["Parameters"].get("extra", "") 
 genomefile 	= config["Inputs"]["reference"]
@@ -79,7 +80,7 @@ rule align:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_4.0"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         {{
@@ -242,7 +243,7 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} > {output} 2> {log}"
 

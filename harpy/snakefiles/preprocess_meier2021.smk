@@ -5,6 +5,7 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
+VERSION = 4.0
 schemafile = config["Inputs"]["schema"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 qxrx = config["Parameters"]["qx-rx"]
@@ -65,7 +66,7 @@ rule demultiplex:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
         dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \
@@ -87,7 +88,7 @@ rule assess_quality:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
         ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
@@ -144,7 +145,7 @@ rule quality_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
 

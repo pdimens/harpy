@@ -4,6 +4,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 ploidy 		= config["Parameters"]["ploidy"]
 extra 	    = config["Parameters"].get("extra", "") 
 regions_input = config["Inputs"]["regions"]
@@ -90,7 +91,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_4.0"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |

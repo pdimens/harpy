@@ -1,5 +1,6 @@
 import os
 
+VERSION = 4.0
 FQ1 = config["Inputs"]["fastq-r1"]
 FQ2 = config["Inputs"]["fastq-r2"]
 skip_reports  = config["Workflow"]["reports"]["skip"]
@@ -44,7 +45,7 @@ rule cloudspades:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_4.0"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     threads:
         workflow.cores
     resources:
@@ -99,7 +100,7 @@ rule scaffolding:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_4.0"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         """
         arcs-make arcs-tigmint -C {params} 2> {log}
@@ -125,7 +126,7 @@ rule QUAST_assessment:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_4.0"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -147,7 +148,7 @@ rule BUSCO_analysis:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_4.0"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
@@ -165,7 +166,7 @@ rule build_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 

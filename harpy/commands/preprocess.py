@@ -12,14 +12,17 @@ from harpy.common.workflow import Workflow
 @click.help_option('--help', hidden = True)
 def preprocess():
     """
-    Preprocess haplotagging FASTQ files
+    Remove inline barcodes from raw FASTQs
 
+    The provided methods are specific to Haplotagging-style linked-read sequencing.
     Check that you are using the correct haplotagging method/technology, since the different
     barcoding approaches have very different demultiplexing strategies.
 
     **Haplotagging Technologies**
     - `meier2021`: the original haplotagging barcode strategy
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
+    - `gih`: updated/modified protocol developed by the Cornell GIH
+      - Iqbal _el al._ (in prep)
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
@@ -41,7 +44,7 @@ def preprocess():
 @click.help_option('--help', hidden = True)
 def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
-    Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
+    Preprocess FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs after the options and schema (4 files, in that exact order). 
     The `SCHEMA` must have **no header** (i.e. no column names) and be in the format of `sample`\\<TAB\\>`barcode`,
@@ -49,9 +52,9 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, clean, quiet) 
+    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output_dir, container, clean, quiet) 
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["demultiplex", "qc"]
+    workflow.conda = ["qc"]
     
     workflow.inputs = {
         "schema" : schema,
@@ -92,16 +95,16 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.help_option('--help', hidden = True)
 def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
-    Demultiplex FASTQ files haplotagged with the Genomics Innovation Hub protocol
+    Preprocess FASTQ files haplotagged with the Genomics Innovation Hub protocol
 
     
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
     The `BARCODES` file must have **no header** (i.e. no column name). 
     """
-    workflow = Workflow("demultiplex_gih", "demultiplex_gih.smk", output_dir, container, clean, quiet) 
+    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output_dir, container, clean, quiet) 
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["demultiplex", "qc"]
+    workflow.conda = ["qc"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = False, quiet= True)

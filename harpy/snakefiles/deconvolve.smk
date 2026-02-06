@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 fqlist      = config["Inputs"]
 kmer_length = config["Parameters"]["kmer-length"]
 window_size = config["Parameters"]["window-size"]
@@ -50,7 +51,7 @@ rule deconvolve:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_4.0"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 

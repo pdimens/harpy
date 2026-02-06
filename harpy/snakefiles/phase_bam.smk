@@ -5,6 +5,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION = 4.0
 genomefile  = config["Inputs"]["reference"]
 bamlist     = config["Inputs"]["alignments"]
 vcffile     = config["Inputs"]["vcf"]
@@ -100,7 +101,7 @@ rule phase_alignments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_4.0"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     threads:
         4
     shell:
