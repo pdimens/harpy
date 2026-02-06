@@ -74,7 +74,7 @@ rule pad_UMI:
         try:
             result = needs_stagger(input.summary)
             if result:
-                padUMI(input.info, input.fq, output.fq, log[0], threads, 20000)
+                padUMI(input.info, input.fq, output.fq, threads, 20000)
             else:
                 shell(f"ln -sr {input.fq} {output.fq}")
         except Exception as e:

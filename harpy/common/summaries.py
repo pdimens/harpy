@@ -30,7 +30,7 @@ class Summary:
         align += f"\tsamtools view -h {unmapped} -q {quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
+        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
@@ -63,7 +63,7 @@ class Summary:
         align += f"\t\tsamtools view -h {unmapped} -q {quality}"
         summary.append(align)
         standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize_barcodes_sam > {output} < {input}"
+        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         summary.append(standardization)
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
@@ -146,7 +146,7 @@ class Summary:
         summary.append(sm)
         return "\n\n".join(summary)
 
-    def demultiplex_meier2021(self) -> str:
+    def preprocess_meier2021(self) -> str:
         schemafile = self.config["Inputs"]["demultiplex_schema"]
         qxrx = self.config["Parameters"]["qx-rx"]
         unknown_samples = self.config["Parameters"]["samples"]
@@ -180,6 +180,9 @@ class Summary:
         sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
         summary.append(sm)
         return "\n\n".join(summary)
+
+    def preprocess_gih(self) -> str:
+        return "WE DID STUFF"
 
     def impute(self) -> str:
         region = self.config["Parameters"].get("region", None)
@@ -457,7 +460,7 @@ class Summary:
         if groupfile:
             summary.append(f"The provided populations grouping file: {groupfile}")
             concat = "The alignments were concatenated using:\n"
-            concat += "\tconcatenate_bam --bx -b samples.list > groupname.bam"
+            concat += "\tdjinn sam concat --bx samples.bam... > group.bam"
             summary.append(concat)
         bc_idx = "The barcodes were indexed using:\n"
         bc_idx += "\tLRez index bam -p -b INPUT"
@@ -487,7 +490,7 @@ class Summary:
         summary.append(f"The provided populations grouping file: {groupfile}")
         if groupfile:
             concat = "The alignments were concatenated using:\n"
-            concat += "\tconcatenate_bam -b samples.list > groupname.bam"
+            concat += "\djinn sam concat --bx samples.bam... > group.bam"
             summary.append(concat)
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"

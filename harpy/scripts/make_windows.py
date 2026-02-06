@@ -16,9 +16,9 @@ def is_gzip(file_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='make_windows',
+        prog='make-windows',
         description='Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx). Nearly identical to bedtools makewindows, except the intervals are nonoverlapping.',
-        usage = "make_windows -w <window.size> -m <0,1> input.fasta > output.bed",
+        usage = "make-windows -w <window.size> -m <0,1> input.fasta > output.bed",
         )
     parser.add_argument("input", type=str, help="input fasta or fasta.fai file")
     parser.add_argument("-w", "--window", type=int, default = 10000, help="interval size (default: %(default)s)")

@@ -313,7 +313,7 @@ jobs:
       - name: phase from vcf
         if: always()
         run: |
-          cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d pineapple1 test/bam/pineapple.bam
+          cp test/bam/sample1.bam test/bam/pineapple.bam && rename-bam -d pineapple1 test/bam/pineapple.bam
           harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam && \
           ls -lh phasevcf
       - name: phase bam

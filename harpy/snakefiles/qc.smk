@@ -67,7 +67,7 @@ rule barcode_stats:
     params:
         lr_type
     shell:
-        "count_bx {params} {input} > {output}"
+        "count-bx {params} {input} > {output}"
 
 rule barcode_report:
     input:
@@ -85,7 +85,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process_notebook {params.lr} {output.tmp}
+            process-noteobok {params.lr} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

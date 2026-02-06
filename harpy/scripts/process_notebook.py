@@ -8,9 +8,9 @@ import string
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='process_notebook',
+        prog='process-notebook',
         description='Replace all instances of PLACEHOLDER in a Jupyter notebook with the input arguments, sequentially. In other words, the first instance is replaced with the first argument, second with the second, etc. Also replaces the date-time placeholder with the actual date, adds the remove-cell tag to injected paramters, and replaces lowercase instances of placeholder with a 15 digit random alphanumeric string.',
-        usage = "process_notebook arg1 arg2... input.ipynb > output.ipynb",
+        usage = "process-notebook arg1 arg2... input.ipynb > output.ipynb",
         )
     parser.add_argument('text', nargs='+', help = 'text items to replace PLACEHOLDER, separated by spaces')
     parser.add_argument('notebook', type=argparse.FileType('r'), help = "Input Jupyter notebook")

@@ -119,7 +119,8 @@ rule standardize_barcodes:
     log:
         "logs/{sample}.standardize.log"
     shell:
-        "standardize_barcodes_sam > {output} 2> {log} < {input}"
+        "djinn sam standardize > {output} 2> {log} < {input}"
+        "standardize-barcodes-sam > {output} 2> {log} < {input}"
 
 rule mark_duplicates:
     input:
@@ -169,7 +170,7 @@ rule assign_molecules:
         molecule_distance
     shell:
         """
-        assign_mi -c {params} {input} > {output.bam} 2> {log}
+        djinn sam assign-mi -c {params} {input} > {output.bam} 2> {log}
         samtools index {output.bam}
         """
 
@@ -197,7 +198,7 @@ rule molecule_coverage:
     params:
         windowsize
     shell:
-        "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
+        "molecule-coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
 
 rule alignment_coverage:
     input: 
@@ -262,7 +263,7 @@ rule sample_reports:
     input:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
         coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
+        molecule-coverage = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
     output:
         tmp = temp("reports/{sample}.tmp.ipynb"),
@@ -280,7 +281,7 @@ rule sample_reports:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            process_notebook {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
+            process-noteobok {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -300,7 +301,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process_notebook {params.lr_type} {output.tmp}
+            process-noteobok {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

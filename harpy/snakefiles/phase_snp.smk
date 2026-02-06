@@ -233,7 +233,7 @@ rule summarize_blocks:
         {{
             echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length"
             for i in {input}; do
-                parse_phaseblocks $i
+                parse-phaseblocks $i
             done
         }} | gzip > {output}
         """
@@ -254,7 +254,7 @@ rule phase_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook {wildcards.paramset} {output.tmp}
+            process-noteobok {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

@@ -6,9 +6,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'infer_sv',
+        prog = 'infer-sv',
         description = 'Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags, use optional -f argument to output FAIL variants to a separate file.',
-        usage = "infer_sv file.bedpe [-f fail.bedpe] > outfile.bedpe",
+        usage = "infer-sv file.bedpe [-f fail.bedpe] > outfile.bedpe",
         exit_on_error = False
         )
 

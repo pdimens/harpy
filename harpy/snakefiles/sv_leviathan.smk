@@ -73,7 +73,7 @@ rule concat_groups:
     shell:
         """
         {{
-            concatenate_bam --bx {input} | 
+            djinn sam concat --bx {input} | 
             samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
         }} 2> {log}
         """
@@ -222,7 +222,7 @@ rule report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook LEVIATHAN {output.tmp}
+            process-noteobok LEVIATHAN {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

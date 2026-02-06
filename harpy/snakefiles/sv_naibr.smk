@@ -85,7 +85,7 @@ rule concat_groups:
     shell:
         """
         {{
-            concatenate_bam --bx {input} | 
+            djinn sam conat --bx {input} | 
             samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
         }} 2> {log}
         """
@@ -141,7 +141,7 @@ rule infer_variants:
         vcf   = "vcf/{sample}.vcf" 
     shell:
         """
-        infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
+        infer-sv {input.bedpe} -f {output.fail} > {output.bedpe}
         cp {input.refmt} {output.refmt}
         cp {input.vcf} {output.vcf}
         """
@@ -196,7 +196,7 @@ rule report:
         """s
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook NAIBR {output.tmp}
+            process-noteobok NAIBR {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

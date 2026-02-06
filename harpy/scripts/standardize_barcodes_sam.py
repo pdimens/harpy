@@ -27,9 +27,9 @@ def bx_search(rec):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='standardize_barcodes_sam',
+        prog='standardize-barcodes-sam',
         description='Convert barcode notation in input SAM file to BX:Z:BARCODE VX:i:0/1, where 0/1 is whether the barcode is valid (1) or invalid (0)',
-        usage = "standardize_barcodes_sam input.sam > output.sam",
+        usage = "standardize-barcodes-sam input.sam > output.sam",
         )
     parser.add_argument('input_sam', nargs='?', type=argparse.FileType('r'), default= (None if sys.stdin.isatty() else sys.stdin), help = "Input SAM file")
     args = parser.parse_args()

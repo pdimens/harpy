@@ -6,9 +6,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='rename_bam',
+        prog='rename-bam',
         description='Rename a sam/bam file and modify the @RG tag of the alignment file to reflect the change for both ID and SM. This process creates a new file \'newname.bam\' and you may use -d to delete the original file. Requires samtools.',
-        usage = "rename_bam [-d] new_name input.bam"
+        usage = "rename-bam [-d] new_name input.bam"
         )
     parser.add_argument("name", type=str, help="new sample name")
     parser.add_argument("input", type=str, help="input bam or sam file")

@@ -6,9 +6,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'haplotag_acbd',
+        prog = 'haplotag-acbd',
         description ="Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes",
-        usage = "haplotag_acbd output_directory",
+        usage = "haplotag-acbd output_directory",
         exit_on_error = False
         )
     parser.add_argument("output_directory", type = str, help = "Directory to create barcode files")

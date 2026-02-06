@@ -5,9 +5,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'depth_windows',
+        prog = 'depth-windows',
         description = 'Reads the output of samtools depth -a from stdin and calculates a windowed mean',
-        usage = "samtools depth -a file.bam | depth_windows windowsize > output.txt",
+        usage = "samtools depth -a file.bam | depth-windows windowsize > output.txt",
         )
     parser.add_argument('windowsize', type= int, help = "The window size to calcualte mean depth over (non-overlapping)")
     if len(sys.argv) == 1:

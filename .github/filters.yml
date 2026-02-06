@@ -31,7 +31,7 @@ preproc: &preproc
   - *environments
   - 'harpy/commands/preprocess.py'
   - 'harpy/snakefiles/preprocess**.smk'
-  - 'haplotag_acbd.py'
+  - 'haplotag-acbd.py'
   - 'test/data/preproc/**'
 qc: &qc
   - *common
@@ -47,9 +47,8 @@ bwa: &bwa
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_bxstats.ipynb'
   - 'harpy/scripts/bx_stats.py'
-  - 'harpy/scripts/count_bx.py'
-  - 'harpy/scripts/assign_mi.py'
-  - 'harpy/scripts/molecule_coverage.py'
+  - 'harpy/scripts/count-bx.py'
+  - 'harpy/scripts/molecule-coverage.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -58,10 +57,9 @@ strobealign: &strobealign
   - 'harpy/snakefiles/align_strobealign.smk'
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_bxstats.ipynb'
-  - 'harpy/scripts/assign_mi.py'
   - 'harpy/scripts/bx_stats.py'
-  - 'harpy/scripts/count_bx.py'
-  - 'harpy/scripts/molecule_coverage.py'
+  - 'harpy/scripts/count-bx.py'
+  - 'harpy/scripts/molecule-coverage.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
@@ -69,7 +67,7 @@ mpileup: &mpileup
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
   - 'harpy/notebooks/bcftools_stats.ipynb'
-  - 'harpy/scripts/make_windows.py'
+  - 'harpy/scripts/make-windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
@@ -77,7 +75,7 @@ freebayes: &freebayes
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_freebayes.smk'
   - 'harpy/notebooks/bcftools_stats.ipynb'
-  - 'harpy/scripts/make_windows.py'
+  - 'harpy/scripts/make-windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common
@@ -94,7 +92,6 @@ leviathan: &leviathan
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_leviathan**.smk'
   - 'test/bam/**'
-  - 'harpy/scripts/concatenate_bam.py'
   - 'harpy/scripts/leviathan_bx_shim.py'
   - 'harpy/notebooks/leviathan**.ipynb'
 naibr: &naibr
@@ -102,12 +99,11 @@ naibr: &naibr
   - *environments
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_naibr**.smk'
-  - 'harpy/scripts/concatenate_bam.py'
   - 'test/bam/**'
   - 'test/bam_phased/**'
   - 'test/vcf/test.phased.bcf'
   - 'harpy/notebooks/naibr**.ipynb'
-  - 'harpy/scripts/infer_sv.py'
+  - 'harpy/scripts/infer-sv.py'
 phase: &phase
   - *common
   - *environments

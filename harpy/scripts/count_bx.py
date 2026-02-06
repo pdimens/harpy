@@ -8,14 +8,14 @@ import pysam
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'count_bx',
+        prog = 'count-bx',
         description =
         """
         Parses a FASTQ file to count: total sequences, total number of linked-read barcodes,
         number of valid barcodes, number of invalid BX tags, and a count of positional
         barcode invalidations (e.g. A00, _0_, N)
         """,
-        usage = "count_bx platform input.fastq > output.txt",
+        usage = "count-bx platform input.fastq > output.txt",
         exit_on_error = False
         )
 

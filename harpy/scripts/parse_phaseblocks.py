@@ -7,9 +7,9 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser(
-        prog='parse_phaseblocks',
+        prog='parse-phaseblocks',
         description='Parse a phase block file from HapCut2 to pull out summary information',
-        usage = "parse_phaseblocks input > output.txt"
+        usage = "parse-phaseblocks input > output.txt"
         )
     parser.add_argument("input", type=str, help="input HapCut2 phase blocks file")
     if len(sys.argv) == 1:
