@@ -6,14 +6,16 @@ import sys
 import yaml
 import rich_click as click
 from harpy.common.environments import check_environments
-from harpy.common.printing import print_error
+from harpy.common.printing import HarpyPrint
 from harpy.common.workflow import Workflow
+
+hp = HarpyPrint()
 
 def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = False):
     val = d.get(section, {})
     if not val:
         if not allow_missing:
-            print_error(
+            hp.error(
                 "incorrect workflow.yaml",
                 f"The [blue]workflow.yaml[/] file is missing the [green]{section}[/] section",
                 f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{section}[/] section (and it is not empty)."
@@ -29,7 +31,7 @@ def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = Fa
         val = val.get(key, {})
 
     if not val:
-        print_error(
+        hp.error(
             "incorrect workflow.yaml",
             "The [blue]workflow.yaml[/] file is missing one or more the necessary/expected keys.",
             f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{key}[/] key (and it is not empty) under the [green]{section}[/] section."
@@ -39,7 +41,7 @@ def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = Fa
 def snakemake_profile_extract(d: dict, key: str):
     val = d.get(key, None)
     if not val:
-        print_error(
+        hp.error(
             "incorrect config.yaml",
             "The [blue]config.yaml[/] file is missing one or more the necessary/expected keys.",
             f"Please verify that [blue]workflow/config.yaml[/] is not missing the [green]{key}[/] key (and it is not empty)."
@@ -72,9 +74,9 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
     if not os.path.exists(PROFILE_FILE):
-        print_error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/config.yaml[/]")
+        hp.error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/config.yaml[/]")
     if not os.path.exists(CONFIG_FILE):
-        print_error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
+        hp.error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
     
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config: dict = yaml.full_load(f)
@@ -118,17 +120,6 @@ def resume(directory, absolute, direct, threads, clean, quiet):
 
     # inherit workflow report part, if present
     workflow.linkedreads = harpy_config["Workflow"].get("linkedreads", {"type" : "none"})
-
-    _smlog = os.path.join(_dir, config_extract(harpy_config, "Workflow", "snakemake:log"))
-
-    # overwrite workflow.yaml with the new logfile name, otherwise just create the
-    # workflow.config dict
-    if os.path.exists(_smlog) or os.path.exists(_smlog + ".gz"):
-        timestamp = datetime.now().strftime("%d_%m_%Y") + ".log"
-        split_log = _smlog.split(".")
-        _basename = ".".join(split_log[0:-3])
-        incremenent = int(split_log[-3]) + 1
-        workflow.snakemake_logfile = f"{_basename}.{incremenent}.{timestamp}"
 
     workflow.write_workflow_config()
 

@@ -3,7 +3,7 @@ from itertools import chain
 import os
 import re
 import pysam
-from harpy.common.printing import CONSOLE, print_error
+from harpy.common.printing import HarpyPrint
 from harpy.validation.barcodes import which_linkedread
 
 class FASTQ():
@@ -20,8 +20,8 @@ class FASTQ():
         else:
             self.files = filenames
         self.bx_tag = False
+        self.print = HarpyPrint(quiet)
         self.lr_type = "none"
-        self.quiet = quiet
         badfiles = []
 
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
@@ -29,8 +29,7 @@ class FASTQ():
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
         uniqs = set()
         dupes = []
-        if not self.quiet:
-            CONSOLE.log("Validating input FASTQ files")
+        self.print.log("Validating input FASTQ files")
 
         for i in self.files:
             try:
@@ -50,7 +49,8 @@ class FASTQ():
                 uniqs.add(sans_ext)
 
         if badfiles:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "invalid file type",
                 f"[yellow]{len(badfiles)}[/] of the input FASTQ files did not conform to format expectations.",
                 "Please verify that the files listed below are properly formatted FASTQ files."
@@ -62,19 +62,20 @@ class FASTQ():
             dupe_out = []
             for i in dupes:
                 dupe_out.append(" ".join([j for j in self.files if i in j]))
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "clashing sample names",
                 "Identical sample names were detected in the inputs, which will cause unexpected behavior and results.\n  - files with identical names but different-cased extensions are treated as identical\n  - files with the same name from different directories are also considered identical",
                 "Make sure all input files have unique names.",
                 "Files with Clashing Names",
                 dupe_out
             )
+        self.print.validation(True)
         
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
-            if not self.quiet:
-                CONSOLE.log("Detecting linked-read barcode format")
+            self.print.log("Detecting linked-read barcode format")
             scanned = []
             for i,fq in enumerate(self.files, 1):
                 if i > 10:
@@ -88,21 +89,22 @@ class FASTQ():
                     break
             self.bx_tag = self.lr_type == "haplotagging"
             if not nonlinked_ok and self.lr_type == "none":
-                print_error(
+                self.print.validation(False)
+                self.print.error(
                     "incompatible data",
                     "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 records of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                     "Files Scanned",
                     "\n".join(scanned)
                 )
+            self.print.validation(True)
 
     def has_bx_tag(self, max_records: int = 50):
         """
         Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
-        if not self.quiet:
-            CONSOLE.log("Checking files for BX:Z tag")
+        self.print.log("Checking files for BX:Z tag")
 
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
@@ -113,13 +115,13 @@ class FASTQ():
                     if "BX:Z" in cmt:
                         self.bx_tag = True
                         return
+        self.print.validation(True)
 
     def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
-        if not self.quiet:
-            CONSOLE.log("Checking files for BX:Z or BC:Z tags")
+        self.print.log("Checking files for BX:Z or BC:Z tags")
         primary = "BX:Z" if tag == "BX" else "BC:Z"
         secondary = "BC:Z" if tag == "BX" else "BX:Z"
         for fastq in self.files:
@@ -133,7 +135,8 @@ class FASTQ():
                     PRIMARY = (primary in cmt) or PRIMARY
                     SECONDARY = (secondary in cmt) or SECONDARY
                     if PRIMARY and SECONDARY:
-                        print_error(
+                        self.print.validation(False)
+                        self.print.error(
                             "clashing barcode tags",
                             f"Both [green bold]BC:Z[/] and [green bold]BX:Z[/] tags were detected in the read headers for [blue]{os.path.basename(fastq)}[/]. Athena accepts [bold]only[/] one of [green bold]BC:Z[/] or [green bold]BX:Z[/].",
                             "Check why your data has both tags in use and remove/rename one of the tags."
@@ -141,8 +144,10 @@ class FASTQ():
                 # check for one or the other after parsing is done
                 errtext = f" However, [green]{secondary}[/] tags were detected, perhaps you meant those?" if SECONDARY else ""
                 if not PRIMARY:
-                    print_error(
+                    self.print.validation(False)
+                    self.print.error(
                         "no barcodes found",
                         f"No [green bold]{primary}[/] tags were detected in read headers for [blue]{os.path.basename(fastq)}[/]. Athena requires the linked-read barcode to be present as either [green bold]BC:Z[/] or [green bold]BX:Z[/] tags.{errtext}",
                         "Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag."
                     )
+        self.print.validation(True)

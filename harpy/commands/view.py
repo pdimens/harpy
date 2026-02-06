@@ -15,8 +15,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.prompt import Prompt
 from rich import print as rprint
-from harpy.common.printing import harpy_table, print_error
+from harpy.common.printing import HarpyPrint
 from harpy.common.file_ops import is_gzip
+
+hp = HarpyPrint()
 
 def check_terminal_colors():
     # Initialize curses and always tear down
@@ -47,7 +49,7 @@ def parse_file(infile: str):
     returns a string of the file that was viewed
     '''
     if not os.access(infile, os.R_OK):
-        print_error(
+        hp.error(
             "incorrect permissions",
             f"[blue]{infile}[/] does not have read access. Please check the file permissions."
         )
@@ -95,12 +97,12 @@ def config(directory, edit):
     target_file = os.path.join(err_dir, "workflow.yaml")
     err_file = "There is no [blue]workflow.yaml[/] file"
     if not os.path.exists(err_dir):
-        print_error(
+        hp.error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
     elif not os.path.exists(target_file):
-        print_error(
+        hp.error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
@@ -132,13 +134,13 @@ def environments(program):
     contain that program (e.g. `leviath` would match `leviathan`).
     """
     if not os.path.exists(".environments"):
-        print_error(
+        hp.error(
             "directory not found", 
             "No [blue].environments/[/] folder found in the current directory."
         )
     files = [i for i in glob.iglob(".environments/*.yaml")]
     if not files:
-        print_error(
+        hp.error(
             "files not found", 
             "No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
@@ -191,13 +193,13 @@ def log(directory, choose):
     err_dir = os.path.join(directory, ".snakemake", "log")
     err_file = "There are no log files"
     if not os.path.exists(err_dir):
-        print_error(
+        hp.error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
     files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
     if not files:
-        print_error(
+        hp.error(
             "files not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
@@ -207,7 +209,7 @@ def log(directory, choose):
         console = Console()
         console.print()
         #console.rule('Snakemake Log Files', style = "green")
-        _tb = harpy_table()
+        _tb = hp.table()
         _tb.show_header=True
         _tb.add_column("[bold green]#", style="bold green", min_width=2)
         _tb.add_column("[dim yellow]Last Modification",style = "dim yellow")
@@ -254,14 +256,14 @@ def snakefile(directory, edit):
     """
     workdir = os.path.join(directory, "workflow")
     if not os.path.exists(workdir):
-        print_error(
+        hp.error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{workdir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
 
     target_file = os.path.join(workdir, "workflow.smk")
     if not os.path.exists(target_file):
-        print_error(
+        hp.error(
             "snakefile not found", 
             f"[blue]{target_file}[/] was not found. Please check that you are looking in the correct folder."
         )
@@ -296,12 +298,12 @@ def snakeparams(directory, edit):
     target_file = os.path.join(err_dir, "config.yaml")
     err_file = "There is no [blue]config.yaml[/] file"
     if not os.path.exists(err_dir):
-        print_error(
+        hp.error(
             "directory not found", 
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that you are looking in the correct folder."
         )
     elif not os.path.exists(target_file):
-        print_error(
+        hp.error(
             "file not found", 
             f"{err_file} in [blue]{err_dir}[/]. Please check that you are looking in the the correct folder."
         )

@@ -3,12 +3,13 @@
 import click
 import os
 from pathlib import Path
-import pysam
 import re
 import yaml
 from harpy.common.file_ops import is_gzip
-from harpy.common.printing import print_error, print_notice
+from harpy.common.printing import HarpyPrint
 from rich.text import Text
+
+hp = HarpyPrint()
 
 class SAMfile(click.ParamType):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
@@ -224,7 +225,7 @@ class DemuxSchema(click.ParamType):
                 try:
                     sample, segment_id = line.rstrip().split()
                     if not segment_pattern.match(segment_id):
-                        print_error(
+                        hp.error(
                             "invalid segment format",
                             f"Segment ID [green]{segment_id}[/] does not follow the expected format.",
                             "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design."
@@ -234,7 +235,7 @@ class DemuxSchema(click.ParamType):
                         duplicates = True
                     samples.add(sample)
                     if segment_id in segment_ids:
-                        print_error(
+                        hp.error(
                             "ambiguous segment ID",
                             "An ID segment must only be associated with a single sample.",                        
                             "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/] cannot identify both [green]sample_01[/] and [green]sample_2[/]. In other words, a segment can only appear once.",
@@ -247,9 +248,9 @@ class DemuxSchema(click.ParamType):
                     # skip rows without two columns
                     continue
         if not code_letters:
-            print_error("incorrect schema format", f"Schema file [blue]{os.path.basename(value)}[/] has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
+            hp.error("incorrect schema format", f"Schema file [blue]{os.path.basename(value)}[/] has no valid rows. Rows should be sample<tab>segment, e.g. sample_01<tab>C75")
         if len(code_letters) > 1:
-            print_error(
+            hp.error(
                 "invalid schema",
                 f"Schema file [blue]{os.path.basename(value)}[/] has sample IDs occurring in different barcode segments.",
                 "All sample IDs for this barcode design should be in a single segment, such as [bold green]C[/] or [bold green]D[/]. Make sure the schema contains only one segment.",
@@ -257,5 +258,5 @@ class DemuxSchema(click.ParamType):
                 ", ".join(code_letters)
             )
         if duplicates:
-            print_notice("Sample names appear more than once, assuming this was intentional")
+            hp.notice("Sample names appear more than once, assuming this was intentional")
         return filepath.resolve().as_posix()

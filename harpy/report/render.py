@@ -8,7 +8,7 @@ import uuid
 import subprocess
 import yaml
 from harpy.common.file_ops import fetch_template
-from harpy.common.printing import print_error
+from harpy.common.printing import HarpyPrint
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -16,7 +16,7 @@ class ReportRender():
         self.configfile = os.path.join(root, "myst.yml")
         self.filetree: dict = {}
         self.filechanges: bool = False
-
+        self.print = HarpyPrint()
         if not os.path.exists(self.configfile):
             _yml = myst_yaml()
             self.scan_for_reports()
@@ -32,7 +32,7 @@ class ReportRender():
             fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
-            print_error(
+            self.print.error(
                 "invalid MyST configuration",
                 "The [blue]myst.yml[/] file that was found is improperly formatted.",
                 "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has keys for [green]project[/] and [green]site[/]."

@@ -6,7 +6,7 @@ from rich.live import Live
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn #, SpinnerColumn
 from rich.text import Text
-from harpy.common.printing import CONSOLE
+from harpy.common.printing import HarpyPrint
 import time
 
 class PausableTimeElapsedColumn(TimeElapsedColumn):
@@ -57,7 +57,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
         else:
             return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 
-def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: int = 0, refresh: int = 2):
+def harpy_progresspanel(progressbar: Progress, console, title: str|None = None, quiet: int = 0, refresh: int = 2):
     """Returns a nicely formatted live-panel with the progress bar in it"""
     return Live(
         Panel(
@@ -65,10 +65,10 @@ def harpy_progresspanel(progressbar: Progress, title: str|None = None, quiet: in
         ) if quiet != 2 else None,
         refresh_per_second=refresh,
         transient= quiet > 0,
-        console=CONSOLE
+        console=console
     )
 
-def harpy_progressbar(quiet: int) -> Progress:
+def harpy_progressbar(quiet: int, console) -> Progress:
     """
     The pre-configured transient progress bar that workflows and validations use
     """
@@ -83,11 +83,11 @@ def harpy_progressbar(quiet: int) -> Progress:
         auto_refresh = True,
         disable = quiet == 2,
         refresh_per_second=2,
-        console= CONSOLE,
+        console= console,
         expand=True
     )
 
-def harpy_pulsebar(quiet: int, stderr: bool = False) -> Progress:
+def harpy_pulsebar(quiet: int, console, stderr: bool = False) -> Progress:
     """
     The pre-configured transient pulsing progress bar that workflows use, typically for
     installing the software dependencies/container
@@ -99,6 +99,6 @@ def harpy_pulsebar(quiet: int, stderr: bool = False) -> Progress:
         auto_refresh = True,
         transient = True,
         disable = quiet == 2,
-        console = CONSOLE if stderr else None,
+        console = console if stderr else None,
         expand=True
     )

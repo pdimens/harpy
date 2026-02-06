@@ -3,17 +3,8 @@ from itertools import chain
 import os
 import pysam
 import re
-from harpy.common.printing import CONSOLE, print_error
+from harpy.common.printing import HarpyPrint
 from harpy.validation.barcodes import which_linkedread_sam
-
-def is_phased(file_path: str) -> bool:
-    with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
-        for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
-            if i > 100:
-                break
-            if (record.has_tag("PS") or record.has_tag("HP")):
-                return True
-    return False
 
 class XAM():
     """
@@ -30,15 +21,14 @@ class XAM():
             self.files = filenames
         self.count = 0
         self.lr_type = "none"
-        self.quiet: bool = quiet
+        self.print = HarpyPrint(quiet)
 
         re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
         uniqs = set()
         dupes = []
         badfiles = []
 
-        if not self.quiet:
-            CONSOLE.log("Validating input alignment files")
+        self.print.log("Validating input alignment files")
 
         for i in self.files:
             bn = os.path.basename(re_ext.sub("", str(i)))
@@ -54,7 +44,8 @@ class XAM():
                 badfiles.append(i)
 
         if badfiles:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "invalid file type",
                 f"[yellow]{len(badfiles)}[/] of the input alignment files did not conform to SAM/BAM format expectations.",
                 "Please verify that the files listed below are properly formatted SAM or BAM files."
@@ -66,7 +57,8 @@ class XAM():
             dupe_out = []
             for i in dupes:
                 dupe_out.append(" ".join([j for j in self.files if i in j]))
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "clashing sample names",
                 "Identical filenames were detected, which will cause unexpected behavior and results.\n  - files with identical names but different-cased extensions are treated as identical\n  - files with the same name from different directories are also considered identical",
                 "Make sure all input files have unique names.",
@@ -84,7 +76,8 @@ class XAM():
                 if self.lr_type != "none":
                     break
             if not nonlinked_ok and self.lr_type == "none":
-                print_error(
+                self.print.validation(False)
+                self.print.error(
                     "incompatible data",
                     "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 lines of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
@@ -103,10 +96,11 @@ class XAM():
                 self.lr_type = which_linkedread_sam(samfile)
             # do phased scan if enabled and not yet detected
             if check_phase and not any(_phased):
-                _phased.append(is_phased(samfile))
+                _phased.append(self.is_phased(samfile))
 
         if not nonlinked_ok and self.lr_type == "none":
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "incompatible data",
                 "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 records of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
                 "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
@@ -115,10 +109,22 @@ class XAM():
             )
 
         if check_phase and not any(_phased):
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "incompatible data",
                 "Phased alignments are required as input, but harpy was unable to find the [green]HP[/] or [green]PS[/] tags that denote phasing in the first 100 records of up to the first 5 files.",
                 "Please double-check that these data are indeed phased (contain [green]HP[/] or [green]PS[/] tags), otherwise you can phase these alignments using [green]harpy phase bam[/].",
                 "Files Scanned",
                 "\n".join(scanned)
             )
+        self.print.validation(True)
+    
+    def is_phased(self, file_path: str) -> bool:
+        ''' Scan the `file_path` to determine if the file has `PS` or `HP` tags'''
+        with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+            for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
+                if i > 100:
+                    break
+                if (record.has_tag("PS") or record.has_tag("HP")):
+                    return True
+        return False

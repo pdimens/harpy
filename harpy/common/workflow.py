@@ -10,7 +10,7 @@ import yaml
 from rich.table import Table
 from harpy.common.environments import HarpyEnvs
 from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
-from harpy.common.printing import CONSOLE, harpy_table, print_error
+from harpy.common.printing import HarpyPrint 
 from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
 
@@ -27,6 +27,7 @@ class Workflow():
         self.output_directory: str = outdir
         self.workflow_directory = os.path.join(outdir, 'workflow')
         self.quiet: int = quiet
+        self.print = HarpyPrint(quiet)
 
         self.snakemake_cmd_absolute: str = ""
         self.snakemake_cmd_relative: str = ""
@@ -51,7 +52,7 @@ class Workflow():
         self.summary_text: str = ""
 
         if self.quiet == 0 and "demultiplex" not in self.name and self.snakefile != "NA":
-            CONSOLE.rule("[bold]Checks and Validations", style = "dim magenta")
+            self.print.console.rule("[bold]Input Validation", style = "dim magenta")
 
     def param(self, value, name: str):
         """
@@ -98,7 +99,7 @@ class Workflow():
                 badpath.append(i)
         if patherr:
             formatted_path = os.path.join(*badpath)
-            print_error(
+            self.print.error(
                 "unsupported path name",
                 "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors.",
                 f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
@@ -146,7 +147,7 @@ class Workflow():
                 with resources.as_file(source_file) as _source:
                     shutil.copy2(_source, dest_file)
             except (FileNotFoundError, KeyError):
-                print_error(
+                self.print.error(
                     "report notebook missing",
                     f"The required report notebook [blue bold]{target}[/] was not found within the Harpy installation.",
                     "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
@@ -163,7 +164,7 @@ class Workflow():
             with resources.as_file(source_file) as _source:
                 shutil.copy2(_source, dest_file)
         except (FileNotFoundError, KeyError):
-            print_error(
+            self.print.error(
                 "snakefile missing",
                 f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation.",
                 "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
@@ -180,7 +181,7 @@ class Workflow():
                 with resources.as_file(source_file) as _source:
                     shutil.copy2(_source, dest_file)
             except (FileNotFoundError, KeyError):
-                print_error(
+                self.print.error(
                     "script missing",
                     f"The required script [blue bold]{target}[/] was not found in the Harpy installation.",
                     "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
@@ -248,15 +249,15 @@ class Workflow():
         """Print a panel of info on workflow run. """
         if self.quiet == 2:
             return
-        table = harpy_table()
+        table = self.print.table()
         table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
         table.add_column("value", justify="left")
-        table.add_row("Start", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        table.add_row("Start:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
         for k,v in self.info.items():
                 table.add_row(f"{k}:", f"{v}")
-        CONSOLE.print("")
-        CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
-        CONSOLE.print(table)
+        self.print.console.print("")
+        self.print.console.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
+        self.print.console.print(table)
 
     def print_onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
@@ -264,7 +265,7 @@ class Workflow():
             return
         _relpath = os.path.relpath(self.output_directory)
         time_text = self.time_elapsed()
-        datatable = harpy_table()
+        datatable = self.print.table()
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)
         datatable.add_column("value", justify="left")
         datatable.add_row("End:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
@@ -274,8 +275,8 @@ class Workflow():
         _smlog = last_sm_log(self.output_directory)
         if _smlog:
             datatable.add_row("Workflow Log:", os.path.join(_relpath, ".snakemake", 'log', _smlog))
-        CONSOLE.rule("[bold]Workflow Finished[/]", style="green")
-        CONSOLE.print(datatable)
+        self.print.rule("[bold]Workflow Finished[/]", style="green")
+        self.print.console.print(datatable)
 
     def initialize(self, setup: bool = False):
         """Using the configurations, create all necessary folders and files. Launches the workflow if `setup` = False"""
@@ -291,18 +292,18 @@ class Workflow():
         if not setup:
             self.launch()
         else:
-            CONSOLE.rule("[dim bold]workflow setup complete", style="dim")
+            self.print.rule("[dim bold]workflow setup complete", style="dim")
 
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
-        sm = LaunchSnakemake(cmd, self.output_directory, self.quiet)
+        sm = LaunchSnakemake(cmd, self.output_directory, self.quiet, self.print)
 
         if self.clean:
-            CONSOLE.rule("[dim]Cleaning output directory", style = "dim")
+            self.print.rule("[dim]Cleaning output directory", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
                 if i in self.clean.lower():
-                    CONSOLE.log(f"Removing: [blue]{j}/[/]")
+                    self.print.log(f"Removing: [blue]{j}/[/]")
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
         if sm.exitcode == 0:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 

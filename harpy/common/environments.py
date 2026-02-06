@@ -8,7 +8,7 @@ import sys
 import yaml
 from rich import box
 from rich.table import Table
-from .printing import print_error
+from .printing import HarpyPrint
 from harpy.common.version import VERSION
 
 class HarpyEnvs():
@@ -193,7 +193,7 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""
     if not os.path.exists(f"{dirpath}/workflow/envs"):
-        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
+        HarpyPrint().error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
     envlist = os.listdir(f"{dirpath}/workflow/envs")
     errcount = 0
     errtable = Table(show_footer=True, box=box.SIMPLE)
@@ -206,7 +206,7 @@ def check_environments(dirpath: str, envs: list) -> None:
             errcount += 1
             errtable.add_row(f"[yellow bold]{i}.yaml", "[yellow bold]missing")
     if errcount > 0:
-        print_error(
+        HarpyPrint().error(
             "missing environment files",
             f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.",
             "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",

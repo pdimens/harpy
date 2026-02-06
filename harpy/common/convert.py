@@ -3,7 +3,7 @@
 import os
 import pysam
 import re
-from harpy.common.printing import print_error
+from harpy.common.printing import HarpyPrint
 
 INVALID_10x = "N" * 16
 INVALID_HAPLOTAGGING = "A00C00B00D00"
@@ -108,4 +108,4 @@ def compress_fq(fq: str):
         pysam.tabix_compress(fq, f"{fq}.gz", force=True)
         os.remove(fq)
     except Exception as e:
-        print_error("compression error", f"Failed to compress {fq}: {str(e)}")
+        HarpyPrint().error("compression error", f"Failed to compress {fq}: {str(e)}")

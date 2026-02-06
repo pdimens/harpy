@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import shutil
 import sys
-from harpy.common.printing import print_error
+from harpy.common.printing import HarpyPrint
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -39,7 +39,7 @@ def fetch_template(target: str, outfile = None) -> None:
             with resources.as_file(source_file) as _source, open(_source, 'r') as f:
                 _out.write(f.read() + "\n")
     except (FileNotFoundError, KeyError):
-        print_error(
+        HarpyPrint().error(
             "template file missing",
             f"The required template file [blue bold]{target}[/] was not found within the Harpy installation.",
             "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
