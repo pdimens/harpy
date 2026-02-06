@@ -74,11 +74,12 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     if extra_params:
         workflow.param(extra_params, "extra")
 
+    treatment = ", ".join(i for i,j in zip(["deduplicate", "trim adapters"], [deduplicate, trim_adapters]) if j)
+
     workflow.info = {
         "Samples": fastq.count,
         "Linked-Read Type": fastq.lr_type,
-        "Trim Adapters": "yes" if trim_adapters else "no",
-        "Deduplicate": "yes" if deduplicate else "no",
+        **({"Treatment" : treatment} if treatment else {"Treatment": "None"}),
         "Output Folder": os.path.relpath(output_dir) + "/",
     }
 
