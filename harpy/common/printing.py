@@ -151,7 +151,7 @@ class HarpyPrint():
         self.console.rule("[bold]Workflow Error[/]", style = "red")
         self.console.print(datatable)
         self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.")
-        self.console.rule("[bold]Cause of Error", style = "red")
+        self.console.rule("[bold]Source of Error", style = "red")
 
     def shell(self, text) -> None:
         """
