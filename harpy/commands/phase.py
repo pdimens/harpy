@@ -8,7 +8,6 @@ from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
 from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import HapCutParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
@@ -70,13 +69,13 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Input VCF:", os.path.basename(vcffile.file)),
-        ("Samples:", min(len(vcffile.samples), alignments.count)),
-        ("Barcode Type:", alignments.lr_type),
-        ("Reference:", os.path.basename(reference)) if reference else None,
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Input VCF": os.path.basename(vcffile.file),
+        "Samples": min(len(vcffile.samples), alignments.count),
+        "Barcode Type": alignments.lr_type,
+        **({'Reference': os.path.basename(reference)} if reference else {}),
+        "Output Folder": os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -141,14 +140,14 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Input VCF:", os.path.basename(vcffile.file)),
-        ("Samples:", min(len(vcffile.samples), alignments.count)),
-        ("Barcode Type:", alignments.lr_type),
-        ("Phase Indels:", "yes" if reference else "no"),
-        ("Reference:", os.path.basename(reference)) if reference else None,
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Input VCF": os.path.basename(vcffile.file),
+        "Samples" : min(len(vcffile.samples), alignments.count),
+        "Barcode Type" : alignments.lr_type,
+        "Phase Indels" : "yes" if reference else "no",
+        **({'Reference': os.path.basename(reference)} if reference else {}),
+        "Output Folder": os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 

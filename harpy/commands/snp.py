@@ -8,14 +8,14 @@ from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SA
 from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
 from harpy.common.system_ops import container_ok
-from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
 from harpy.validation.xam import XAM
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
+@click.group(options_metavar='')
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
+@click.help_option('--help', hidden = True)
 def snp():
     """
     Call SNPs and small indels from alignments
@@ -87,12 +87,12 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", alignments.count),
-        ("Sample Groups:", os.path.basename(populations)) if populations else None,
-        ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples" : alignments.count,
+        **({"Sample Groups" : os.path.basename(populations)} if populations else {}),
+        "Reference" : os.path.basename(reference),
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -157,12 +157,12 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", alignments.count),
-        ("Sample Groups:", os.path.basename(populations)) if populations else None,
-        ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples" : alignments.count,
+        **({"Sample Groups" : os.path.basename(populations)} if populations else {}),
+        "Reference" : os.path.basename(reference),
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 

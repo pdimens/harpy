@@ -1,12 +1,10 @@
 """Perform a linked-read aware metassembly"""
 
-from ssl import ALERT_DESCRIPTION_CLOSE_NOTIFY
 import rich_click as click
 import os
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import KParam, SnakemakeParams
 from harpy.common.cli_types_params import SpadesParams, ArcsParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
@@ -76,9 +74,9 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output_dir, extra_para
         workflow.param(arcs_extra, "arcs:extra")
     workflow.param(links, "links:minimum-links")
 
-    workflow.start_text = workflow_info(
-        ("Kmer Length: ", workflow.parameters["spades"]["k"]),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info ={
+        "Kmer Length" : workflow.parameters["spades"]["k"],
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)

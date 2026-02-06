@@ -6,7 +6,7 @@ import sys
 import yaml
 import rich_click as click
 from harpy.common.environments import check_environments
-from harpy.common.printing import print_error, workflow_info
+from harpy.common.printing import print_error
 from harpy.common.workflow import Workflow
 
 def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = False):
@@ -137,10 +137,10 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         workflow.profile = snakemake_config
         workflow.write_snakemake_profile()
 
-    workflow.start_text = workflow_info(
-        ("Workflow:", workflow.name.replace("_", " ")),
-        ("Output Folder:", directory + "/")
-    )
+    workflow.info = {
+        "Workflow" : workflow.name.replace("_", " "),
+        "Output Folder" : directory + "/"
+    }
 
     if direct:
         if absolute:

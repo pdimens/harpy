@@ -6,7 +6,6 @@ from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.cli_types_params import StitchParams
 from harpy.common.system_ops import container_ok
-from harpy.common.printing import workflow_info
 from harpy.common.workflow import Workflow
 from harpy.validation.impute_parameters import ImputeParams
 from harpy.validation.xam import XAM
@@ -72,12 +71,12 @@ def impute(parameters, vcf, inputs, output_dir, region, grid_size, threads, vcf_
         workflow.param(extra_params, "extra")
     workflow.param(params.parameters, "stitch")
 
-    workflow.start_text = workflow_info(
-        ("Input VCF:", os.path.basename(vcf)),
-        ("Samples:", min(len(vcffile.samples), alignments.count)),
-        ("Parameter File:", os.path.basename(parameters)),
-        ("Contigs:", f"{len(vcffile.biallelic_contigs)} [dim](with at least 5 biallelic SNPs)") if not region else ("Target Region:", region),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Input VCF" : os.path.basename(vcf),
+        "Samples": min(len(vcffile.samples), alignments.count),
+        "Parameter File" : os.path.basename(parameters),
+        **({'Contigs': f"{len(vcffile.biallelic_contigs)} [dim](with at least 5 biallelic SNPs)"} if region else {"Target Region" : region}),
+        'Output Folder' : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)

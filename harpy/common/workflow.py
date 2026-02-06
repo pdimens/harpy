@@ -9,7 +9,7 @@ import time as _time
 import yaml
 from rich.table import Table
 from harpy.common.environments import HarpyEnvs
-from harpy.common.file_ops import filepath, last_sm_log
+from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
 from harpy.common.printing import CONSOLE, harpy_table, print_error
 from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
@@ -45,7 +45,7 @@ class Workflow():
         self.container: bool = container
         self.conda: list[str] = []
 
-        self.start_text: None|Table = None
+        self.info: dict = {}
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
         self.summary_text: str = ""
@@ -245,12 +245,18 @@ class Workflow():
         return ", ".join(report_times)
 
     def print_onstart(self):
-        """Print a panel of info on workflow run"""
+        """Print a panel of info on workflow run. """
         if self.quiet == 2:
             return
+        table = harpy_table()
+        table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
+        table.add_column("value", justify="left")
+        table.add_row("Start", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        for k,v in self.info.items():
+                table.add_row(f"{k}:", f"{v}")
         CONSOLE.print("")
         CONSOLE.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
-        CONSOLE.print(self.start_text)
+        CONSOLE.print(table)
 
     def print_onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""

@@ -4,7 +4,6 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
@@ -66,12 +65,12 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.param("samples", keep_unknown_samples)
     workflow.notebooks["skip"] = skip_reports
     
-    workflow.start_text = workflow_info(
-        ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
-        ("Demultiplex Schema:", os.path.basename(schema)),
-        ("Include QX/RX tags", "Yes" if qx_rx else "No"),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Barcode Design": "Meier [italic]et al.[/] 2021",
+        "Demultiplex Schema": os.path.basename(schema),
+        "Include QX/RX tags" : "Yes" if qx_rx else "No",
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -118,13 +117,13 @@ def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, th
     workflow.param(min_length, "minimum_length")
     workflow.param(min_quality, "minimum_quality")
     
-    workflow.start_text = workflow_info(
-        ("Barcode Design:", "Iqbal [italic]et al.[/] (in prep)"),
-        ("Total Barcode Length:", bc_len_text),
-        ("Min. insert length:", min_length),
-        ("Min. read quality:", min_quality),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
+        "Total Barcode Length": bc_len_text,
+        "Min. insert length": min_length,
+        "Min. read quality": min_quality,
+        "Output Folder": os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 

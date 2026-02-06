@@ -5,7 +5,6 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile
 from harpy.common.cli_types_generic import ContigList, MultiInt, SnakemakeParams
 from harpy.common.cli_types_params import LeviathanParams, NaibrParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -90,12 +89,12 @@ def leviathan(inputs, output_dir, reference, min_size, min_barcodes, iterations,
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", alignments.count),
-        ("Reference:", os.path.basename(reference)),
-        ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples" : alignments.count,
+        "Reference" : os.path.basename(reference),
+        "Sample Pooling" : os.path.basename(populations) if populations else "no",
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -158,12 +157,12 @@ def naibr(inputs, output_dir, reference, min_size, min_barcodes, min_quality, th
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", alignments.count),
-        ("Reference:", os.path.basename(reference)),
-        ("Sample Pooling:", os.path.basename(populations) if populations else "no"),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples" : alignments.count,
+        "Reference" : os.path.basename(reference),
+        "Sample Pooling" : os.path.basename(populations) if populations else "no",
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }    
 
     workflow.initialize(setup)
 

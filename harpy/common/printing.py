@@ -154,16 +154,3 @@ def print_shellcmd_simple(text):
     _table.add_row("  ", cmd, "  ")
     CONSOLE.print(_table)
 
-def workflow_info(*arg: tuple[str, str | int | float]|None) -> Table:
-    """
-    Accepts an unlimited number of length-2 lists or tuples and returns a rich.Table with the value of the first indices as the row names and the second indices as the values
-    Use None instead of a list to ignore that entry (useful for conditionals). The second value will always be converted to a string.
-    """
-    table = harpy_table()
-    table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
-    table.add_column("value", justify="left")
-    table.add_row("Start:", _time.strftime('%d %b %Y @ %H:%M'))
-    for i in arg:
-        if i:
-            table.add_row(i[0], str(i[1]))
-    return table

@@ -7,7 +7,6 @@ from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.common.cli_types_params import FastpParams
 from harpy.common.file_ops import filepath
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 
@@ -75,12 +74,12 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", fastq.count),
-        ("Linked-Read Type:", fastq.lr_type),
-        ("Trim Adapters:", "yes" if trim_adapters else "no"),
-        ("Deduplicate:", "yes" if deduplicate else "no"),
-        ("Output Folder:", os.path.relpath(output_dir) + "/"),
-    )
+    workflow.info = {
+        "Samples": fastq.count,
+        "Linked-Read Type": fastq.lr_type,
+        "Trim Adapters": "yes" if trim_adapters else "no",
+        "Deduplicate": "yes" if deduplicate else "no",
+        "Output Folder": os.path.relpath(output_dir) + "/",
+    }
 
     workflow.initialize(setup)

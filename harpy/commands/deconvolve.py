@@ -5,7 +5,6 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
 from harpy.common.cli_types_generic import SnakemakeParams
 from harpy.validation.fastq import FASTQ
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok, is_arm
 from harpy.common.workflow import Workflow
 
@@ -48,9 +47,9 @@ def deconvolve(inputs, output_dir, kmer_length, window_size, density, dropout, t
     workflow.param(density, "density")
     workflow.param(dropout, "dropout")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", fastq.count),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples:" : fastq.count,
+        "Output Folder:" : os.path.relpath(output_dir) + "/"
+    }
     
     workflow.initialize(setup)

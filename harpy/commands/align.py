@@ -5,7 +5,6 @@ import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, FASTAfile
 from harpy.common.cli_types_generic import ContigList, SnakemakeParams
 from harpy.common.cli_types_params import BwaParams, StrobeAlignParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -78,12 +77,12 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    workflow.start_text = workflow_info(
-        ("Samples:", fastq.count),
-        ("Linked-Read Type:", fastq.lr_type),
-        ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples": fastq.count,
+        "Linked-Read Type": fastq.lr_type,
+        "Reference": os.path.basename(reference),
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -143,12 +142,12 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     workflow.notebooks["skip"] = skip_reports
     workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
 
-    workflow.start_text = workflow_info(
-        ("Samples:", fastq.count),
-        ("Linked-Read Type:", fastq.lr_type),
-        ("Reference:", os.path.basename(reference)),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Samples" : fastq.count,
+        "Linked-Read Type" : fastq.lr_type,
+        "Reference" : os.path.basename(reference),
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 

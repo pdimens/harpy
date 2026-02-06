@@ -4,13 +4,12 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
 from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.printing import workflow_info
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
+@click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
 def validate():
     """
@@ -54,11 +53,11 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     workflow.linkedreads["type"] = alignments.lr_type
     workflow.input(alignments.files)
 
-    workflow.start_text = workflow_info(
-        ("Alignment Files:", alignments.count),
-        ("Barcode Type:", alignments.lr_type),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Alignment Files" : alignments.count,
+        "Barcode Type" : alignments.lr_type,
+        "Output Folder" : os.path.relpath(output_dir) + "/"
+    }
 
     workflow.initialize(setup)
 
@@ -95,12 +94,11 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.input(fastq.files)
 
-    workflow.start_text = workflow_info(
-        ("FASTQ Files:", fastq.count),
-        ("Linked-Read Type:", fastq.lr_type),
-        ("Output Folder:", os.path.relpath(output_dir) + "/"),
-
-    )
+    workflow.info = {
+        "FASTQ Files" : fastq.count,
+        "Linked-Read Type" : fastq.lr_type,
+        "Output Folder" : os.path.relpath(output_dir) + "/",
+    }
 
     workflow.initialize(setup)
 
