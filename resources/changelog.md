@@ -13,7 +13,7 @@
 ### misc
 - progress bar has a new column to show a count of the active jobs!
 - time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
-- output log of checks and validations printed to console so Harpy is transparent about the delays before kicking off Snakemake
+- output log of checks and validations printed to console so Harpy is transparent about any observed delays before kicking off Snakemake
   - disabled when `--quiet` > 0
 - added "workflow setup complete" text when using `--setup`
 - added "all stuff is there" equivalent text when snakemake reports there is nothing to do
@@ -49,11 +49,15 @@ Reports have been completely rewritten (for the third time), moving away from R/
 ### internal
 - significant rewrite of the `Workflow` class and how it expects workflow, parameter, and input delcarations
 - 4 SV reports consolidated into 1
+- printing functions consolidated into `HarpyPrint` class
 
 ## non-breaking
 - statusbar when downloading/installing workflow dependencies now lists the environment being downloaded/installed instead of saying "working..."
 - progress bar does not disappear with default `--quiet` setting
 - minor progress bar tweaks 
+- workflow start and end time moved to row in each of the output tables rather than appear inline
+- no more custom snakemake logfile handling (backported into `v3.2`)
+  - `harpy view log` now points to the `.snakemake/log` folder, but is otherwise the same
 
 ### internal
 - swapped order of validations/checks
@@ -65,7 +69,7 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - the `--workflow-profile` part of the snakemake command (when using hpc) has been moved to `config.yaml` to further reduce the length of the snakemake call
 - grouped and single-sample leviathan variant calling now use a single consolidated snakefile
 - grouped and single-sample naibr variant calling now use a single consolidated snakefile
-
+- workflow info printing handled differently to be more flexible
 
 # fixes
 - removed redundant validations between CLI checks and harpy checks
