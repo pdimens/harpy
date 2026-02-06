@@ -6,7 +6,7 @@ import rich_click as click
 from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
-env_list = ["all", "align", "assembly", "demultiplex", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]
+env_list = ["all", "align", "assembly", "metassembly", "phase", "qc", "stitch", "variants"]
 
 @click.command(hidden = True)
 @click.argument('env', required = True, type= click.Choice(env_list))

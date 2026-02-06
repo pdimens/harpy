@@ -33,9 +33,6 @@ class HarpyEnvs():
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
-        "demultiplex": [
-            "bioconda::dmox>=0.2"
-        ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
         ],
@@ -45,29 +42,15 @@ class HarpyEnvs():
         ],
         "qc" : [
             "conda-forge::click=8.2.1",
+            "bioconda::cutadapt",
+            "bioconda::dmox>=0.2",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution"
         ],
-        "report" : [
-            "conda-forge::quarto",
-            "conda-forge::r-dt",
-            "conda-forge::r-dplyr",
-            "conda-forge::r-highcharter",
-            "conda-forge::r-magrittr",
-            "conda-forge::r-plotly",
-            "conda-forge::r-scales",
-            "conda-forge::r-tidyr",
-            "conda-forge::r-viridislite", 
-            "conda-forge::r-xml2",
-            "r::r-biocircos"
-        ],
-        "simulations" : [
-            "bioconda::simug>1.0.0"
-        ],
-        "stitch" : [
+        "impute" : [
             "bioconda::r-stitch>=1.8.4"
         ],
         "variants" : [

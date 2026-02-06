@@ -100,6 +100,8 @@ rule spades_assembly:
     conda:
         "envs/assembly.yaml"
     container:
+        "docker://pdimens/harpy:assembly_4.0"
+    container:
         None
     shell:
         "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
@@ -121,6 +123,8 @@ rule cloudspades_metassembly:
         "logs/assembly.log"
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_4.0"
     threads:
         workflow.cores
     resources:
@@ -137,6 +141,8 @@ rule index_contigs:
         "logs/bwa.index.log"
     conda:
         "envs/align.yaml"
+    container:
+        "docker://pdimens/harpy:align_4.0"
     shell:
         "bwa index {input}"
 
@@ -156,6 +162,8 @@ rule align_to_contigs:
         workflow.cores
     conda:
         "envs/align.yaml"
+    container:
+        "docker://pdimens/harpy:align_4.0"
     shell:
         """
         {{
@@ -219,6 +227,8 @@ rule athena_metassembly:
         final_asm = "athena/results/olc/athena.asm.fa"
     conda:
         "envs/metassembly.yaml"
+    container:
+        "docker://pdimens/harpy:metassembly_4.0"
     shell:
         """
         athena-meta {params.force} --config {input.config} &> {log} &&\\
@@ -243,6 +253,8 @@ rule QUAST_assessment:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_4.0"
     shell:
         "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -264,6 +276,8 @@ rule BUSCO_analysis:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        "docker://pdimens/harpy:assembly_4.0"
     shell:
         """
         ( busco -f -i {input} -c {threads} {params} > {log} 2>&1 ) || touch {output}
@@ -282,6 +296,10 @@ rule build_report:
         title = "--title \"Metassembly Metrics\""
     conda:
         "envs/qc.yaml"
+    container:
+        "docker://pdimens/harpy:qc_4.0"
+    container:
+        "docker://pdimens/harpy:qc_4.0"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 

@@ -126,9 +126,9 @@ rule impute:
     threads:
         workflow.cores - 1
     conda:
-        "envs/stitch.yaml"
+        "envs/impute.yaml"
     container:
-        "docker://pdimens/harpy:impute_dev"        
+        "docker://pdimens/harpy:impute_4.0"        
     shell:
         """
         mkdir -p {output.tmpdir}

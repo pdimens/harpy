@@ -63,9 +63,9 @@ rule demultiplex:
     threads:
         workflow.cores
     conda:
-        "envs/demultiplex.yaml"
+        "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:demultiplex_4.0"
+        "docker://pdimens/harpy:qc_4.0"
     shell:
         """
         dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \

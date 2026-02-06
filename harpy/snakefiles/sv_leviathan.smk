@@ -91,7 +91,7 @@ if popdict:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_dev"
+            "docker://pdimens/harpy:variants_4.0"
         shell:
             "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 else:
@@ -107,7 +107,7 @@ else:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_dev"
+            "docker://pdimens/harpy:variants_4.0"
         shell:
             """
             {{
