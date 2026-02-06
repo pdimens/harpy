@@ -3,6 +3,80 @@ from IPython.display import display, HTML
 import itables
 itables.options.warn_on_undocumented_option=False
 
+class stat_boxes:
+    '''
+    The boxes class that draws boxes at the top of the reports.
+    '''
+    def __init__(self):
+        self.boxes: list[str] = []
+
+    def add(self, value, label, bg_color="#FFFFFF", width: int = 200, height: int = 85, 
+            value_fontsize=36, label_fontsize=14, label_color = "#666666", value_color = "#000000", text_gap: int = 2):
+        '''
+        Return the html of a colored box object with `value` and `label`. 
+        
+        Args:
+            value: Main metric to display
+            label: Title of the metric
+            bg_color: Background color of the box
+            width: Width in pixels
+            height: Height in pixels
+            text_gap: Gap between label and value in pixels (default: 2)
+        '''
+        if isinstance(value, str):
+            _val = value
+        else:
+            _val = f"{value:,.2f}".rstrip('0').rstrip('.')
+        
+        _html = f'''<div style="background-color: {bg_color}; width: {width}px; 
+            height: {height}px; display: flex; flex-direction: column; 
+            align-items: flex-start; justify-content: center; border-radius: 15px; color: #000000; 
+            padding: 20px; box-sizing: border-box; ">
+            <div style="font-size: {label_fontsize}px; font-weight: 400; 
+                margin-bottom: {text_gap}px; color: {label_color};">{label}</div>
+            <div style="font-size: {value_fontsize}px; font-weight: 700; 
+                color: {value_color};">{_val}</div>
+        </div>'''
+        
+        self.boxes.append(_html)
+        return self
+
+    def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, width:int = 200, height:int = 85):
+      '''
+      Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
+      the value by 100 for printing purposes.
+      The `color` is either yellow or green depending on what is determined better or worse than the `cutoff`:
+      - `lower_bad=True`: `color` = yellow when value < cutoff (default)
+      - `lower_bad=False`: `color` = yellow when value >= cutoff 
+      '''
+      if lower_bad:
+        color = "#f6ab3c" if value < cutoff else "#68ae6b"
+      else:
+        color = "#f6ab3c" if value >= cutoff else "#68ae6b"
+
+      return self.add(
+        value if not as_percent else f"{value * 100}%", label, color,
+        width = width,
+        height = height
+      )
+
+    def render(self, gap: int = 5):
+        '''Display all boxes in a horizontal row
+        
+        Args:
+            gap: Space between boxes in pixels (default: 5)
+        '''
+        from IPython.display import HTML, display
+        container_html = f'''<div style="display: flex; gap: {gap}px; 
+            flex-wrap: wrap;">{" ".join(self.boxes)}</div>'''
+        display(HTML(container_html))
+
+    def render_old(self, gap = 15):
+      '''Display all the colored boxes stored in `self.boxes` in one continuous wrapped row'''
+      html_content = '<div style="display: flex; flex-wrap: wrap; gap: {}px; width: 100%;">{}</div>'
+      return display(HTML(html_content.format(gap, "\n".join(self.boxes))))
+
+
 class colored_boxes:
   '''
   The colored boxes class that draws boxes at the top of the reports.
@@ -18,11 +92,10 @@ class colored_boxes:
       _val = value
     else:
       _val = f"{value:,.2f}".rstrip('0').rstrip('.')
-    _html = '''<div style="background-color: {}; width: {}; height: {}; display: flex;\
-  flex-direction: column; align-items: center; justify-content: center;\
-  color: white; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.19);\
-  padding: 15px; box-sizing: border-box;"><div style="font-size: 14px; font-weight: normal;\
-    margin-bottom: 0px; margin-top: 3px; opacity: 0.9; text-transform: uppercase;\
+    _html = '''<div style="background-color: {}; width: {}; height: {}; display: flex;
+  flex-direction: column; align-items: center; justify-content: center; color: white; border-radius: 5px; 
+  padding: 15px; box-sizing: border-box;"><div style="font-size: 14px; font-weight: normal;
+    margin-bottom: 0px; margin-top: 3px; opacity: 0.9; text-transform: uppercase;
   letter-spacing: 1px;">{}</div><div style="font-size: {}px; font-weight: bold;">{}</div></div>'''
     _html = _html.format(color, f"{width}px", f"{height}px", label, fontsize, _val)
     self.boxes.append(_html)
@@ -43,7 +116,7 @@ class colored_boxes:
 
     return self.add(value if not as_percent else f"{value * 100}%", label, color, width = width, height = height)
 
-  def render(self, gap = 15):
+  def render(self, gap = 5):
     '''Display all the colored boxes stored in `self.boxes` in one continuous wrapped row'''
     html_content = '<div style="display: flex; flex-wrap: wrap; gap: {}px; width: 100%;">{}</div>'
     return display(HTML(html_content.format(gap, "\n".join(self.boxes))))
