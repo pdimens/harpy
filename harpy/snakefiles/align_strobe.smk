@@ -96,7 +96,7 @@ rule standardize_barcodes:
     log:
         "logs/{sample}.standardize.log"
     shell:
-        "standardize-barcodes-sam > {output} 2> {log} < {input}"
+        "djinn sam standardize {input} > {output} 2> {log}"
 
 rule mark_duplicates:
     input:

@@ -119,8 +119,7 @@ rule standardize_barcodes:
     log:
         "logs/{sample}.standardize.log"
     shell:
-        "djinn sam standardize > {output} 2> {log} < {input}"
-        "standardize-barcodes-sam > {output} 2> {log} < {input}"
+        "djinn sam standardize {input} > {output} 2> {log}"
 
 rule mark_duplicates:
     input:
