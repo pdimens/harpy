@@ -1,7 +1,7 @@
 import os
 import re
 import shutil
-from harpy.common.preprocess import needs_stagger, padUMI
+from harpy.common.preprocess import needs_stagger
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -28,14 +28,14 @@ def get_fq2(wildcards):
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
-rule find_ME_sequence:
+rule find_ME_seq_R1:
     input:
         get_fq1
     output:
-        tmp = "ME_position/{sample}.info",
-        summ = temp("ME_position/{sample}.info.summ")
+        info = temp("ME_position/{sample}.R1.info"),
+        summ = temp("ME_position/{sample}.R1.info.summ")
     log:
-        "logs/findME/{sample}.log"
+        "logs/find_ME_seq/{sample}.R1.log"
     params:
         static = f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null",
         awk = """awk -F '\\t' '{a[$2]++; if($2>=0) {b[$3]++; c[$4]++;} else next;} END {print "col2=mismatch"; for(i in a) print a[i],i; print "\\ncol3=startpost"; for(j in b) print b[j],j; print "\\ncol4=endpos"; for(k in c) print c[k],k;}'"""
@@ -48,43 +48,56 @@ rule find_ME_sequence:
     shell:
         """
         {{
-            cutadapt {params.static} --info-file {output.tmp} --cores {threads} {input}
-            {params.awk} {output.tmp} > {output.summ}
+            cutadapt {params.static} --info-file {output.info} --cores {threads} {input}
+            {params.awk} {output.info} > {output.summ}
         }} 2> {log}
         """
+
+#use rule find_ME_seq_R1 as find_ME_seq_R2 with:
+#    input:
+#        get_fq2
+#    output:
+#        info = temp("ME_position/{sample}.R2.info"),
+#        summ = temp("ME_position/{sample}.R2.info.summ")
+#    log:
+#        "logs/find_ME_seq/{sample}.R1.log"
 
 rule all:
     default_target: True
     #input: collect("ME_position/{sample}.info", sample = samplenames)
     input: collect("stagger/{sample}.R1.fq.gz", sample = samplenames)
 
-
-rule pad_UMI:
+rule pad_UMI_R1:
     input:
         fq = get_fq1,
-        info = "ME_position/{sample}.info",
-        summary = "ME_position/{sample}.info.summ"
+        info = "ME_position/{sample}.R1.info",
+        summary = "ME_position/{sample}.R1.info.summ"
     output:
         fq = "stagger/{sample}.R1.fq.gz"
     log:
-        "logs/{sample}.stagger.log"
+        "logs/{sample}.R1.stagger.log"
     threads:
         4 if has_pigz else 1
     run:
-        try:
-            result = needs_stagger(input.summary)
-            if result:
-                padUMI(input.info, input.fq, output.fq, log[0], threads, 20000)
-            else:
-                shell(f"ln -sr {input.fq} {output.fq}")
-        except Exception as e:
-            with open(logs[0], "w") as _log:
-                _log.write(f"{e}")
+        if needs_stagger(input.summary):
+            shell(f"stagger-GIH -t {threads} -b 20000 {input.info} {input.fq} > {output.fq} 2> {log[0]}")
+        else:
+            shell(f"ln -sr {input.fq} {output.fq}")
+
+#use rule pad_UMI_R1 as pad_UMI_R2 with:
+#    input:
+#        fq = get_fq2,
+#        info = "ME_position/{sample}.R2.info",
+#        summary = "ME_position/{sample}.R2.info.summ"
+#    output:
+#        fq = "stagger/{sample}.R2.fq.gz"
+#    log:
+#        "logs/{sample}.R2.stagger.log"
 
 #rule move_barcodes:
 #    input:
-#        FQ1 = ,
-#        FQ2 = ,
+#        FQ1 = "stagger/{sample}.R1.fq.gz",
+#        FQ2 = "stagger/{sample}.R1.fq.gz",
 #        pheniqs_conf = "workflow/pheniqs_config.json"
 #    output:
 #        FQ1 = "pheniqs/{sample}_extract_R1.bam",

@@ -12,7 +12,7 @@ hpc/
 QC/
 Deconvolve/
 Downsample/
-Demultiplex/
+Preprocess/
 Genome/
 Align/
 SNP/
