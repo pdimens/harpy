@@ -67,7 +67,6 @@ mpileup: &mpileup
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
   - 'harpy/notebooks/bcftools_stats.ipynb'
-  - 'harpy/scripts/make-windows.py'
   - 'test/bam/**'
 freebayes: &freebayes
   - *common
@@ -75,7 +74,6 @@ freebayes: &freebayes
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_freebayes.smk'
   - 'harpy/notebooks/bcftools_stats.ipynb'
-  - 'harpy/scripts/make-windows.py'
   - 'test/bam/**'
 impute: &impute
   - *common

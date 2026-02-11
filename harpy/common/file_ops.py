@@ -5,6 +5,7 @@ import gzip
 import importlib.resources as resources
 import os
 from pathlib import Path
+import pysam
 import re
 import shutil
 import sys
@@ -139,3 +140,42 @@ def naibr_extra(argsDict: dict, extra) -> dict:
             if "blacklist" in i or "candidates" in i:
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
+
+def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1):
+    """
+    Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx).
+    Nearly identical to bedtools makewindows, except the intervals are nonoverlapping. `Window` is
+    the interval size, `mode` is whether to make `0` or `1` based  intervals.
+    """
+    def makewindows(_c_len, index_start, windowsize):
+        """create a file of the specified windows"""
+        start = index_start
+        end = min(_c_len, windowsize)
+        starts = [start]
+        ends = [end]
+        while end < _c_len:
+            end = min(end + windowsize, _c_len)
+            ends.append(end)
+            start += windowsize
+            starts.append(start)
+        return starts, ends
+
+    if input.lower().endswith("fai"):
+        with open(input, "r", encoding="utf-8") as fai, open(output, "w") as fout:
+            for line in fai:
+                lsplit = line.split("\t")
+                contig = lsplit[0]
+                c_len = int(lsplit[1])
+                c_len += mode
+                starts,ends = makewindows(c_len, mode, window)
+                for startpos,endpos in zip(starts, ends):
+                    fout.write(f"{contig}\t{startpos}\t{endpos}\n")
+        return
+
+    with pysam.FastxFile(input, persist = False) as FA, open(output, "w") as fout:
+        for record in FA:
+            chrom_name = record.name
+            chom_len = len(record.sequence)
+            starts,ends = makewindows(chom_len, mode, window)
+            for startpos,endpos in zip(starts, ends):
+                fout.write(f"{chrom_name}\t{startpos}\t{endpos}\n")

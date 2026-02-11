@@ -8,6 +8,7 @@ from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SA
 from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
 from harpy.common.cli_types_params import MpileupParams, FreebayesParams
 from harpy.common.system_ops import container_ok
+from harpy.common.file_ops import genomic_windows
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
@@ -68,9 +69,9 @@ def freebayes(reference, inputs, output_dir, threads, populations, ploidy, regio
     fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
-    region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
     if isinstance(regions, int):
-        os.system(f"make-windows -m 1 -w {regions} {reference} > {region}")
+        genomic_windows(reference, region, regions, 1)
     elif os.path.exists(regions):
         shutil.copy2(regions, region)
     else:
@@ -138,9 +139,9 @@ def mpileup(reference, inputs, output_dir, regions, threads, populations, ploidy
     fasta = FASTA(reference, quiet = quiet > 0)
     fasta.validate_region(regions)
 
-    region = Path(os.path.join(workflow.workflow_directory, "regions.bed")).resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
     if isinstance(regions, int):
-        os.system(f"make-windows -m 1 -w {regions} {reference} > {region}")
+        genomic_windows(reference, region, regions, 1)
     elif os.path.exists(regions):
         shutil.copy2(regions, region)
     else:
