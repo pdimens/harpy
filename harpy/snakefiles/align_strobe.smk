@@ -44,30 +44,12 @@ rule process_reference:
         }} 2> {log}
         """
 
-rule make_depth_intervals:
-    input:
-        fai = f"{workflow_geno}.fai"
-    output:
-        bed = "reports/data/coverage/coverage.bed"
-    run:
-        with open(input.fai, "r") as fai, open(output.bed, "w") as bed:
-            for line in fai:
-                splitline = line.split()
-                contig = splitline[0]
-                length = int(splitline[1])
-                starts = list(range(0, length, windowsize))
-                ends = [i - 1 for i in starts[1:]]
-                if not ends or ends[-1] != length:
-                    ends.append(length)
-                for start,end in zip(starts,ends):
-                    bed.write(f"{contig}\t{start}\t{end}\n")
-
 rule align:
     input:
         fastq = get_fq,
         genome   = workflow_geno
     output:  
-        pipe("samples/{sample}/{sample}.strobe.sam")
+        temp("samples/{sample}/{sample}.strobe.sam")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -88,19 +70,9 @@ rule align:
         }} 2> {log} > {output} 
         """
 
-rule standardize_barcodes:
-    input:
-        "samples/{sample}/{sample}.strobe.sam"
-    output:
-        temp("samples/{sample}/{sample}.standard.sam")
-    log:
-        "logs/{sample}.standardize.log"
-    shell:
-        "djinn sam standardize {input} > {output} 2> {log}"
-
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.standard.sam",
+        sam    = "samples/{sample}/{sample}.strobe.sam",
         genome = workflow_geno,
         faidx  = f"{workflow_geno}.fai"
     output:
@@ -124,7 +96,8 @@ rule mark_duplicates:
             OPTICAL_BUFFER=100
         fi
         {{
-            samtools collate -O -u {input.sam} |
+            djinn sam standardize --sam {input} |
+                samtools collate -O -u {input.sam} |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
                 samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
@@ -179,12 +152,17 @@ rule molecule_coverage:
 rule alignment_coverage:
     input: 
         "{sample}.bam.bai",
-        bam = "{sample}.bam",
-        bed = "reports/data/coverage/coverage.bed"
+        bam = "{sample}.bam"
     output: 
-        "reports/data/coverage/{sample}.cov.gz"
+        "reports/data/coverage/{sample}.regions.bed.gz "
+    params:
+        windowsize
+    conda:
+        "envs/qc.yaml"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
+        "mosdepth -b {params} -n --fast-mode reports/data/coverage/{wildcards.sample} {input.bam}"
 
 rule configure_report:
     input:
@@ -251,7 +229,7 @@ rule sample_reports:
     input:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
         coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule-coverage = "reports/data/coverage/{sample}.molcov.gz",
+        molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
     output:
         tmp = temp("reports/{sample}.tmp.ipynb"),

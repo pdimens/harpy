@@ -490,7 +490,7 @@ class Summary:
         summary.append(f"The provided populations grouping file: {groupfile}")
         if groupfile:
             concat = "The alignments were concatenated using:\n"
-            concat += "\djinn sam concat --bx samples.bam... > group.bam"
+            concat += "djinn sam concat --bx samples.bam... > group.bam"
             summary.append(concat)
         naibr = "naibr variant calling ran using these configurations:\n"
         naibr += "\tbam_file=BAMFILE\n"

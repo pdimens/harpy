@@ -46,6 +46,7 @@ class HarpyEnvs():
             "bioconda::dmox>=0.2",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
+            "bioconda::mosdepth",
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution"
