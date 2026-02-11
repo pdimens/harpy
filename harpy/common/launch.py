@@ -256,7 +256,7 @@ class LaunchSnakemake():
             # if dependency text present, print pulsing progress bar
             if self.deps:
                 progress = harpy_pulsebar(self.quiet, self.print.console)
-                with harpy_progresspanel(progress, self.print.console, quiet=self.quiet, title = self.deploy_text, refresh=8):
+                with harpy_progresspanel(progress, self.print.console, quiet=1, title = self.deploy_text, refresh=8):
                     _taskid = progress.add_task("[dim]Working...", total = None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -266,6 +266,7 @@ class LaunchSnakemake():
                         if self.process.poll() or self.iserror():
                             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else 2
                             break
+                        self.nothing_to_do()
                     progress.stop()
             if self.process.poll() or self.exitcode >= 0:
                 return
