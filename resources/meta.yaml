@@ -25,7 +25,6 @@ build:
     - count-bx = harpy.scripts:count_bx.main
     - depth-windows = harpy.scripts:depth_windows.main
     - haplotag-acbd = harpy.scripts:haplotag_acbd.main
-    - haplotag-barcodes = harpy.scripts:haplotag_barcodes.main
     - infer-sv = harpy.scripts:infer_sv.main
     - molecule-coverage = harpy.scripts:molecule_coverage.main
     - parse-phaseblocks = harpy.scripts:parse_phaseblocks.main
