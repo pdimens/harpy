@@ -77,8 +77,7 @@ def main():
                 fields = line.split('\t')
 
                 # Extract read ID (first token of first field)
-                sp = fields[0].find(' ')
-                n = fields[0][:sp] if sp != -1 else fields[0]
+                n = fields[0].split(' ')[0]
 
                 # Compute pad length p
                 col2 = int(fields[1])
@@ -86,19 +85,13 @@ def main():
                     discarded += 1
                     continue
                 col3 = int(fields[2])
-                p = 7 if (col2 == -1 or col3 < 51 or col3 > 58) else (col3-51)
+                p = 7 if (col3 < 51 or col3 > 58) else (col3-51)
 
-                # Extract header token up to first space
-                hdr_full: str = entry.name
-                sp = hdr_full.find(' ')
-                hdr = hdr_full[:sp] if sp != -1 else hdr_full
-
-                if hdr != n:
-                    RuntimeError(f"Error: Read name mismatch at line {t}! Expected {n} in fastq but found {hdr}.")
+                _name = f"{entry.name}"
+                if _name != n:
+                    RuntimeError(f"Error: Read name mismatch at line {t}! Expected {n} in fastq but found {_name}.")
 
                 # Build padded FASTQ entry
-                # Header line (include full comment if present)
-                _name = f"{entry.name}"
                 if entry.comment:
                     _name += f"\t{entry.comment}"
 
