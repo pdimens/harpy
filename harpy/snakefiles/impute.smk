@@ -6,7 +6,7 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-VERSION = 4.0
+VERSION=4.0
 bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["Inputs"]["vcf"]

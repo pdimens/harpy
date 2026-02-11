@@ -4,7 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 lr_platform = config["Workflow"]["linkedreads"]["type"]
 fqlist = config["Inputs"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"

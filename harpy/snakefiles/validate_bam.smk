@@ -5,7 +5,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 lr_platform = config["Workflow"]["linkedreads"]["type"]
 bamlist = config["Inputs"]
 bamdict = dict(zip(bamlist, bamlist))

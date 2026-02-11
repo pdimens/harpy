@@ -5,7 +5,7 @@ wildcard_constraints:
     FR = r"[12]",
     part = r"\d{3}"
 
-VERSION = 4.0
+VERSION=4.0
 schemafile = config["Inputs"]["schema"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 qxrx = config["Parameters"]["qx-rx"]

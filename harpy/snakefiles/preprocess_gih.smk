@@ -6,7 +6,7 @@ from harpy.common.preprocess import needs_stagger, padUMI
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 fqlist       = config["Inputs"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 #bc_len       = config["Parameters"]["barcode-length"]

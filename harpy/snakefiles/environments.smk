@@ -1,6 +1,6 @@
 from harpy.common.conda import CONDA_ENVS
 
-VERSION = 4.0
+VERSION=4.0
 
 rule all:
     input:

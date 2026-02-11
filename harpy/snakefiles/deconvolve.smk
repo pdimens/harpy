@@ -4,7 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 fqlist      = config["Inputs"]
 kmer_length = config["Parameters"]["kmer-length"]
 window_size = config["Parameters"]["window-size"]

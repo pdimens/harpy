@@ -4,7 +4,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 ploidy 		= config["Parameters"]["ploidy"]
 extra 	    = config["Parameters"].get("extra", "") 
 regions_input = config["Inputs"]["regions"]

@@ -1,6 +1,6 @@
 import os
 
-VERSION = 4.0
+VERSION=4.0
 FQ1 = config["Inputs"]["fastq-r1"]
 FQ2 = config["Inputs"]["fastq-r2"]
 skip_reports  = config["Workflow"]["reports"]["skip"]

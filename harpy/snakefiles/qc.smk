@@ -4,7 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION = 4.0
+VERSION=4.0
 lr_type       = config["Workflow"]["linkedreads"]["type"]
 skip_reports  = config["Workflow"]["reports"]["skip"]
 fqlist        = config["Inputs"]
