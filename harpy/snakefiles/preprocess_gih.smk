@@ -28,14 +28,20 @@ def get_fq2(wildcards):
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
-rule find_ME_seq_R1:
+
+rule all:
+    default_target: True
+    input: collect("stagger/{sample}.R1.fq.gz", sample = samplenames)
+
+
+rule find_ME_seq:
     input:
         get_fq1
     output:
-        info = temp("ME_position/{sample}.R1.info"),
-        summ = temp("ME_position/{sample}.R1.info.summ")
+        info = temp("ME_position/{sample}.info"),
+        summ = temp("ME_position/{sample}.info.summ")
     log:
-        "logs/find_ME_seq/{sample}.R1.log"
+        "logs/find_ME_seq/{sample}.log"
     params:
         static = f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null",
         awk = """awk -F '\\t' '{a[$2]++; if($2>=0) {b[$3]++; c[$4]++;} else next;} END {print "col2=mismatch"; for(i in a) print a[i],i; print "\\ncol3=startpost"; for(j in b) print b[j],j; print "\\ncol4=endpos"; for(k in c) print c[k],k;}'"""
@@ -53,69 +59,48 @@ rule find_ME_seq_R1:
         }} 2> {log}
         """
 
-#use rule find_ME_seq_R1 as find_ME_seq_R2 with:
-#    input:
-#        get_fq2
-#    output:
-#        info = temp("ME_position/{sample}.R2.info"),
-#        summ = temp("ME_position/{sample}.R2.info.summ")
-#    log:
-#        "logs/find_ME_seq/{sample}.R1.log"
-
-rule all:
-    default_target: True
-    #input: collect("ME_position/{sample}.info", sample = samplenames)
-    input: collect("stagger/{sample}.R1.fq.gz", sample = samplenames)
-
-rule pad_UMI_R1:
+rule pad_UMI:
     input:
-        fq = get_fq1,
-        info = "ME_position/{sample}.R1.info",
-        summary = "ME_position/{sample}.R1.info.summ"
+        FQ1 = get_fq1,
+        FQ2 = get_fq2,
+        info = "ME_position/{sample}.info",
+        summary = "ME_position/{sample}.info.summ"
     output:
-        fq = "stagger/{sample}.R1.fq.gz"
+        FQ1 = "stagger/{sample}.R1.fq.gz",
+        FQ2 = "stagger/{sample}.R2.fq.gz"
     log:
-        "logs/{sample}.R1.stagger.log"
+        "logs/{sample}.stagger.log"
     threads:
         4 if has_pigz else 1
     run:
         if needs_stagger(input.summary):
-            shell(f"stagger-GIH -t {threads} -b 20000 {input.info} {input.fq} > {output.fq} 2> {log[0]}")
+            shell(f"stagger-GIH -t {threads} -b 20000 {input.info} {input.FQ1} > {output.FQ1} 2> {log[0]}")
         else:
-            shell(f"ln -sr {input.fq} {output.fq}")
+            shell(f"ln -sr {input.FQ1} {output.FQ1} 2> {log[0]}")
+        shell(f"ln -sr {input.FQ2} {output.FQ2} 2>> {log[0]}")
 
-#use rule pad_UMI_R1 as pad_UMI_R2 with:
-#    input:
-#        fq = get_fq2,
-#        info = "ME_position/{sample}.R2.info",
-#        summary = "ME_position/{sample}.R2.info.summ"
-#    output:
-#        fq = "stagger/{sample}.R2.fq.gz"
-#    log:
-#        "logs/{sample}.R2.stagger.log"
+rule extract_barcodes:
+    input:
+        FQ1 = "stagger/{sample}.R1.fq.gz",
+        FQ2 = "stagger/{sample}.R1.fq.gz",
+        pheniqs_conf = "workflow/pheniqs_config.json"
+    output:
+        FW = "extract/{sample}.R1.bam",
+        RV = "extract/{sample}.R2.bam"
+    log:
+        "logs/extract/{sample}.json"
+    shell:
+        """
+        pheniqs mux \
+            --input {input.FQ1} \
+            --input {input.FQ2} \
+            --output {output.FW} \
+            --output {output.RV} \
+            -c {input.pheniqs_conf} \
+            --quality \
+            --report {log}
+        """
 
-#rule move_barcodes:
-#    input:
-#        FQ1 = "stagger/{sample}.R1.fq.gz",
-#        FQ2 = "stagger/{sample}.R1.fq.gz",
-#        pheniqs_conf = "workflow/pheniqs_config.json"
-#    output:
-#        FQ1 = "pheniqs/{sample}_extract_R1.bam",
-#        FQ2 = "pheniqs/{sample}_extract_R2.bam"
-#    log:
-#        "logs/pheniqs/{sample}.json"
-#    shell:
-#        """
-#        pheniqs mux \
-#            --input {input.FQ1} \
-#            --input {input.FQ2} \
-#            --output {output.FQ1} \
-#            --output {output.FQ2} \
-#            -c {input.pheniqs_conf} \
-#            --quality \
-#            --report {log}
-#        """
-#
 #rule convert_to_fastq:
 #    input:
 #        FQ1 = ,

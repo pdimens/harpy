@@ -35,19 +35,21 @@ def main():
         parser.error(f"{args.fastq} does not exist")
 
     # Precompute pad sequences for p=0..7
-    pad = [
-        "TTTTTTT",
-        "CCCCCC",
-        "GGGGG",
-        "AAAA",
-        "TTT",
-        "CC",
-        "GG",
-        ""
-    ]
-
+    pad = {
+        0: "TTTTTTT",
+        1: "CCCCCC",
+        2: "GGGGG",
+        3: "AAAA",
+        4: "TTT",
+        5: "CC",
+        6: "GG",
+        7: ""
+    }
+    
     # Precompute quality pads (7-p) × 'I'
-    qpad = ["I" * (7 - i) for i in range(8)]
+    qpad = {}
+    for i in range(8):
+        qpad[i] = "I" * (7 - i)
 
     # Setup compression subprocess
     _cmd = ['pigz', '-c', '-p', f'{max(args.threads-1, 1)}'] if shutil.which("pigz") else ['gzip', '-c']
@@ -60,6 +62,7 @@ def main():
     )
 
     batch = []
+    discarded = 0
     try:
         with open(args.info, 'r') as f, pysam.FastxFile(args.fastq, persist=False) as fq:
             t = 0
@@ -79,7 +82,10 @@ def main():
 
                 # Compute pad length p
                 col2 = int(fields[1])
-                col3 = int(fields[2]) if col2 > -1 else 0   
+                if col2 == -1:
+                    discarded += 1
+                    continue
+                col3 = int(fields[2])
                 p = 7 if (col2 == -1 or col3 < 51 or col3 > 58) else (col3-51)
 
                 # Extract header token up to first space
@@ -123,5 +129,6 @@ def main():
         compressor.kill()
     
     finally:
+        sys.stderr.write(f"Reads discarded without ME sequence: {discarded}\n")
         compressor.stdin.close()
         compressor.wait()    

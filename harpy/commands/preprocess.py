@@ -4,6 +4,7 @@ import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
 from harpy.common.cli_types_generic import SnakemakeParams
+from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
@@ -53,7 +54,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output_dir, container, clean, quiet) 
+    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output_dir, container, clean, quiet, no_validation=True) 
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["qc"]
     
@@ -79,7 +80,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
-@click.option('-l', '--spacer-length', panel = "Parameters",  type = click.IntRange(min = 10), default = 77, show_default=True, help = 'Length of spacers between barcodes')
+#@click.option('-l', '--spacer-length', panel = "Parameters",  type = click.IntRange(min = 10), default = 77, show_default=True, help = 'Length of spacers between barcodes')
 @click.option('-M', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
 @click.option('-O', '--me-overlap', panel = "Parameters", default = 19, show_default = True, type = click.IntRange(0,300, clamp = True), help = 'ME sequence overlap')
 @click.option('-m', '--min-length', panel = "Parameters", type = click.IntRange(min = 5), show_default=True,  default = 50, help = 'Minimum insert length (bp) of reads to retain')
@@ -96,7 +97,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 #@click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output_dir, spacer_length, me_seq, me_overlap, min_length, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
@@ -105,7 +106,7 @@ def gih(inputs, output_dir, spacer_length, me_seq, me_overlap, min_length, threa
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
     The `BARCODES` file must have **no header** (i.e. no column name). 
     """
-    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output_dir, container, clean, quiet) 
+    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output_dir, container, clean, quiet, no_validation=True) 
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["qc"]
 
@@ -118,6 +119,7 @@ def gih(inputs, output_dir, spacer_length, me_seq, me_overlap, min_length, threa
     #bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
 
     workflow.notebooks["skip"] = skip_reports
+    fetch_template("pheniqs_config.json", os.path.join(output_dir, "workflow", "pheniqs_config.json"))
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
     workflow.param(me_overlap, "ME-overlap")
