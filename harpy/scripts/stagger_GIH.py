@@ -21,7 +21,6 @@ def main():
     parser.add_argument('-t', '--threads', type = int, default = 4, help = "Number of threads for pigz (if available)")
     parser.add_argument('-b', '--batchsize', type = int, default = 10000, help = "Batch write this many FASTQ records at a time")
     parser.add_argument('info', type = str, help = "info file from cutadapt")
-    #parser.add_argument('suminfo', required = True, type = str, help = "info_summary file")
     parser.add_argument('fastq', type = str, help = "fastq file")
 
     if len(sys.argv) == 1:
