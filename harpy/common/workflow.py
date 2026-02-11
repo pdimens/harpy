@@ -17,7 +17,7 @@ class Workflow():
     '''
     The container for workflow parameters. Set inputdir = True to create a workflow/input directory
     '''
-    def __init__(self, name, snakefile, outdir, container, clean, quiet, inputdir = False):
+    def __init__(self, name, snakefile, outdir, container, clean, quiet, inputdir = False, no_validation: bool = False):
         os.makedirs(
             os.path.join(outdir, 'workflow') if not inputdir else os.path.join(outdir, 'workflow', 'input'),
             exist_ok = True
@@ -50,7 +50,7 @@ class Workflow():
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
         self.summary_text: str = ""
 
-        if self.quiet == 0 and "demultiplex" not in self.name and self.snakefile != "NA":
+        if self.quiet == 0 and not no_validation:
             self.print.console.rule("[bold]Input Validation", style = "dim magenta")
 
     def param(self, value, name: str):
@@ -291,7 +291,7 @@ class Workflow():
         if not setup:
             self.launch()
         else:
-            self.print.rule("[dim bold]workflow setup complete", style="dim")
+            self.print.rule("[dim bold]Setup Complete", style="dim")
 
     def launch(self, absolute:bool = False):
         """Launch Snakemake as a monitored subprocess"""
@@ -299,7 +299,7 @@ class Workflow():
         sm = LaunchSnakemake(cmd, self.output_directory, self.quiet, self.print)
 
         if self.clean:
-            self.print.rule("[dim]Cleaning output directory", style = "dim")
+            self.print.rule("[dim]Cleaning Output", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
                 if i in self.clean.lower():
                     self.print.log(f"Removing: [blue]{j}/[/]")

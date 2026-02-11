@@ -89,7 +89,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     _dir = snakemake_profile_extract(snakemake_config, "directory")
     _inputs = config_extract(harpy_config, "Inputs")
 
-    workflow = Workflow(_name, "NA", _dir, False, clean, quiet)
+    workflow = Workflow(_name, "NA", _dir, False, clean, quiet, no_validation=True)
     if isinstance(_inputs, list):
         workflow.input(_inputs)
     else:
