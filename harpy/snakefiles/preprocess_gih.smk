@@ -59,7 +59,7 @@ rule find_ME_seq:
         }} 2> {log}
         """
 
-rule pad_UMI:
+rule barcode_padding:
     input:
         FQ1 = get_fq1,
         FQ2 = get_fq2,
@@ -74,10 +74,10 @@ rule pad_UMI:
         4 if has_pigz else 1
     run:
         if needs_stagger(input.summary):
-            shell(f"stagger-GIH -t {threads} -b 20000 {input.info} {input.FQ1} > {output.FQ1} 2> {log[0]}")
+            shell(f"stagger-GIH -t {threads} -b 20000 stagger/{wildcards.sample} {input.info} {input.FQ1} {input.FQ2} 2> {log[0]}")
         else:
             shell(f"ln -sr {input.FQ1} {output.FQ1} 2> {log[0]}")
-        shell(f"ln -sr {input.FQ2} {output.FQ2} 2>> {log[0]}")
+            shell(f"ln -sr {input.FQ2} {output.FQ2} 2>> {log[0]}")
 
 rule extract_barcodes:
     input:

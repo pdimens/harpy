@@ -24,7 +24,7 @@ itables = ">=2.6.2,<3"
 pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
 papermill = ">=2.6.0,<3"
-djinn = ">=2.1,<3"
+djinn = "2.1.*"
 mosdepth = ">=0.3.10,<0.4"
 
 [pypi-dependencies]
