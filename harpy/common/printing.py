@@ -160,11 +160,11 @@ class HarpyPrint():
         _table = self.table()
         _table.add_column("Lpadding", justify="left")
         _table.add_column("shell", justify="left")
-        _table.add_column("Rpadding", justify="left")
+        #_table.add_column("Rpadding", justify="left")
 
         text = re.sub(r' {2,}|\t+', '  ', text)
         cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
-        _table.add_row("  ", cmd, "  ")
+        _table.add_row("  ", cmd)#, "  ")
         self.console.print(_table)
 
     def validation(self, success: bool) -> None:

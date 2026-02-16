@@ -28,7 +28,8 @@ def get_fq2(wildcards):
 
 rule all:
     default_target: True
-    input: collect("stagger/{sample}.stagger.bam", sample = samplenames)
+    input: collect("extract/{sample}.R1.bam", sample = samplenames)
+    #input: collect("stagger/{sample}.stagger.bam", sample = samplenames)
 
 
 rule find_ME_seq:
@@ -77,24 +78,17 @@ rule extract_barcodes:
         pheniqs_conf = "workflow/pheniqs_config.json"
     output:
         FW = "extract/{sample}.R1.bam",
-        RV = "extract/{sample}.R2.bam"
+        RV = "extract/{sample}.R2.bam",
+        json = "logs/extract/{sample}.json"
     log:
-        json = "logs/extract/{sample}.json",
-        err = "logs/{sample}.pheniqs"
+        "logs/{sample}.pheniqs"
     conda:
         "envs/preprocess.yaml"
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
-        pheniqs mux \
-            --input {input.stagger} \
-            --input {input.stagger} \
-            --output {output.FW} \
-            --output {output.RV} \
-            -c {input.pheniqs_conf} \
-            --quality \
-            --report {log.json} 2> {log.err}
+        pheniqs mux --input {input.stagger} --input {input.stagger} --output {output.FW} --output {output.RV} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
         """
 
 #rule convert_to_fastq:

@@ -62,6 +62,6 @@
         }
     ],
     "import": [
-        "pheniqs_barcode_set_core.json"
+        "workflow/pheniqs_barcodes.json"
     ]
 }

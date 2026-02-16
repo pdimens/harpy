@@ -121,6 +121,7 @@ def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, 
 
     workflow.notebooks["skip"] = skip_reports
     fetch_template("pheniqs_config.json", os.path.join(output_dir, "workflow", "pheniqs_config.json"))
+    fetch_template("pheniqs_barcodes.json", os.path.join(output_dir, "workflow", "pheniqs_config.json"))
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
     workflow.param(me_overlap, "ME-overlap")
