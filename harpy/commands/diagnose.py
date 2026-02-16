@@ -98,12 +98,12 @@ def rule(directory):
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
 
-    if not os.path.exists(f'{directory}/logs/snakemake/'):
-        hp.error("missing log folder", f"Target directory [blue]{directory}[/] does not contain the folder [bold]logs/snakemake[/]")
+    if not os.path.exists(f'{directory}/.snakemake/log'):
+        hp.error("missing log folder", f"Target directory [blue]{directory}[/] does not contain the folder [bold].snakemake/log[/]")
     # get the lastest snakemake log file
-    list_of_files = glob.glob(f'{directory}/logs/snakemake/*')
+    list_of_files = glob.glob(f'{directory}/.snakemake/log/*')
     if not list_of_files:
-        hp.error("missing log files", f"Log directory [blue]{directory}/logs/snakemake[/] does not have any log files in it")
+        hp.error("missing log files", f"Log directory [blue]{directory}/.snakemake/log[/] does not have any log files in it")
 
     latest_log = max(list_of_files, key=os.path.getctime)
 
@@ -139,9 +139,8 @@ def rule(directory):
                 if line.strip() == "(command exited with non-zero exit code)":
                     break
                 cmd.append(line.strip())
-
     if failed_rule:
-        hp.log(f"Failing rule: [yellow]{failed_rule}")
+        hp.log(f"Failing rule: [yellow]{failed_rule}", newline=True)
     else:
         hp.console.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
         sys.exit(0)
@@ -150,23 +149,25 @@ def rule(directory):
             hp.error("missing workflow config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         if not os.path.exists(PROFILE_FILE):
             hp.error("missing snakemake config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
-        hp.log("Missing input files:\n  [yellow]" + '\n  '.join(infiles))
+        hp.log("Missing input files:\n  [yellow]" + '\n  '.join(infiles), newline=True)
 
         with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
             harpy_config = yaml.full_load(f)
             command = harpy_config["snakemake"]["absolute"]
 
         command += f" --quiet --no-temp {' '.join(infiles)}"
-        hp.log("Rerunning Snakemake to generate inputs")
+        hp.log("Rerunning Snakemake to generate inputs", newline=True)
         hp.shell(command)
         sm = os.system(command)
         if sm != 0:
             hp.error("workflow error", "Harpy attempted to regenerate the input files necessary to run the failed rule directly, but that seemed to fail too. You may want to try manually rerunning the step(s) that failed.")
     else:
-        hp.log("Missing input files: [green]None")
-    hp.log("Running failed code block")
+        hp.log("Missing input files: [green]None", newline=True)
+    hp.log("Running failed code block", newline=True)
     if conda:
         hp.shell("\n".join(cmd))
+        print("\n".join([conda, f"cd {directory}", *cmd]))
+
         os.system("\n".join([conda, f"cd {directory}", *cmd]))
     elif container:
         joined_cmd = "\n".join([*cmd])
