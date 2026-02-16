@@ -125,8 +125,8 @@ class HarpyPrint():
             except ModuleNotFoundError:
                 pass
         self.console.rule(f"[bold]{errortype}[/][default dim]", style = "red")
-        self.console.print("[red]Time:[/] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
-        self.console.print(f"[red]Harpy Version:[/] {VERSION}")
+        self.console.print("[red]Time:[/] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'), highlight=False)
+        self.console.print(f"[red]Harpy Version:[/] {VERSION}", highlight=False)
         self.console.print(errortext)
         self.console.rule("[bold]Error Reported by Snakemake", style = "red")
 

@@ -84,7 +84,7 @@ class Workflow():
         else:
             self.inputs[name] = value
 
-    def setup_snakemake(self, threads: int, hpc: str|None = None, sm_extra: str|None = None):
+    def setup_snakemake(self, threads: int, hpc: str|None = None, sm_extra: str|None = None, notemp: bool = False):
         """
         Sets up the snakemake command based on hpc, threads, and extra snakemake params.
         """
@@ -126,6 +126,9 @@ class Workflow():
             self.hpc = hpc
             hpc_dir = os.path.join(self.workflow_directory, "hpc")
             self.profile["workflow-profile"] = hpc_dir
+        if notemp:
+            _command.append("--no-temp")
+            _command_rel.append("--no-temp")
         if sm_extra:
             _command.append(sm_extra)
             _command_rel.append(sm_extra)

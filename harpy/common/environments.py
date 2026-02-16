@@ -36,6 +36,10 @@ class HarpyEnvs():
         "metassembly": [
             "bioconda::athena_meta=1.2"
         ],
+        "preprocess": [
+            "bioconda::dmox>=0.2",
+            "bioconda::pheniqs=2.1",
+        ],
         "phase" : [
             "bioconda::hapcut2",
             "bioconda::whatshap"
@@ -43,7 +47,6 @@ class HarpyEnvs():
         "qc" : [
             "conda-forge::click=8.2.1",
             "bioconda::cutadapt",
-            "bioconda::dmox>=0.2",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::mosdepth",

@@ -1,7 +1,5 @@
 import os
 import re
-import shutil
-from harpy.common.preprocess import needs_stagger
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -13,7 +11,6 @@ skip_reports = config["Workflow"]["reports"]["skip"]
 insert_min   = config["Parameters"]["minimum-length"]
 me_seq       = config["Parameters"]["ME-sequence"] 
 overlap      = config["Parameters"]["ME-overlap"] 
-has_pigz     = bool(shutil.which('pigz'))
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -31,7 +28,7 @@ def get_fq2(wildcards):
 
 rule all:
     default_target: True
-    input: collect("stagger/{sample}.R1.fq.gz", sample = samplenames)
+    input: collect("stagger/{sample}.stagger.bam", sample = samplenames)
 
 
 rule find_ME_seq:
@@ -59,46 +56,45 @@ rule find_ME_seq:
         }} 2> {log}
         """
 
-rule barcode_padding:
+rule pad_barcodes:
     input:
-        FQ1 = get_fq1,
-        FQ2 = get_fq2,
         info = "ME_position/{sample}.info",
-        summary = "ME_position/{sample}.info.summ"
+        summary = "ME_position/{sample}.info.summ",
+        FQ1 = get_fq1,
+        FQ2 = get_fq2
     output:
-        FQ1 = "stagger/{sample}.R1.fq.gz",
-        FQ2 = "stagger/{sample}.R2.fq.gz"
+        temp("stagger/{sample}.stagger.bam")
     log:
         "logs/{sample}.stagger.log"
     threads:
-        4 if has_pigz else 1
-    run:
-        if needs_stagger(input.summary):
-            shell(f"stagger-GIH -t {threads} -b 20000 stagger/{wildcards.sample} {input.info} {input.FQ1} {input.FQ2} 2> {log[0]}")
-        else:
-            shell(f"ln -sr {input.FQ1} {output.FQ1} 2> {log[0]}")
-            shell(f"ln -sr {input.FQ2} {output.FQ2} 2>> {log[0]}")
+        2
+    shell:
+        "stagger-GIH {input} | samtools import -s - > {output} 2> {log}"
 
 rule extract_barcodes:
     input:
-        FQ1 = "stagger/{sample}.R1.fq.gz",
-        FQ2 = "stagger/{sample}.R1.fq.gz",
+        stagger = "stagger/{sample}.stagger.bam",
         pheniqs_conf = "workflow/pheniqs_config.json"
     output:
         FW = "extract/{sample}.R1.bam",
         RV = "extract/{sample}.R2.bam"
     log:
-        "logs/extract/{sample}.json"
+        json = "logs/extract/{sample}.json",
+        err = "logs/{sample}.pheniqs"
+    conda:
+        "envs/preprocess.yaml"
+    container:
+        f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
         pheniqs mux \
-            --input {input.FQ1} \
-            --input {input.FQ2} \
+            --input {input.stagger} \
+            --input {input.stagger} \
             --output {output.FW} \
             --output {output.RV} \
             -c {input.pheniqs_conf} \
             --quality \
-            --report {log}
+            --report {log.json} 2> {log.err}
         """
 
 #rule convert_to_fastq:

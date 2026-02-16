@@ -88,6 +88,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
+@click.option('--notemp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -97,7 +98,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 #@click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, notemp):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
@@ -107,8 +108,8 @@ def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, 
     The `BARCODES` file must have **no header** (i.e. no column name). 
     """
     workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output_dir, container, clean, quiet, no_validation=True) 
-    workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["qc"]
+    workflow.setup_snakemake(threads, hpc, snakemake, notemp)
+    workflow.conda = ["qc", "preprocess"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = False, quiet= True)

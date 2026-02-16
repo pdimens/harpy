@@ -51,7 +51,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
-    Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution.
+    Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake)

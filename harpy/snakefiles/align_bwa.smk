@@ -72,7 +72,7 @@ rule align:
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        temp("samples/{sample}/{sample}.bwa.sam")
+        temp("samples/{sample}/{sample}.sam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -95,11 +95,12 @@ rule align:
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.bwa.sam",
+        sam    = "samples/{sample}/{sample}.sam",
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
-        temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam") 
+        "{sample}.bam.bai",
+        bam = "{sample}.bam",
     log:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
@@ -119,45 +120,35 @@ rule mark_duplicates:
             OPTICAL_BUFFER=100
         fi 
         {{
-            djinn sam standardize --sam {input} |
-                samtools collate -O -u {input.sam} |
+            djinn sam standardize --sam {input.sam} |
+                samtools collate -O -u - |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
                 samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output}
+                samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}
         }} 2> {log.debug}
         rm -rf {params.tmpdir}
-        """
-
-rule assign_molecules:
-    priority: 100
-    input:
-        "samples/{sample}/{sample}.markdup.bam"
-    output:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    log:
-        "logs/assign_mi/{sample}.assign_mi.log"
-    params:
-        molecule_distance
-    shell:
-        """
-        djinn sam assign-mi -c {params} {input} > {output.bam} 2> {log}
-        samtools index {output.bam}
         """
 
 rule barcode_stats:
     input:
         "{sample}.bam.bai",
         bam = "{sample}.bam"
-    output: 
-        "reports/data/bxstats/{sample}.bxstats.gz"
+    output:
+        mi_bam = temp("assign_mi/{sample}.bam"),
+        stats = "reports/data/bxstats/{sample}.bxstats.gz"
     log:
         "logs/bxstats/{sample}.bxstats.log"
     params:
-        sample = lambda wc: d[wc.sample]
+        molecule_distance
+#        sample = lambda wc: d[wc.sample]
     shell:
-        "bx_stats {input.bam} > {output} 2> {log}"
+        """
+        {{
+            djinn sam assign-mi -c {params} {input} > {output.bam}
+            bx-stats {input.bam}        
+        }} > {output} 2> {log}
+        """
 
 rule molecule_coverage:
     input:
@@ -177,29 +168,19 @@ rule alignment_coverage:
         "{sample}.bam.bai",
         bam = "{sample}.bam"
     output: 
-        "reports/data/coverage/{sample}.regions.bed.gz "
+        "reports/data/coverage/{sample}.regions.bed.gz"
     params:
-        windowsize
+        f"-b {windowsize}",
+        "-n --fast-mode"
+    threads:
+        2
     conda:
         "envs/qc.yaml"
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "mosdepth -b {params} -n --fast-mode reports/data/coverage/{wildcards.sample} {input.bam}"
+        "mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam}"
       
-if ignore_bx:
-    rule index_bam:
-        input:
-            "markdup/{sample}.markdup.bam"
-        output:
-            "{sample}.bam.bai",
-            bam = "{sample}.bam"
-        shell:
-            """
-            mv {input} {output.bam}
-            samtools index {output.bam}
-            """
-
 rule general_stats:
     input:
         "{sample}.bam.bai",
@@ -239,8 +220,8 @@ rule samtools_report:
 rule sample_reports:
     input:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = "reports/data/coverage/{sample}.cov.gz",
-        molecule-coverage = "reports/data/coverage/{sample}.regions.bed.gz",
+        coverage = "reports/data/coverage/{sample}.regions.bed.gz",
+        molcov = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
     output:
         tmp = temp("reports/{sample}.tmp.ipynb"),
