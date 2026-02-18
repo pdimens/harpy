@@ -7,6 +7,9 @@ import pysam
 import sys
 
 class ReadCloud():
+    '''
+    A class to store the relevant information of alignment records that have the same `BX` barcode tag.
+    '''
     def __init__(self, valid: bool = True):
         self.positions: list[list[int]] = []
         self.bp: list[int] = []
@@ -24,7 +27,12 @@ class ReadCloud():
         self.bp.append(record.query_alignment_length)
         self.count.append(record.is_read1 or not record.is_paired)
 
-    def deconvolve(self, chrom, cutoff):
+    def deconvolve(self, chrom, cutoff) -> str:
+        '''
+        Process the read cloud and deconvolute using `cutoff` (if it's >0). Deconvolution
+        appends `-N` to the barcodes where `N` is an integer (e.g. `-1`, `-2`). Returns
+        a string of barcode row(s) and the associated stats.
+        '''
         if not self.valid:
             return "{chrom}\t-1\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count))
         result = ""
@@ -75,6 +83,11 @@ class ReadCloud():
         return result
 
     def stats(self, start, end, insert, bp, count) -> str:
+        '''
+        Calculate coverage and return a string of count, start position,
+        end position, inferred length, bases aligned, insert length,
+        coverage based on aligned bases, and coverage based on inferred inserts.
+        '''
         #columns = reads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n"
         inferred = end - start
         try:
