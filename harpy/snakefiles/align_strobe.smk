@@ -76,12 +76,12 @@ rule mark_duplicates:
         genome = workflow_geno,
         faidx  = f"{workflow_geno}.fai"
     output:
-        temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam")
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
     params: 
-        tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = config["Parameters"]['min-map-quality']
     resources:
@@ -94,47 +94,34 @@ rule mark_duplicates:
             OPTICAL_BUFFER=2500
         else
             OPTICAL_BUFFER=100
-        fi
+        fi 
         {{
-            djinn sam standardize --sam {input} |
-                samtools collate -O -u {input.sam} |
+            djinn sam standardize --sam {input.sam} |
+                samtools collate -O -u - |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
-                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 
+                samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+                samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {params.tmpdir}
-        """
-
-rule assign_molecules:
-    priority: 100
-    input:
-        "samples/{sample}/{sample}.markdup.bam"
-    output:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    log:
-        "logs/assign_mi/{sample}.assign_me.log"
-    params:
-        molecule_distance
-    shell:
-        """
-        djinn sam assign-mi -c {params} {input} > {output.bam} 2> {log}
-        samtools index {output.bam}
+        rm -rf .{wildcards.sample}
         """
 
 rule barcode_stats:
     input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    output: 
+        "{sample}.bam"
+    output:
         "reports/data/bxstats/{sample}.bxstats.gz"
     log:
         "logs/bxstats/{sample}.bxstats.log"
     params:
-        sample = lambda wc: d[wc.sample]
+        molecule_distance
     shell:
-        "bx_stats {input.bam} > {output} 2> {log}"
+        """
+        {{
+            bx-stats -d {params} {input} |
+            gzip
+        }} > {output} 2> {log}
+        """
 
 rule molecule_coverage:
     input:
@@ -147,7 +134,12 @@ rule molecule_coverage:
     params:
         windowsize
     shell:
-        "molecule-coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
+        """
+        {{
+            molecule-coverage -f {input.fai} -w {params} {input.stats} | 
+            gzip
+        }} > {output} 2> {log}
+        """
 
 rule alignment_coverage:
     input: 

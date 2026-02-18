@@ -100,12 +100,11 @@ rule mark_duplicates:
         faidx  = workflow_geno_idx
     output:
         "{sample}.bam.bai",
-        bam = "{sample}.bam",
+        bam = "{sample}.bam"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
     params: 
-        tmpdir = lambda wc: "." + d[wc.sample],
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = config["Parameters"]['min-map-quality']
     resources:
@@ -124,29 +123,26 @@ rule mark_duplicates:
                 samtools collate -O -u - |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
-                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+                samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
                 samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {params.tmpdir}
+        rm -rf {wildcards.sample}
         """
 
 rule barcode_stats:
     input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
+        "{sample}.bam"
     output:
-        mi_bam = temp("assign_mi/{sample}.bam"),
-        stats = "reports/data/bxstats/{sample}.bxstats.gz"
+        "reports/data/bxstats/{sample}.bxstats.gz"
     log:
         "logs/bxstats/{sample}.bxstats.log"
     params:
         molecule_distance
-#        sample = lambda wc: d[wc.sample]
     shell:
         """
         {{
-            djinn sam assign-mi -c {params} {input} > {output.bam}
-            bx-stats {input.bam}        
+            bx-stats -d {params} {input} |
+            gzip
         }} > {output} 2> {log}
         """
 
@@ -161,8 +157,12 @@ rule molecule_coverage:
     params:
         windowsize
     shell:
-        "molecule-coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
-
+        """
+        {{
+            molecule-coverage -f {input.fai} -w {params} {input.stats} | 
+            gzip
+        }} > {output} 2> {log}
+        """
 rule alignment_coverage:
     input: 
         "{sample}.bam.bai",

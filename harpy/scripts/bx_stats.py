@@ -1,34 +1,111 @@
 #! /usr/bin/env python
 """calculate linked-read metrics from barcode information"""
-import os
-import sys
-import subprocess
 import argparse
+import os
+import numpy as np
 import pysam
+import sys
 
-def process_molecule(chrom: str, mol, values: dict) -> bytes:
-    '''process the molecule values and return it formatted as a table row for writing'''
-    inferred = values['end'] - values['start']
-    try:
-        cov_bp = max(0, round(min(values["bp"] / inferred, 1.0),5))
-        cov_ins = max(0, round(min(values["insert_len"] / inferred, 1.0), 5))
-    except ZeroDivisionError:
-        cov_bp = 0
-        cov_ins = 0
-    # replace "invalidBX" (if present) with -1
-    mol_name = -1 if mol == "invalidBX" else mol
-    return (
-        f"{chrom}\t{mol_name}\t{values['n']}\t{values['start']}\t{values['end']}\t{inferred}"
-        f"\t{values['bp']}\t{values['insert_len']}\t{cov_bp}\t{cov_ins}\n"
-    ).encode("utf-8")
+class ReadCloud():
+    def __init__(self, valid: bool = True):
+        self.positions: list[list[int]] = []
+        self.bp: list[int] = []
+        self.inserts : list[int] = []
+        self.count : list[bool] = []
+        self.valid = valid
+        self.barcode = ""
 
-def writestats(x, writechrom, destination):
+    def add(self, record: pysam.AlignedSegment):
+        '''add a pysam alignment record to the read cloud, keeping only the relevant info'''
+        if self.valid:
+            self.positions.append([record.reference_start, record.reference_end])
+            self.inserts.append(insert_size(record))
+            self.barcode = record.get_tag("BX")
+        self.bp.append(record.query_alignment_length)
+        self.count.append(record.is_read1 or not record.is_paired)
+
+    def deconvolve(self, chrom, cutoff):
+        if not self.valid:
+            return "{chrom}\t-1\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count))
+        result = ""
+        # sort alignment extrema by leftmost position and sort the subsequent info the same way
+        sort_values = [sublist[0] for sublist in self.positions]
+        sorted_indices = np.argsort(sort_values)
+        self.positions = [self.positions[i] for i in sorted_indices]
+        self.bp = [self.bp[i] for i in sorted_indices]
+        self.inserts = [self.inserts[i] for i in sorted_indices]
+        self.count = [self.count[i] for i in sorted_indices]
+
+        # instantiate with the first value
+        deconv = 0
+        start = self.positions[0][0]
+        end = self.positions[0][1]
+        insert = self.inserts[0]
+        bp = self.bp[0]
+        count = int(self.count[0])
+
+        for idx in range(1, len(self.positions)):
+            prev_end = self.positions[idx - 1][1]
+            curr_start = self.positions[idx][0]
+            curr_end = self.positions[idx][1]
+
+            # check if this alignment should be merged with current molecule
+            if cutoff == 0 or (curr_start - prev_end) <= cutoff:
+                # merge into current molecule
+                end = max(end, curr_end)
+                insert += self.inserts[idx]
+                bp += self.bp[idx]
+                count += self.count[idx]
+            else:
+                # gap exceeds cutoff - write current molecule and start new one
+                BC = f"{self.barcode}-{deconv}" if deconv > 0 else self.barcode
+                result += f"{chrom}\t{BC}\t" + self.stats(start, end, insert, bp, count)
+
+                # start new molecule with current alignment
+                deconv += 1
+                start = self.positions[idx][0]
+                end = curr_end
+                insert = self.inserts[idx]
+                bp = self.bp[idx]
+                count = int(self.count[idx])
+
+        # write final molecule
+        BC = f"{self.barcode}-{deconv}" if deconv > 0 else self.barcode
+        result += f"{chrom}\t{BC}\t" + self.stats(start, end, insert, bp, count)
+        return result
+
+    def stats(self, start, end, insert, bp, count) -> str:
+        #columns = reads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n"
+        inferred = end - start
+        try:
+            cov_bp = max(0, round(min(bp / inferred, 1.0),5))
+            cov_ins = max(0, round(min( insert / inferred, 1.0), 5))
+        except ZeroDivisionError:
+            cov_bp = 0
+            cov_ins = 0
+        return f"{count}\t{start}\t{end}\t{inferred}\t{bp}\t{insert}\t{cov_bp}\t{cov_ins}\n"
+
+def writestats(x: dict, thresh, writechrom):
     """write to file the bx stats dictionary as a table"""
     for _mi in list(x.keys()):
-        molstats = process_molecule(writechrom, _mi, x[_mi])
-        destination.stdin.write(molstats)
+        sys.stdout.write(x[_mi].deconvolve(writechrom, thresh))
         # delete the entry after processing to ease up system memory
         del x[_mi]
+
+def insert_size(rec) -> int:
+    '''Calculate the insert size'''
+    # start position of first alignment
+    if rec.is_paired:
+        if rec.is_supplementary:
+            # if it's a supplementary alignment, just use the alignment length
+            isize = rec.query_alignment_length
+        else:
+            # by using max(), will either add 0 or positive TLEN to avoid double-counting
+            isize = max(0, rec.template_length)
+    else:
+        # if it's unpaired, use the TLEN or query length, whichever is bigger
+        isize = max(abs(rec.template_length), rec.infer_query_length())
+    return isize
 
 def main():
     parser = argparse.ArgumentParser(
@@ -44,10 +121,11 @@ def main():
         coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
         insert length. Input file **must be coordinate sorted**.
         """,
-        usage = "bx_stats input.bam > output.gz",
+        usage = "bx-stats <-d DISTANCE> input.bam > output.gz",
         exit_on_error = False
         )
 
+    parser.add_argument('-d', '--distance-threshold', type = int, default=0, help = "Calculate statistics assuming this distance threshold for linking alignments sharing a barcode")
     parser.add_argument('input', help = "Input coordinate-sorted bam/sam file.")
 
     if len(sys.argv) == 1:
@@ -57,15 +135,10 @@ def main():
     args = parser.parse_args()
     if not os.path.exists(args.input):
         parser.error(f"{args.input} was not found")
-
-    with (
-        pysam.AlignmentFile(args.input) as alnfile,
-        subprocess.Popen(["gzip"], stdin = subprocess.PIPE, stdout = sys.stdout) as gz_out
-    ):
-        gz_out.stdin.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n".encode("utf-8"))
-
+    dist_thresh = max(0, args.distance_threshold)
+    sys.stdout.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
+    with pysam.AlignmentFile(args.input) as alnfile:
         d = {}
-        all_bx = set()
         LAST_CONTIG = None
 
         for read in alnfile.fetch(until_eof=True):
@@ -73,7 +146,7 @@ def main():
             # check if the current chromosome is different from the previous one
             # if so, print the dict to file and empty it (a consideration for RAM usage)
             if LAST_CONTIG and chrom != LAST_CONTIG:
-                writestats(d, LAST_CONTIG, gz_out)
+                writestats(d, dist_thresh, LAST_CONTIG)
                 d = {}
             LAST_CONTIG = chrom
             # skip duplicates, unmapped, and secondary alignments
@@ -83,87 +156,28 @@ def main():
             if read.is_supplementary and read.reference_name != read.next_reference_name:
                 continue
             if not read.get_blocks():
+                # unaligned, skip it
+                LAST_CONTIG = chrom
                 continue
-
-            # numer of bases aligned
-            bp = read.query_alignment_length
 
             try:
-                mi = read.get_tag("MI")
                 bx = read.get_tag("BX")
-                valid = bool(int(read.get_tag("VX")))
-                if not valid:
-                    if "invalidBX" not in d:
-                        d["invalidBX"] = {
-                            "start":  0,
-                            "end": 0,
-                            "bp":   bp,
-                            "insert_len" : 0,
-                            "n":    1,
-                        }
-                    else:
-                        d["invalidBX"]["bp"] += bp
-                        d["invalidBX"]["n"] += 1
-                    continue
-                # add valid bx to set of all unique barcodes
-                # remove the deconvolve hyphen, if present
-                all_bx.add(bx.split("-")[0])
+                if read.get_tag("VX") == 0:
+                    # VX:i:0 is invalid
+                    raise KeyError
             except KeyError:
-                # There is no bx/MI tag
-                if "invalidBX" not in d:
-                    d["invalidBX"] = {
-                        "start":  0,
-                        "end": 0,
-                        "bp":   bp,
-                        "insert_len" : 0,
-                        "n":    1,
-                    }
-                else:
-                    d["invalidBX"]["bp"] += bp
-                    d["invalidBX"]["n"] += 1
+                # There is either no BX or no/invalid VX tag
+                if "invalid" not in d:
+                    d["invalid"] = ReadCloud(valid = False) 
+                d["invalid"].add(read)
+                LAST_CONTIG = chrom
                 continue
 
-            # start position of first alignment
-            ref_positions = [read.reference_start, read.reference_end]
-            pos_start = min(ref_positions)
-            # end position of last alignment
-            pos_end   = max(ref_positions)
-            if read.is_paired:
-                if read.is_supplementary:
-                    # if it's a supplementary alignment, just use the alignment length
-                    isize = bp
-                else:
-                    # by using max(), will either add 0 or positive TLEN to avoid double-counting
-                    isize = max(0, read.template_length)
-            else:
-                # if it's unpaired, use the TLEN or query length, whichever is bigger
-                isize = max(abs(read.template_length), read.infer_query_length())
-            # create bx entry if it's not present
-            if mi not in d:
-                d[mi] = {
-                    "start": pos_start,
-                    "end": pos_end,
-                    "bp": bp,
-                    "insert_len": isize,
-                    "n": 1,
-                }
-            else:
-                # update the basic alignment info of the molecule
-                if read.is_forward:
-                    # +1 for a forward read, whether it is paired or not
-                    d[mi]["n"]  += 1
-                elif read.is_reverse and not read.is_paired:
-                    # +1 for reverse only if it's unpaired, so the paired read doesn't count twice
-                    d[mi]["n"]  += 1
-                d[mi]["bp"] += bp
-                d[mi]["insert_len"] += isize
-                d[mi]["start"] = min(pos_start, pos_end, d[mi]["start"])
-                d[mi]["end"] = max(pos_end, pos_start, d[mi]["end"])
+            if bx not in d:
+                d[bx] = ReadCloud()
 
-                #d[mi]["start"] = min(pos_start, d[mi]["start"])
-                #d[mi]["end"] = max(pos_end, d[mi]["end"])
+            d[bx].add(read)
+            LAST_CONTIG = chrom
 
         # print the last entry
-        writestats(d, LAST_CONTIG, gz_out)
-        # write comment on the last line with the total number of unique BX barcodes
-        gz_out.stdin.write(f"#total unique barcodes: {len(all_bx)}\n".encode("utf-8"))
+        writestats(d, dist_thresh, LAST_CONTIG)
