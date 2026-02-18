@@ -3,73 +3,13 @@
 import os
 import sys
 import glob
-import gzip
-import curses
-from datetime import datetime
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import get_formatter_by_name
-from click import echo_via_pager
 import rich_click as click
-from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
 from rich import print as rprint
+from harpy.common.file_ops import choose_logfile, parse_error, parse_file
 from harpy.common.printing import HarpyPrint
-from harpy.common.file_ops import is_gzip
 
 hp = HarpyPrint()
-
-def check_terminal_colors():
-    # Initialize curses and always tear down
-    try:
-        _ = curses.initscr()
-        # Check if the terminal supports colors
-        if not curses.has_colors():
-            return 0
-        curses.start_color()
-        num_colors = curses.COLORS
-        # Determine the color type based on the number of colors
-        if num_colors <= 8:
-            return 8
-        else:
-            return 256
-    except curses.error:
-        # Non-interactive/unsupported terminals
-        return 0
-    finally:
-        try:
-            curses.endwin()
-        except curses.error:
-            pass
-
-def parse_file(infile: str):
-    '''
-    take a list of input file name, get the most recent by modificiation time, and print it via pygmentized less
-    returns a string of the file that was viewed
-    '''
-    if not os.access(infile, os.R_OK):
-        hp.error(
-            "incorrect permissions",
-            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
-        )
-    n_colors = check_terminal_colors()
-    if n_colors <= 8:
-        formatter = get_formatter_by_name("terminal")
-    else:
-        formatter = get_formatter_by_name("terminal256")
-
-    def _read_file(x: str):
-        compressed = is_gzip(x)
-        opener = gzip.open if compressed else open
-        mode = "rt" if compressed else "r"
-        lexer = get_lexer_by_name("yaml")
-        with opener(x, mode) as f:
-            for line in f:
-                yield highlight(line, lexer, formatter)
-    os.environ["PAGER"] = "less -R"
-    echo_via_pager(_read_file(infile), color = n_colors > 0)
-    return infile
 
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
@@ -83,7 +23,7 @@ def view():
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 @click.help_option('--help', hidden = True)
 def config(directory, edit):
     """
@@ -121,12 +61,13 @@ def config(directory, edit):
         file = sys.stderr
     )
 
+from rich.tree import Tree
 @click.command()
 @click.help_option('--help', hidden = True)
-@click.argument('program', required=False, type=str, nargs=1)
+@click.argument('program', required=False, type=str)
 def environments(program):
     """
-    View the Snakemake-managed conda environments
+    Print the Snakemake-managed conda environments
 
     This convenience command will print the main information of the conda environment recipes within
     `.environments/`, which can be useful when troubleshooting requires you to enter a specific conda environment.
@@ -144,10 +85,9 @@ def environments(program):
             "files not found", 
             "No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
-    console = Console()
-
+    tree = Tree("[bold light_steel_blue]Conda Environments")
     for i in files:
-        deps = ""
+        deps = []
         with open(i, "r") as file:
             skip = True
             for line in file:
@@ -156,24 +96,25 @@ def environments(program):
                     continue
                 if not skip:
                     dep = line.split("::")[-1].rstrip()
-                    deps += f" {dep.rstrip()}"
+                    deps.append(dep.rstrip())
+                    #deps += f" {dep.rstrip()}"
         if (program and program.lower() in deps) or not program:
-            console.print()
-            console.rule(i.removesuffix('.yaml'), style = "blue")
-            for d in deps.split():
+            _subtree = tree.add(i.removesuffix('.yaml'), style = "blue")
+            for d in deps:
                 if program:
                     if program.lower() in d:
-                        console.print(f"→ {d}", style = "bold blue", highlight = False)
+                        _subtree.add(d, style = 'bold blue', highlight = False)
                     else:
-                        console.print(f"- {d}", style = "dim", highlight=False)
+                        _subtree.add(d, style = 'dim default', highlight = False)
                 else:
-                    console.print(f"- {d}", style = "default", highlight=False)
-            console.print()
-    return
+                    _subtree.add(d, style = 'default', highlight = False)
+
+    hp.print(tree)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.help_option('--help', hidden = True)
 def log(directory, choose):
     """
     View a workflow's Snakemake log file
@@ -190,47 +131,7 @@ def log(directory, choose):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
-    err_dir = os.path.join(directory, ".snakemake", "log")
-    err_file = "There are no log files"
-    if not os.path.exists(err_dir):
-        hp.error(
-            "directory not found", 
-            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
-        )
-    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
-    if not files:
-        hp.error(
-            "files not found", 
-            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
-        )
-
-    files = sorted(files, key = os.path.getmtime, reverse = True)
-    if choose and len(files) > 1:
-        console = Console()
-        console.print()
-        #console.rule('Snakemake Log Files', style = "green")
-        _tb = hp.table()
-        _tb.show_header=True
-        _tb.add_column("[bold green]#", style="bold green", min_width=2)
-        _tb.add_column("[dim yellow]Last Modification",style = "dim yellow")
-        _tb.add_column("Log File", justify="right", no_wrap=True)
-        for i,j in enumerate(files,1):
-            filename = os.path.basename(j).removesuffix(".snakemake.log") + "[dim].snakemake.log[/]"
-            modtime = datetime.fromtimestamp(os.path.getmtime(j)).strftime('%Y-%m-%d %H:%M')
-            _tb.add_row(str(i), modtime , filename)
-        console.print(_tb)
-        #console.rule('[dim]second column shows last modification time[/]', style = 'dim')
-        selection = Prompt.ask(
-            "\n[bold blue]Select a log file by number ([bold green]#[/])[/]",
-            choices=list(str(i) for i in range(1,len(files) + 1)),
-            show_choices=False
-        )
-        
-        selected_idx = int(selection) - 1
-        target_file = files[selected_idx]
-    else:
-        target_file = files[0]
-
+    target_file = choose_logfile(directory, choose)
     parse_file(target_file)
     rprint(
         Panel(
@@ -244,9 +145,26 @@ def log(directory, choose):
     )
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.help_option('--help', hidden = True)
+def error(directory, choose):
+    """
+    Print a workflow's error
+    
+    The log file contains everything Snakemake printed during runtime and this command
+    scans the file for an error and prints it to the terminal. The only required input
+    is an output folder created by Harpy where you can find `.snakemake/log`. Use 
+    `--choose` to pick from a list of all Snakemake logfiles in the `directory`.
+    """
+    target_file = choose_logfile(directory, choose)
+    parse_error(target_file)
+
+
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.help_option('--help', hidden = True)
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
+@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def snakefile(directory, edit):
     """
     View/edit a workflow's Snakefile
@@ -324,6 +242,7 @@ def snakeparams(directory, edit):
 
 view.add_command(config)
 view.add_command(environments)
+view.add_command(error)
 view.add_command(log)
 view.add_command(snakefile)
 view.add_command(snakeparams)

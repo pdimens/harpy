@@ -9,6 +9,15 @@ import pysam
 import re
 import shutil
 import sys
+import curses
+from datetime import datetime
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import get_formatter_by_name
+from click import echo_via_pager
+from rich.console import Console
+from rich.prompt import Prompt
+from rich.syntax import Syntax
 from harpy.common.printing import HarpyPrint
 
 def filepath(infile: str) -> str:
@@ -179,3 +188,122 @@ def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1)
             starts,ends = makewindows(chom_len, mode, window)
             for startpos,endpos in zip(starts, ends):
                 fout.write(f"{chrom_name}\t{startpos}\t{endpos}\n")
+
+#========== harpy view ==============#
+
+def check_terminal_colors():
+    # Initialize curses and always tear down
+    try:
+        _ = curses.initscr()
+        # Check if the terminal supports colors
+        if not curses.has_colors():
+            return 0
+        curses.start_color()
+        num_colors = curses.COLORS
+        # Determine the color type based on the number of colors
+        if num_colors <= 8:
+            return 8
+        else:
+            return 256
+    except curses.error:
+        # Non-interactive/unsupported terminals
+        return 0
+    finally:
+        try:
+            curses.endwin()
+        except curses.error:
+            pass
+
+def parse_file(infile: str):
+    '''
+    Print file contents via pygmentized `less`.
+    '''
+    hp = HarpyPrint()
+    if not os.access(infile, os.R_OK):
+        hp.error(
+            "incorrect permissions",
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
+        )
+    n_colors = check_terminal_colors()
+    if n_colors <= 8:
+        formatter = get_formatter_by_name("terminal")
+    else:
+        formatter = get_formatter_by_name("terminal256")
+
+    def _read_file(x: str):
+        compressed = is_gzip(x)
+        opener = gzip.open if compressed else open
+        mode = "rt" if compressed else "r"
+        lexer = get_lexer_by_name("yaml")
+        with opener(x, mode) as f:
+            for line in f:
+                yield highlight(line, lexer, formatter)
+    os.environ["PAGER"] = "less -R"
+    echo_via_pager(_read_file(infile), color = n_colors > 0)
+
+def parse_error(infile: str):
+    '''
+    Print syntax-highlighted error in snakemake log.
+    '''
+    hp = HarpyPrint()
+    if not os.access(infile, os.R_OK):
+        hp.error(
+            "incorrect permissions",
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
+        )
+    with safe_read(infile) as f:
+        result = ""
+        for line in f:
+            if "error" in line.lower() or "exception" in line.lower():
+                result += line
+                while True:
+                    _line = f.readline()
+                    if not _line:
+                        break
+                    result += _line
+                break
+        hp.rule(f"[default]{infile}", style = 'blue')
+        hp.print(Syntax(result, lexer= "yaml", background_color= 'default'), soft_wrap=True)
+
+def choose_logfile(directory: str, choose:bool) -> str:
+    hp = HarpyPrint()
+    err_dir = os.path.join(directory, ".snakemake", "log")
+    err_file = "There are no log files"
+    if not os.path.exists(err_dir):
+        hp.error(
+            "directory not found", 
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
+        )
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    if not files:
+        hp.error(
+            "files not found", 
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
+        )
+
+    files = sorted(files, key = os.path.getmtime, reverse = True)
+    if choose and len(files) > 1:
+        console = Console()
+        console.print()
+        #console.rule('Snakemake Log Files', style = "green")
+        _tb = hp.table()
+        _tb.show_header=True
+        _tb.add_column("[bold green]#", style="bold green", min_width=2)
+        _tb.add_column("[dim yellow]Last Modification",style = "dim yellow")
+        _tb.add_column("Log File", justify="right", no_wrap=True)
+        for i,j in enumerate(files,1):
+            filename = os.path.basename(j).removesuffix(".snakemake.log") + "[dim].snakemake.log[/]"
+            modtime = datetime.fromtimestamp(os.path.getmtime(j)).strftime('%Y-%m-%d %H:%M')
+            _tb.add_row(str(i), modtime , filename)
+        console.print(_tb)
+        selection = Prompt.ask(
+            "\n[bold blue]Select a log file by number ([bold green]#[/])[/]",
+            choices=list(str(i) for i in range(1,len(files) + 1)),
+            show_choices=False
+        )
+        
+        selected_idx = int(selection) - 1
+        target_file = files[selected_idx]
+    else:
+        target_file = files[0]
+    return target_file
