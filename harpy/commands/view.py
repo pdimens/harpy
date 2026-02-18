@@ -28,7 +28,7 @@ def view():
 @click.help_option('--help', hidden = True)
 def config(directory, edit):
     """
-    View/edit a workflow's config file
+    Browse or edit a workflow's config file
     
     The workflow config file has all of the parameters and user inputs that went into the workflow.
     The only required input is the output folder designated in a previous Harpy run, where you can find
@@ -117,7 +117,7 @@ def environments(program):
 @click.help_option('--help', hidden = True)
 def log(directory, choose):
     """
-    View a workflow's Snakemake log file
+    Browse a workflow's Snakemake log
     
     The log file contains everything Snakemake printed during runtime.
     The only required input is an output folder created by Harpy where you can find
@@ -167,7 +167,7 @@ def error(directory, choose):
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
 def snakefile(directory, edit):
     """
-    View/edit a workflow's Snakefile
+    Browse or edit a workflow's Snakefile
     
     The snakefile contains all the instructions for a workflow. The only required input is the output folder
     previously created by Harpy where you can find `workflow/workflow.smk`.
@@ -206,7 +206,7 @@ def snakefile(directory, edit):
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
 def snakeparams(directory, edit):
     """
-    View/edit a workflow's Snakemake configurations
+    Browse or edit a workflow's Snakemake configurations
     
     The snakemake configuration file has the runtime parameters snakemake was invoked with (i.e.,
     computational specifics that don't impact your results). The only required input is the output folder
