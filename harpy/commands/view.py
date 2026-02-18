@@ -85,7 +85,7 @@ def environments(program):
             "files not found", 
             "No conda recipes ending in [green].yaml[/] found in [blue].environments[/]."
         )
-    tree = Tree("[bold light_steel_blue]Conda Environments")
+    tree = Tree("[bold]Conda Environments")
     for i in files:
         deps = []
         with open(i, "r") as file:
@@ -99,11 +99,11 @@ def environments(program):
                     deps.append(dep.rstrip())
                     #deps += f" {dep.rstrip()}"
         if (program and program.lower() in deps) or not program:
-            _subtree = tree.add(i.removesuffix('.yaml'), style = "bold blue")
+            _subtree = tree.add("[bold]" + i.removesuffix('.yaml'), style = "blue")
             for d in deps:
                 if program:
                     if program.lower() in d:
-                        _subtree.add(d, style = 'bold blue', highlight = False)
+                        _subtree.add(d, style = 'bold green', highlight = False)
                     else:
                         _subtree.add(d, style = 'dim default', highlight = False)
                 else:
