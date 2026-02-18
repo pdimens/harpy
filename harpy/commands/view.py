@@ -6,6 +6,7 @@ import glob
 import rich_click as click
 from rich.panel import Panel
 from rich import print as rprint
+from rich.tree import Tree
 from harpy.common.file_ops import choose_logfile, parse_error, parse_file
 from harpy.common.printing import HarpyPrint
 
@@ -61,7 +62,6 @@ def config(directory, edit):
         file = sys.stderr
     )
 
-from rich.tree import Tree
 @click.command()
 @click.help_option('--help', hidden = True)
 @click.argument('program', required=False, type=str)
@@ -99,7 +99,7 @@ def environments(program):
                     deps.append(dep.rstrip())
                     #deps += f" {dep.rstrip()}"
         if (program and program.lower() in deps) or not program:
-            _subtree = tree.add(i.removesuffix('.yaml'), style = "blue")
+            _subtree = tree.add(i.removesuffix('.yaml'), style = "bold blue")
             for d in deps:
                 if program:
                     if program.lower() in d:
