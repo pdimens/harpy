@@ -8,7 +8,7 @@ import pysam
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'check_bam',
+        prog = 'check-bam',
         description =
         """
         Parses an aligment (sam/bam) file to check if the sample name
@@ -16,7 +16,7 @@ def main():
         and the counts of: total alignments, alignments with an MI:i: tag,
         alignments without BX:Z: tag, incorrect BX:Z: tag.
         """,
-        usage = "check_bam lr_type input.bam > output.txt",
+        usage = "check-bam lr_type input.bam > output.txt",
         exit_on_error = False
         )
 

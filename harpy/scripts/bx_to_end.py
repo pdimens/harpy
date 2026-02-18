@@ -39,9 +39,9 @@ def format_fastq(record):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'bx_to_end',
+        prog = 'bx-to-end',
         description = "Parses a FASTQ or BAM file to move the BX:Z tag to the end of the record.",
-        usage = "bx_to_end file.[fq|bam] > output.[fq.gz|bam]",
+        usage = "bx-to-end file.[fq|bam] > output.[fq.gz|bam]",
         exit_on_error = False
         )
 

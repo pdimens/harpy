@@ -26,14 +26,14 @@ def check_samspec(fq_comment,_stats):
 
 def main():
     parser = argparse.ArgumentParser(
-        prog = 'check_fastq',
+        prog = 'check-fastq',
         description =
         """
         Parses a FASTQ file to check if any sequences don't conform to the SAM spec,
         whether BX:Z: is the last tag in the record, and the counts of: total reads,
         reads without BX:Z: tag, reads with incorrect barcode depending on the platform.
         """,
-        usage = "check_fastq platform input.bam > output.txt",
+        usage = "check-fastq platform input.bam > output.txt",
         exit_on_error = False
         )
 
