@@ -6,6 +6,7 @@ import re
 import sys
 import subprocess
 from rich.syntax import Syntax
+from beautysh import BashFormatter
 from harpy.common.file_ops import last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint
 from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
@@ -47,6 +48,7 @@ class LaunchSnakemake():
         self.error_printed: bool = False
         self.print = printer
         self.progress = harpy_progressbar(self.quiet, self.print.console)
+        self.bash = BashFormatter(indent_size=4)
 
         try:
             self.workflow_setup()
@@ -129,8 +131,9 @@ class LaunchSnakemake():
             text += self.output
 
         text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
-        text = re.sub(r' {2,}|\t+', '  ', text)
-        cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
+        #text = re.sub(r' {2,}|\t+', '  ', text)
+        res, err = self.bash.beautify_string(text)
+        cmd = Syntax(res, lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
         _table.add_row("  ", cmd, "  ")
         self.print.print("[bold default]shell:", _table)
 

@@ -7,7 +7,6 @@ import sys
 from beautysh import BashFormatter
 from rich.console import Console, RenderableType
 from rich import box
-#from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
 from rich.theme import Theme
