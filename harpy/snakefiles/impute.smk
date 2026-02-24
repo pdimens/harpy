@@ -205,15 +205,6 @@ else:
         shell:
             "bcftools index {input}"
 
-rule general_stats:
-    input:
-        "{paramset}/{paramset}.bcf.csi",
-        bcf = "{paramset}/{paramset}.bcf"
-    output:
-        "{paramset}/reports/data/impute.stats"
-    shell:
-        "bcftools stats -s \"-\" {input.bcf} > {output}"
-
 rule extract_region:
     input:
         "workflow/input/vcf/input.sorted.bcf.csi",
@@ -225,21 +216,6 @@ rule extract_region:
         f"-r {region}" if region else ""
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
-
-rule compare_stats:
-    input:
-        orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
-        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
-        impute  = "{paramset}/{paramset}.bcf",
-        idx     = "{paramset}/{paramset}.bcf.csi"
-    output:
-        compare = "{paramset}/reports/data/impute.compare.stats",
-        info_sc = temp("{paramset}/reports/data/impute.infoscore")
-    shell:
-        """
-        bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
-        bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
-        """
 
 rule contig_report:
     input:
@@ -253,7 +229,7 @@ rule contig_report:
         statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
         ipynb = "workflow/stitch_collate.ipynb"
     output:
-        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb")
+        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
         ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
@@ -277,11 +253,15 @@ rule contig_report:
 
 rule impute_reports:
     input:
-        comparison = "{paramset}/reports/data/impute.compare.stats",
-        infoscore = "{paramset}/reports/data/impute.infoscore",
+        orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
+        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
+        impute  = "{paramset}/{paramset}.bcf",
+        idx     = "{paramset}/{paramset}.bcf.csi",
         ipynb = "workflow/impute.ipynb"
     output:
-        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb")
+        comparison = "{paramset}/reports/data/impute.compare.stats",
+        infoscore = temp("{paramset}/reports/data/impute.infoscore"),
+        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb"),
         ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
@@ -297,6 +277,8 @@ rule impute_reports:
     shell:
         """
         {{
+            bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
+            bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process-notebook {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}

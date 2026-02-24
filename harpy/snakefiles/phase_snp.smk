@@ -200,28 +200,22 @@ rule annotate_phase:
     shell:
         "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
 
-rule create_merge_list:
-    input:
-        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames)
+rule merge_samples:
+    priority: 100
+    input: 
+        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
+        csi = collect("phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        filelist = temp("phased_samples/bcf.list")
+        "variants.phased.bcf.csi",
+        filelist = temp("phased_samples/bcf.list"),
+        bcf = "variants.phased.bcf"
+    threads:
+        workflow.cores
     run:
         with open(output.filelist, "w") as f_out:
             for i in input.bcf:
                 f_out.write(i + "\n")
-
-rule merge_samples:
-    priority: 100
-    input: 
-        collect("phased_samples/{sample}.phased.annot.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"]),
-        filelist = "phased_samples/bcf.list"
-    output:
-        "variants.phased.bcf.csi",
-        bcf = "variants.phased.bcf"
-    threads:
-        workflow.cores
-    shell:
-        "bcftools merge --threads {threads} --force-single -l {input.filelist} -Ob -o {output.bcf} --write-index"
+        shell("bcftools merge --threads {threads} --force-single -l {output.filelist} -Ob -o {output.bcf} --write-index")
 
 rule summarize_blocks:
     input:

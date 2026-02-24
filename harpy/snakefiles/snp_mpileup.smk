@@ -174,24 +174,15 @@ rule realign_indels:
     shell:
         "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
 
-rule general_stats:
-    input:
-        genome  = workflow_geno,
-        bcf     = "variants.{type}.bcf",
-        idx     = "variants.{type}.bcf.csi"
-    output:
-        "reports/data/variants.{type}.stats"
-    shell:
-        """
-        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
-        """
-
 rule variant_report:
     input: 
-        data = "reports/data/variants.{type}.stats",
+        genome  = workflow_geno,
+        bcf     = "variants.{type}.bcf",
+        idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"
     output:
-        report = "reports/variants.{type}.html",
+        data = temp("reports/data/variants.{type}.stats"),
+        tmp = temp("reports/variants.{type}.tmp.ipynb"),
         ipynb = temp("reports/variants.{type}.ipynb")
     log:
         "logs/variants.{type}.report.log"
@@ -200,6 +191,7 @@ rule variant_report:
     shell:
         """
         {{
+            bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data}
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process-notebook variants.{wildcards.type} {output.tmp}
         }} 2> {log} > {output.ipynb}
@@ -210,4 +202,4 @@ rule all:
     input:
         vcf = collect("variants.{file}.bcf", file = ["raw", "normalized"]),
         agg_log = "logs/mpileup.log",
-        reports = collect("reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
+        reports = collect("reports/variants.{file}.ipynb", file = ["raw", "normalized"]) if not skip_reports else []
