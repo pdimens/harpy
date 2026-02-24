@@ -196,7 +196,7 @@ rule report:
         """s
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-noteobok NAIBR {output.tmp}
+            process-notebook NAIBR {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

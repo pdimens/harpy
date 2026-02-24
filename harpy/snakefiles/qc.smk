@@ -85,7 +85,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process-noteobok {params.lr} {output.tmp}
+            process-notebook {params.lr} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

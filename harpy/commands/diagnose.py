@@ -140,7 +140,7 @@ def rule(directory):
                     break
                 cmd.append(line.strip())
     if failed_rule:
-        hp.log(f"Failing rule: [yellow]{failed_rule}", newline=True)
+        hp.log(f"Failing rule: [yellow]{failed_rule.lstrip()}", newline=True)
     else:
         hp.console.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
         sys.exit(0)
@@ -165,18 +165,13 @@ def rule(directory):
         hp.log("Missing input files: [green]None", newline=True)
     hp.log("Running failed code block", newline=True)
     if conda:
-        hp.shell("\n".join(cmd))
-        print("\n".join([conda, f"cd {directory}", *cmd]))
+        #hp.shell("\n".join(cmd))
+        hp.shell("\n".join([conda, f"cd {directory}", *cmd]), rules = True)
 
         os.system("\n".join([conda, f"cd {directory}", *cmd]))
     elif container:
         joined_cmd = "\n".join([*cmd])
-        hp.shell(f"""
-apptainer exec {container} bash -c '
-{joined_cmd}
-'
-"""
-        )
+        hp.shell(f"""apptainer exec {container} bash -c '\n{joined_cmd}\n'""", rules = True)
         os.system(f"""
 cd {directory}
 apptainer exec {container} bash -c '
@@ -185,7 +180,7 @@ apptainer exec {container} bash -c '
 """
         )
     else:
-        hp.shell("\n".join(cmd))
+        hp.shell("\n".join([f"cd {directory}", *cmd]), rules=True)
         os.system("\n".join([f"cd {directory}", *cmd]))
 
 diagnose.add_command(stall)

@@ -11,6 +11,7 @@ requires-python = ">=3.11"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "GPL-3.0-or-later"
 dependencies = [
+    'beautysh',
     'click>8.0',
     'rich-click>=1.8',
     'pysam>=0.23',

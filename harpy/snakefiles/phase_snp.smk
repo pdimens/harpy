@@ -254,7 +254,7 @@ rule phase_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-noteobok {wildcards.paramset} {output.tmp}
+            process-notebook {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

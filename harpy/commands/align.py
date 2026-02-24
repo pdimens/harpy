@@ -36,13 +36,14 @@ def align():
 @click.option('--contigs',  panel = "Workflow Options", type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
 @click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):
+def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, no_temp, setup):
     """
     Align sequences to reference genome using BWA MEM2
     
@@ -54,7 +55,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
     workflow.conda = ["align", "qc"]
 

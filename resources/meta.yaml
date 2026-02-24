@@ -1,6 +1,6 @@
 {% set name = "harpy" %}
-{% set version = "2.6.1" %}
-{% set sha256 = "3c55c1b4c93745b7f8f808df5c2219004bb194a36c59a0558bdade0b393b397b" %}
+{% set version = "" %}
+{% set sha256 = "" %}
 
 package:
   name: {{ name }}
@@ -38,12 +38,13 @@ requirements:
     - pip
     - setuptools-scm >=8
   run:
-    - python >=3.11
+    - beautysh
     - bcftools >=1.22
     - conda >24.7
     - djinn >=2.1
     - htslib >=1.22
     - pysam >=0.23
+    - python >=3.11
     - rich-click >=1.9.3
     - snakemake-minimal >=9.11
     - samtools >=1.22

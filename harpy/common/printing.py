@@ -4,9 +4,10 @@ import time as _time
 import os
 import re
 import sys
+from beautysh import BashFormatter
 from rich.console import Console, RenderableType
 from rich import box
-from rich.syntax import Syntax
+#from rich.syntax import Syntax
 from rich.table import Table
 from rich.panel import Panel
 from rich.theme import Theme
@@ -25,6 +26,7 @@ class HarpyPrint():
         self.print = self.console.print
         self.file = self.console.file
         self.status = self.console.status
+        self.bash = BashFormatter(indent_size=4)
 
     def table(self, title = None, caption = None, tstyle = None, cstyle = None):
         '''
@@ -153,19 +155,17 @@ class HarpyPrint():
         self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.")
         self.console.rule("[bold]Source of Error", style = "red")
 
-    def shell(self, text) -> None:
+    def shell(self, text, rules: bool = False) -> None:
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr 
         """
-        _table = self.table()
-        _table.add_column("Lpadding", justify="left")
-        _table.add_column("shell", justify="left")
-        #_table.add_column("Rpadding", justify="left")
-
-        text = re.sub(r' {2,}|\t+', '  ', text)
-        cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
-        _table.add_row("  ", cmd)#, "  ")
-        self.console.print(_table)
+        result, error = self.bash.beautify_string(text)
+        if rules:
+            self.console.rule("Shell Code", style = 'dim')
+        #cmd = Syntax(result, lexer = "bash", tab_size=4, word_wrap=False, theme = "paraiso-dark")
+        self.console.print(result, soft_wrap=True, width = 1000, highlight = False)
+        if rules:
+            self.console.rule(style = 'dim')
 
     def validation(self, success: bool) -> None:
         '''

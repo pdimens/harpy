@@ -9,7 +9,7 @@ from collections import Counter
 
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))
-    ends = [min(contig_len, i+1) for i in starts[1:]]
+    ends = [min(contig_len, i) for i in starts[1:]]
     if not ends or ends[-1] != contig_len:
         ends.append(contig_len)
     return [range(i,j) for i,j in zip(starts,ends)]

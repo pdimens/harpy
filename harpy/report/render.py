@@ -2,13 +2,16 @@
 
 import copy
 import glob
+from importlib import resources
 import os
 from pathlib import Path
+import shutil
 import uuid
 import subprocess
 import yaml
-from harpy.common.file_ops import fetch_template
 from harpy.common.printing import HarpyPrint
+from harpy.common.version import VERSION
+from harpy.report.components import report_index
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -27,9 +30,13 @@ class ReportRender():
                 _yml = yaml.full_load(yml)
 
         if not os.path.isfile(os.path.join(root, ".report", "index.md")):
-            fetch_template("report_index.md", os.path.join(root, ".report", "index.md"))
-        if not os.path.isfile(os.path.join(root, ".report", "favicon.svg")):
-            fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
+            os.makedirs(os.path.join(root, ".report"), exist_ok=True)
+            with open(os.path.join(root, ".report", "index.md"), 'w') as indexmd:
+                indexmd.write(report_index())
+
+        if not os.path.isfile(os.path.join(root, ".report", "favicon.png")):
+            shutil.copy(str(resources.files("harpy.report") / 'favicon.png'), os.path.join(root, ".report", "favicon.png"))
+            #fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
             self.print.error(
@@ -298,7 +305,7 @@ def myst_yaml() -> dict:
             "id": rand_id(),
             **({"github" : git_url} if git_url else {}),
             "edit_url": 'null',
-            "title" : "Harpy Reports (v0.0.0)",
+            "title" : f"Harpy Reports (v{VERSION})",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }

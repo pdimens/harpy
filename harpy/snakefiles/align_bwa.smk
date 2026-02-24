@@ -99,7 +99,7 @@ rule mark_duplicates:
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
-        "{sample}.bam.bai",
+        bai = "{sample}.bam.bai",
         bam = "{sample}.bam"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
@@ -124,7 +124,7 @@ rule mark_duplicates:
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
                 samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-                samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}
+                samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}##idx##{output.bai}
         }} 2> {log.debug}
         rm -rf {wildcards.sample}
         """
@@ -239,7 +239,7 @@ rule sample_reports:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            process-noteobok {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
+            process-notebook {wildcards.sample} BWA-MEM2 {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -259,7 +259,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process-noteobok {params.lr_type} {output.tmp}
+            process-notebook {params.lr_type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 

@@ -11,12 +11,14 @@ class ReadCloud():
     A class to store the relevant information of alignment records that have the same `BX` barcode tag.
     '''
     def __init__(self, valid: bool = True):
+        self.chromosome: str = ""
         self.positions: list[list[int]] = []
         self.bp: list[int] = []
         self.inserts : list[int] = []
         self.count : list[bool] = []
-        self.valid = valid
-        self.barcode = ""
+        self.valid: bool = valid
+        self.barcode: str = ""
+        self.suffix: int = 0
 
     def add(self, record: pysam.AlignedSegment):
         '''add a pysam alignment record to the read cloud, keeping only the relevant info'''
@@ -26,15 +28,19 @@ class ReadCloud():
             self.barcode = record.get_tag("BX")
         self.bp.append(record.query_alignment_length)
         self.count.append(record.is_read1 or not record.is_paired)
+        self.chromosome = record.reference_name
 
-    def deconvolve(self, chrom, cutoff) -> str:
+    def deconvolve(self, cutoff):
         '''
         Process the read cloud and deconvolute using `cutoff` (if it's >0). Deconvolution
-        appends `-N` to the barcodes where `N` is an integer (e.g. `-1`, `-2`). Returns
-        a string of barcode row(s) and the associated stats.
+        appends `-N` to the barcodes where `N` is an integer (e.g. `-1`, `-2`). Writes to
+        stdout and resets the ReadCloud to retain only `barcode`, `suffix`, and `valid`.
+        Returns without writing if the Readcloud is empty.
         '''
+        if not self.positions:
+            return
         if not self.valid:
-            return "{chrom}\t-1\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count))
+            sys.stdout.write("{self.chromosome}\tinvalid\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count)))
         result = ""
         # sort alignment extrema by leftmost position and sort the subsequent info the same way
         sort_values = [sublist[0] for sublist in self.positions]
@@ -45,7 +51,6 @@ class ReadCloud():
         self.count = [self.count[i] for i in sorted_indices]
 
         # instantiate with the first value
-        deconv = 0
         start = self.positions[0][0]
         end = self.positions[0][1]
         insert = self.inserts[0]
@@ -66,11 +71,11 @@ class ReadCloud():
                 count += self.count[idx]
             else:
                 # gap exceeds cutoff - write current molecule and start new one
-                BC = f"{self.barcode}-{deconv}" if deconv > 0 else self.barcode
-                result += f"{chrom}\t{BC}\t" + self.stats(start, end, insert, bp, count)
+                BC = f"{self.barcode}-{self.suffix}" if self.suffix > 0 else self.barcode
+                result += f"{self.chromosome}\t{BC}\t" + self.stats(start, end, insert, bp, count)
 
                 # start new molecule with current alignment
-                deconv += 1
+                self.suffix += 1
                 start = self.positions[idx][0]
                 end = curr_end
                 insert = self.inserts[idx]
@@ -78,9 +83,10 @@ class ReadCloud():
                 count = int(self.count[idx])
 
         # write final molecule
-        BC = f"{self.barcode}-{deconv}" if deconv > 0 else self.barcode
-        result += f"{chrom}\t{BC}\t" + self.stats(start, end, insert, bp, count)
-        return result
+        BC = f"{self.barcode}-{self.suffix}" if self.suffix > 0 else self.barcode
+        result += f"{self.chromosome}\t{BC}\t" + self.stats(start, end, insert, bp, count)
+        sys.stdout.write(result)
+        self.reset()
 
     def stats(self, start, end, insert, bp, count) -> str:
         '''
@@ -92,18 +98,24 @@ class ReadCloud():
         inferred = end - start
         try:
             cov_bp = max(0, round(min(bp / inferred, 1.0),5))
-            cov_ins = max(0, round(min( insert / inferred, 1.0), 5))
+            cov_ins = max(0, round(min(insert / inferred, 1.0), 5))
         except ZeroDivisionError:
             cov_bp = 0
             cov_ins = 0
-        return f"{count}\t{start}\t{end}\t{inferred}\t{bp}\t{insert}\t{cov_bp}\t{cov_ins}\n"
+        return f"{max(1,count)}\t{start}\t{end}\t{inferred}\t{bp}\t{insert}\t{cov_bp}\t{cov_ins}\n"
 
-def writestats(x: dict, thresh, writechrom):
-    """write to file the bx stats dictionary as a table"""
-    for _mi in list(x.keys()):
-        sys.stdout.write(x[_mi].deconvolve(writechrom, thresh))
-        # delete the entry after processing to ease up system memory
-        del x[_mi]
+    def reset(self):
+        '''Reset the values in the class, keeping only `valid`, `barcode` and `suffix`'''
+        self.chromosome = ""
+        self.positions = []
+        self.bp = []
+        self.inserts = []
+        self.count = []
+
+def writestats(x: dict[str,ReadCloud], thresh):
+    '''write to file the bx stats dictionary as a table'''
+    for cloud in x:
+        x[cloud].deconvolve(thresh)
 
 def insert_size(rec) -> int:
     '''Calculate the insert size'''
@@ -159,8 +171,7 @@ def main():
             # check if the current chromosome is different from the previous one
             # if so, print the dict to file and empty it (a consideration for RAM usage)
             if LAST_CONTIG and chrom != LAST_CONTIG:
-                writestats(d, dist_thresh, LAST_CONTIG)
-                d = {}
+                writestats(d, dist_thresh)
             LAST_CONTIG = chrom
             # skip duplicates, unmapped, and secondary alignments
             if read.is_duplicate or read.is_unmapped or read.is_secondary:
@@ -193,4 +204,4 @@ def main():
             LAST_CONTIG = chrom
 
         # print the last entry
-        writestats(d, dist_thresh, LAST_CONTIG)
+        writestats(d, dist_thresh)

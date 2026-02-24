@@ -201,7 +201,7 @@ rule variant_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-noteobok variants.{wildcards.type} {output.tmp}
+            process-notebook variants.{wildcards.type} {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
