@@ -82,6 +82,7 @@ rule mark_duplicates:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
     params: 
+        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.sam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.sam | samtools collate -O -u -",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = config["Parameters"]['min-map-quality']
     resources:
@@ -96,8 +97,7 @@ rule mark_duplicates:
             OPTICAL_BUFFER=100
         fi 
         {{
-            djinn sam standardize --sam {input.sam} |
-                samtools collate -O -u - |
+            {params.cmd} |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |
                 samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
@@ -106,21 +106,25 @@ rule mark_duplicates:
         rm -rf .{wildcards.sample}
         """
 
-rule barcode_stats:
+rule sample_stats:
     input:
-        "{sample}.bam"
-    output:
-        "reports/data/bxstats/{sample}.bxstats.gz"
-    log:
-        "logs/bxstats/{sample}.bxstats.log"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
+    output: 
+        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat"),
+        bxstats = "reports/data/bxstats/{sample}.bxstats.gz"
     params:
         molecule_distance
+    log:
+        "logs/stats/{sample}.stats.log"
     shell:
         """
         {{
-            bx-stats -d {params} {input} |
-            gzip
-        }} > {output} 2> {log}
+            samtools stats -d {input.bam} > {output.stats}
+            samtools flagstat {input.bam} > {output.flagstat}
+            bx-stats -d {params} {input.bam} | gzip > {output.bxstats}
+        }} 2> {log}
         """
 
 rule molecule_coverage:
@@ -146,57 +150,20 @@ rule alignment_coverage:
         "{sample}.bam.bai",
         bam = "{sample}.bam"
     output: 
-        "reports/data/coverage/{sample}.regions.bed.gz "
+        "reports/data/coverage/{sample}.regions.bed.gz"
+    log:
+        "logs/stats/{sample}.depth.log"
     params:
-        windowsize
+        f"-b {windowsize}",
+        "-n --fast-mode"
+    threads:
+        2
     conda:
         "envs/qc.yaml"
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "mosdepth -b {params} -n --fast-mode reports/data/coverage/{wildcards.sample} {input.bam}"
-
-rule configure_report:
-    input:
-        yaml = "workflow/_quarto.yml",
-        scss = "workflow/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
-if ignore_bx:
-    rule index_bam:
-        input:
-            "markdup/{sample}.markdup.bam"
-        output:
-            "{sample}.bam.bai",
-            bam = "{sample}.bam"
-        shell:
-            """
-            mv {input} {output.bam}
-            samtools index {output.bam}
-            """
-
-rule general_stats:
-    input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    output: 
-        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
-        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
-    log:
-        "logs/stats/{sample}.samstats.log"
-    shell:
-        """
-        {{
-            samtools stats -d {input.bam} > {output.stats}
-            samtools flagstat {input.bam} > {output.flagstat}
-        }} 2> {log}
-        """
+        "mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}"
 
 rule samtools_report:
     input: 
