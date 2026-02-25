@@ -29,7 +29,7 @@ class FASTQ():
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
         uniqs = set()
         dupes = []
-        self.print.log("Validating input FASTQ files")
+        self.print.log("Validating input FASTQ files", newline=False)
 
         for i in self.files:
             try:
@@ -75,7 +75,7 @@ class FASTQ():
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
 
         if detect_bc:
-            self.print.log("Detecting linked-read barcode format")
+            self.print.log("Detecting linked-read barcode format", newline=False)
             scanned = []
             for i,fq in enumerate(self.files, 1):
                 if i > 10:
@@ -104,7 +104,7 @@ class FASTQ():
         Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
-        self.print.log("Checking files for BX:Z tag")
+        self.print.log("Checking files for BX:Z tag", newline=False)
 
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
@@ -121,7 +121,7 @@ class FASTQ():
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
-        self.print.log("Checking files for BX:Z or BC:Z tags")
+        self.print.log("Checking files for BX:Z or BC:Z tags", newline=False)
         primary = "BX:Z" if tag == "BX" else "BC:Z"
         secondary = "BC:Z" if tag == "BX" else "BX:Z"
         for fastq in self.files:

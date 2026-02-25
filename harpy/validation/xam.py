@@ -28,7 +28,7 @@ class XAM():
         dupes = []
         badfiles = []
 
-        self.print.log("Validating input alignment files")
+        self.print.log("Validating input alignment files", newline=False)
 
         for i in self.files:
             bn = os.path.basename(re_ext.sub("", str(i)))

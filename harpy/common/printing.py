@@ -152,10 +152,10 @@ class HarpyPrint():
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
         self.console.rule("[bold]Workflow Error[/]", style = "red")
         self.console.print(datatable)
-        self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.")
+        self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
         self.console.rule("[bold]Source of Error", style = "red")
 
-    def shell(self, text, rules: bool = False) -> None:
+    def shell(self, text, rules: bool = False, style = None) -> None:
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr 
         """
@@ -163,7 +163,7 @@ class HarpyPrint():
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         #cmd = Syntax(result, lexer = "bash", tab_size=4, word_wrap=False, theme = "paraiso-dark")
-        self.console.print(escape(result), soft_wrap=True, width = 1000, highlight = False)
+        self.console.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)
         if rules:
             self.console.rule(style = 'dim')
 
@@ -177,7 +177,7 @@ class HarpyPrint():
             else:
                 self.console.print("[red]𐄂[/]")
 
-    def log(self, text, newline:bool = False):
+    def log(self, text, newline:bool = True):
         '''Print a rich-style log with the time in magenta and text in default'''
         _now =  _time.strftime(r'[dim magenta]\[%H:%M:%S][/]')
         if not self.quiet:

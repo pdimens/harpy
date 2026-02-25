@@ -119,10 +119,10 @@ class LaunchSnakemake():
 
     def print_shellcmd(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
-        _table = self.print.table()
-        _table.add_column("Lpadding", justify="left")
-        _table.add_column("shell", justify="left")
-        _table.add_column("Rpadding", justify="left")
+        #_table = self.print.table()
+        #_table.add_column("Lpadding", justify="left")
+        #_table.add_column("shell", justify="left")
+        #_table.add_column("Rpadding", justify="left")
 
         text = ""
         while "(command exited" not in self.output or not self.output:
@@ -132,17 +132,21 @@ class LaunchSnakemake():
             text += self.output
 
         text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
+        self.print.print("")
+        self.print.rule("[bold default]Error-causing Command", style = 'red')
+        self.print.shell(text)
         #text = re.sub(r' {2,}|\t+', '  ', text)
-        res, err = self.bash.beautify_string(text)
-        cmd = Syntax(escape(res), lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
-        _table.add_row("  ", cmd, "  ")
-        self.print.print("[bold default]shell:", _table)
+        #res, err = self.bash.beautify_string(text)
+        #cmd = Syntax(escape(res), lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
+        #_table.add_row("  ", cmd, "  ")
+        #self.print.print("[bold default]shell:", _table)
 
     def print_logfile(self):
         '''process and print the contents of a logfile in the snakemake error log'''
         merged_text = ""
         _log = self.output.rstrip().split()[1]
-        self.print.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
+        self.print.print("")
+        self.print.rule(f"[bold]Log: {_log.rstrip(':')}", style = "yellow")
         if "empty file" in self.output:
             self.print.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
             self.nextline()

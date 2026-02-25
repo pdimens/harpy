@@ -51,7 +51,7 @@ class Workflow():
         self.summary_text: str = ""
 
         if self.quiet == 0 and not no_validation:
-            self.print.console.rule("[bold]Input Validation", style = "dim magenta")
+            self.print.console.rule("[bold]Validations", style = "dim magenta")
 
     def param(self, value, name: str):
         """

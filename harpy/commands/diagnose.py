@@ -149,21 +149,21 @@ def rule(directory):
             hp.error("missing workflow config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         if not os.path.exists(PROFILE_FILE):
             hp.error("missing snakemake config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
-        hp.log("Missing input files:\n  [yellow]" + '\n  '.join(infiles), newline=True)
+        hp.log("Missing input files:\n  [yellow]" + '\n  '.join(infiles))
 
         with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
             harpy_config = yaml.full_load(f)
             command = harpy_config["snakemake"]["absolute"]
 
         command += f" --quiet --no-temp {' '.join(infiles)}"
-        hp.log("Rerunning Snakemake to generate inputs", newline=True)
+        hp.log("Rerunning Snakemake to generate inputs")
         hp.shell(command)
         sm = os.system(command)
         if sm != 0:
             hp.error("workflow error", "Harpy attempted to regenerate the input files necessary to run the failed rule directly, but that seemed to fail too. You may want to try manually rerunning the step(s) that failed.")
     else:
-        hp.log("Missing input files: [green]None", newline=True)
-    hp.log("Running failed code block", newline=True)
+        hp.log("Missing input files: [green]None")
+    hp.log("Running failed code block")
     if conda:
         #hp.shell("\n".join(cmd))
         hp.shell("\n".join([conda, f"cd {directory}", *cmd]), rules = True)
