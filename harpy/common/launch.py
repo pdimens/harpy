@@ -5,6 +5,7 @@ import os
 import re
 import sys
 import subprocess
+from rich.markup import escape
 from rich.syntax import Syntax
 from beautysh import BashFormatter
 from harpy.common.file_ops import last_sm_log, purge_empty_logs
@@ -104,17 +105,17 @@ class LaunchSnakemake():
         if _split[0] == "message":
             return
         if len(_split) == 1 or _split[0] not in valid_keys:
-            self.print.print(f"[red]{text}", overflow = "ignore", crop = False)
+            self.print.print(f"[red]{escape(text)}", overflow = "ignore", crop = False)
             return
         key = _split[0]
         vals = [i.strip() for i in _split[1].split(",")]
         if len(vals) == 1:
             if key == "conda-env":
-                self.print.print(f"[bold default]{key}: [/][red]" + os.path.relpath(vals[0]))
+                self.print.print(f"[bold default]{key}: [/][red]" + escape(os.path.relpath(vals[0])))
             else:
-                self.print.print(f"[bold default]{key}: [/][red]" + "".join(vals))
+                self.print.print(f"[bold default]{key}: [/][red]" + escape("".join(vals)))
             return
-        self.print.print(f"[bold default]{key}: [/]\n  [red]" + "\n  ".join(vals))
+        self.print.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
 
     def print_shellcmd(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
@@ -133,7 +134,7 @@ class LaunchSnakemake():
         text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
         #text = re.sub(r' {2,}|\t+', '  ', text)
         res, err = self.bash.beautify_string(text)
-        cmd = Syntax(res, lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
+        cmd = Syntax(escape(res), lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
         _table.add_row("  ", cmd, "  ")
         self.print.print("[bold default]shell:", _table)
 
@@ -158,9 +159,8 @@ class LaunchSnakemake():
                 continue
             merged_text += self.output
         if "====" in self.output:
-            #if ".ipynb" in merged_text:
-            #    merged_text = "Error in " + merged_text.split("\nError in ")[-1]
-            self.print.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "), overflow = "ignore", crop = False)
+            logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
+            self.print.print("[red]" + logtext, overflow = "ignore", crop = False)
             self.nextline()
 
     def nextline(self, strip: bool = False):

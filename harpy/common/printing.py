@@ -6,6 +6,7 @@ import re
 import sys
 from beautysh import BashFormatter
 from rich.console import Console, RenderableType
+from rich.markup import escape
 from rich import box
 from rich.table import Table
 from rich.panel import Panel
@@ -158,11 +159,11 @@ class HarpyPrint():
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr 
         """
-        result, error = self.bash.beautify_string(text)
+        result, error = self.bash.beautify_string(data = text)
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         #cmd = Syntax(result, lexer = "bash", tab_size=4, word_wrap=False, theme = "paraiso-dark")
-        self.console.print(result, soft_wrap=True, width = 1000, highlight = False)
+        self.console.print(escape(result), soft_wrap=True, width = 1000, highlight = False)
         if rules:
             self.console.rule(style = 'dim')
 

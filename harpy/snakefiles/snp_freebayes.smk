@@ -98,37 +98,30 @@ rule call_variants:
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
-rule concat_list:
-    input:
-        bcfs = collect("regions/{part}.bcf", part = intervals),
-    output:
-        bcf = "logs/bcf.files"
-    run:
-        with open(output.bcf, "w") as fout:
-            for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")
-
 rule concat_variants:
     input:
-        collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = "logs/bcf.files"
+        collect("regions/{part}.bcf.csi", part = intervals),
+        bcf = collect("regions/{part}.bcf", part = intervals)
     output:
-        temp("variants.raw.unsort.bcf")
-    log:
-        "logs/concat.log"
-    threads:
-        workflow.cores
-    shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
-
-rule sort_variants:
-    input:
-        "variants.raw.unsort.bcf"
-    output:
+        concatlist = temp("logs/bcf.files"),
         bcf = "variants.raw.bcf",
         csi = "variants.raw.bcf.csi"
-    shell:
-        "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
+    log:
+        "logs/concat_sort.log"
+    threads:
+        workflow.cores
+    params:
+        workflow.cores - 1 
+    shell:  
+        """
+        for i in {input.bcf}; do
+            echo $i >> {output.filelist}
+        done
+        {{
+            bcftools concat -f {input.filelist} --threads {params} --naive |
+            bcftools sort - --write-index -Ob -o {output.bcf}
+        }} 2> {log}
+        """
 
 rule realign_indels:
     input:
@@ -161,7 +154,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     params:
-        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
+        lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
         {{

@@ -107,8 +107,7 @@ rule impute:
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
         tmpdir = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
-        stitch_log = "{paramset}/logs/{contig}.stitch.log",
-        rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
+        "{paramset}/logs/{contig}.stitch.log",
     params:
         chrom   = lambda wc: f"--chr={wc.contig}",
         start   = lambda wc: f"--regionStart={startpos}" if region else "",
@@ -132,9 +131,9 @@ rule impute:
         f"docker://pdimens/harpy:impute_{VERSION}"        
     shell:
         """
-        mkdir -p {output.tmpdir}
-        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
         {{
+            mkdir -p {output.tmpdir}
+            STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/plots
             mv alphaMat.*all*.png alphaMat.all.png
             mv alphaMat.*normalized*.png alphaMat.normalized.png
@@ -143,7 +142,7 @@ rule impute:
             mv metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.sample.jpg
             mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.sample.jpg
             mv r2*.goodonly.jpg r2.goodonly.jpg
-        }} 2> {log.rename_log}
+        }} 2> {log}
         """
 
 rule index_vcf:
@@ -151,59 +150,33 @@ rule index_vcf:
         "{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
         "{paramset}/contigs/{contig}.vcf.gz.tbi",
-        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
-        stats = "{paramset}/reports/data/contigs/{contig}.stats"
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz"
     shell:
         """
         cp {input} {output.vcf}
         tabix {output.vcf}
-        bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule concat_list:
+rule merge_vcf:
+    priority: 100
     input:
-        cntg = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
+        collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
+        vcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
-        bcf = temp("{paramset}/bcf.files")
+        "{paramset}/{paramset}.bcf.csi",
+        bcf = "{paramset}/{paramset}.bcf",
+        filelist = temp("{paramset}/bcf.files")
+    log:
+        "logs/concat/{paramset}.concat.log"
+    threads:
+        workflow.cores
     run:
-        with open(output.bcf, "w") as fout:
-            _ = fout.write("\n".join(input.cntg))
-
-if len(contigs) == 1:
-    rule bcf_conversion:
-        input:
-            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
-            vcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
-        output:
-            "{paramset}/{paramset}.bcf.csi",
-            bcf = "{paramset}/{paramset}.bcf"
-        log:
-            "logs/concat/{paramset}.concat.log"
-        shell:
-            "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}"
-
-else:
-    rule merge_vcf:
-        priority: 100
-        input:
-            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
-            files = "{paramset}/bcf.files"
-        output:
-            "{paramset}/{paramset}.bcf"
-        log:
-            "logs/concat/{paramset}.concat.log"
-        threads:
-            workflow.cores
-        shell:
-            "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> {log}"
-
-    rule index_merged:
-        input:
-            "{paramset}/{paramset}.bcf"
-        output:
-            "{paramset}/{paramset}.bcf.csi"
-        shell:
-            "bcftools index {input}"
+        if len(contigs) == 1:
+            shell("touch {output.filelist} && bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}")
+        else:
+            with open(output.filelist, "w") as fout:
+                _ = fout.write("\n".join(input.vcf))
+            shell("bcftools concat --threads {threads} -Ob -o {output.bcf} --write-index -f {input.files} 2> {log}")
 
 rule extract_region:
     input:
@@ -226,15 +199,17 @@ rule contig_report:
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
         "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
-        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        "{paramset}/contigs/{contig}.vcf.gz.tbi",
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
         ipynb = "workflow/stitch_collate.ipynb"
     output:
+        stats = "{paramset}/reports/data/contigs/{contig}.stats",
         tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
         ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        statsfile = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        stats   = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
         plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
         model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
@@ -246,6 +221,7 @@ rule contig_report:
     shell:
         """
         {{
+            bcftools stats -s "-" {input.vcf} > {output.stats}
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process-notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
         }} 2> {log} > {output.ipynb}

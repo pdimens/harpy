@@ -101,7 +101,7 @@ rule call_genotypes:
             bcftools call -o {output.vcf} --multiallelic-caller --variants-only {params.ploidy} {params.annot_call} {params.groups} 2> {log}
         """
 
-rule sort_genotypes:
+rule sort_variants:
     input:
         bcf = temp("call/{part}.vcf")
     output:
@@ -112,50 +112,36 @@ rule sort_genotypes:
     shell:
         "bcftools sort --output {output.bcf} --write-index {input.bcf} 2> {log}"
 
-rule concat_list:
-    input:
-        bcfs = collect("sort/{part}.bcf", part = intervals),
-    output:
-        "logs/bcf.files"
-    run:
-        with open(output[0], "w") as fout:
-            for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")  
-
-rule concat_logs:
-    input:
-        collect("logs/mpileup/{part}.mpileup.log", part = intervals)
-    output:
-        "logs/mpileup.log"
-    run:
-        with open(output[0], "w") as fout:
-            for file in input:
-                interval = os.path.basename(file).replace(".mpileup.log", "")
-                with open(file, "r") as fin:
-                    for line in fin:
-                        fout.write(f"{interval}\t{line}")
-
 rule concat_variants:
     input:
-        collect("sort/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = "logs/bcf.files"
+        collect("sort/{part}.bcf.csi", part = intervals),
+        bcf = collect("sort/{part}.bcf", part = intervals),
+        logs = collect("logs/mpileup/{part}.mpileup.log", part = intervals)
     output:
-        temp("variants.raw.unsort.bcf")
-    log:
-        "logs/concat.log"
-    threads:
-        workflow.cores
-    shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
-
-rule sort_variants:
-    input:
-        "variants.raw.unsort.bcf"
-    output:
+        concatlist = temp("logs/bcf.files"),
+        log = "logs/mpileup.log",
         bcf = "variants.raw.bcf",
         csi = "variants.raw.bcf.csi"
-    shell:
-        "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
+    log:
+        "logs/concat_sort.log"
+    threads:
+        workflow.cores
+    params:
+        workflow.cores - 1 
+    shell:  
+        """
+        for i in {input.bcf}; do
+            echo $i
+        done >> {output.concatlist}
+        for i in {input.logs}; do
+            interval=$(basename "$i" .mpileup.log)
+            awk -v prefix="$interval" '{{print prefix "\t" $0}}' "$i"
+        done >> {output.log}
+        {{
+            bcftools concat -f {output.concatlist} --threads {params} --naive |
+            bcftools sort - --write-index -Ob -o {output.bcf}
+        }} 2> {log}
+        """
 
 rule realign_indels:
     input:
@@ -187,7 +173,7 @@ rule variant_report:
     log:
         "logs/variants.{type}.report.log"
     params:
-        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
+        lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
         {{

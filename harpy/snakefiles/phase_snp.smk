@@ -222,6 +222,8 @@ rule summarize_blocks:
         collect("phase_blocks/{sample}.blocks", sample = samplenames)
     output:
         "reports/blocks.summary.gz"
+    log:
+        "logs/summary.log"
     shell:
         """
         {{
@@ -229,7 +231,7 @@ rule summarize_blocks:
             for i in {input}; do
                 parse-phaseblocks $i
             done
-        }} | gzip > {output}
+        }} 2> {log} | gzip > {output}
         """
 
 rule phase_report:
