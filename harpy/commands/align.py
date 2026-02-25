@@ -33,7 +33,6 @@ def align():
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--contigs',  panel = "Workflow Options", type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
 @click.option('--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
@@ -43,7 +42,7 @@ def align():
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, no_temp, setup):
+def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using BWA MEM2
     
@@ -62,13 +61,10 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
     fasta = FASTA(reference, quiet = quiet > 0)
-    if contigs:
-        fasta.match_contigs(contigs) 
 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.linkedreads["standardized"] = fastq.bx_tag
     workflow.notebooks["skip"] = skip_reports
-    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
     workflow.param(molecule_distance, "distance-threshold")
@@ -97,7 +93,6 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
 @click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
@@ -107,7 +102,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup):
+def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Align sequences to reference genome using strobealign
  
@@ -127,8 +122,6 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
     fasta = FASTA(reference, quiet= quiet > 0)
-    if contigs:
-        fasta.match_contigs(contigs)
 
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files,"fastq")
@@ -141,7 +134,6 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     if extra_params:
         workflow.param(extra_params, "extra")
     workflow.notebooks["skip"] = skip_reports
-    workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
 
     workflow.info = {
         "Samples" : fastq.count,

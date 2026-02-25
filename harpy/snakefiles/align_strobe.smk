@@ -18,7 +18,6 @@ ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
 is_standardized = config["Workflow"]["linkedreads"]["standardized"]
 keep_unmapped = config["Parameters"]["keep-unmapped"]
 skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))
@@ -198,7 +197,6 @@ rule sample_reports:
         basedir = "-p basedir " + os.path.abspath("reports/data"),
         mol_dist = f"-p mol_dist {molecule_distance}",
         window_size = f"-p windowsize {windowsize}",
-        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else "",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
         "logs/{sample}.report.log"

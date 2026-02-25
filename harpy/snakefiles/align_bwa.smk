@@ -18,8 +18,6 @@ workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 windowsize  = config["Parameters"]["depth-windowsize"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -221,7 +219,6 @@ rule sample_reports:
         basedir = "-p basedir " + os.path.abspath("reports/data"),
         mol_dist = f"-p mol_dist {molecule_distance}",
         window_size = f"-p windowsize {windowsize}",
-        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else "",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
         "logs/{sample}.report.log"
