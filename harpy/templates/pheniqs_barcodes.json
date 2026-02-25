@@ -1,9 +1,9 @@
 {
 
-    "DT": "2024-07-23",
+    "DT": "2026-02-25",
     "PL": "ILLUMINA",
     "decoder": {
-        "stagger_sequence_set": {
+        "stagger": {
             "codec": {
                 "@001": { "barcode": [ "TTTTTTT" ] },
                 "@002": { "barcode": [ "CCCCCCA" ] },
@@ -15,59 +15,7 @@
                 "@008": { "barcode": [ "TACTACA" ] }
             }
         },
-        "hashing_oligo_barcode_set": {
-            "codec": {
-                "@A01": { "barcode": [ "CCTATGCAAGCTGC" ] },
-                "@A03": { "barcode": [ "CCTCGGTGATCGTA" ] },
-                "@A05": { "barcode": [ "CTGGCCATACGTAC" ] },
-                "@A07": { "barcode": [ "CCATCGACGTACGT" ] },
-                "@A09": { "barcode": [ "AGTCGCTAGCCAGA" ] },
-                "@A11": { "barcode": [ "CGTTGCTGTCCACA" ] },
-                "@B01": { "barcode": [ "CCACCTTCGGTTGA" ] },
-                "@B03": { "barcode": [ "CCTGCCAACACGAT" ] },
-                "@B05": { "barcode": [ "CTACCATTCGCAGC" ] },
-                "@B07": { "barcode": [ "CCACGTACCAGTCT" ] },
-                "@B09": { "barcode": [ "CTCGAAGTGCTGTC" ] },
-                "@B11": { "barcode": [ "CGCACTTGTATCCG" ] },
-                "@C01": { "barcode": [ "CAGGCTTAATCGGC" ] },
-                "@C03": { "barcode": [ "CGCAGGTTCTCGTA" ] },
-                "@C05": { "barcode": [ "CTCGGCTCACAAGT" ] },
-                "@C07": { "barcode": [ "GCCTCTCGACATTC" ] },
-                "@C09": { "barcode": [ "CTCGCAACACGCTT" ] },
-                "@C11": { "barcode": [ "CCTAGTTGCGCATC" ] },
-                "@D01": { "barcode": [ "CACGATACGCCAAC" ] },
-                "@D03": { "barcode": [ "AGACCGTGCGCAAT" ] },
-                "@D05": { "barcode": [ "CGCTGCATACAAGC" ] },
-                "@D07": { "barcode": [ "AAGCTCCGATGCCA" ] },
-                "@D09": { "barcode": [ "CGCCAAGGTGCTAT" ] },
-                "@D11": { "barcode": [ "ACGGTCATTCGCGA" ] },
-                "@E01": { "barcode": [ "CTGCCATGTTCGGA" ] },
-                "@E03": { "barcode": [ "CAGGACATCGGACT" ] },
-                "@E05": { "barcode": [ "ATGTCGCAACGGCA" ] },
-                "@E07": { "barcode": [ "CCGCAACTAGAAGC" ] },
-                "@E09": { "barcode": [ "GCCAGTCCTGACTA" ] },
-                "@E11": { "barcode": [ "AGTCCTGCACTGGA" ] },
-                "@F01": { "barcode": [ "ACCGACGGACCATT" ] },
-                "@F03": { "barcode": [ "ACCACGAGCACTGT" ] },
-                "@F05": { "barcode": [ "CGATGCGCTCCTTA" ] },
-                "@F07": { "barcode": [ "CAGTAACCACAGCC" ] },
-                "@F09": { "barcode": [ "CCGTCCTTGATCCA" ] },
-                "@F11": { "barcode": [ "GCCTATGCTTCCTC" ] },
-                "@G01": { "barcode": [ "CTCATGCCGAACTC" ] },
-                "@G03": { "barcode": [ "CGCGTTCGATGAAC" ] },
-                "@G05": { "barcode": [ "CAGGCAAGAACGTC" ] },
-                "@G07": { "barcode": [ "CCTGCAGCTACTTC" ] },
-                "@G09": { "barcode": [ "ACGTTCACAGCCGA" ] },
-                "@G11": { "barcode": [ "AACGCGGAGAGTGA" ] },
-                "@H01": { "barcode": [ "CCGTCGAATATGGC" ] },
-                "@H03": { "barcode": [ "CACTTCGTCCAGTC" ] },
-                "@H05": { "barcode": [ "CCAGAACGAATCCG" ] },
-                "@H07": { "barcode": [ "CCGTCTGTCTTCAC" ] },
-                "@H09": { "barcode": [ "CTGAATCCTCGAGC" ] },
-                "@H11": { "barcode": [ "CACTACCACATACA" ] }
-            }
-        },
-        "first_cellular_barcode_set": {
+        "segment_A": {
              "codec": {
                 "@TTACCAGGTCCG": {"BC": "A01", "barcode": [ "TTACCAGGTCCG" ] },
                 "@AGACCATCGCCG": {"BC": "A02", "barcode": [ "AGACCATCGCCG" ] },
@@ -175,7 +123,7 @@
                 "@GCGGTAACACTC": {"BC": "A104", "barcode": [ "GCGGTAACACTC" ] }
             }
         },
-        "second_cellular_barcode_set": {
+        "segment_B": {
             "codec": {
                 "@TTACCAGGTCCG": { "BC": "B01", "barcode": [ "TTACCAGGTCCG" ] },
                 "@AGACCATCGCCG": { "BC": "B02", "barcode": [ "AGACCATCGCCG" ] },
@@ -283,7 +231,7 @@
                 "@GCGGTAACACTC": { "BC": "B104", "barcode": [ "GCGGTAACACTC" ] }
             }
         },
-        "third_cellular_barcode_set": {
+        "segment_C": {
             "codec": {
                 "@TTACCAGGTCCG": { "BC": "C01", "barcode": [ "TTACCAGGTCCG" ] },
                 "@AGACCATCGCCG": { "BC": "C02", "barcode": [ "AGACCATCGCCG" ] },
