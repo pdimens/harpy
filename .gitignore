@@ -20,3 +20,7 @@ workflow/
 harpy*/*
 .gitattributes
 *pixi*
+templates/
+.report/
+myst.yml
+_build/
