@@ -139,8 +139,7 @@ rule molecule_coverage:
     shell:
         """
         {{
-            molecule-coverage -f {input.fai} -w {params} {input.stats} | 
-            gzip
+            molecule-coverage -w {params} {input.fai} {input.stats} | gzip
         }} > {output} 2> {log}
         """
 
@@ -162,7 +161,10 @@ rule alignment_coverage:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}"
+        """
+        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
+        rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
+        """
 
 rule samtools_report:
     input: 

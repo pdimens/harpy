@@ -3,9 +3,9 @@
 
 import os
 import sys
-import gzip
 import argparse
 from collections import Counter
+from harpy.common.file_ops import safe_read
 
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))
@@ -59,12 +59,12 @@ def main():
         FASTA fai index (like the kind created using samtools faidx)
         to know the actual sizes of the contigs. Prints to stdout.
         """,
-        usage = "molecule-coverage -w 50000 -f genome.fasta.fai statsfile > output.cov",
+        usage = "molecule-coverage -w 50000 genome.fasta.fai statsfile > output.cov",
         exit_on_error = False
         )
 
-    parser.add_argument('-f', '--fai', required = True, type = str, help = "FASTA index (.fai) file of genome used for alignment")
     parser.add_argument('-w', '--window', required = True, type = int, help = "Window size (in bp) to sum depths over")
+    parser.add_argument('fai', type = str, help = "FASTA index (.fai) file of genome used for alignment")
     parser.add_argument('statsfile', help = "stats file produced by harpy via bx_stats script")
 
     if len(sys.argv) == 1:
@@ -91,7 +91,7 @@ def main():
             length = splitline[1]
             contigs[contig] = int(length)
 
-    with gzip.open(args.statsfile, "rt") as statsfile:
+    with safe_read(args.statsfile) as statsfile:
         LASTCONTIG = None
         IDX_CONTIG = None
         IDX_START = None

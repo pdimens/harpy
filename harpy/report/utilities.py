@@ -1,21 +1,14 @@
-import gzip
 import numpy as np
 import pandas as pd
+from harpy.common.file_ops import safe_read
 
 def last_line(filename: str) -> str:
     '''Returns the last line of a file. Automatically handles gzip if file ends with case-insensitive `.gz`'''
-    if filename.lower().endswith(".gz"):
-        with gzip.open(filename, 'rb') as f:
-            last_line = None
-            for line in f:
-                last_line = line
-            return last_line.decode("utf-8").strip()
-    else:
-        with open(filename, 'r') as f:
-            last_line = None
-            for line in f:
-                last_line = line
-            return last_line.strip()
+    with safe_read(filename) as f:
+        last_line = None
+        for line in f:
+            last_line = line
+        return last_line.strip()
 
 def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
     '''

@@ -30,6 +30,7 @@ infer-sv = "harpy.scripts:infer_sv.main"
 molecule-coverage = "harpy.scripts:molecule_coverage.main"
 stagger-GIH = "harpy.scripts:stagger_GIH.main"
 parse-phaseblocks = "harpy.scripts:parse_phaseblocks.main"
+plot-depth = "harpy.scripts:plot_depth.main"
 rename-bam = "harpy.scripts:rename_bam.main"
 process-notebook = "harpy.scripts:process_notebook.main"
 

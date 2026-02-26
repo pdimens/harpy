@@ -4,9 +4,7 @@ import itables
 import altair as alt
 import pandas as pd
 from .theme import palette
-from harpy.common.version import VERSION
 itables.options.warn_on_undocumented_option=False
-
 
 class StatsBox:
     '''
@@ -167,44 +165,54 @@ def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
     )
 )
 
-def report_index():
-    '''Return a string of the report index.md page'''
-    return f"""---
-title: Welcome to My Landing Page
-site:
-  hide_outline: true
-  hide_title_block: true
-edit_url: null
----
 
-{{button}}`Harpy Version {VERSION} <https://github.com/pdimens/harpy>`
+def _makepanel(df, metric, title=None):
+    '''Create an altair chart of read depth. Used internally by `depthplot()`'''
+    nearest = alt.selection_point(
+        nearest=True,
+        on='mouseover',
+        fields=['Position'],
+        empty=False
+    )
 
-```{{image}} https://github.com/pdimens/harpy/blob/docs/static/logo_trans.png?raw=true
-:class: col-page-right
-:alt: The Harpy software logo
-:width: 100%
-:align: center
-```
+    base = (
+        alt.Chart(df)
+        .transform_fold(['Read Depth', 'Molecule Depth'], as_=['Metric', 'Depth'])
+        .transform_filter(alt.datum.Metric == metric)
+        .encode(
+            x=alt.X('Position:Q', title='Position (Mb)')
+                .scale(domainMin=0)
+                .axis(labelExpr='datum.value / 1000000'),
+            y=alt.Y('Depth:Q', title=None),
+            color=alt.Color('Metric:N').legend(None),
+        )
+    )
 
-::::{{grid}} 1 1 2 3
-:class: col-page-right
-:::{{card}}
-:header: Harpy Reports 📝
-This is an aggregation of `.ipynb` reports produced by Harpy ([](https://doi.org/10.1093/bioadv/vbaf133)), rendered
-in HTML by [MyST](https://mystmd.org/). Use the left sidebar
-to navigate the directories and their reports.
-:::
+    line = base.mark_line()
 
-:::{{card}}
-:header: Let us know of issues 🚩
-If there are issues/errors in these reports, please [submit
-an Issue](https://github.com/pdimens/harpy/issues/new/choose) on GitHub. 
-:::
+    points = base.mark_point(opacity=0).encode(
+        tooltip=["Metric:N", 'Genomic Interval (bp):N', 'Depth:Q'],
+        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
+    ).add_params(nearest)
 
-:::{{card}}
-:header: What you will find 🔎
-Stand-alone HTML reports created by other software (_e.g._ `fastp` or `MultiQC`) are not inlcluded into this aggregation due to
-software limitations. 
-:::
-:::
-"""
+    rule = base.mark_rule(color='gray', strokeWidth=1).encode(
+        tooltip=["Metric:N", 'Genomic Interval (bp):N', 'Depth:Q'],
+    ).transform_filter(nearest)
+
+    return (
+        alt.layer(line, points, rule)
+        .properties(height=300, width=900, title=title or metric)
+    )
+
+def depthplot(df, title):
+    coverage = "Read Depth" in df.columns
+    molcov = "Molecule Depth" in df.columns
+    if coverage and molcov:
+        res = alt.vconcat(
+                _makepanel(df, 'Read Depth', title=f"{title} (Read Depth)"),
+                _makepanel(df, 'Molecule Depth', title = f"{title} (Molecule Depth)")
+            ).resolve_scale(x='independent', y='independent')
+    else:
+        _param = 'Read Depth' if coverage else 'Molecule Depth'
+        res = _makepanel(df, _param, title = f"{title} ({_param})")
+    return res.interactive(bind_y = False)
