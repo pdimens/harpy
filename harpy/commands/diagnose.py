@@ -142,7 +142,7 @@ def rule(directory):
     if failed_rule:
         hp.log(f"Failing rule: [yellow]{failed_rule.lstrip()}", newline=True)
     else:
-        hp.console.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
+        hp.log(f"No errors found in {os.path.basename(latest_log)}", style = "green", markup=False, highlight=False)
         sys.exit(0)
     if infiles:
         if not os.path.exists(CONFIG_FILE):

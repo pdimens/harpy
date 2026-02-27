@@ -54,7 +54,10 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"
         panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report[/]", subtitle= "[default]Terminate server with[/] [bold yellow]ctrl+c[/]")
-        with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = hp.console, auto_refresh = False, transient = True) as live:
+        with (
+            subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve,
+            Live(panel, console = hp.console, auto_refresh = False, transient = True) as live
+        ):
             while not URL:
                 if serve.poll():
                     myst_error += "\n".join(serve.stderr.readlines())
