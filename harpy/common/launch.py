@@ -6,7 +6,7 @@ import re
 import sys
 import subprocess
 from rich.markup import escape
-from rich.syntax import Syntax
+#from rich.syntax import Syntax
 from beautysh import BashFormatter
 from harpy.common.file_ops import last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint

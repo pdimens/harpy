@@ -30,14 +30,14 @@ rule sort_by_barcode:
     log:
         "logs/sort_by_barcode.log"
     params:
-        barcode_tag = BX_TAG
+        BX_TAG
     threads:
         workflow.cores
     shell:
         """
         {{
             samtools import -T "*" {input} |
-            samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
+            samtools sort -@ {threads} -O SAM -t {params} |
             samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
         }} 2> {log}
         """
@@ -48,7 +48,7 @@ rule format_barcode:
     output:
         temp("fastq_preproc/input.R{FR}.fq.gz")
     params:
-        barcode_tag = BX_TAG
+        BX_TAG
     shell:
         "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 

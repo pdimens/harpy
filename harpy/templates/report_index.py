@@ -1,4 +1,4 @@
-from harpy.common.version import VERSION
+from harpy import __version__
 
 INDEXMD = """---
 title: Welcome to My Landing Page
@@ -38,4 +38,4 @@ Stand-alone HTML reports created by other software (_e.g._ `fastp` or `MultiQC`)
 software limitations. 
 :::
 :::
-""".format(VERSION)
+""".format(__version__)

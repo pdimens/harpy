@@ -9,7 +9,7 @@ import yaml
 from rich import box
 from rich.table import Table
 from .printing import HarpyPrint
-from harpy.common.version import VERSION
+from harpy import __version__
 
 class HarpyEnvs():
     '''The class that holds conda and pixi environments and means to create container dockerfiles'''
@@ -163,7 +163,7 @@ ENTRYPOINT ["/app/entrypoint.sh"]
                 with open(f"container/{env}/pixi.fix.toml", "w") as out:
                     for line in toml:
                         if line.startswith("version"):
-                            line = f"version = \"{VERSION}\"\n"
+                            line = f"version = \"{__version__}\"\n"
                         out.write(line)
 
             os.remove(f"container/{env}/pixi.toml")

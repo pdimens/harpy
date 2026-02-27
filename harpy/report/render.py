@@ -10,7 +10,7 @@ import uuid
 import subprocess
 import yaml
 from harpy.common.printing import HarpyPrint
-from harpy.common.version import VERSION
+from harpy import __version__
 from harpy.templates.report_index import INDEXMD
 
 class ReportRender():
@@ -305,7 +305,7 @@ def myst_yaml() -> dict:
             "id": rand_id(),
             **({"github" : git_url} if git_url else {}),
             "edit_url": 'null',
-            "title" : f"Harpy Reports (v{VERSION})",
+            "title" : f"Harpy Reports (v{__version__})",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }

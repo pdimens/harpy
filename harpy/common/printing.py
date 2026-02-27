@@ -2,7 +2,6 @@
 
 import time as _time
 import os
-import re
 import sys
 from beautysh import BashFormatter
 from rich.console import Console, RenderableType
@@ -11,7 +10,7 @@ from rich import box
 from rich.table import Table
 from rich.panel import Panel
 from rich.theme import Theme
-from harpy.common.version import VERSION
+from harpy import __version__
 
 class HarpyPrint():
     def __init__(self, quiet: bool = False):
@@ -128,7 +127,7 @@ class HarpyPrint():
                 pass
         self.console.rule(f"[bold]{errortype}[/][default dim]", style = "red")
         self.console.print("[red]Time:[/] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'), highlight=False)
-        self.console.print(f"[red]Harpy Version:[/] {VERSION}", highlight=False)
+        self.console.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
         self.console.print(errortext)
         self.console.rule("[bold]Error Reported by Snakemake", style = "red")
 
@@ -146,7 +145,7 @@ class HarpyPrint():
         datatable = self.table()
         datatable.add_column("detail", justify="left", style="red", no_wrap=True)
         datatable.add_column("value", justify="left")
-        datatable.add_row("Harpy Version:", f"{VERSION}")
+        datatable.add_row("Harpy Version:", __version__)
         datatable.add_row("Time:", _time.strftime('%d %b %Y @ %H:%M'))
         datatable.add_row("Duration:", time_text)
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
