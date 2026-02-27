@@ -34,6 +34,7 @@ class Workflow():
 
         self.notebook_files: list[str] = []
         self.notebooks: dict = {}
+
         self.scripts: list[str] = []
         self.inputs: dict = {}
         self.linkedreads: dict = {}
@@ -48,10 +49,9 @@ class Workflow():
         self.info: dict = {}
         self.start_time: datetime = datetime.now()
         self.summary: str = name.replace("_",".").replace(" ",".") + ".summary"
-        self.summary_text: str = ""
 
         if self.quiet == 0 and not no_validation:
-            self.print.console.rule("[bold]Validations", style = "dim magenta")
+            self.print.rule("[bold]Validations", style = "dim magenta")
 
     def param(self, value, name: str):
         """
@@ -257,9 +257,9 @@ class Workflow():
         table.add_row("Start:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
         for k,v in self.info.items():
                 table.add_row(f"{k}:", f"{v}")
-        self.print.console.print("")
-        self.print.console.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
-        self.print.console.print(table)
+        self.print.print("")
+        self.print.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
+        self.print.print(table)
 
     def print_onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
