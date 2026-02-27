@@ -278,7 +278,7 @@ class Workflow():
         if _smlog:
             datatable.add_row("Workflow Log:", os.path.join(_relpath, ".snakemake", 'log', _smlog))
         self.print.rule("[bold]Workflow Finished[/]", style="green")
-        self.print.console.print(datatable)
+        self.print.print(datatable)
 
     def initialize(self, setup: bool = False):
         """Using the configurations, create all necessary folders and files. Launches the workflow if `setup` = False"""
@@ -293,7 +293,7 @@ class Workflow():
         self.print_onstart()
         if not setup:
             self.launch()
-        else:
+        elif self.quiet < 2:
             self.print.rule("[dim bold]Setup Complete", style="dim")
 
     def launch(self, absolute:bool = False):
