@@ -7,7 +7,6 @@ import re
 import yaml
 from harpy.common.file_ops import is_gzip
 from harpy.common.printing import HarpyPrint
-from rich.text import Text
 
 hp = HarpyPrint()
 

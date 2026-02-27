@@ -6,8 +6,7 @@ from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, FASTAfile
 from harpy.validation.fasta import FASTA
 from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
-from harpy.common.cli_types_generic import ContigList, SnakemakeParams
-from harpy.common.cli_types_params import HapCutParams
+from harpy.common.cli_params import HapCutParams, ContigList, SnakemakeParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 

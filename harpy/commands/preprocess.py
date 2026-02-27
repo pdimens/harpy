@@ -3,7 +3,7 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
-from harpy.common.cli_types_generic import SnakemakeParams
+from harpy.common.cli_params import SnakemakeParams
 from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ

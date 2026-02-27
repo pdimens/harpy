@@ -5,8 +5,7 @@ import shutil
 from pathlib import Path
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
-from harpy.common.cli_types_generic import SnakemakeParams, SNPRegion
-from harpy.common.cli_types_params import MpileupParams, FreebayesParams
+from harpy.common.cli_params import MpileupParams, FreebayesParams, SnakemakeParams, SNPRegion
 from harpy.common.system_ops import container_ok
 from harpy.common.file_ops import genomic_windows
 from harpy.common.workflow import Workflow
