@@ -6,11 +6,9 @@ import re
 import sys
 import subprocess
 from rich.markup import escape
-#from rich.syntax import Syntax
 from beautysh import BashFormatter
 from harpy.common.file_ops import last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint
-from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_GENERIC_ERROR = 1
@@ -48,7 +46,7 @@ class LaunchSnakemake():
         self.grouperror: bool = False
         self.error_printed: bool = False
         self.print = printer
-        self.progress = harpy_progressbar(self.quiet, self.print.console)
+        self.progress = self.print.progressbar()
         self.bash = BashFormatter(indent_size=4)
 
         try:
@@ -262,8 +260,8 @@ class LaunchSnakemake():
                 self.nextline()
             # if dependency text present, print pulsing progress bar
             if self.deps:
-                progress = harpy_pulsebar(self.quiet, self.print.console)
-                with harpy_progresspanel(progress, self.print.console, quiet=1, title = self.deploy_text, refresh=8):
+                progress = self.print.pulsebar()
+                with self.print.progresspanel(progress, title = self.deploy_text, refresh=8):
                     _taskid = progress.add_task("[dim]Working...", total = None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -304,7 +302,7 @@ class LaunchSnakemake():
         '''monitors the Snakemake stderr output while jobs are running'''
         if self.exitcode > -1 or self.process.poll():
             return
-        with harpy_progresspanel(self.progress, self.print.console, quiet = self.quiet):
+        with self.print.progresspanel(self.progress):
             self.task_ids["total_progress"] = self.progress.add_task(
                     "[bold blue]Progress",
                     total= self.job_inventory["total"].total,

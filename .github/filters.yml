@@ -38,6 +38,7 @@ qc: &qc
   - *environments
   - 'harpy/commands/qc.py'
   - 'harpy/snakefiles/qc.smk'
+  - 'harpy/scripts/count_bx.py'
   - 'test/fastq/**'
 bwa: &bwa
   - *common
@@ -47,8 +48,7 @@ bwa: &bwa
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_bxstats.ipynb'
   - 'harpy/scripts/bx_stats.py'
-  - 'harpy/scripts/count-bx.py'
-  - 'harpy/scripts/molecule-coverage.py'
+  - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
 strobealign: &strobealign
   - *common
@@ -58,8 +58,7 @@ strobealign: &strobealign
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_bxstats.ipynb'
   - 'harpy/scripts/bx_stats.py'
-  - 'harpy/scripts/count-bx.py'
-  - 'harpy/scripts/molecule-coverage.py'
+  - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
 mpileup: &mpileup
   - *common
@@ -88,25 +87,23 @@ leviathan: &leviathan
   - *common
   - *environments
   - 'harpy/commands/sv.py'
-  - 'harpy/snakefiles/sv_leviathan**.smk'
-  - 'test/bam/**'
-  - 'harpy/scripts/leviathan_bx_shim.py'
+  - 'harpy/snakefiles/sv_leviathan.smk'
   - 'harpy/notebooks/leviathan**.ipynb'
+  - 'test/bam/**'
 naibr: &naibr
   - *common
   - *environments
   - 'harpy/commands/sv.py'
-  - 'harpy/snakefiles/sv_naibr**.smk'
-  - 'test/bam/**'
-  - 'test/bam_phased/**'
-  - 'test/vcf/test.phased.bcf'
-  - 'harpy/notebooks/naibr**.ipynb'
+  - 'harpy/snakefiles/sv_naibr.smk'
+  - 'harpy/notebooks/naibr.ipynb'
   - 'harpy/scripts/infer-sv.py'
+  - 'test/bam_phased/**'
 phase: &phase
   - *common
   - *environments
   - 'harpy/commands/phase.py'
-  - 'harpy/snakefiles/phase.smk'
+  - 'harpy/snakefiles/phase_snp.smk'
+  - 'harpy/snakefiles/phase_bam.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'harpy/notebooks/hapcut.ipynb'

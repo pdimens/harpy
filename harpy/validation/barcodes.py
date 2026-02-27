@@ -8,7 +8,6 @@ import subprocess
 import shutil
 from harpy.common.file_ops import is_gzip, safe_read
 from harpy.common.printing import HarpyPrint
-from harpy.common.progress import harpy_progresspanel, harpy_progressbar
 
 HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
 HAPLOTAGGING_RX_SAM = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
@@ -19,7 +18,7 @@ TELLSEQ_RX_SAM = re.compile(r"^[ATCGN]+$")
 
 def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60, gzip_ok: bool = True, haplotag_only: bool = False, check_dups: bool = True) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
-    hp = HarpyPrint(quiet > 1)
+    hp = HarpyPrint(quiet)
     if is_gzip(infile) and not gzip_ok:
         hp.error("incorrect format", f"The input file must be in uncompressed format. Please decompress [blue]{infile}[/] and try again.")
     lengths = set()
@@ -31,8 +30,8 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
         if not set(barcode).issubset(nucleotides) or barcode != barcode.upper():
             hp.error("incorrect format", f"Invalid barcode format on [bold]line {line_num }[/]: [yellow]{barcode}[/].\nBarcodes in [blue]{infile}[/] must be captial letters and only contain standard nucleotide characters [green]ATCG[/].")
         return len(barcode)
-    progress = harpy_progressbar(quiet)
-    with safe_read(infile) as bc_file, harpy_progresspanel(progress, title= "Validating barcodes", quiet=quiet):
+    progress = hp.progressbar()
+    with safe_read(infile) as bc_file, hp.progresspanel(progress, title= "Validating barcodes"):
         out = subprocess.Popen(['wc', '-l', infile], stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()[0]
         linenum = int(out.partition(b' ')[0])
         if linenum > 96**4 and haplotag_only:

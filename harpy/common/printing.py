@@ -1,8 +1,8 @@
 """Module of pretty-printing for errors and prompts"""
 
-import time as _time
 import os
 import sys
+import time
 from beautysh import BashFormatter
 from rich.console import Console, RenderableType
 from rich.markup import escape
@@ -10,10 +10,61 @@ from rich import box
 from rich.table import Table
 from rich.panel import Panel
 from rich.theme import Theme
+from rich.live import Live
+from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn
+from rich.text import Text
 from harpy import __version__
 
+class PausableTimeElapsedColumn(TimeElapsedColumn):
+    """Custom time elapsed column that supports pausing and resuming."""
+    
+    def __init__(self):
+        super().__init__()
+        self.pause_adjustments = {}  # task_id -> total paused time
+        self.pause_start_times = {}  # task_id -> when pause started
+
+    def pause(self, task_id):
+        """Start pausing the timer for a task."""
+        self.pause_start_times[task_id] = time.monotonic()
+    
+    def resume(self, task_id):
+        """Resume the timer for a task."""
+        if task_id in self.pause_start_times:
+            pause_duration = time.monotonic() - self.pause_start_times[task_id]
+            self.pause_adjustments[task_id] = self.pause_adjustments.get(task_id, 0) + pause_duration
+            del self.pause_start_times[task_id]
+    
+    def render(self, task):
+        """Render the elapsed time, accounting for pauses."""
+        elapsed = task.elapsed
+        _style = "yellow"
+
+        # subtract any paused time
+        if task.id in self.pause_adjustments:
+            elapsed -= self.pause_adjustments[task.id]
+
+        # if currently paused, also subtract time since pause started
+        if task.id in self.pause_start_times:
+            elapsed -= (time.monotonic() - self.pause_start_times[task.id])
+            _style = "dim yellow"
+
+        # don't go negative
+        elapsed = max(0, elapsed)
+        
+        # Format the time
+        minutes, seconds = divmod(int(elapsed), 60)
+        hours, minutes = divmod(minutes, 60)
+        days, hours = divmod(hours, 24)
+
+        if days:
+            _days = "day" if days == 1 else "days"
+            _hours = "hour" if hours == 1 else "hours"
+            return Text(f"{days:d} {_days}, {hours:d} {_hours}", style = _style)
+        else:
+            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
+
 class HarpyPrint():
-    def __init__(self, quiet: bool = False):
+    def __init__(self, quiet: int = 0):
         '''Instantiate a `HarpyPrint` object configured with a `quiet` setting that applies to printing logs and validations'''
         self.console = Console(
             stderr=True,
@@ -58,7 +109,7 @@ class HarpyPrint():
         can be disabled with _exit = False. Prints a blue-panel solution if `solutiontext` is provided,
         prints `offenders` after solution if proivded.    
         """
-        self.console.print(
+        self.print(
             Panel(
                 errortext,
                 title = f"[bold]Error: {errortitle}",
@@ -68,7 +119,7 @@ class HarpyPrint():
                 )
         )
         if solutiontext:
-            self.console.print(
+            self.print(
                 Panel(solutiontext,
                     title = "[bold]Solution",
                     title_align = "left",
@@ -79,7 +130,7 @@ class HarpyPrint():
             )
             if offenders:
                 offenders = offenders if isinstance(offenders, str) else "\n".join([str(i) for i in offenders])
-                self.console.print(
+                self.print(
                     offenders,
                     sep = "\n",
                     highlight= False
@@ -87,24 +138,23 @@ class HarpyPrint():
         if _exit:
             sys.exit(1)
 
-
     def notice(self, noticetext: str|RenderableType) -> None:
         """Print a basic panel with information text to stderr"""
-        self.console.print(
+        self.print(
             Panel(
                 noticetext,
                 title = "[dim]Notice",
                 title_align = "left",
                 border_style = "dim",
                 width = 75
-                )
+            )
         )
 
     def onstart(self, text: str, title: str) -> None:
         """Print a panel of info on workflow run to stderr"""
-        self.console.print("")
-        self.console.rule(f"[bold]harpy {title}", style = "light_steel_blue")
-        self.console.print(text)
+        self.print("")
+        self.rule(f"[bold]harpy {title}", style = "light_steel_blue")
+        self.print(text)
 
     def setup_error(self, exitcode: int) -> None:
         """Print a red panel with snakefile or conda/singularity error text to stderr"""
@@ -125,11 +175,11 @@ class HarpyPrint():
                     errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
             except ModuleNotFoundError:
                 pass
-        self.console.rule(f"[bold]{errortype}[/][default dim]", style = "red")
-        self.console.print("[red]Time:[/] " + _time.strftime('%d %b %Y [dim]@[/] %H:%M'), highlight=False)
-        self.console.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
-        self.console.print(errortext)
-        self.console.rule("[bold]Error Reported by Snakemake", style = "red")
+        self.rule(f"[bold]{errortype}[/][default dim]", style = "red")
+        self.print("[red]Time:[/] " + time.strftime('%d %b %Y [dim]@[/] %H:%M'), highlight=False)
+        self.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
+        self.print(errortext)
+        self.rule("[bold]Error Reported by Snakemake", style = "red")
 
     def on_error(self, logfile: str, time) -> None:
         """
@@ -146,13 +196,13 @@ class HarpyPrint():
         datatable.add_column("detail", justify="left", style="red", no_wrap=True)
         datatable.add_column("value", justify="left")
         datatable.add_row("Harpy Version:", __version__)
-        datatable.add_row("Time:", _time.strftime('%d %b %Y @ %H:%M'))
+        datatable.add_row("Time:", time.strftime('%d %b %Y @ %H:%M'))
         datatable.add_row("Duration:", time_text)
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
-        self.console.rule("[bold]Workflow Error[/]", style = "red")
-        self.console.print(datatable)
-        self.console.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
-        self.console.rule("[bold]Source of Error", style = "red")
+        self.rule("[bold]Workflow Error[/]", style = "red")
+        self.print(datatable)
+        self.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
+        self.rule("[bold]Source of Error", style = "red")
 
     def shell(self, text, rules: bool = False, style = None) -> None:
         """
@@ -162,7 +212,7 @@ class HarpyPrint():
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         #cmd = Syntax(result, lexer = "bash", tab_size=4, word_wrap=False, theme = "paraiso-dark")
-        self.console.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)
+        self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)
         if rules:
             self.console.rule(style = 'dim')
 
@@ -170,14 +220,59 @@ class HarpyPrint():
         '''
         If not `quiet`, print either a red x or green check following a validation log message
         '''
-        if not self.quiet:
+        if not self.quiet > 0:
             if success:
-                self.console.print("[green]🗸[/]")
+                self.print("[green]🗸[/]")
             else:
-                self.console.print("[red]𐄂[/]")
+                self.print("[red]𐄂[/]")
 
     def log(self, text, newline:bool = True):
         '''Print a rich-style log with the time in magenta and text in default'''
-        _now =  _time.strftime(r'[dim magenta]\[%H:%M:%S][/]')
-        if not self.quiet:
-            self.console.print(_now, text, highlight=False, end = "\n" if newline else " ")
+        _now =  time.strftime(r'[dim magenta]\[%H:%M:%S][/]')
+        if not self.quiet > 0:
+            self.print(_now, text, highlight=False, end = "\n" if newline else " ")
+    
+    def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
+        """Returns a nicely formatted live-panel with the progress bar in it"""
+        return Live(
+            Panel(
+                progressbar, title = title, border_style="dim"
+            ) if self.quiet != 2 else None,
+            refresh_per_second=refresh,
+            transient= self.quiet > 0,
+            console=self.console
+        )
+
+    def progressbar(self) -> Progress:
+        """
+        The pre-configured transient progress bar that workflows and validations use
+        """
+        return Progress(
+            TextColumn("{task.fields[active]}", style="yellow"),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
+            TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if self.quiet == 0 else TaskProgressColumn(style = "blue"),
+            PausableTimeElapsedColumn(),
+            transient = self.quiet > 0,
+            auto_refresh = True,
+            disable = self.quiet == 2,
+            refresh_per_second=2,
+            console= self.console,
+            expand=True
+        )
+
+    def pulsebar(self, stderr: bool = False) -> Progress:
+        """
+        The pre-configured transient pulsing progress bar that workflows use, typically for
+        installing the software dependencies/container
+        """
+        return Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width= None, pulse_style = "grey46"),
+            TimeElapsedColumn(),
+            auto_refresh = True,
+            transient = True,
+            disable = self.quiet == 2,
+            console = self.console if stderr else None,
+            expand=True
+        )
