@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825355226520">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.0.1">
@@ -33,11 +33,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="static/logo_navbar.png" />
-    <link href="resources/css/retype.css?v=4.0.1.825355226520" rel="stylesheet">
+    <link href="resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
 
-    <script data-cfasync="false" src="resources/js/config.js?v=4.0.1.825355226520" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=4.0.1.825355226520" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="resources/js/mermaid.js?v=4.0.1" defer></script>
 </head>
 <body>
@@ -215,13 +215,50 @@
 <p>Harpy is a <a href="getting_started/inputformat/">haplotagging data</a> processing pipeline for Linux-based systems-- at least it
 was prior to the release of version 2. Now, it can process linked-read data from haplotagging, TELLseq, stLFR, and
 even regular non-linked WGS data. It uses all the magic of <a href="https://snakemake.readthedocs.io/en/stable/" class="outbound" target="_blank"><span>Snakemake</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
-under the hood to handle  the worklfow decision-making, but as a user, you just interact with it like a normal command-line
+under the hood to handle the worklfow decision-making, but as a user, you just interact with it like a normal command-line
 program. Harpy employs both well known and niche programs to take raw linked-read sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
-Most of the settings are pre-configured and the settings you can modify are done at the command line. Some parts of this documentation
-will refer to haplotagging specifically as we either forgot to update parts of the documentation or require you (the user)
-to do a data conversion for some parts of Harpy to work with non-haplotagging linked-read data. As always, feel free to drop
-an <a href="https://github.com/pdimens/harpy/issues/new/choose" class="outbound" target="_blank"><span>Issue</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> or open a <a href="https://github.com/pdimens/harpy/discussions" class="outbound" target="_blank"><span>Discussion</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> on GitHub.</p>
+Feel free to open an <a href="https://github.com/pdimens/harpy/issues/new/choose" class="outbound" target="_blank"><span>Issue</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> or begin a <a href="https://github.com/pdimens/harpy/discussions" class="outbound" target="_blank"><span>Discussion</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> on GitHub.</p>
+<doc-anchor-target id="harpy-is-">
+    <h5>
+        <doc-anchor-trigger class="header-anchor-trigger" to="#harpy-is-">#</doc-anchor-trigger>
+        <span>Harpy is ...</span>
+    </h5>
+</doc-anchor-target>
+<doc-panels>
+   <doc-panel id="friendly" collapsed>
+       <template #title>friendly</template>
+<p>Drawing on the lessons of its predecessors and contemporaries, one of the top priorities for Harpy as a software is user-friendliness.
+Bioinformatics is <em>hard</em>, and we recognize that users may span a wide range of expertise and seniority, so we strive to minimize the
+commonplace <strong>struggle</strong> of bioinformatics, inasmuch as we can.</p>
+   </doc-panel>
+   <doc-panel id="hackable" collapsed>
+       <template #title>hackable</template>
+<p>All this engineering and focus on user accessibility need not come at the cost of usability and utility. Harpy&#x27;s commands
+expose the most common and consequential arguments of the key software it will be running, but you need not stop there. Harpy workflow
+commands set up everything necessary to initiate Snakemake, whether it&#x27;s harpy doing it or not (i.e. using <code translate="no" v-pre>--setup</code>) You <em>should</em> hack it
+if you need a workflow to address the nuance of your data-- we do it all the time <span class="docs-emoji">&#x1F642;</span>. But, be aware that addressing Issues opened up regarding
+custom modified workflows and configs will not be a priority.</p>
+   </doc-panel>
+   <doc-panel id="deliberately-modular" collapsed>
+       <template #title>deliberately modular</template>
+<p>There&#x27;s many different critical parameters between raw FASTQ files and called genotypes. We believe in the &quot;stop and assess&quot; approach between
+data processing steps, which should hopefully be evident by harpy&#x27;s reporting system.</p>
+   </doc-panel>
+   <doc-panel id="over-engineered" collapsed>
+       <template #title>over-engineered</template>
+<p>Our goals for harpy are ambitious, and to meet those goals we  invest significant time and effort to implement thoughtful
+designs. That means more safety nets, better error messages, convenience tools (e.g. <code translate="no" v-pre>harpy view</code>) to skip the boring/tedious
+parts of doing basic things, streamlined ways to debug/troubleshoot when things <em>inevitably</em> go wrong, etc. Harpy isn&#x27;t a product--
+we don&#x27;t worry about the cost of engineering vs revenue gained; we just want it to work and to work well.</p>
+   </doc-panel>
+   <doc-panel id="not-analysis-software" collapsed>
+       <template #title>not analysis software</template>
+<p>Genetics/Genomics isn&#x27;t one specific thing. Harpy exists to leverage linked-read data to get you as far as genotypes or assemblies, without
+making assumptions about how you plan on analyzing those data (popgen, biomed, etc.). We are excited to learn how you apply these data and
+your resulting discoveries!</p>
+   </doc-panel>
+</doc-panels>
 <doc-anchor-target id="harpy-commands">
     <h2>
         <doc-anchor-trigger class="header-anchor-trigger" to="#harpy-commands">#</doc-anchor-trigger>
