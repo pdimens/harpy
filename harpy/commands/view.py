@@ -1,16 +1,12 @@
 """View the latest log, config, or snakefile of a workflow"""
 
 import os
-import sys
 import glob
 import rich_click as click
 from rich.panel import Panel
-from rich import print as rprint
 from rich.tree import Tree
 from harpy.common.file_ops import choose_logfile, parse_error, parse_file
 from harpy.common.printing import HarpyPrint
-
-hp = HarpyPrint()
 
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
@@ -34,6 +30,7 @@ def config(directory, edit):
     The only required input is the output folder designated in a previous Harpy run, where you can find
     `workflow/workflow.yaml`.
     """
+    hp = HarpyPrint()
     err_dir = os.path.join(directory, "workflow")
     target_file = os.path.join(err_dir, "workflow.yaml")
     err_file = "There is no [blue]workflow.yaml[/] file"
@@ -51,15 +48,14 @@ def config(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    rprint(
+    hp.print(
         Panel(
             target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
             width = 75
-            ),
-        file = sys.stderr
+        )
     )
 
 @click.command()
@@ -74,6 +70,7 @@ def environments(program):
     Optionally provide the name of a `PROGRAM` (or partial name, case insensitive) to only return the environments that
     contain that program (e.g. `leviath` would match `leviathan`).
     """
+    hp = HarpyPrint()
     if not os.path.exists(".environments"):
         hp.error(
             "directory not found", 
@@ -131,17 +128,17 @@ def log(directory, choose):
     | `/` + `pattern`         | search for `pattern`       |
     | `q`                     | exit                       |
     """
+    hp = HarpyPrint()
     target_file = choose_logfile(directory, choose)
     parse_file(target_file)
-    rprint(
+    hp.print(
         Panel(
             target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
             width = 75
-            ),
-        file = sys.stderr
+        )
     )
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
@@ -172,6 +169,7 @@ def snakefile(directory, edit):
     The snakefile contains all the instructions for a workflow. The only required input is the output folder
     previously created by Harpy where you can find `workflow/workflow.smk`.
     """
+    hp = HarpyPrint()
     workdir = os.path.join(directory, "workflow")
     if not os.path.exists(workdir):
         hp.error(
@@ -189,15 +187,14 @@ def snakefile(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    rprint(
+    hp.print(
         Panel(
             target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
             width = 75
-            ),
-        file = sys.stderr
+        )
     )
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
@@ -212,6 +209,7 @@ def snakeparams(directory, edit):
     computational specifics that don't impact your results). The only required input is the output folder
     previously created by Harpy where you can find `workflow/config.yaml`.
     """
+    hp = HarpyPrint()
     err_dir = os.path.join(directory, "workflow")
     target_file = os.path.join(err_dir, "config.yaml")
     err_file = "There is no [blue]config.yaml[/] file"
@@ -229,15 +227,14 @@ def snakeparams(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    rprint(
+    hp.print(
         Panel(
             target_file,
             title = "[bold blue] File viewed",
             title_align = "left",
             border_style = "dim",
             width = 75
-            ),
-        file = sys.stderr
+        )
     )
 
 view.add_command(config)

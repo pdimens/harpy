@@ -7,8 +7,6 @@ import rich_click as click
 from harpy.common.printing import HarpyPrint
 from harpy.common.file_ops import safe_read
 
-hp = HarpyPrint()
-
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
 def diagnose():
@@ -26,6 +24,7 @@ def stall(directory):
     This will run Snakemake with the `--dry-run` and `--debug-dag` options,
     printing the diagnostics to the terminal.
     """
+    hp = HarpyPrint()
     directory = directory.rstrip("/")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
@@ -94,6 +93,7 @@ def rule(directory):
     If the failing rule is missing inputs (e.g. they were temporary), Harpy will run Snakemake first to generate
     those files, then execute the failing rule directly (i.e. without Snakemake).
     """
+    hp = HarpyPrint()
     directory = directory.rstrip("/")
     PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
