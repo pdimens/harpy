@@ -112,7 +112,7 @@ rule mark_duplicates:
         4
     shell:
         """
-        if grep -q "^[ABCD]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
+        if grep -q "^[ABCDLH]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
             OPTICAL_BUFFER=2500
         else
             OPTICAL_BUFFER=100

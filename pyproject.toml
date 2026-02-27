@@ -31,6 +31,7 @@ molecule-coverage = "harpy.scripts:molecule_coverage.main"
 stagger-GIH = "harpy.scripts:stagger_GIH.main"
 parse-phaseblocks = "harpy.scripts:parse_phaseblocks.main"
 plot-depth = "harpy.scripts:plot_depth.main"
+preproc-barcodes = "harpy.scripts:preproc_barcodes.main"
 rename-bam = "harpy.scripts:rename_bam.main"
 process-notebook = "harpy.scripts:process_notebook.main"
 

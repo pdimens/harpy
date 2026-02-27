@@ -83,7 +83,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 #@click.option('-l', '--spacer-length', panel = "Parameters",  type = click.IntRange(min = 10), default = 77, show_default=True, help = 'Length of spacers between barcodes')
 @click.option('-M', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
 @click.option('-O', '--me-overlap', panel = "Parameters", default = 19, show_default = True, type = click.IntRange(0,300, clamp = True), help = 'ME sequence overlap')
-@click.option('-m', '--min-length', panel = "Parameters", type = click.IntRange(min = 5), show_default=True,  default = 50, help = 'Minimum insert length (bp) of reads to retain')
+#@click.option('-m', '--min-length', panel = "Parameters", type = click.IntRange(min = 5), show_default=True,  default = 50, help = 'Minimum insert length (bp) of reads to retain')
 #@click.option('-q', '--min-quality', panel = "Parameters", type = click.IntRange(min = 0), show_default=True, default = 20, help = 'Minimum average read quality to retain')
 @click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
@@ -98,7 +98,7 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
 #@click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def gih(inputs, output_dir, me_seq, me_overlap, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
@@ -120,19 +120,18 @@ def gih(inputs, output_dir, me_seq, me_overlap, min_length, threads, snakemake, 
     #bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
 
     workflow.notebooks["skip"] = skip_reports
-    fetch_template("pheniqs_config.json", os.path.join(output_dir, "workflow", "pheniqs_config.json"))
-    fetch_template("pheniqs_barcodes.json", os.path.join(output_dir, "workflow", "pheniqs_config.json"))
+    fetch_template("pheniqs.config.json", os.path.join(output_dir, "workflow", "pheniqs.config.json"))
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
     workflow.param(me_overlap, "ME-overlap")
     #workflow.param(bc_len, "barcode-length")
-    workflow.param(min_length, "minimum-length")
+    #workflow.param(min_length, "minimum-length")
     #workflow.param(min_quality, "minimum-quality")
     
     workflow.info = {
         "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
         #"Total Barcode Length": bc_len_text,
-        "Min. insert length": min_length,
+        #"Min. insert length": min_length,
         #"Min. read quality": min_quality,
         "Output Folder": os.path.relpath(output_dir) + "/"
     }

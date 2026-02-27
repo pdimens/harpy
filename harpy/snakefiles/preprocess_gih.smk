@@ -7,8 +7,6 @@ wildcard_constraints:
 VERSION=4.0
 fqlist       = config["Inputs"]
 skip_reports = config["Workflow"]["reports"]["skip"]
-#bc_len       = config["Parameters"]["barcode-length"]
-insert_min   = config["Parameters"]["minimum-length"]
 me_seq       = config["Parameters"]["ME-sequence"] 
 overlap      = config["Parameters"]["ME-overlap"] 
 
@@ -28,8 +26,9 @@ def get_fq2(wildcards):
 
 rule all:
     default_target: True
-    input: collect("extract/{sample}.R1.bam", sample = samplenames)
-    #input: collect("stagger/{sample}.stagger.bam", sample = samplenames)
+    input: 
+        collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
+        reports = "reports/preprocess.QA.html" if not skip_reports else []
 
 
 rule find_ME_seq:
@@ -75,40 +74,110 @@ rule pad_barcodes:
 rule extract_barcodes:
     input:
         stagger = "stagger/{sample}.stagger.bam",
-        pheniqs_conf = "workflow/pheniqs_config.json"
+        pheniqs_conf = "workflow/pheniqs.config.json"
     output:
-        FW = "extract/{sample}.R1.bam",
-        RV = "extract/{sample}.R2.bam",
+        bam = temp("extract/{sample}.bam"),
         json = "logs/extract/{sample}.json"
     log:
         "logs/{sample}.pheniqs"
+    threads:
+        workflow.cores
     conda:
         "envs/preprocess.yaml"
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
-        pheniqs mux --input {input.stagger} --input {input.stagger} --output {output.FW} --output {output.RV} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
+        pheniqs mux -t {threads} --input {input.stagger} --input {input.stagger} --output {output.bam} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
         """
 
-#rule convert_to_fastq:
-#    input:
-#        FQ1 = ,
-#        FQ2 = ,
-#        summary = 
-#    shell:
-#        """
-#        include_stagger=\$(python $baseDir/stagger_check.py {input.summary})
-#
-#        # Determine bead complexity
-#        ln -s $baseDir/ .
-#        samtools view {input.FQ1} | awk 'NR>100000 && NR<=2000000 {n=split(\$0,arr,"CB:Z:"); if(n>1){split(arr[2],result,"\t"); print result[1];}}' > temp_barcodes.txt
-#        complexity=\$(python $baseDir/determine_bead_complexity.py --include_stagger "\$include_stagger" --temp_barcodes temp_barcodes.txt)
-#        grep "\$complexity" 12nt-barcodes-with-stagger-and-bead-complexity.txt > 12nt-barcodes-subset.txt
-#
-#        # Convert 43nt barcode sequences to ‘haplotagging’ format AxxCxxBxxDxx for both R1 and R2 files.
-#        awk -v stagger="\$include_stagger" -f $baseDir/convert_bam_to_ACBD_format.awk 12nt-barcodes-subset.txt <(samtools view {input.FQ1}) | pigz -p 8 > \${sample}_converted.R1.fastq.gz
-#        mv barcode_log.log \${sample}_converted_R1_barcode_log.log
-#        awk -v stagger="\$include_stagger" -f $baseDir/convert_bam_to_ACBD_format.awk 12nt-barcodes-subset.txt <(samtools view {input.FQ1}) | pigz -p 8 > \${sample}_converted.R2.fastq.gz
-#        mv barcode_log.log \${sample}_converted_R2_barcode_log.log
-#        """
+rule format_barcodes:
+    input:
+        "workflow/pheniqs.config.json",
+        "extract/{sample}.bam"
+    output:
+        fq1 = "{sample}.R1.fq.gz",
+        fq2 = "{sample}.R2.fq.gz"
+    log:
+        "logs/{sample}.format.BX.log"
+    threads:
+        workflow.cores
+    shell:
+        """
+        {{
+            preproc-barcodes {input} | samtools fastq -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
+        }} 2> {log}
+        """
+
+rule assess_quality:
+    input:
+        "{sample}.R{FR}.fq.gz"
+    output: 
+        "reports/data/{sample}.R{FR}.fastqc"
+    log:
+        "logs/{sample}.R{FR}.qc.log"
+    threads:
+        1
+    conda:
+        "envs/qc.yaml"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
+    shell:
+        """
+        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
+cat <<EOF > {output}
+##Falco	1.2.4
+>>Basic Statistics	fail
+#Measure	Value
+Filename	{wildcards.sample}.R{wildcards.FR}.fq.gz
+File type	Conventional base calls
+Encoding	Sanger / Illumina 1.9
+Total Sequences	0
+Sequences flagged as poor quality	0
+Sequence length	0
+%GC	0
+>>END_MODULE
+EOF      
+        """
+
+rule configure_report:
+    output:
+        "workflow/multiqc.yaml"
+    run:
+        import yaml
+        configs = {
+            "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
+            "table_sample_merge": {
+                "R1": ".R1",
+                "R2": ".R2"
+            },
+            "title": "Quality Assessment of Preprocessed Samples",
+            "subtitle": "This report aggregates the QA results created by falco",
+            "report_comment": "Generated as part of the Harpy preprocess workflow",
+            "report_header_info": [
+                {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
+                {"Project Homepage": "https://github.com/pdimens/harpy"}
+            ]
+        }
+        with open(output[0], "w", encoding="utf-8") as yml:
+            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+
+rule quality_report:
+    input:
+        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
+        mqc_yaml = "workflow/multiqc.yaml"
+    output:
+        "reports/preprocess.QA.html"
+    log:
+        "logs/multiqc.log"
+    params:
+        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
+        module = " --module fastqc",
+        logdir = "reports/data/"
+    conda:
+        "envs/qc.yaml"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
+    shell:
+        "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"

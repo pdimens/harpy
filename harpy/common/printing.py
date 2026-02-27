@@ -4,15 +4,15 @@ import os
 import sys
 import time
 from beautysh import BashFormatter
-from rich.console import Console, RenderableType
-from rich.markup import escape
 from rich import box
-from rich.table import Table
-from rich.panel import Panel
-from rich.theme import Theme
+from rich.console import Console, RenderableType
 from rich.live import Live
+from rich.markup import escape
+from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn
+from rich.table import Table
 from rich.text import Text
+from rich.theme import Theme
 from harpy import __version__
 
 class PausableTimeElapsedColumn(TimeElapsedColumn):
@@ -181,13 +181,13 @@ class HarpyPrint():
         self.print(errortext)
         self.rule("[bold]Error Reported by Snakemake", style = "red")
 
-    def on_error(self, logfile: str, time) -> None:
+    def on_error(self, logfile: str, _time) -> None:
         """
         Print a red panel with error text to stderr. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
         time must be of class datetime
         """
-        days = time.days
-        seconds = time.seconds
+        days = _time.days
+        seconds = _time.seconds
         hours = seconds // 3600
         minutes = (seconds % 3600) // 60
         seconds = seconds % 60
@@ -211,7 +211,6 @@ class HarpyPrint():
         result, error = self.bash.beautify_string(data = text)
         if rules:
             self.console.rule("Shell Code", style = 'dim')
-        #cmd = Syntax(result, lexer = "bash", tab_size=4, word_wrap=False, theme = "paraiso-dark")
         self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)
         if rules:
             self.console.rule(style = 'dim')

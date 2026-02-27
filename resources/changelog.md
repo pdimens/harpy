@@ -10,6 +10,7 @@
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
   - this option is **hidden** because it's meant more for advanced users or development
   - options provided as sequential letters (e.g. `ws`, `sl`, `lw`, etc.)
+- the `--notemp` option in snakemake is exposed in harpy commands as `--no-temp` to simplify using it
 ### misc
 - progress bar has a new column to show a count of the active jobs!
 - time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)

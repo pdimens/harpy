@@ -50,9 +50,9 @@ rule demultiplex:
         schema = schemafile
     output:
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        bx_info = "logs/demultiplex.barcodes"
+        bx_info = "logs/preprocess.barcodes"
     log:
-        "logs/demultiplex.log"
+        "logs/dmox.log"
     params:
         outdir = "--samples " + os.getcwd(),
         qxrx = "--rx --qx" if qxrx else "",
@@ -120,10 +120,10 @@ rule configure_report:
             },
             "title": "Quality Assessment of Demultiplexed Samples",
             "subtitle": "This report aggregates the QA results created by falco",
-            "report_comment": "Generated as part of the Harpy demultiplex workflow",
+            "report_comment": "Generated as part of the Harpy preprocess workflow",
             "report_header_info": [
                 {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/demultiplex/"},
+                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
                 {"Project Homepage": "https://github.com/pdimens/harpy"}
             ]
         }
@@ -135,7 +135,7 @@ rule quality_report:
         fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
         mqc_yaml = "workflow/multiqc.yaml"
     output:
-        "reports/demultiplex.QA.html"
+        "reports/preprocess.QA.html"
     log:
         "logs/multiqc.log"
     params:
@@ -153,5 +153,5 @@ rule all:
     default_target: True
     input:
         fq = collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        barcode_logs = "logs/demultiplex.barcodes",
-        reports = "reports/demultiplex.QA.html" if not skip_reports else []
+        barcode_logs = "logs/preprocess.barcodes",
+        reports = "reports/preprocess.QA.html" if not skip_reports else []
