@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION      = config['Workflow']['harpy-version']
 fqlist       = config["Inputs"]["fastq"]
 molecule_distance = config["Parameters"]["distance-threshold"]
 ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"

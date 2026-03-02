@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION       = config['Workflow']['harpy-version']
 lr_type       = config["Workflow"]["linkedreads"]["type"]
 skip_reports  = config["Workflow"]["reports"]["skip"]
 fqlist        = config["Inputs"]

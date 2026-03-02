@@ -1,5 +1,6 @@
 import os
 
+VERSION = config['Workflow']['harpy-version']
 FQ1 = config["Inputs"]["fastq_r1"]
 FQ2 = config["Inputs"]["fastq_r2"]
 BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]

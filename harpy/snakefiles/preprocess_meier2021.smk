@@ -2,6 +2,7 @@ import os
 import yaml
 from collections import Counter
 
+VERSION    = config['Workflow']['harpy-version']
 schemafile = config["Inputs"]["schema"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 qxrx = config["Parameters"]["qx-rx"]

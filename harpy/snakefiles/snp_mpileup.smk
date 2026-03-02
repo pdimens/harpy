@@ -4,6 +4,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION      = config['Workflow']['harpy-version']
 skip_reports = config["Workflow"]["reports"]["skip"]
 ploidy 		= config["Parameters"]["ploidy"]
 mp_extra 	= config["Parameters"].get("extra", "")

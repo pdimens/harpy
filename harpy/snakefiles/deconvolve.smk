@@ -4,6 +4,7 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION     = config['Workflow']['harpy-version']
 fqlist      = config["Inputs"]
 kmer_length = config["Parameters"]["kmer-length"]
 window_size = config["Parameters"]["window-size"]

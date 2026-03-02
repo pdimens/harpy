@@ -1,5 +1,6 @@
 import os
 
+VERSION = config['Workflow']['harpy-version']
 FQ1 = config["Inputs"]["fastq-r1"]
 FQ2 = config["Inputs"]["fastq-r2"]
 skip_reports  = config["Workflow"]["reports"]["skip"]

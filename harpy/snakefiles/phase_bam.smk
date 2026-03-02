@@ -5,6 +5,7 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION     = config['Workflow']['harpy-version']
 genomefile  = config["Inputs"]["reference"]
 bamlist     = config["Inputs"]["alignments"]
 vcffile     = config["Inputs"]["vcf"]

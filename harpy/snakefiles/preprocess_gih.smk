@@ -5,6 +5,7 @@ import yaml
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
+VERSION      = config['Workflow']['harpy-version']
 fqlist       = config["Inputs"]
 skip_reports = config["Workflow"]["reports"]["skip"]
 me_seq       = config["Parameters"]["ME-sequence"] 
@@ -47,7 +48,6 @@ rule all:
     input: 
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         reports = "reports/preprocess.QA.html" if not skip_reports else []
-
 
 rule find_ME_seq:
     input:

@@ -6,6 +6,7 @@ from harpy.common.file_ops import pop_manifest
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 
+VERSION      = config['Workflow']['harpy-version']
 skip_reports = config["Workflow"]["reports"]["skip"]
 plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
 plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs

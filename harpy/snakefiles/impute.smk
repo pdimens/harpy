@@ -6,6 +6,7 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
+VERSION       = config['Workflow']['harpy-version']
 bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["Inputs"]["vcf"]

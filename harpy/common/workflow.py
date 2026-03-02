@@ -28,6 +28,7 @@ class Workflow():
         self.workflow_directory = os.path.join(outdir, 'workflow')
         self.quiet: int = quiet
         self.print = HarpyPrint(quiet)
+        self.version = __version__
 
         self.snakemake_cmd_absolute: str = ""
         self.snakemake_cmd_relative: str = ""
@@ -169,7 +170,7 @@ class Workflow():
                 open(_source, 'r') as smk_in,
                 open(dest_file, 'w') as smk_out
             ):
-                smk_out.write(f"VERSION={__version__}\n" + smk_in.read())
+                smk_out.write(f"## SOURCE: Harpy version {self.version}\n" + smk_in.read())
                 #shutil.copy2(_source, dest_file)
         except (FileNotFoundError, KeyError):
             self.print.error(
@@ -214,6 +215,7 @@ class Workflow():
         file to workdir to use with --configfile if `writefile = True` (default)
         """
         self.config["Workflow"]["name"] = self.name
+        self.config["Workflow"]["harpy-version"] = float(self.version)
         if self.linkedreads:
             self.config["Workflow"]["linkedreads"] = self.linkedreads
         if self.notebooks:
@@ -315,7 +317,7 @@ class Workflow():
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
         if sm.exitcode == 0:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
-                f_out.write(Summary(self.config).get_text())
+                f_out.write(Summary(self.version, self.config).get())
             self.onsuccess()
         else:
             sys.exit(1)
