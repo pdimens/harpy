@@ -66,6 +66,10 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - significant rewrite of the `Workflow` class and how it expects workflow, parameter, and input delcarations
 - 4 SV reports consolidated into 1
 - printing functions consolidated into `HarpyPrint` class
+### misc workflow
+- workflow yaml files now include a `VERSION` variable that syncs with the Harpy version used
+  - populates the `container` version tags within snakefile rules
+  - this makes container versions reliable by default, but entirely hackable to manually dissociate harpy version and container version
 
 ## non-breaking
 - statusbar when downloading/installing workflow dependencies now lists the environment being downloaded/installed instead of saying "working..."
@@ -76,6 +80,7 @@ Reports have been completely rewritten (for the third time), moving away from R/
   - `harpy view log` now points to the `.snakemake/log` folder, but is otherwise the same
 - snakefiles have harpy version at the top
 - workflow errors now include harpy version
+- snakefiles now have a comment line on top that is synced with the harpy version to inform which version of harpy created them
 
 ### internal
 - swapped order of validations/checks
