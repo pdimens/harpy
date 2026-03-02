@@ -1,9 +1,6 @@
 import os
-
-wildcard_constraints:
-    sample = r"[a-zA-Z0-9._-]+",
-    FR = r"[12]",
-    part = r"\d{3}"
+import yaml
+from collections import Counter
 
 VERSION=4.0
 schemafile = config["Inputs"]["schema"]
@@ -12,18 +9,33 @@ qxrx = config["Parameters"]["qx-rx"]
 unknown_samples = config["Parameters"]["samples"]
 unknown_barcodes = config["Parameters"]["barcodes"]
 
-samplenames = set()
-duplicates = False
-with open(schemafile, "r") as f:
-    for i in f:
-        line = i.strip()
-        if not i or i.startswith("#"):
-            continue
-        _sample = line.split()[0] 
-        if _sample in samplenames:
-            duplicates = True
-        samplenames.add(_sample)
+wildcard_constraints:
+    sample = r"[a-zA-Z0-9._-]+",
+    FR = r"[12]",
+    part = r"\d{3}"
+onstart:
+    configs = {
+        "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
+        "table_sample_merge": {
+            "R1": ".R1",
+            "R2": ".R2"
+        },
+        "title": "Quality Assessment of Demultiplexed Samples",
+        "subtitle": "This report aggregates the QA results created by falco",
+        "report_comment": "Generated as part of the Harpy preprocess workflow",
+        "report_header_info": [
+            {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
+            {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
+            {"Project Homepage": "https://github.com/pdimens/harpy"}
+        ]
+    }
+    with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
+        yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
+samplenames = Counter()
+[samplenames.update(i.strip().split()[0:1]) for i in open(schemafile.'r').readlines() if not i.startswith("#")]
+duplicates = len(samplenames) != samplenames.total()
+samplenames = set(samplenames.keys())
 if unknown_samples:
     samplenames.add("_unknown_samples")
 if unknown_barcodes:
@@ -107,33 +119,9 @@ Sequence length	0
 EOF      
         """
 
-rule configure_report:
-    output:
-        "workflow/multiqc.yaml"
-    run:
-        import yaml
-        configs = {
-            "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
-            "table_sample_merge": {
-                "R1": ".R1",
-                "R2": ".R2"
-            },
-            "title": "Quality Assessment of Demultiplexed Samples",
-            "subtitle": "This report aggregates the QA results created by falco",
-            "report_comment": "Generated as part of the Harpy preprocess workflow",
-            "report_header_info": [
-                {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
-                {"Project Homepage": "https://github.com/pdimens/harpy"}
-            ]
-        }
-        with open(output[0], "w", encoding="utf-8") as yml:
-            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
-
 rule quality_report:
     input:
-        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
-        mqc_yaml = "workflow/multiqc.yaml"
+        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2])
     output:
         "reports/preprocess.QA.html"
     log:
@@ -147,7 +135,7 @@ rule quality_report:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
+        "multiqc --config workflow/multiqc.yaml {params} > {output} 2> {log}"
 
 rule all:
     default_target: True

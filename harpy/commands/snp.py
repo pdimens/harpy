@@ -27,10 +27,10 @@ def snp():
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
-@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path= True), default = "SNP/freebayes", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
@@ -99,10 +99,10 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
-@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')

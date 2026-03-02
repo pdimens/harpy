@@ -46,6 +46,7 @@
 - `--output-dir` replaced with `--output`
 - short-name for `--output` is now `-O`
 - the `workflow.yaml` files now all have a standard/consistent format with three main sections whose names are capitalized (whereas all the rest are lowercase):
+- `harpy qc`: `--min-length` and `--max-length` consolidated into `--length min,max`
   - `Workflow`: with common information (name, linkedread info, report skip/contigs, harpy-specific snakemake things)
   - `Parameters`: the run configurations resulting from command-line arguments/options
   - `Inputs`: the input files

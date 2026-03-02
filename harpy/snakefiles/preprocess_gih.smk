@@ -1,5 +1,6 @@
 import os
 import re
+import yaml
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
@@ -23,6 +24,24 @@ def get_fq2(wildcards):
     r = re.compile(fr"(.*/{re.escape(wildcards.sample)})([_\.]2|[_\.]R|[_\.]R2(?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags = re.IGNORECASE)
     return list(filter(r.match, fqlist))
 
+onstart:
+    configs = {
+        "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
+        "table_sample_merge": {
+            "R1": ".R1",
+            "R2": ".R2"
+        },
+        "title": "Quality Assessment of Preprocessed Samples",
+        "subtitle": "This report aggregates the QA results created by falco",
+        "report_comment": "Generated as part of the Harpy preprocess workflow",
+        "report_header_info": [
+            {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
+            {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
+            {"Project Homepage": "https://github.com/pdimens/harpy"}
+        ]
+    }
+    with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
+        yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
 rule all:
     default_target: True
@@ -100,12 +119,14 @@ rule format_barcodes:
         fq2 = "{sample}.R2.fq.gz"
     log:
         "logs/{sample}.format.BX.log"
+    params:
+        workflow.cores - 1
     threads:
         workflow.cores
     shell:
         """
         {{
-            preproc-barcodes {input} | samtools fastq -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
+            preproc-barcodes {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
         }} 2> {log}
         """
 
@@ -116,15 +137,13 @@ rule assess_quality:
         "reports/data/{sample}.R{FR}.fastqc"
     log:
         "logs/{sample}.R{FR}.qc.log"
-    threads:
-        1
     conda:
         "envs/qc.yaml"
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
-        ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
+        ( falco --quiet --threads 1 -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
 cat <<EOF > {output}
 ##Falco	1.2.4
 >>Basic Statistics	fail
@@ -140,33 +159,9 @@ Sequence length	0
 EOF      
         """
 
-rule configure_report:
-    output:
-        "workflow/multiqc.yaml"
-    run:
-        import yaml
-        configs = {
-            "sp": {"fastqc/data": {"fn" : "*.fastqc"}},
-            "table_sample_merge": {
-                "R1": ".R1",
-                "R2": ".R2"
-            },
-            "title": "Quality Assessment of Preprocessed Samples",
-            "subtitle": "This report aggregates the QA results created by falco",
-            "report_comment": "Generated as part of the Harpy preprocess workflow",
-            "report_header_info": [
-                {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-                {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
-                {"Project Homepage": "https://github.com/pdimens/harpy"}
-            ]
-        }
-        with open(output[0], "w", encoding="utf-8") as yml:
-            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
-
 rule quality_report:
     input:
-        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2]),
-        mqc_yaml = "workflow/multiqc.yaml"
+        fqc = collect("reports/data/{sample}.R{FR}.fastqc", sample = samplenames, FR = [1,2])
     output:
         "reports/preprocess.QA.html"
     log:
@@ -180,4 +175,4 @@ rule quality_report:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "multiqc --config {input.mqc_yaml} {params} > {output} 2> {log}"
+        "multiqc --config workflow/multiqc.yaml {params} > {output} 2> {log}"

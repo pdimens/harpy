@@ -4,7 +4,7 @@ import os
 import rich_click as click
 from harpy.validation.fastq import FASTQ
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_params import FastpParams, SnakemakeParams
+from harpy.common.cli_params import FastpParams, SnakemakeParams, MultiInt
 from harpy.common.file_ops import filepath
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
@@ -12,12 +12,11 @@ from harpy.common.workflow import Workflow
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-d', '--deduplicate', panel = "Parameters", is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', panel = "Parameters", type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
-@click.option('-M', '--max-length', panel = "Parameters", default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')
-@click.option('-m', '--min-length', panel = "Parameters", default = 30, show_default = True, type=click.IntRange(min = 5), help = 'Discard reads shorter than this length')
-@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
-@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('-l', '--length', panel = "Parameters", default = "30,150", type=MultiInt(2, minimum=30), show_default = True, help = 'Minimum,Maximum read lengths')
 @click.option('-a', '--trim-adapters', panel = "Parameters", type = str, help = 'Detect and trim adapters')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
@@ -28,7 +27,7 @@ from harpy.common.workflow import Workflow
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def qc(inputs, output, unlinked, min_length, max_length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     FASTQ adapter removal, quality filtering, etc.
 
@@ -37,9 +36,11 @@ def qc(inputs, output, unlinked, min_length, max_length, trim_adapters, deduplic
     Linked-read presence and type is auto-detected, but you may use `-U` to disable the parts
     of the workflow specific to linked-read data.
     
-    **Standard trimming**
-    - a sliding window from front to tail
+    **Mandatory QC**
+    - low-quality sliding window trim from front to tail
     - poly-G tail removal
+    - remove reads < min `--length`
+    - trim reads down to max `--length` 
 
     **Optional quality checks**
     - `-a` remove adapters
@@ -69,8 +70,8 @@ def qc(inputs, output, unlinked, min_length, max_length, trim_adapters, deduplic
     workflow.input(fastq.files)
     workflow.param(trim_adapters, "trim-adapters")
     workflow.param(deduplicate, "deduplicate")
-    workflow.param(min_length, "min-len")
-    workflow.param(max_length, "max-len")
+    workflow.param(length[0], "min-len")
+    workflow.param(length[1], "max-len")
     if extra_params:
         workflow.param(extra_params, "extra")
 

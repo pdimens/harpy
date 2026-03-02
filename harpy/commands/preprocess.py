@@ -80,11 +80,8 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
-#@click.option('-l', '--spacer-length', panel = "Parameters",  type = click.IntRange(min = 10), default = 77, show_default=True, help = 'Length of spacers between barcodes')
 @click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
 @click.option('-o', '--me-overlap', panel = "Parameters", default = 19, show_default = True, type = click.IntRange(0,300, clamp = True), help = 'ME sequence overlap')
-#@click.option('-m', '--min-length', panel = "Parameters", type = click.IntRange(min = 5), show_default=True,  default = 50, help = 'Minimum insert length (bp) of reads to retain')
-#@click.option('-q', '--min-quality', panel = "Parameters", type = click.IntRange(min = 0), show_default=True, default = 20, help = 'Minimum average read quality to retain')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
@@ -95,7 +92,6 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
 @click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-#@click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
 def gih(inputs, output, me_seq, me_overlap, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
@@ -114,26 +110,15 @@ def gih(inputs, output, me_seq, me_overlap, threads, snakemake, skip_reports, qu
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = False, quiet= True)
-    #with open(barcodes, "r") as f:
-    #    bc_seg_len = len(f.readline())
-
-    #bc_len = (3 * bc_seg_len) + (2 * spacer_length)
-    #bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
 
     workflow.notebooks["skip"] = skip_reports
     fetch_template("pheniqs.config.json", os.path.join(output, "workflow", "pheniqs.config.json"))
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
     workflow.param(me_overlap, "ME-overlap")
-    #workflow.param(bc_len, "barcode-length")
-    #workflow.param(min_length, "minimum-length")
-    #workflow.param(min_quality, "minimum-quality")
     
     workflow.info = {
         "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
-        #"Total Barcode Length": bc_len_text,
-        #"Min. insert length": min_length,
-        #"Min. read quality": min_quality,
         "Output Folder": os.path.relpath(output) + "/"
     }
 
