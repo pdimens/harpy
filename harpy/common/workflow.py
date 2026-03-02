@@ -12,6 +12,7 @@ from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint 
 from harpy.common.launch import LaunchSnakemake
 from harpy.common.summaries import Summary
+from harpy import __version__
 
 class Workflow():
     '''
@@ -163,8 +164,13 @@ class Workflow():
         dest_file = os.path.join(self.workflow_directory,"workflow.smk")
         source_file = resources.files("harpy.snakefiles") / self.snakefile
         try:
-            with resources.as_file(source_file) as _source:
-                shutil.copy2(_source, dest_file)
+            with (
+                resources.as_file(source_file) as _source,
+                open(_source, 'r') as smk_in,
+                open(dest_file, 'w') as smk_out
+            ):
+                smk_out.write(f"VERSION={__version__}\n" + smk_in.read())
+                #shutil.copy2(_source, dest_file)
         except (FileNotFoundError, KeyError):
             self.print.error(
                 "snakefile missing",
@@ -247,7 +253,7 @@ class Workflow():
                 report_times.append(f"{j} {_i}")
         return ", ".join(report_times)
 
-    def print_onstart(self):
+    def onstart(self):
         """Print a panel of info on workflow run. """
         if self.quiet == 2:
             return
@@ -261,7 +267,7 @@ class Workflow():
         self.print.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
         self.print.print(table)
 
-    def print_onsuccess(self):
+    def onsuccess(self):
         """Print a green panel with success text. To be used in place of onsuccess: inside a snakefile"""
         if self.quiet == 2:
             return
@@ -290,7 +296,7 @@ class Workflow():
         self.fetch_scripts()
         self.fetch_notebooks()
         self.fetch_hpc()
-        self.print_onstart()
+        self.onstart()
         if not setup:
             self.launch()
         elif self.quiet < 2:
@@ -310,6 +316,6 @@ class Workflow():
         if sm.exitcode == 0:
             with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
                 f_out.write(Summary(self.config).get_text())
-            self.print_onsuccess()
+            self.onsuccess()
         else:
             sys.exit(1)

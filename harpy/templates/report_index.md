@@ -1,6 +1,4 @@
-from harpy import __version__
-
-INDEXMD = """---
+---
 title: Welcome to My Landing Page
 site:
   hide_outline: true
@@ -38,4 +36,3 @@ Stand-alone HTML reports created by other software (_e.g._ `fastp` or `MultiQC`)
 software limitations. 
 :::
 :::
-""".format(__version__)

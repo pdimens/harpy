@@ -4,7 +4,6 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION=4.0
 skip_reports = config["Workflow"]["reports"]["skip"]
 ploidy 		= config["Parameters"]["ploidy"]
 mp_extra 	= config["Parameters"].get("extra", "")

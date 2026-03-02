@@ -4,7 +4,6 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION=4.0
 fqlist      = config["Inputs"]["fastq"]
 extra 		= config["Parameters"].get("extra", "") 
 genomefile 	= config["Inputs"]["reference"]

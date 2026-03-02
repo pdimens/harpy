@@ -11,7 +11,6 @@ import subprocess
 import yaml
 from harpy.common.printing import HarpyPrint
 from harpy import __version__
-from harpy.templates.report_index import INDEXMD
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -31,12 +30,15 @@ class ReportRender():
 
         if not os.path.isfile(os.path.join(root, ".report", "index.md")):
             os.makedirs(os.path.join(root, ".report"), exist_ok=True)
-            with open(os.path.join(root, ".report", "index.md"), 'w') as indexmd:
-                indexmd.write(INDEXMD)
+            with (
+                resources.as_file(resources.files("harpy.templates") / "report_index.md") as _source,
+                open(_source, 'r') as md,
+                open(os.path.join(root, ".report", "index.md"), 'w') as indexmd,
+                ):
+                indexmd.write(md.read().format(__version__))
 
         if not os.path.isfile(os.path.join(root, ".report", "favicon.png")):
             shutil.copy(str(resources.files("harpy.report") / 'favicon.png'), os.path.join(root, ".report", "favicon.png"))
-            #fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
             self.print.error(

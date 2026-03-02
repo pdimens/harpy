@@ -5,7 +5,6 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION=4.0
 bc_type           = config["Workflow"]["linkedreads"]["type"]
 skip_reports      = config["Workflow"]["reports"]["skip"]
 plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]

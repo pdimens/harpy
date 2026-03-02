@@ -1,6 +1,5 @@
 import os
 
-VERSION=4.0
 FQ1 = config["Inputs"]["fastq_r1"]
 FQ2 = config["Inputs"]["fastq_r2"]
 BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]

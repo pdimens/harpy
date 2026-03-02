@@ -5,7 +5,6 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION=4.0
 genomefile  = config["Inputs"]["reference"]
 bamlist     = config["Inputs"]["alignments"]
 vcffile     = config["Inputs"]["vcf"]
