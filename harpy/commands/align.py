@@ -27,21 +27,21 @@ def align():
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
+def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using BWA MEM2
     
@@ -52,7 +52,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
-    workflow = Workflow("align_bwa", "align_bwa.smk", output_dir, container, clean, quiet)
+    workflow = Workflow("align_bwa", "align_bwa.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
     workflow.conda = ["align", "qc"]
@@ -77,7 +77,7 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
         "Samples": fastq.count,
         "Linked-Read Type": fastq.lr_type,
         "Reference": os.path.basename(reference),
-        "Output Folder" : os.path.relpath(output_dir) + "/"
+        "Output Folder" : os.path.relpath(output) + "/"
     }
 
     workflow.initialize(setup)
@@ -88,20 +88,21 @@ def bwa(reference, inputs, output_dir, depth_window, unlinked, threads, keep_unm
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using strobealign
  
@@ -113,8 +114,8 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_strobe", "align_strobe.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("align_strobe", "align_strobe.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_bxstats.ipynb"]
     workflow.conda = ["align", "qc"]
 
@@ -138,7 +139,7 @@ def strobe(reference, inputs, output_dir, unlinked, keep_unmapped, depth_window,
         "Samples" : fastq.count,
         "Linked-Read Type" : fastq.lr_type,
         "Reference" : os.path.basename(reference),
-        "Output Folder" : os.path.relpath(output_dir) + "/"
+        "Output Folder" : os.path.relpath(output) + "/"
     }
 
     workflow.initialize(setup)

@@ -9,6 +9,7 @@ from harpy.common.workflow import Workflow
 env_list = ["all", "align", "assembly", "metassembly", "phase", "qc", "stitch", "variants"]
 
 @click.command(hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('env', required = True, type= click.Choice(env_list))
 def containerize(env):
     """
@@ -19,7 +20,8 @@ def containerize(env):
     """
     HarpyEnvs().prepare_container(env)
 
-@click.group(options_metavar='')
+@click.group()
+@click.help_option('--help', hidden = True)
 def deps():
     """
     Locally install workflow dependencies
@@ -30,6 +32,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
+@click.help_option('--help', hidden = True)
 @click.argument('workflows', required = True, type= click.Choice(env_list), nargs = -1)
 def conda(workflows):
     """
@@ -64,7 +67,8 @@ def conda(workflows):
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
-@click.command(context_settings={"help_option_names" : ["--help"]})
+@click.command()
+@click.help_option('--help', hidden = True)
 def container():
     """
     Install workflow dependency containers

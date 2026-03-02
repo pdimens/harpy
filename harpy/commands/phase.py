@@ -22,21 +22,22 @@ def phase():
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
 @click.option('-x', '--extra-params', panel = "Parameters", type = HapCutParams(), help = 'Additional whatshap haplotag parameters, in quotes')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/bam", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(3, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/bam", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(3, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.option('--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-V', '--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
 @click.help_option('--help', hidden = True)
 @click.argument('reference',required = True, type=FASTAfile(), nargs = 1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distance, reference, snakemake, extra_params, quiet, hpc, clean, container, setup):
+def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, reference, snakemake, extra_params, quiet, hpc, clean, container, setup, no_temp):
     """
     Phase alignments using phased SNPs
 
@@ -47,8 +48,8 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.
     """
-    workflow = Workflow("phase_bam", "phase_bam.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("phase_bam", "phase_bam.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.conda = ["phase"]
 
     ## checks and validations ##
@@ -73,7 +74,7 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
         "Samples": min(len(vcffile.samples), alignments.count),
         "Barcode Type": alignments.lr_type,
         **({'Reference': os.path.basename(reference)} if reference else {}),
-        "Output Folder": os.path.relpath(output_dir) + "/"
+        "Output Folder": os.path.relpath(output) + "/"
     }
 
     workflow.initialize(setup)
@@ -84,23 +85,24 @@ def bam(vcf, inputs, output_dir, threads, unlinked, vcf_samples, molecule_distan
 @click.option('-q', '--min-map-quality', panel = "Parameters", default = 20, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality for phasing')
 @click.option('-m', '--min-base-quality', panel = "Parameters", default = 13, show_default = True, type = click.IntRange(0, 100, clamp = True), help = 'Minimum base quality for phasing')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/snp", show_default=True,  help = 'Output directory name')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/snp", show_default=True,  help = 'Output directory name')
 @click.option('-p', '--prune-threshold', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0,100, clamp = True), help = 'PHRED-scale threshold (%) for pruning low-confidence SNPs (larger prunes more.)')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-V', '--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
 @click.option('--contigs', panel = "Workflow Options",  type = ContigList(), help = 'File or list of contigs to plot')
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.option('--vcf-samples', panel = "Parameters", is_flag = True, show_default = True, default = False, help = 'Use samples present in vcf file for phasing rather than those found in the inputs')
 @click.help_option('--help', hidden = True)
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, clean, container, contigs, setup):
+def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_quality, molecule_distance, prune_threshold, vcf_samples, reference, snakemake, extra_params, skip_reports, quiet, hpc, clean, container, contigs, setup, no_temp):
     """
     Phase SNPs into haplotypes
 
@@ -111,8 +113,8 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.
     """
-    workflow = Workflow("phase_snp", "phase_snp.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("phase_snp", "phase_snp.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["hapcut.ipynb"]
     workflow.conda = ["phase", "report"]
 
@@ -145,7 +147,7 @@ def snp(vcf, inputs, output_dir, threads, unlinked, min_map_quality, min_base_qu
         "Barcode Type" : alignments.lr_type,
         "Phase Indels" : "yes" if reference else "no",
         **({'Reference': os.path.basename(reference)} if reference else {}),
-        "Output Folder": os.path.relpath(output_dir) + "/"
+        "Output Folder": os.path.relpath(output) + "/"
     }
 
     workflow.initialize(setup)

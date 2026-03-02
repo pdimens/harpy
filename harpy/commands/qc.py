@@ -14,20 +14,21 @@ from harpy.common.workflow import Workflow
 @click.option('-x', '--extra-params', panel = "Parameters", type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-M', '--max-length', panel = "Parameters", default = 150, show_default = True, type=click.IntRange(min = 30), help = 'Maximum length to trim sequences down to')
 @click.option('-m', '--min-length', panel = "Parameters", default = 30, show_default = True, type=click.IntRange(min = 5), help = 'Discard reads shorter than this length')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-a', '--trim-adapters', panel = "Parameters", type = str, help = 'Detect and trim adapters')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, show_default = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+def qc(inputs, output, unlinked, min_length, max_length, trim_adapters, deduplicate, extra_params, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     FASTQ adapter removal, quality filtering, etc.
 
@@ -46,8 +47,8 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
     - `-d` removes optical PCR duplicates
       - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     """
-    workflow = Workflow("qc", "qc.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("qc", "qc.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["qc_bx_stats.ipynb"]
     workflow.conda = ["qc"]
 
@@ -79,7 +80,7 @@ def qc(inputs, output_dir, unlinked, min_length, max_length, trim_adapters, dedu
         "Samples": fastq.count,
         "Linked-Read Type": fastq.lr_type,
         **({"Treatment" : treatment} if treatment else {"Treatment": "None"}),
-        "Output Folder": os.path.relpath(output_dir) + "/",
+        "Output Folder": os.path.relpath(output) + "/",
     }
 
     workflow.initialize(setup)

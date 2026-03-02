@@ -8,9 +8,20 @@
 ### options
 - `resume` has new `--direct` option to call Snakemake directly without harpy intervention
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
-  - this option is **hidden** because it's meant more for advanced users or development
+  - this option is **hidden** because it's meant more for development
   - options provided as sequential letters (e.g. `ws`, `sl`, `lw`, etc.)
-- the `--notemp` option in snakemake is exposed in harpy commands as `--no-temp` to simplify using it
+- the `-T`/`--notemp` option in snakemake is exposed in harpy commands as `--no-temp` to simplify using it
+- all common workflow options have a capital letter short-name
+
+  | short| long |
+  |:---:|:--------|
+  |`-H` | `--hpc` |
+  |`-C` | `--container` |
+  |`-Q` | `--quiet` |
+  |`-S` | `--snakemake` |
+  |`-R` | `--skip-reports` |
+  |`-N` | `--setup` |
+
 ### misc
 - progress bar has a new column to show a count of the active jobs!
 - time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
@@ -31,6 +42,9 @@
 - `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
 - `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow
 - `--setup-only` replaced with the more succinct `--setup`
+- short-name for `--threads` is now `-@`
+- `--output-dir` replaced with `--output`
+- short-name for `--output` is now `-O`
 - the `workflow.yaml` files now all have a standard/consistent format with three main sections whose names are capitalized (whereas all the rest are lowercase):
   - `Workflow`: with common information (name, linkedread info, report skip/contigs, harpy-specific snakemake things)
   - `Parameters`: the run configurations resulting from command-line arguments/options

@@ -2,7 +2,7 @@
 
 import rich_click as click
 from harpy.commands import align
-from harpy.commands import assembly, metassembly
+from harpy.commands import assembly
 from harpy.commands import diagnose, resume, view
 from harpy.commands import deconvolve
 from harpy.commands import preprocess
@@ -64,13 +64,13 @@ def cli():
 # main program
 cli.add_command(align.align)
 cli.add_command(assembly.assembly)
+cli.add_command(assembly.metassembly)
 cli.add_command(deconvolve.deconvolve)
 cli.add_command(preprocess.preprocess)
 cli.add_command(diagnose.diagnose)
 cli.add_command(environments.containerize)
 cli.add_command(environments.deps)
 cli.add_command(impute.impute)
-cli.add_command(metassembly.metassembly)
 cli.add_command(phase.phase)
 cli.add_command(qc.qc)
 cli.add_command(report.report)
