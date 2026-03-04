@@ -1,10 +1,7 @@
-#! /usr/bin/env python
-
-import os
 import re
 import sys
 import gzip
-import argparse
+import click
 import pysam
 
 def format_bam(record):
@@ -37,49 +34,42 @@ def format_fastq(record):
     ]
     return "\n".join(fastq_req) + "\n"
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'bx-to-end',
-        description = "Parses a FASTQ or BAM file to move the BX:Z tag to the end of the record.",
-        usage = "bx-to-end file.[fq|bam] > output.[fq.gz|bam]",
-        exit_on_error = False
-        )
-
-    parser.add_argument('input', nargs=1, help = "Input fastq or [indexed] bam file")
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-    args = parser.parse_args()
-    infile = args.input[0]
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden = True)
+def bx_to_end(input):
+    """
+    Move BX:Z tag to the end of records
+    
+    Input can be FASTQ or SAM/BAM. Writes to stdout
+    """
     # VALIDATIONS
-    if not os.path.exists(infile):
-        parser.error(f"{infile} was not found")
     fq_ext = re.compile(r"\.f(?:ast)?q(?:\.gz)?$", flags=re.IGNORECASE)
-    if infile.lower().endswith(".bam") or infile.lower().endswith(".sam"):
+    if input.lower().endswith(".bam") or input.lower().endswith(".sam"):
         is_fastq = False
-    elif fq_ext.search(infile):
+    elif fq_ext.search(input):
         is_fastq = True
     else:
-        parser.error(f"Filetype not recognized as one of BAM or FASTQ for file {infile}")
+        sys.stderr.write(f"Filetype not recognized as one of BAM or FASTQ for file {input}\n")
+        sys.exit(1)
 
     if is_fastq:
         with (
-            pysam.FastxFile(infile, persist=False) as fq_in,
+            pysam.FastxFile(input, persist=False) as fq_in,
             gzip.GzipFile(fileobj= sys.stdout.buffer, mode= "wb", compresslevel=6) as fq_out
         ):
             for rec in fq_in:
                 fq_out.write(format_fastq(rec).encode())
     else:
         try:
-            bam_in = pysam.AlignmentFile(infile, "rb")
+            bam_in = pysam.AlignmentFile(input, "rb", require_index=False)
         except (OSError, ValueError):
             try:
-                bam_in = pysam.AlignmentFile(infile, "r")
+                bam_in = pysam.AlignmentFile(input, "r", require_index=False)
             except (OSError, ValueError) as e:
-                print(f"Could not process {infile} as a SAM/BAM file. See the error from pysam: {e}")
+                print(f"Could not process {input} as a SAM/BAM file. See the error from pysam: {e}")
                 sys.exit(1)
         with pysam.AlignmentFile(sys.stdout.buffer, "wb", template = bam_in) as bam_out:
-            for aln_rec in bam_in:
+            for aln_rec in bam_in.fetch(until_eof=True):
                 bam_out.write(format_bam(aln_rec))
         bam_in.close()

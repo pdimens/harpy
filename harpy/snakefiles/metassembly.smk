@@ -102,8 +102,6 @@ rule spades_assembly:
         "envs/assembly.yaml"
     container:
         f"docker://pdimens/harpy:assembly_{VERSION}"
-    container:
-        None
     shell:
         "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 

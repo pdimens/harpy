@@ -47,7 +47,7 @@ rule barcode_segments:
     container:
         None
     shell:
-        "haplotag-acbd workflow"
+        "harpy-utils haplotag-acbd workflow"
 
 rule demultiplex:
     input:
@@ -71,8 +71,6 @@ rule demultiplex:
         unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
         unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else "",
         duplicate_samples = "--multiple-samples-per-barcode" if duplicates else ""
-        #bc_per_segment = "--n-modules {bc_per_segment}"
-        #bc_len = "--module-size {bc_len}",
     threads:
         workflow.cores
     conda:

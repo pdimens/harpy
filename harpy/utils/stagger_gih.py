@@ -1,6 +1,4 @@
-#! /usr/bin/env python3
-import argparse
-import os
+import click
 import pysam
 import sys
 from itertools import zip_longest
@@ -55,42 +53,23 @@ def format_rec(rec, padlen) -> None:
 pad = ["TTTTTTT", "CCCCCC", "GGGGG", "AAAA", "TTT", "CC", "GG", ""]
 qpad = ["I" * len(i) for i in pad]
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'stagger-GIH',
-        description =
-        """
-        Given an info file from cutadapt and a processed info_summary file, adds any necessary staggers
-        to the barcodes in the input FASTQ file. Writes to stdout. INTENDED FOR INTERNAL USE in harpy preprocess gih.
-        """,
-        usage = "stagger-GIH --stagger INFOFILE INFOSUMM FASTQ",
-        exit_on_error = False
-        )
-    parser.add_argument('--prefix', type = str, help = "output files prefix")
-    parser.add_argument('info', type = str, help = "info file from cutadapt")
-    parser.add_argument('infosumm', type = str, help = "info file summary (harpy-generated)")
-    parser.add_argument('fastq', nargs=2, type = str, help = "forward and reverse fastq files")
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-    missing = []
-    for i in [args.info, args.infosumm, *args.fastq]:
-        if not os.path.isfile(i):
-            missing.append(i)
-    if missing:
-        parser.error(f"{','.join(missing)} does/do not exist")
-
-    stagger = needs_stagger(args.infosumm)
+@click.help_option('--help', hidden = True)
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.argument('info', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument('infosumm', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument('fastq', nargs=2, required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+def stagger_gih(info, infosumm, fastq):
+    """
+    Given an info file from cutadapt and a processed info_summary file, adds any necessary staggers
+    to the barcodes in the input FASTQ file. Writes to stdout. INTENDED FOR INTERNAL USE in harpy preprocess gih.
+    """
+    stagger = needs_stagger(infosumm)
     t = 0
     discarded = 0
-    #stagger = False
     with (
-        open(args.info, 'r') as f,
-        pysam.FastxFile(args.fastq[0], persist=False) as fq_F,
-        pysam.FastxFile(args.fastq[1], persist=False) as fq_R
+        open(info, 'r') as f,
+        pysam.FastxFile(fastq[0], persist=False) as fq_F,
+        pysam.FastxFile(fastq[1], persist=False) as fq_R
     ):
         for cutadapt, fq1, fq2 in zip_longest(f, fq_F, fq_R):
             t += 1

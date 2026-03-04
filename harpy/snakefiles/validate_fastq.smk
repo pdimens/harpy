@@ -30,7 +30,7 @@ rule check_forward:
     params:
         lr_platform
     shell: 
-        "check_fastq {params} {input} > {output}"
+        "harpy-utils check-fastq {params} {input} > {output}"
 
 rule check_reverse:
     input:
@@ -40,7 +40,7 @@ rule check_reverse:
     params:
         lr_platform
     shell: 
-        "check_fastq {params} {input} > {output}"
+        "harpy-utils check-fastq {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -71,7 +71,7 @@ rule create_report:
         """
         {{
             papermill -k python3 --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            process-notebook {params.lr_platform} {output.tmp}
+            process-notebook {output.tmp} {params.lr_platform}
         }} 2> {log} > {output.ipynb}
         """
 

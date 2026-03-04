@@ -205,6 +205,7 @@ def _makepanel(df, metric, title=None):
     )
 
 def depthplot(df, title):
+    alt.data_transformers.disable_max_rows()
     coverage = "Read Depth" in df.columns
     molcov = "Molecule Depth" in df.columns
     if coverage and molcov:

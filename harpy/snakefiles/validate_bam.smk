@@ -25,7 +25,7 @@ rule check_bam:
     params:
         lr_platform
     shell: 
-        "check_bam {params} {input} > {output}"
+        "harpy-utils check-bam {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -35,8 +35,8 @@ rule concat_results:
     shell:
         """
         {{
-        echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
-        cat {input} | sort -k1
+            echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
+            cat {input} | sort -k1
         }} > {output}
         """
 
@@ -56,7 +56,7 @@ rule create_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            process-notebook {params.lr_platform} {output.tmp}
+            process-notebook {output.tmp} {params.lr_platform}
         }} 2> {log} > {output.ipynb}
         """
 

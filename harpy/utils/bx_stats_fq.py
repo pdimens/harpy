@@ -1,36 +1,19 @@
-#! /usr/bin/env python
-"""parse a fastq file to count BX stats"""
-import os
 import re
 import sys
-import argparse
+import click
 import pysam
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'count-bx',
-        description =
-        """
-        Parses a FASTQ file to count: total sequences, total number of linked-read barcodes,
-        number of valid barcodes, number of invalid BX tags, and a count of positional
-        barcode invalidations (e.g. A00, _0_, N)
-        """,
-        usage = "count-bx platform input.fastq > output.txt",
-        exit_on_error = False
-        )
-
-    parser.add_argument('platform', choices=["haplotagging", "stlfr", "tellseq"], help = "Type of linked read technology.")
-    parser.add_argument('input', help = "Input fastq file. Can be gzipped.")
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-    if not os.path.exists(args.input):
-        parser.error(f"{args.input} was not found")
-
-    if args.platform == "haplotagging":
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
+@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden = True)
+def bx_stats_fq(platform, input):
+    """
+    Parses a FASTQ file to count: total sequences, total number of linked-read barcodes,
+    number of valid barcodes, number of invalid BX tags, and a count of positional
+    barcode invalidations (e.g. A00, _0_, N)
+    """
+    if platform == "haplotagging":
         reBARCODE = re.compile(r'BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
         INVALID_DICT = {
             "A" : 0,
@@ -44,7 +27,7 @@ def main():
                 segment_dict[i] += 1
             return '00' in barcode
 
-    elif args.platform == "stlfr":
+    elif platform == "stlfr":
         reBARCODE = re.compile('#([0-9]+_[0-9]+_[0-9]+)')
         INVALID_DICT = {
             "1" : 0,
@@ -72,10 +55,10 @@ def main():
     N_BX = 0
     N_VALID = 0
 
-    with pysam.FastxFile(args.input, persist = False) as fh:
+    with pysam.FastxFile(input, persist = False) as fh:
         for entry in fh:
             N_READS += 1
-            if args.platform == "haplotagging":
+            if platform == "haplotagging":
                 search_string = entry.comment
             else:
                 search_string = entry.name

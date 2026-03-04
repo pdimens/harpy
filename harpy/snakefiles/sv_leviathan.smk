@@ -222,7 +222,7 @@ rule report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook LEVIATHAN {output.tmp}
+            process-notebook {output.tmp} LEVIATHAN
         }} 2> {log} > {output.ipynb}
         """
 

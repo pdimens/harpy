@@ -1,23 +1,13 @@
-#! /usr/bin/env python
-"""Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes"""
 import os
-import sys
-import argparse
+import click
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'haplotag-acbd',
-        description ="Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes",
-        usage = "haplotag-acbd output_directory",
-        exit_on_error = False
-        )
-    parser.add_argument("output_directory", type = str, help = "Directory to create barcode files")
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-    outdir = args.output_directory.rstrip("/")
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.argument('output_directory', default = '.', type=click.Path(exists = False, resolve_path = True))
+@click.help_option('--help', hidden = True)
+def haplotag_acbd(output_directory):
+    "Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes"
+    
+    outdir = output_directory.rstrip("/")
     os.makedirs(outdir, exist_ok = True)
 
     BX = {

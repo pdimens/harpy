@@ -1,45 +1,29 @@
-#! /usr/bin/env python
-"""parse a bam file to check for BX stats"""
 import re
 import sys
 import os
-import argparse
+import click
 import pysam
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'check-bam',
-        description =
-        """
-        Parses an aligment (sam/bam) file to check if the sample name
-        matched the RG tag, whether BX:Z: is the last tag in the record,
-        and the counts of: total alignments, alignments with an MI:i: tag,
-        alignments without BX:Z: tag, incorrect BX:Z: tag.
-        """,
-        usage = "check-bam lr_type input.bam > output.txt",
-        exit_on_error = False
-        )
-
-    parser.add_argument("platform", metavar='', help= "Linked-read platform\n{10x,haplotagging,stlfr,tellseq}")
-    parser.add_argument('input', help = "Input bam/sam file")
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-    args = parser.parse_args()
-    if not os.path.exists(args.input):
-        parser.error(f"{args.input} was not found")
-    if args.platform not in ["10x","tellseq", "stlfr", "haplotagging"]:
-        parser.error("Invalid option for `lr_type`\nMust be one of: 10x, haplotagging, stlfr, tellseq")
-
-    if args.platform == "haplotagging":
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.argument('platform', required = True, type=click.Choice(['10x','haplotagging','stlfr','tellseq'], case_sensitive=False))
+@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden = True)
+def check_bam(platform, input):
+    """
+    File format validation for SAM/BAM file
+    
+    Specific to linked-read data. Checks if the sample name matches the RG tag,
+    whether BX:Z: is the last tag in the record, and the counts of: total alignments,
+    alignments with an MI:i: tag, alignments without BX:Z: tag, incorrect BX:Z: tag. Writes to stdout.
+    """
+    if platform == "haplotagging":
         bc_pattern = re.compile(r'^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
-    elif args.platform == "stlfr":
+    elif platform == "stlfr":
         bc_pattern = re.compile(r'^\d+_\d+_\d+')
     else:
         bc_pattern = re.compile(r'^[ATCGN]+')
 
-    bam_in = args.input
+    bam_in = input
     filename = os.path.basename(bam_in)
     bam_pattern = re.compile(r"\.[bB][aA][mM]$", flags = re.IGNORECASE)
     corename = re.sub(bam_pattern, "", filename)

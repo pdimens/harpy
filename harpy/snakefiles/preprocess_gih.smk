@@ -87,7 +87,7 @@ rule pad_barcodes:
     threads:
         2
     shell:
-        "stagger-GIH {input} | samtools import -s - > {output} 2> {log}"
+        "harpy-utils stagger-gih {input} | samtools import -s - > {output} 2> {log}"
 
 rule extract_barcodes:
     input:
@@ -125,7 +125,7 @@ rule format_barcodes:
     shell:
         """
         {{
-            preproc-barcodes {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
+            harpy-utils preproc-barcodes {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
         }} 2> {log}
         """
 

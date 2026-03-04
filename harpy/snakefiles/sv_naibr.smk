@@ -141,7 +141,7 @@ rule infer_variants:
         vcf   = "vcf/{sample}.vcf" 
     shell:
         """
-        infer-sv {input.bedpe} -f {output.fail} > {output.bedpe}
+        harpy-utils infer-sv {input.bedpe} -f {output.fail} > {output.bedpe}
         cp {input.refmt} {output.refmt}
         cp {input.vcf} {output.vcf}
         """
@@ -196,7 +196,7 @@ rule report:
         """s
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook NAIBR {output.tmp}
+            process-notebook {output.tmp} NAIBR
         }} 2> {log} > {output.ipynb}
         """
 

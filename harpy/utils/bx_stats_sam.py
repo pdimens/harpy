@@ -1,7 +1,4 @@
-#! /usr/bin/env python
-"""calculate linked-read metrics from barcode information"""
-import argparse
-import os
+import click
 import numpy as np
 import pysam
 import sys
@@ -132,37 +129,26 @@ def insert_size(rec) -> int:
         isize = max(abs(rec.template_length), rec.infer_query_length())
     return isize
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'bx_stats',
-        description =
-        """
-        Calculates various linked-read molecule metrics from the input alignment file.
-        The alignment file is expected to be in "standard" linked-read format, that is,
-        the barcode is contained in the BX:Z tag and the barcode validation is stored
-        in the VX:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
-        number of reads, position start, position end, length of molecule inferred from
-        alignments, total aligned basepairs, total, length of inferred inserts, molecule
-        coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
-        insert length. Input file **must be coordinate sorted**.
-        """,
-        usage = "bx-stats <-d DISTANCE> input.bam > output.gz",
-        exit_on_error = False
-        )
+#@click.add_argument('-d', '--distance-threshold', type = int, default=0, help = "Calculate statistics assuming this distance threshold for linking alignments sharing a barcode")
+#@click.add_argument('input', help = "Input coordinate-sorted bam/sam file.")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.option('-d', '--distance-threshold', default = 0, show_default = True, type = click.IntRange(min = 0, max_open=True), help = 'Calculate statistics assuming this distance threshold for linking alignments sharing a barcode')
+@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden = True)
+def bx_stats_sam(distance_threshold, input):
+    """
+    Linked-read metrics from alignment files
 
-    parser.add_argument('-d', '--distance-threshold', type = int, default=0, help = "Calculate statistics assuming this distance threshold for linking alignments sharing a barcode")
-    parser.add_argument('input', help = "Input coordinate-sorted bam/sam file.")
-
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-    if not os.path.exists(args.input):
-        parser.error(f"{args.input} was not found")
-    dist_thresh = max(0, args.distance_threshold)
+    The alignment file is expected to be in "standard" linked-read format, that is,
+    the barcode is contained in the BX:Z tag and the barcode validation is stored
+    in the VX:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
+    number of reads, position start, position end, length of molecule inferred from
+    alignments, total aligned basepairs, total, length of inferred inserts, molecule
+    coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
+    insert length. Input file *must be coordinate sorted*.
+    """
     sys.stdout.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
-    with pysam.AlignmentFile(args.input) as alnfile:
+    with pysam.AlignmentFile(input, require_index=False) as alnfile:
         d = {}
         LAST_CONTIG = None
 
@@ -171,7 +157,7 @@ def main():
             # check if the current chromosome is different from the previous one
             # if so, print the dict to file and empty it (a consideration for RAM usage)
             if LAST_CONTIG and chrom != LAST_CONTIG:
-                writestats(d, dist_thresh)
+                writestats(d, distance_threshold)
             LAST_CONTIG = chrom
             # skip duplicates, unmapped, and secondary alignments
             if read.is_duplicate or read.is_unmapped or read.is_secondary:
@@ -204,4 +190,4 @@ def main():
             LAST_CONTIG = chrom
 
         # print the last entry
-        writestats(d, dist_thresh)
+        writestats(d, distance_threshold)

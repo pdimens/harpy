@@ -1,37 +1,26 @@
-#! /usr/bin/env python
-"""Create column in NAIBR bedpe output inferring the SV type from the orientation"""
-import os
 import sys
-import argparse
+import click
 
-def main():
-    parser = argparse.ArgumentParser(
-        prog = 'infer-sv',
-        description = 'Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags, use optional -f argument to output FAIL variants to a separate file.',
-        usage = "infer-sv file.bedpe [-f fail.bedpe] > outfile.bedpe",
-        exit_on_error = False
-        )
+conversions = {
+    "+-": "deletion",
+    "--": "inversion",
+    "++": "inversion",
+    "-+": "duplication"
+}
 
-    parser.add_argument("bedfile", help = "Input bedpe file containing the output of NAIBR.")
-    parser.add_argument("-f", "--fail", dest = "failfile", type=str, metavar = "fail.bedpe", help="output variants who fail filtering into separate file")
+@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.option('-f', '--fail', type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument('bedfile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden = True)
+def infer_sv(bedfile, failfile):
+    """
+    Infer variant types from NAIBR bedpe output
 
-    if len(sys.argv) == 1:
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
-    args = parser.parse_args()
-    if not os.path.exists(args.bedfile):
-        parser.error(f"{args.bedfile} was not found")
-
-    conversions = {
-        "+-": "deletion",
-        "--": "inversion",
-        "++": "inversion",
-        "-+": "duplication"
-        }
-
-    if args.failfile:
-        with open(args.bedfile, "r", encoding="utf-8") as f, open(args.failfile, "w", encoding="utf-8") as failout:
+    Removes variants with FAIL flags, use optional -f argument to output FAIL variants to a separate file.
+    Use --fail to output a file with variants that failed to pass NAIBR filtering thresholds. Writes to stdout.
+    """
+    if failfile:
+        with open(bedfile, "r", encoding="utf-8") as f, open(failfile, "w", encoding="utf-8") as failout:
             # first line, the header
             line = f.readline().strip().split("\t")
             line_corrected = [i.title().replace(" ", "") for i in line]
@@ -53,7 +42,7 @@ def main():
                 else:
                     failout.write(NEWROW)
     else:
-        with open(args.bedfile, "r", encoding="utf-8") as f:
+        with open(bedfile, "r", encoding="utf-8") as f:
             # first line, the header
             line = f.readline().strip().split("\t")
             line_corrected = [i.title().replace(" ", "") for i in line]

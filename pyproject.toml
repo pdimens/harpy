@@ -20,20 +20,7 @@ dependencies = [
 
 [project.scripts]
 harpy = "harpy.__main__:cli"
-bx-stats = "harpy.scripts:bx_stats.main"
-check-bam = "harpy.scripts:check_bam.main"
-check-fastq = "harpy.scripts:check_fastq.main"
-count-bx = "harpy.scripts:count_bx.main"
-gih-stagger= "harpy.scripts:gih_stagger.main"
-haplotag-acbd = "harpy.scripts:haplotag_acbd.main"
-infer-sv = "harpy.scripts:infer_sv.main"
-molecule-coverage = "harpy.scripts:molecule_coverage.main"
-stagger-GIH = "harpy.scripts:stagger_GIH.main"
-parse-phaseblocks = "harpy.scripts:parse_phaseblocks.main"
-plot-depth = "harpy.scripts:plot_depth.main"
-preproc-barcodes = "harpy.scripts:preproc_barcodes.main"
-rename-bam = "harpy.scripts:rename_bam.main"
-process-notebook = "harpy.scripts:process_notebook.main"
+harpy-utils = "harpy.utils:cli"
 
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"

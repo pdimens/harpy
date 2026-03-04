@@ -122,7 +122,7 @@ rule sample_stats:
         {{
             samtools stats -d {input.bam} > {output.stats}
             samtools flagstat {input.bam} > {output.flagstat}
-            bx-stats -d {params} {input.bam} | gzip > {output.bxstats}
+            harpy-utils bx-stats-sam -d {params} {input.bam} | gzip > {output.bxstats}
         }} 2> {log}
         """
 
@@ -139,7 +139,7 @@ rule molecule_coverage:
     shell:
         """
         {{
-            molecule-coverage -w {params} {input.fai} {input.stats} | gzip
+            harpy-utils molecule-coverage -w {params} {input.fai} {input.stats} | gzip
         }} > {output} 2> {log}
         """
 
@@ -206,7 +206,7 @@ rule sample_reports:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            process-notebook {wildcards.sample} strobealign {params.lr_type} {output.tmp}
+            process-notebook {output.tmp} {wildcards.sample} strobealign {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -226,7 +226,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process-notebook {params.lr_type} {output.tmp}
+            process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 

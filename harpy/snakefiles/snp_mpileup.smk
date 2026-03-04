@@ -130,13 +130,13 @@ rule concat_variants:
         workflow.cores - 1 
     shell:  
         """
-        for i in {input.bcf}; do
-            echo $i
-        done >> {output.concatlist}
         for i in {input.logs}; do
             interval=$(basename "$i" .mpileup.log)
             awk -v prefix="$interval" '{{print prefix "\t" $0}}' "$i"
         done >> {output.log}
+        for i in {input.bcf}; do
+            echo $i
+        done >> {output.concatlist}
         {{
             bcftools concat -f {output.concatlist} --threads {params} --naive |
             bcftools sort - --write-index -Ob -o {output.bcf}
@@ -179,7 +179,7 @@ rule variant_report:
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data}
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook variants.{wildcards.type} {output.tmp}
+            process-notebook {output.tmp} variants.{wildcards.type}
         }} 2> {log} > {output.ipynb}
         """
 
