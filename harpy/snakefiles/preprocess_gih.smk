@@ -55,11 +55,11 @@ rule find_ME_seq:
     output:
         info = pipe("ME_position/{sample}.info")
     log:
-        "logs/find_ME_seq/{sample}.log"
+        "logs/{sample}.findME.log"
     params:
         f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null"
     threads:
-        workflow.cores // 2
+        2
     conda:
         "envs/qc.yaml"
     container:
@@ -74,16 +74,19 @@ rule pad_barcodes:
         FQ2 = get_fq2
     output:
         temp("stagger/{sample}.stagger.bam")
+    params:
+        workflow.cores - 3
     log:
         "logs/{sample}.stagger.log"
     threads:
-        2
+        workflow.cores - 2
     shell:
         """
         {{
             harpy-utils stagger-gih {input.FQ1} {input.FQ2} < {input.info} |
-            samtools import -@ 1 -O BAM -s - > {output}
-        }} 2> {log}"
+            samtools import -@ {params} -O BAM -s - > {output}
+        }} 2> {log}
+        """
 
 rule extract_barcodes:
     input:
