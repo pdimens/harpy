@@ -95,6 +95,7 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - workflow info printing handled differently to be more flexible
 
 # fixes
+- more accurate optical duplication detection by setting the distance parameter using `harpy-utils optical-dist`, which has a more comprehensive lookup of instrument codes
 - removed redundant validations between CLI checks and harpy checks
 - wording improvements for errors and doc text
 - [hopefully] no more double-printing of Snakemake errors

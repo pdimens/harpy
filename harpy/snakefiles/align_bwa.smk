@@ -112,12 +112,8 @@ rule mark_duplicates:
         4
     shell:
         """
-        if grep -q "^[ABCDLH]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
-            OPTICAL_BUFFER=2500
-        else
-            OPTICAL_BUFFER=100
-        fi 
         {{
+            OPTICAL_BUFFER=$(harpy-utils optical-dist {input.sam})
             {params.cmd} |
                 samtools fixmate -z on -m -u - - |
                 samtools view -h -q {params.quality} |

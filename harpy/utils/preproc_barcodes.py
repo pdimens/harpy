@@ -3,7 +3,7 @@ import json as js
 import pysam
 import sys
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument("json", required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.argument("bam", required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)

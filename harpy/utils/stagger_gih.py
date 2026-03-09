@@ -11,7 +11,7 @@ pad  = ["TTTTTTT", "CCCCCC", "GGGGG", "AAAA", "TTT", "CC", "GG", ""]
 qpad = ["I" * len(i) for i in pad]
 
 @click.help_option('--help', hidden=True)
-@click.command(no_args_is_help=True, epilog="Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(hidden = True, no_args_is_help=True, epilog="Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('fastq', nargs=2, required=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.argument("info", type=click.File("r"), default="-", required=False)
 def stagger_gih(fastq, info):
