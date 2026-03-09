@@ -87,7 +87,7 @@ rule pad_barcodes:
     threads:
         2
     shell:
-        "harpy-utils stagger-gih {input} | samtools import -s - > {output} 2> {log}"
+        "harpy-utils stagger-gih {input} | samtools import -O BAM -s - > {output} 2> {log}"
 
 rule extract_barcodes:
     input:
@@ -108,6 +108,39 @@ rule extract_barcodes:
         """
         pheniqs mux -t {threads} --input {input.stagger} --input {input.stagger} --output {output.bam} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
         """
+
+rule count_barcodes:
+    input:
+        "extract/{sample}.bam"
+    output:
+        "reports/data/{sample}.rxcount"
+    run:
+        from collections import Counter
+        import pysam
+        import re
+        barcodes = Counter()
+        corrected = 0
+        reads = 0
+        missed = 0
+        invalid = re.compile(r'[ACBD]00')
+        with pysam.AlignmentFile(input[0], check_sq=False) as infile:
+            for record in infile.fetch(until_eof=True):
+                rx = record.get_tag("RX")
+                if all(["=" in i for i in rx.split('-')]):
+                    missed += 1
+                    continue
+                qx = record.get_tag("QX")
+                corrected += (rx != qx)
+                if record.is_read1:
+                    reads += 1
+                    barcodes.update([rx])
+                elif record.is_read2 and (not record.is_paired or _bc not in barcodes):
+                    reads += 1
+                    barcodes.update([rx])
+        with open(output[0], 'w') as fout:
+            _unique = sum(not invalid.search(i) for i in barcodes)
+            fount.write(f"# total:{reads}|missed:{missed}|corrected barcodes:{corrected}|unique{_unique}\n")
+            _ = [fout.write(f"{k}\t{v}\n") for k,v in barcodes.items()]
 
 rule format_barcodes:
     input:
