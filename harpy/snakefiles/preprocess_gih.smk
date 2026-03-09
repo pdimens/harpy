@@ -53,31 +53,23 @@ rule find_ME_seq:
     input:
         get_fq1
     output:
-        info = temp("ME_position/{sample}.info"),
-        summ = temp("ME_position/{sample}.info.summ")
+        info = pipe("ME_position/{sample}.info")
     log:
         "logs/find_ME_seq/{sample}.log"
     params:
-        static = f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null",
-        awk = """awk -F '\\t' '{a[$2]++; if($2>=0) {b[$3]++; c[$4]++;} else next;} END {print "col2=mismatch"; for(i in a) print a[i],i; print "\\ncol3=startpost"; for(j in b) print b[j],j; print "\\ncol4=endpos"; for(k in c) print c[k],k;}'"""
+        f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null"
     threads:
-        4
+        workflow.cores // 2
     conda:
         "envs/qc.yaml"
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        """
-        {{
-            cutadapt {params.static} --info-file {output.info} --cores {threads} {input}
-            {params.awk} {output.info} > {output.summ}
-        }} 2> {log}
-        """
+        "cutadapt {params} --info-file {output.info} --cores {threads} {input} 2> {log}"
 
 rule pad_barcodes:
     input:
         info = "ME_position/{sample}.info",
-        summary = "ME_position/{sample}.info.summ",
         FQ1 = get_fq1,
         FQ2 = get_fq2
     output:
@@ -87,7 +79,11 @@ rule pad_barcodes:
     threads:
         2
     shell:
-        "harpy-utils stagger-gih {input} | samtools import -O BAM -s - > {output} 2> {log}"
+        """
+        {{
+            harpy-utils stagger-gih {input.FQ1} {input.FQ2} < {input.info} |
+            samtools import -@ 1 -O BAM -s - > {output}
+        }} 2> {log}"
 
 rule extract_barcodes:
     input:
