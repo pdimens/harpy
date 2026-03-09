@@ -141,5 +141,5 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         if _ > 0:
             sys.exit(1)
     else:
-        workflow.print_onstart()
+        workflow.onstart()
         workflow.launch(absolute)
