@@ -1,6 +1,5 @@
 """Module to bypass Harpy and run snakemake"""
 
-from datetime import datetime
 import os
 import sys
 import yaml
