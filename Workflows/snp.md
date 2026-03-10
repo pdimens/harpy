@@ -63,7 +63,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument              | default | description                                                                                                                   |
 |:----------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE` `-g`      |         | [!badge variant="info" text="required"] Reference genome used for variant calling                                             |
+| `REFERENCE`           |         | [!badge variant="info" text="required"] Reference genome used for variant calling                                             |
 | `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
 | `--extra-params` `-x` |         | Additional mpileup/freebayes arguments, in quotes                                                                             |
 | `--ploidy` `-n`       |   `2`   | Ploidy of samples                                                                                                             |
@@ -83,7 +83,7 @@ variant calling in parallel over these invervals and they can be specified in th
 !!!info
 **input**: an integer to make fixed-size genomic intervals
 
-**example**: `harpy snp -r 25000 -g genome.fasta data/mapped`
+**example**: `harpy snp -r 25000 genome.fasta data/mapped`
 !!!
 
 This is the default method (`-r 50000`), where Harpy will create 50 kbp non-overlapping genomic intervals across
@@ -99,7 +99,7 @@ chromosome_1    100001  121761    <- reached the end of the contig
 !!!info
 **input**: a single region in the format `contig:start-end`
 
-**example**: `harpy snp -r chrom1:2000-15000 -g genome.fasta data/mapped`
+**example**: `harpy snp -r chrom1:2000-15000 genome.fasta data/mapped`
 !!!
 
 Following the `mpileup` and `freebayes` format, you can specify a single genomic interval of interest
@@ -112,7 +112,7 @@ to call variants on. This interval must be in the format `contig:start-end` wher
 !!!info
 **input**: a tab (or space) delimited file of contigs and positions
 
-**example**: `harpy snp -r data/positions.txt -g genome.fasta data/mapped`
+**example**: `harpy snp -r data/positions.txt genome.fasta data/mapped`
 !!!
 
 A BED-like file of `contig<whitespace>start<whitespace>end` can be provided to call variants
