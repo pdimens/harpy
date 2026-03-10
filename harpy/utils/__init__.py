@@ -15,6 +15,8 @@ from .preproc_barcodes import preproc_barcodes
 from .process_notebook import process_notebook
 from .rename_bam import rename_bam
 from .stagger_gih import stagger_gih
+from .optical_dist import optical_dist
+#from .preproc_post import preproc_post
 
 @click.group(options_metavar='')
 @click.version_option(__version__, prog_name="utils.hpy", hidden = True)
@@ -30,6 +32,7 @@ cli.add_command(bx_stats_fq)
 cli.add_command(haplotag_acbd)
 cli.add_command(infer_sv)
 cli.add_command(molecule_coverage)
+cli.add_command(optical_dist)
 cli.add_command(parse_phaseblocks)
 cli.add_command(plot_depth)
 cli.add_command(preproc_barcodes)
