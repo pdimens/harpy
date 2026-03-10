@@ -27,6 +27,7 @@ papermill = ">=2.6.0,<3"
 djinn = "2.1.*"
 mosdepth = ">=0.3.10,<0.4"
 beautysh = ">=6.4.2,<7"
+ipykernel = ">=7.2.0,<8"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}

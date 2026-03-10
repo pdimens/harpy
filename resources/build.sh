@@ -1,5 +1,13 @@
 {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
 
-## stagger command
-cd stagger && go build -ldflags="-s -w" -o stagger-gih stagger.go
-chmod +x stagger-gih && cp stagger-gih TO SOMEWHWERE
+python -m ipykernel install --user
+
+## preproc commands
+{
+    cd harpy/utils/preproc
+    go get github.com/biogo/hts@latest
+    go build -ldflags="-s -w" -o gih-stagger stagger.go
+    go build -ldflags="-s -w" -o gih-convert convert/convert.go
+    chmod +x gih-stagger gih-convert
+    cp gih-stagger gih-convert ${PREFIX}/bin/
+}

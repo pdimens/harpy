@@ -74,7 +74,7 @@ rule pad_barcodes:
         FQ1 = get_fq1,
         FQ2 = get_fq2
     output:
-        temp("stagger/{sample}.stagger.bam")
+        pipe("stagger/{sample}.stagger.bam")
     log:
         "logs/{sample}.stagger.log"
     shell:
@@ -95,7 +95,7 @@ rule extract_barcodes:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
-        pheniqs mux --input {input.stagger} --input {input.stagger} --output {output.bam} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
+        pheniqs mux --output {output.bam} -s --quality -c {input.pheniqs_conf} --report {output.json} 2> {log} < {input.stagger}
         """
 
 rule count_barcodes:
@@ -140,12 +140,10 @@ rule format_barcodes:
         fq2 = "{sample}.R2.fq.gz"
     log:
         "logs/{sample}.format.BX.log"
-    params:
-        workflow.cores - 1
     threads:
-        workflow.cores
+        2
     shell:
-        "gih-convert {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2} 2> {log}"
+        "gih-convert {input} | samtools fastq -@ 1 -N -T VX,BX -1 {output.fq1} -2 {output.fq2} 2> {log}"
 
 rule assess_quality:
     input:
