@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Developing Harpy | Harpy</title>
@@ -33,12 +33,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -284,30 +284,30 @@ style of presenting and explaining the error, then providing a solution and show
 </doc-anchor-target>
 <p>As of v3.2, the easiest way to locally install the development build is to use <a href="https://pixi.sh/latest/installation/" class="outbound" target="_blank"><span>pixi</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>.</p>
 <p>First, you&#x27;ll need to install <code translate="no" v-pre>pixi</code> if you don&#x27;t already have it on your system:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installing-dev-version-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
 </doc-codeblock></div>
 <p>Then, you&#x27;ll need to clone the Harpy git repository:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installing-dev-version-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">git clone https://github.com/pdimens/harpy.git</code></pre>
 </doc-codeblock></div>
 <p>After, you can install the environment manually or have <code translate="no" v-pre>pixi</code> do it automatically
 when you activate the pixi shell:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installing-dev-version-manually-install-the-environment-and-activate-the-shell" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">manually install the environment and activate the shell</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
 pixi install
 pixi shell
 # harpy ...</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installing-dev-version-have-pixi-do-it-automatically-and-activate-the-shell" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">have pixi do it automatically and activate the shell</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
 pixi shell
 # harpy ...</code></pre>
 </doc-codeblock></div>
 <p>Alternatively, you can prefix harpy commands with <code translate="no" v-pre>pixi run</code>:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installing-dev-version-from-within-the-harpy-folder" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">from within the harpy/ folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">pixi run harpy impute...</code></pre>
 </doc-codeblock></div>
@@ -434,19 +434,19 @@ with the appropriate version tag.</p>
 <p>The dockerfile for that container is created by using a hidden harpy command <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>harpy containerize</span>
 </span></p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="manually-auto-generate-dockerfiles" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">auto-generate Dockerfiles</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy containerize</code></pre>
 </doc-codeblock></div>
 <p>which does all of the work for us. The result is a series of <code translate="no" v-pre>container/env/Dockerfile</code> files that have all of the pixi environments and shell hooks written into them. After creating the <code translate="no" v-pre>Dockerfile</code>s, the images must then be built with the correct tag.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="manually-build-the-docker-image" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">build the Docker image</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd resources
 docker build -t pdimens/harpy:env_tag container/env</code></pre>
 </doc-codeblock></div>
 <p>where <code translate="no" v-pre>env</code> can be e.g. <code translate="no" v-pre>qc</code> and <code translate="no" v-pre>tag</code> could be something like <code translate="no" v-pre>3.3</code>, making the tag <code translate="no" v-pre>qc_3.3</code></p>
 <p>Once that&#x27;s done, the image can be pushed to Dockerhub:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="manually-push-image-to-dockerhub" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">push image to Dockerhub</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">docker push pdimens/harpy</code></pre>
 </doc-codeblock></div>
@@ -487,7 +487,7 @@ current Harpy version. In other words, during development the containers in work
 <code translate="no" v-pre>container: docker://pdimens/harpy:env_latest</code> and the automation replaces it with (e.g.) <code translate="no" v-pre>container: docker://pdimens/harpy:env_tag</code>.
 Same for the software version, which is kept at <code translate="no" v-pre>0.0.0</code> (<code translate="no" v-pre>pyproject.toml</code> and <code translate="no" v-pre>__main__.py</code>) in the development version and gets replaced with the tagged version with the automation.
 Tagging is easily accomplished with Git commands in the command line:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="releases-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># make sure you're on the main branch
 $ git checkout main
 

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Harpy for (non linked-read) WGS data | Harpy</title>
@@ -33,12 +33,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -288,7 +288,7 @@ There is also another consideration for RADseq regarding marking duplicates (des
 </a>, you are able to detect and remove adapters, poly G tails, trim low
 quality, bases, detect duplicates with UMIs, etc. You <strong>cannot</strong> use <code translate="no" v-pre>--deconvolve</code> when ignoring
 linked-read information.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="quality-assessment-qc-example" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">qc example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz </code></pre>
 </doc-codeblock></div>
@@ -305,7 +305,7 @@ linked-read information.</p>
 </a> to align
 your sequences onto a reference genome. The <code translate="no" v-pre>--molecule-distance</code> will be ignored when
 using <code translate="no" v-pre>--unlinked</code>.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="sequence-alignment-align-example" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">align example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed </code></pre>
 </doc-codeblock></div>
@@ -343,7 +343,7 @@ would use <a href="../../../workflows/snp/" class="no-link inline-flex align-mid
 </a> or <a href="../../../workflows/snp/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>harpy snp freebayes</span>
 </a> without any modifications.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="calling-snps-snp-example" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">snp example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy snp mpileup --regions 100000 --populations data.groups genome.fasta Align/strobe</code></pre>
 </doc-codeblock></div>
@@ -357,14 +357,14 @@ would use <a href="../../../workflows/snp/" class="no-link inline-flex align-mid
 routines of <a href="../../../workflows/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>harpy impute</span>
 </a> by setting the value to <code translate="no" v-pre>FALSE</code>:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="impute-genotypes-code-1" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">stitch.parameters</div>
 <pre translate="no" class="language-none"><code v-pre class="language-none">name    model   usebx   bxlimit   k       s       nGen
 model1    diploid   FALSE    50000    10      5       50
 model2    diploid   FASE    50000   15      10      100</code></pre>
 </doc-codeblock></div>
 <p>Naturally, ignoring barcodes will also ignore whatever values are set for <code translate="no" v-pre>bxlimit</code>. Otherwise, invoke the imputation workflow as you would normally:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="impute-genotypes-impute-example" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">impute example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam</code></pre>
 </doc-codeblock></div>
@@ -378,7 +378,7 @@ model2    diploid   FASE    50000   15      10      100</code></pre>
     <span>harpy phase</span>
 </a> to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for <code translate="no" v-pre>-d</code>/<code translate="no" v-pre>--molecule-distance</code> will be ignored:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="phase-genotypes-phase-example" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">phase example</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy phase -t 10 --unlinked variants.bcf data/*.bam </code></pre>
 </doc-codeblock></div>

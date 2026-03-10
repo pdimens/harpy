@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Downsample data by barcode  | Harpy</title>
@@ -29,13 +29,13 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.0.1" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.1.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -292,7 +292,7 @@ It will be officially removed from Harpy starting with version 3.3.</p>
     <span>downsample</span>
 </span> allows you to downsample a BAM file (or paired-end FASTQ) <em>by barcodes</em>. That means you can
 keep all the reads associated with <code translate="no" v-pre>d</code> number of barcodes or <code translate="no" v-pre>-d</code> fraction of barcodes (e.g. <code translate="no" v-pre>-d 0.5</code> will downsample to 50% of all barcodes).</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="downsample-data-by-barcode-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># BAM file
 harpy downsample OPTIONS... BAM
@@ -300,11 +300,11 @@ harpy downsample OPTIONS... BAM
 # FASTQ files
 harpy downsample OPTIONS... FASTQ1 FASTQ2</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="downsample-data-by-barcode-example--downsample-bam-file-allowing-only-30-invalid-barcodes-to-be-sampled" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | downsample bam file, allowing only 30% invalid barcodes to be sampled</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy downsample -d 1000 -b BC -i 0.3 -p sample1.sub1000 sample1.bam</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="downsample-data-by-barcode-example--downsample-fastq-pair-skipping-invalid-barcodes" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | downsample fastq pair, skipping invalid barcodes</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy downsample -d 1000 -i 0 -p sample1.sub1000 sample1.F.fq.gz sample1.R.fq.gz</code></pre>
 </doc-codeblock></div>
@@ -332,7 +332,7 @@ module is configured using the command-line arguments below.</p>
 <tbody>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>INPUT</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> One BAM file or both read files from a paired-end FASTQ pair</td>
@@ -344,7 +344,7 @@ module is configured using the command-line arguments below.</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--downsample</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Number/fraction of barcodes to downsample to</td>
@@ -361,7 +361,7 @@ module is configured using the command-line arguments below.</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--random-seed</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Random seed for sampling <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>optional</span>
 </span></td>

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Call Structural Variants using LEVIATHAN | Harpy</title>
@@ -33,13 +33,13 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.0.1" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.1.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -344,11 +344,11 @@ with a <code translate="no" v-pre>BX:Z</code> tag. Use <a href="../../validate/"
     <span>validate bam</span>
 </a> if you want to double-check file
 format validity.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="call-structural-variants-using-leviathan-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy sv leviathan OPTIONS... REFERENCE INPUTS...</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="call-structural-variants-using-leviathan-example--call-variants-with-adjusted-thresholds" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | call variants with adjusted thresholds</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy sv leviathan --threads 20 -s 90,95,95 genome.fasta Align/bwa</code></pre>
 </doc-codeblock></div>
@@ -375,21 +375,21 @@ format validity.</p>
 <tbody>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference genome that was used to create alignments</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
@@ -399,7 +399,7 @@ format validity.</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Additional naibr arguments, in quotes</td>
 </tr>
 <tr>
@@ -419,7 +419,7 @@ format validity.</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>

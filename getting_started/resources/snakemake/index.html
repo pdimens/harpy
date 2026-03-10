@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Snakamake Things | Harpy</title>
@@ -29,12 +29,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -285,11 +285,11 @@ Harpy modules have an optional flag <code translate="no" v-pre>--snakemake</code
 the Snakemake workflow if necessary. <a href="https://snakemake.readthedocs.io/en/stable/executing/cli.html" class="outbound" target="_blank">The full list of Snakemake command line
 options can be found here</a>.
 Whenever you use this flag, your argument must be enclosed in quotation marks, for example:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="adding-snakemake-parameters-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc --snakemake &quot;--dry-run&quot; rawseq</code></pre>
 </doc-codeblock></div>
 <p>This means you can add several Snakemake arguments at once, as long as the entire thing is enclosed in quotes:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="adding-snakemake-parameters-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc --snakemake &quot;--dry-run --debug --shadow-prefix /scratch&quot; rawseq</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="common-use-cases">

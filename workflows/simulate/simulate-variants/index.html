@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Simulate Genomic Variants | Harpy</title>
@@ -29,13 +29,13 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.0.1" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.1.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -270,11 +270,11 @@ variant at a time and each variant type has their own set of parameters. If you 
 in very fine-grained variation simulation, consider using <a href="https://davidebolo1993.github.io/visordoc/usage/usage.html#visor-hack" class="outbound" target="_blank"><span>VISOR/HACk</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>.
 This page is divided by variant types to help you navigate the process. The general usage
 for simulating variants is:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="simulate-genomic-variants-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy simulate variant OPTIONS... INPUT_GENOME</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="simulate-genomic-variants-example--simulate-10-random-inversions-with-mixmax-sizes" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | simulate 10 random inversions with mix/max sizes</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy simulate inversion -n 10 --min-size 1000 --max-size 50000  path/to/genome.fasta</code></pre>
 </doc-codeblock></div>
@@ -426,7 +426,7 @@ The snp and indel variants are combined in this module because <code translate="
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--indel-vcf</code> <code translate="no" v-pre>-i</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">VCF file of known indels to simulate</td>
 </tr>
 <tr>
@@ -451,12 +451,12 @@ The snp and indel variants are combined in this module because <code translate="
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--snp-gene-constraints</code> <code translate="no" v-pre>-y</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">How to constrain randomly simulated SNPs {<code translate="no" v-pre>noncoding</code>,<code translate="no" v-pre>coding</code>,<code translate="no" v-pre>2d</code>,<code translate="no" v-pre>4d</code>} when using <code translate="no" v-pre>--genes</code></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--snp-vcf</code> <code translate="no" v-pre>-s</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">VCF file of known snps to simulate</td>
 </tr>
 <tr>
@@ -529,7 +529,7 @@ the value to either <code translate="no" v-pre>0</code> or <code translate="no" 
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--vcf</code> <code translate="no" v-pre>-v</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">VCF file of known inversions to simulate</td>
 </tr>
 </tbody>
@@ -558,7 +558,7 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 <tbody>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--vcf</code> <code translate="no" v-pre>-v</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">VCF file of known copy number variants to simulate</td>
 </tr>
 <tr>
@@ -645,7 +645,7 @@ between individuals (<a href="https://www.genome.gov/genetics-glossary/Copy-Numb
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--vcf</code> <code translate="no" v-pre>-v</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">VCF file of known inversions to simulate</td>
 </tr>
 </tbody>

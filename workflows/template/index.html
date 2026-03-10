@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title>Template | Harpy</title>
@@ -29,12 +29,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -238,11 +238,11 @@ generate a specific file and write to <code translate="no" v-pre>stdout</code>.<
     </h2>
 </doc-anchor-target>
 <p>Creates a sample grouping file for variant calling</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="groupings-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template groupings INPUTS &gt; output</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="groupings-example--generate-a-grouping-file-from-folder-of-fastqbam-files" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | generate a grouping file from folder of fastq/bam files</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template groupings data/ &gt; samples.groups</code></pre>
 </doc-codeblock></div>
@@ -288,7 +288,7 @@ pooled-as-populations via <a href="../sv/naibr/#pooled-sample-variant-calling" c
 </li>
 <li>the file will look like:</li>
 </ul>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="arguments-popgroupstxt" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">popgroups.txt</div>
 <pre translate="no" class="language-less"><code v-pre class="language-less">sample1 pop1
 sample2 pop1
@@ -309,11 +309,11 @@ snakemake plugin(s) to use this feature. For example, to use the SLURM plugin, y
 <a href="https://snakemake.github.io/snakemake-plugin-catalog/plugins/executor/slurm.html" class="outbound" target="_blank"><span><code translate="no" v-pre>snakemake-executor-plugin-slurm</code></span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 and likely <a href="https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/fs.html" class="outbound" target="_blank"><span><code translate="no" v-pre>snakemake-storage-plugin-fs</code></span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 (via pip, conda, etc.).</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="hpc--usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template hpc-system &gt; out.yaml</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="hpc--example--create-slurm-submission-template" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | create SLURM submission template</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template hpc-slurm &gt; slurm.yaml</code></pre>
 </doc-codeblock></div>
@@ -337,15 +337,15 @@ rows as necessary. See the section for the <a href="../impute/" class="no-link i
     <span>impute</span>
 </a>
 module for details on these parameters.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="impute-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; output</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="impute-example--create-imputation-parameter-template" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | create imputation parameter template</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template impute &gt; params.stitch</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="impute-resulting-paramsstitch-file" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">resulting params.stitch file</div>
 <pre translate="no" class="language-none"><code v-pre class="language-none">name model	usebx	bxlimit	k	s	ngen
 k10_ng50 diploid	TRUE	50000	3	2	10

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Call SNPs and small indels | Harpy</title>
@@ -33,13 +33,13 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
-    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.0.1" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
+    <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.1.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -342,11 +342,11 @@ from the sample names. A simple fix would be to use underscores (<code translate
 You can call SNPs with the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>snp</span>
 </span> module:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="call-snps-and-small-indels-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy snp method OPTIONS... REFERENCE INPUTS...</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="call-snps-and-small-indels-examples--calling-variants-with-default-settings" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">examples | calling variants with default settings</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># call variants with mpileup
 harpy snp mpileup --threads 20 genome.fasta Align/bwa
@@ -376,22 +376,22 @@ harpy snp freebayes --threads 20 genome.fasta Align/bwa</code></pre>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code> <code translate="no" v-pre>-g</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference genome used for variant calling</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../getting_started/common_options/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Additional mpileup/freebayes arguments, in quotes</td>
 </tr>
 <tr>
@@ -401,7 +401,7 @@ harpy snp freebayes --threads 20 genome.fasta Align/bwa</code></pre>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>
@@ -446,7 +446,7 @@ variant calling in parallel over these invervals and they can be specified in th
         </div>
         <div class="pr-5 ml-3 w-full">
 <p><strong>input</strong>: an integer to make fixed-size genomic intervals</p>
-<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r 25000 -g genome.fasta data/mapped</code></p>
+<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r 25000 genome.fasta data/mapped</code></p>
         </div>
     </div>
 </div>
@@ -475,7 +475,7 @@ chromosome_1    100001  121761    &lt;- reached the end of the contig</code></pr
         </div>
         <div class="pr-5 ml-3 w-full">
 <p><strong>input</strong>: a single region in the format <code translate="no" v-pre>contig:start-end</code></p>
-<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r chrom1:2000-15000 -g genome.fasta data/mapped</code></p>
+<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r chrom1:2000-15000 genome.fasta data/mapped</code></p>
         </div>
     </div>
 </div>
@@ -503,7 +503,7 @@ to call variants on. This interval must be in the format <code translate="no" v-
         </div>
         <div class="pr-5 ml-3 w-full">
 <p><strong>input</strong>: a tab (or space) delimited file of contigs and positions</p>
-<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r data/positions.txt -g genome.fasta data/mapped</code></p>
+<p><strong>example</strong>: <code translate="no" v-pre>harpy snp -r data/positions.txt genome.fasta data/mapped</code></p>
         </div>
     </div>
 </div>

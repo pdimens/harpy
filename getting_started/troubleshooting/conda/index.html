@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Install / Conda | Harpy</title>
@@ -29,12 +29,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -257,7 +257,7 @@ on your system, <doc-anchor-trigger to="#conda-is-forbidden">see below</doc-anch
 workflow&#x27;s dependencies. Although Conda recommends setting channel priorities to <code translate="no" v-pre>strict</code>, we find that it sometimes causes the solver
 (within or without Snakemake) to fail to find the necessary software. One typical way to circumvent that is to set the channel priority to
 something other than <code translate="no" v-pre>strict</code>:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="strict-channel-priorities-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">conda config --set channel_priority true
 # or #
 conda config --set channel_priority false</code></pre>
@@ -280,7 +280,7 @@ The most common issue we tend to see is errors during this process.</p>
 Modificatons to <code translate="no" v-pre>base</code> can mess with all sorts of things in other environments (<a href="https://github.com/pdimens/harpy/issues/248" class="outbound" target="_blank"><span>see this issue</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>), so we recommend installing Harpy (or anything) into literally any other environment. If you find conda things just aren&#x27;t working
 right and you know you have at some point modified the <code translate="no" v-pre>base</code> environment, you can reset your <code translate="no" v-pre>base</code> environment. It&#x27;s not guaranteed, but
 doing that might just fix things:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="installation-into-base-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">conda install --rev 0 --name base</code></pre>
 </doc-codeblock></div>
 <doc-anchor-target id="install-dependencies-manually">
@@ -324,12 +324,12 @@ the commands.</p>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>pysam</code></td>
 <td style="text-align: center;">0.23</td>
-<td style="text-align: left;"></td>
+<td style="text-align: left;"> </td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>rich-click</code></td>
 <td style="text-align: center;">1.8</td>
-<td style="text-align: left;"></td>
+<td style="text-align: left;"> </td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>snakemake-minimal</code></td>
@@ -343,8 +343,8 @@ the commands.</p>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>seqtk</code></td>
-<td style="text-align: center;"></td>
-<td style="text-align: left;"></td>
+<td style="text-align: center;"> </td>
+<td style="text-align: left;"> </td>
 </tr>
 </tbody>
 </table>
@@ -376,11 +376,11 @@ are meant to be used on the internet-connected login node in circumstances like 
 <p>Create the conda environments required by Harpy&#x27;s workflows (e.g. <code translate="no" v-pre>phase</code>).
 Only useful for specific HPC configurations where worker nodes
 do not have internet access to let snakemake install conda packages itself.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="deps-conda-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy deps conda workflows...</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="deps-conda-example--install-all-possible-harpy-workflow-dependencies" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | install all possible harpy workflow dependencies</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy deps conda all</code></pre>
 </doc-codeblock></div>
@@ -408,7 +408,7 @@ to install (you guessed it!) all of them:</p>
 into an Apptainer <code translate="no" v-pre>.sif</code> file. Only useful for specific HPC configurations where worker nodes
 do not have internet access to let snakemake download the container itself.
 Run this command again without arguments to use it.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="deps-container-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy deps container</code></pre>
 </doc-codeblock></div>

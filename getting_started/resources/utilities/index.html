@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Utilities | Harpy</title>
@@ -29,14 +29,14 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
-    <link href="../../../resources/css/katex.css?v=4.0.1" rel="stylesheet">
-    <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.0.1" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
+    <link href="../../../resources/css/katex.css?v=4.1.0" rel="stylesheet">
+    <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.1.0" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -249,7 +249,7 @@ by calling the program without any arguments.</p>
         <span>assign_mi</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="assign_mi-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">assign_mi -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Assign an <code translate="no" v-pre>MI:i</code> (Molecular Identifier) tag to each barcoded
@@ -265,7 +265,7 @@ This is similar to <doc-anchor-trigger to="#deconvolve_alignments">deconvolve_al
         <span>bx_stats</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="bx_stats-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_stats input.bam &gt; output.gz</code></pre>
 </doc-codeblock></div>
 <p>Calculates various linked-read molecule metrics from the (coordinate-sorted) input alignment file.
@@ -286,7 +286,7 @@ Metrics include (per molecule):</p>
         <span>bx_to_end</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="bx_to_end-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_to_end input.[fq|bam] &gt; output.[fq.gz|bam]</code></pre>
 </doc-codeblock></div>
 <p>Parses the records of a FASTQ or BAM file and moves the <code translate="no" v-pre>BX:Z</code> tag, if present, to
@@ -299,7 +299,7 @@ record, so that will <strong>not</strong> require manual intervention.</p>
         <span>check_bam</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="check_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">check_bam platform input.bam &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses an aligment file to check:</p>
@@ -321,7 +321,7 @@ record, so that will <strong>not</strong> require manual intervention.</p>
         <span>check_fastq</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="check_fastq-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">check_fastq platform input.fq &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses a FASTQ file to check if any sequences don&#x27;t conform to the SAM spec,
@@ -337,7 +337,7 @@ whether BX:Z: is the last tag in the record, and the counts of:</p>
         <span>concatenate_bam</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="concatenate_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">concatenate_bam [--bx] file_1.bam file_2.bam...file_N.bam &gt; output.bam
 # or #
 concatenate_bam [--bx] -b bam_files.txt &gt; output.bam</code></pre>
@@ -354,7 +354,7 @@ to also rewrite <code translate="no" v-pre>BX</code> tags such that they are uni
         <span>count_bx</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="count_bx-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">count_bx input.fastq &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses a FASTQ file to count:</p>
@@ -371,7 +371,7 @@ to also rewrite <code translate="no" v-pre>BX</code> tags such that they are uni
         <span>deconvolve_alignments</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="deconvolve_alignments-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">deconvolve_alignments -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Deconvolve BX-tagged barcodes and assign an <code translate="no" v-pre>MI</code> (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff.
@@ -387,7 +387,7 @@ hyphenating it with an integer (e.g. <code translate="no" v-pre>A01C25B31D92-2</
         <span>depth_windows</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="depth_windows-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">samtools depth -a file.bam | depth_windows windowsize &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Reads the output of <code translate="no" v-pre>samtools depth -a</code> from stdin and calculates means within windows of a given <code translate="no" v-pre>windowsize</code>.</p>
@@ -397,7 +397,7 @@ hyphenating it with an integer (e.g. <code translate="no" v-pre>A01C25B31D92-2</
         <span>haplotag_acbd</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="haplotag_acbd-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">haplotag_acbd output_directory</code></pre>
 </doc-codeblock></div>
 <p>Generates the <code translate="no" v-pre>BC_{ABCD}.txt</code> files necessary to demultiplex Gen I haplotag barcodes into the specified <code translate="no" v-pre>output_directory</code>.</p>
@@ -407,7 +407,7 @@ hyphenating it with an integer (e.g. <code translate="no" v-pre>A01C25B31D92-2</
         <span>infer_sv</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="infer_sv-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">infer_sv file.bedpe [-f fail.bedpe] &gt; outfile.bedpe</code></pre>
 </doc-codeblock></div>
 <p>Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags
@@ -418,7 +418,7 @@ and you can use the optional <code translate="no" v-pre>-f</code> (<code transla
         <span>make_windows</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="make_windows-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">make_windows -w &lt;window.size&gt; -m &lt;0,1&gt; input.fasta[.fai] &gt; output.bed</code></pre>
 </doc-codeblock></div>
 <p>Create a BED file of fixed intervals (<code translate="no" v-pre>-w</code>, --<code translate="no" v-pre>window</code>) from a FASTA or fai file (the kind generated with <code translate="no" v-pre>samtools faidx</code>).
@@ -430,7 +430,7 @@ whether indexing starts at <code translate="no" v-pre>0</code> or <code translat
         <span>molecule_coverage</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="molecule_coverage-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">molecule_coverage -f genome.fasta.fai statsfile &gt; output.cov</code></pre>
 </doc-codeblock></div>
 <p>Using the statsfile generated by <code translate="no" v-pre>bx_stats</code> from Harpy, will calculate &quot;molecular coverage&quot; across the genome.
@@ -443,7 +443,7 @@ FASTA fai index (the kind created with <code translate="no" v-pre>samtools faidx
         <span>parse_phaseblocks</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="parse_phaseblocks-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">parse_phaseblocks input &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parse a phase block file from HapCut2 to pull out summary information</p>
@@ -453,7 +453,7 @@ FASTA fai index (the kind created with <code translate="no" v-pre>samtools faidx
         <span>rename_bam</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="rename_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">rename_bam [-d] new_name input.bam</code></pre>
 </doc-codeblock></div>
 <p>Rename a sam/bam file and modify the <code translate="no" v-pre>@RG</code> tag of the alignment file to reflect the change for both <code translate="no" v-pre>ID</code> and <code translate="no" v-pre>SM</code>.
@@ -464,7 +464,7 @@ This process creates a new file <code translate="no" v-pre>new_name.bam</code> a
         <span>standardize_barcodes_sam</span>
     </h3>
 </doc-anchor-target>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="standardize_barcodes_sam-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">standardize_barcodes_sam input.bam &gt; output.sam</code></pre>
 </doc-codeblock></div>
 <p>Parse a SAM/BAM file to identify the linked-read barcode (haplotagging, stlfr, tellseq, 10x) and

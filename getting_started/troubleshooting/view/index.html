@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> View | Harpy</title>
@@ -29,12 +29,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -238,11 +238,11 @@
 </doc-anchor-target>
 <p>This convenience command lets you view relevant details within a Harpy workflow directory
 without having to fish around for the right files.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="view-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view MODE DIRECTORY</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="view-example--view-the-workflow-configuration-of-an-existing-harpy-generated-folder" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | view the workflow configuration of an existing harpy-generated folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view config Align/bwa</code></pre>
 </doc-codeblock></div>
@@ -317,7 +317,7 @@ without having to fish around for the right files.</p>
 <p><code translate="no" v-pre>view environments</code> is an exception in that it does not require a <code translate="no" v-pre>DIRECTORY</code> argument.
 To use <code translate="no" v-pre>environments</code>, you can run it without arguments or give it a <code translate="no" v-pre>SOFTWARE</code> argument
 to only print environments where <code translate="no" v-pre>SOFTWARE</code> is found (it also works with partial matches).</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="environments-all-environments" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">viewing all environments</div>
 <pre translate="no" class="language-none"><code v-pre class="language-none">harpy view environments
 
@@ -341,7 +341,7 @@ to only print environments where <code translate="no" v-pre>SOFTWARE</code> is f
   - r-xml2
   - r-biocircos</code></pre>
 </doc-codeblock></div>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="environments-for-a-program" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">searching for a program</div>
 <pre translate="no" class="language-none"><code v-pre class="language-none">harpy view environments fast
 

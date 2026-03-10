@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.0.1.825482380147">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.1.0.826469604004">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.0.1">
+    <meta name="generator" content="Retype 4.1.0">
 
     <!-- Primary Meta Tags -->
     <title> Common Harpy Options | Harpy</title>
@@ -29,12 +29,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.0.1.825482380147" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.1.0.826469604004" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.0.1" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.0.1.825482380147" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.0.1.825482380147" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/retype.js?v=4.1.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.1.0.826469604004" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.1.0.826469604004" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -239,7 +239,7 @@
 </a> or <a href="../../workflows/phase/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>phase</span>
 </a>) follows the format of</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="input-arguments-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy command options arguments</code></pre>
 </doc-codeblock></div>
 <p>where <code translate="no" v-pre>command</code> is something like <a href="../../workflows/impute/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
@@ -251,7 +251,7 @@ which can include things like <code translate="no" v-pre>--molecule-distance</co
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
 In most cases, you can provide an unlimited amount of input arguments. In practice, that can look like:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="input-arguments-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa -t 5 genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz </code></pre>
 </doc-codeblock></div>
 <div class="flex mb-6">
@@ -338,25 +338,25 @@ configured using these arguments:</p>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--container</code></td>
 <td style="text-align: left;">toggle</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Use preconfigured Apptainer container instead of local conda environments</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
 <td style="text-align: left;">file path or list</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Contigs to plot in the report(s)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--help</code> <code translate="no" v-pre>-h</code></td>
-<td style="text-align: left;"></td>
-<td style="text-align: center;"></td>
+<td style="text-align: left;"> </td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Show the module docstring</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--hpc</code></td>
-<td style="text-align: left;"></td>
-<td style="text-align: center;"></td>
+<td style="text-align: left;"> </td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Have snakemake submit all jobs to an HPC (<a href="../resources/hpc/">details</a>)</td>
 </tr>
 <tr>
@@ -374,7 +374,7 @@ configured using these arguments:</p>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--setup-only</code></td>
 <td style="text-align: left;">toggle</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;"><a href="../../workflows/qc/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border hover:text-badge-secondary-text-hover hover:bg-badge-secondary-hover hover:border-badge-secondary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>hidden</span>
 </a> Perform validations and setup workflow environment, but don&#x27;t run anything</td>
@@ -382,13 +382,13 @@ configured using these arguments:</p>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--skip-reports</code></td>
 <td style="text-align: left;">toggle</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Skip the processing and generation of HTML reports in a workflow</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--snakemake</code></td>
 <td style="text-align: left;">string</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Additional <a href="../resources/snakemake/#adding-snakemake-parameters">Snakemake</a> options, in quotes</td>
 </tr>
 <tr>
@@ -400,7 +400,7 @@ configured using these arguments:</p>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--unlinked</code> <code translate="no" v-pre>-U</code></td>
 <td style="text-align: left;">toggle</td>
-<td style="text-align: center;"></td>
+<td style="text-align: center;"> </td>
 <td style="text-align: left;">Treat the input as non linked-read data</td>
 </tr>
 </tbody>
@@ -439,7 +439,7 @@ contig2
 sexchrom1</code></pre>
 </doc-codeblock></div>
 </doc-panel>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="--contigs-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa --contigs contig1,contig2,sexchrom1 genome.fasta dir/data
 # or #
 harpy align bwa --contigs contigs.txt genome.fasta dir/data</code></pre>
@@ -471,7 +471,7 @@ exceed that number.</p>
 <p>You could call <a href="../../workflows/align/strobe/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>align strobe</span>
 </a> and specify 20 threads with no output to console:</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+<div id="example-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align strobe --threads 20 --quiet 2 genome.fasta samples/trimmedreads
 
 # identical to #
