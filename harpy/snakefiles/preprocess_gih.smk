@@ -40,8 +40,9 @@ onstart:
             {"Project Homepage": "https://github.com/pdimens/harpy"}
         ]
     }
-    with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
-        yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+    if not skip_reports:
+        with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
+            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
 rule all:
     default_target: True
@@ -97,15 +98,13 @@ rule extract_barcodes:
         json = "logs/extract/{sample}.json"
     log:
         "logs/{sample}.pheniqs"
-    threads:
-        workflow.cores
     conda:
         "envs/preprocess.yaml"
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
-        pheniqs mux -t {threads} --input {input.stagger} --input {input.stagger} --output {output.bam} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
+        pheniqs mux --input {input.stagger} --input {input.stagger} --output {output.bam} --quality -c {input.pheniqs_conf} --report {output.json} 2> {log}
         """
 
 rule count_barcodes:
