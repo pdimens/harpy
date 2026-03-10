@@ -9,8 +9,16 @@ fi
 mkdir -p ${CONDA_PREFIX}/bin
 
 # install harpy proper
-pip install --no-deps --disable-pip-version-check -e . && \
-    rm -rf build
+pip install --no-deps --disable-pip-version-check -e . && rm -rf build
+
+{
+    cd harpy/utils/preproc
+    go get github.com/biogo/hts@latest
+    go build -ldflags="-s -w" -o gih-stagger stagger.go
+    go build -ldflags="-s -w" -o gih-convert convert/convert.go
+    chmod +x gih-stagger gih-convert
+    cp gih-stagger gih-convert ${CONDA_PREFIX}/bin/
+}
 
 # associated scripts
 #chmod +x harpy/bin/* 

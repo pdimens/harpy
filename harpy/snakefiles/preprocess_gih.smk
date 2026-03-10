@@ -75,19 +75,10 @@ rule pad_barcodes:
         FQ2 = get_fq2
     output:
         temp("stagger/{sample}.stagger.bam")
-    params:
-        workflow.cores - 3
     log:
         "logs/{sample}.stagger.log"
-    threads:
-        workflow.cores - 2
     shell:
-        """
-        {{
-            harpy-utils stagger-gih {input.FQ1} {input.FQ2} < {input.info} |
-            samtools import -@ {params} -O BAM -s - > {output}
-        }} 2> {log}
-        """
+        "gih-stagger {input.FQ1} {input.FQ2} < {input.info} > {output} 2> {log}"
 
 rule extract_barcodes:
     input:
@@ -154,11 +145,7 @@ rule format_barcodes:
     threads:
         workflow.cores
     shell:
-        """
-        {{
-            harpy-utils preproc-barcodes {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2}
-        }} 2> {log}
-        """
+        "gih-convert {input} | samtools fastq -@ {params} -N -T VX,BX -1 {output.fq1} -2 {output.fq2} 2> {log}"
 
 rule assess_quality:
     input:
@@ -172,22 +159,7 @@ rule assess_quality:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        """
-        ( falco --quiet --threads 1 -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
-cat <<EOF > {output}
-##Falco	1.2.4
->>Basic Statistics	fail
-#Measure	Value
-Filename	{wildcards.sample}.R{wildcards.FR}.fq.gz
-File type	Conventional base calls
-Encoding	Sanger / Illumina 1.9
-Total Sequences	0
-Sequences flagged as poor quality	0
-Sequence length	0
-%GC	0
->>END_MODULE
-EOF      
-        """
+        "falco --quiet --threads 1 -skip-report -skip-summary -data-filename {output} {input} > {log} 2>&1"
 
 rule quality_report:
     input:
