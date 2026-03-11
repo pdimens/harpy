@@ -72,6 +72,7 @@ Reports have been completely rewritten (for the third time), moving away from R/
   - this makes container versions reliable by default, but entirely hackable to manually dissociate harpy version and container version
 
 ## non-breaking
+- align workflows now use `mosdepth` to calculate depth
 - statusbar when downloading/installing workflow dependencies now lists the environment being downloaded/installed instead of saying "working..."
 - progress bar does not disappear with default `--quiet` setting
 - minor progress bar tweaks 
