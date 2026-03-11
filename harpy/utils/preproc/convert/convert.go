@@ -1,32 +1,35 @@
 // preproc_barcodes - renames and records demultiplexed linked-read barcodes
-// coming out of Pheniqs. Reads a Pheniqs JSON config and a SAM/BAM file,
-// rewrites BX and VX tags on every record that has an RX tag, and writes
-// SAM to stdout (no header).
+// coming out of Pheniqs. Reads a Pheniqs JSON config and a BAM file, rewrites
+// BX and VX tags on every record that has an RX tag, and writes R1/R2 FASTQ
+// output files compressed with pgzip.
 //
 // Usage:
 //
-//	preproc_barcodes <pheniqs.json> <input.bam>
+//	preproc_barcodes [--threads N] <pheniqs.json> <input.bam> <out_R1.fq.gz> <out_R2.fq.gz>
 //
 // Build:
 //
 //	go mod init preproc_barcodes
 //	go get github.com/biogo/hts@latest
+//	go get github.com/klauspost/pgzip
 //	go build -ldflags="-s -w" -o preproc_barcodes preproc_barcodes.go
 package main
 
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
 
 	"github.com/biogo/hts/bam"
 	"github.com/biogo/hts/sam"
+	"github.com/klauspost/pgzip"
 )
 
-// ─── JSON schema ─────────────────────────────────────────────────────────────
-// We only need the two codec maps from the Pheniqs JSON output.
+// ─── JSON schema ──────────────────────────────────────────────────────────────
 
 type codec struct {
 	Barcode []string `json:"barcode"`
@@ -47,20 +50,15 @@ type pheniqsJSON struct {
 
 // ─── barcode reconstruction ───────────────────────────────────────────────────
 
-// reconstructBarcode mirrors the Python reconstruct_barcode function.
-// nuc_bc is the value of the RX SAM tag, e.g. "001-001-002-003-004".
-// Returns the BX string and a VX validity flag (1=valid, 0=invalid).
 func reconstructBarcode(nucBC string, stagger, bc map[string]string) (string, int) {
 	seg := strings.SplitN(nucBC, "-", 4)
 	if len(seg) != 4 {
 		return "A00C00B00D00", 0
 	}
-
 	A := "A" + lookup(bc, seg[1])
 	B := "B" + lookup(bc, seg[2])
 	C := "C" + lookup(bc, seg[3])
 	D := "D" + lookup(stagger, seg[0])
-
 	valid := 1
 	if A == "A00" || B == "B00" || C == "C00" || D == "D00" {
 		valid = 0
@@ -75,17 +73,129 @@ func lookup(m map[string]string, key string) string {
 	return "00"
 }
 
+// ─── FASTQ writer ─────────────────────────────────────────────────────────────
+
+// fastqWriter wraps a pgzip.Writer with a bufio layer.
+// Writes go directly into the bufio buffer, which flushes to pgzip only
+// when its 1MB capacity is reached — no intermediate per-record copy.
+type fastqWriter struct {
+	gz  *pgzip.Writer
+	buf *bufio.Writer
+	dir string
+}
+
+func newFastqWriter(path string, readnum string, level, threads int) (*fastqWriter, error) {
+	f, err := os.Create(path)
+	if err != nil {
+		return nil, err
+	}
+	gz, err := pgzip.NewWriterLevel(f, level)
+	if err != nil {
+		f.Close()
+		return nil, err
+	}
+	gz.SetConcurrency(1<<20, threads)
+
+	return &fastqWriter{
+		gz:  gz,
+		buf: bufio.NewWriterSize(gz, 1<<20),
+		dir: readnum,
+	}, nil
+}
+
+// writeRecord writes a single FASTQ record directly into the bufio buffer.
+// qual is raw Phred scores (0-40) as stored in sam.Record — +33 applied inline.
+// bufio only flushes to pgzip when its 1MB buffer is full, so no intermediate
+// per-record copy is needed.
+func (fw *fastqWriter) writeRecord(name string, bxTag string, vxTag int, seq []byte, qual []uint8) error {
+	// Header: @name\tVX:i:<vx>\tBX:Z:<bx>
+	fw.buf.WriteByte('@')
+	fw.buf.WriteString(name)
+	fw.buf.WriteString(fw.dir)
+	fw.buf.WriteString("\tVX:i:")
+	writeInt(fw.buf, vxTag)
+	fw.buf.WriteString("\tBX:Z:")
+	fw.buf.WriteString(bxTag)
+	fw.buf.WriteByte('\n')
+
+	// Sequence
+	fw.buf.Write(seq)
+	fw.buf.WriteString("\n+\n")
+
+	// Quality — convert raw Phred → ASCII Phred+33 inline
+	for _, q := range qual {
+		fw.buf.WriteByte(q + 33)
+	}
+	fw.buf.WriteByte('\n')
+	return nil
+}
+
+func (fw *fastqWriter) close() error {
+	if err := fw.buf.Flush(); err != nil {
+		return err
+	}
+	return fw.gz.Close()
+}
+
+// writeInt writes a non-negative integer to b without allocating.
+func writeInt(b *bufio.Writer, n int) {
+	if n == 0 {
+		b.WriteByte('0')
+		return
+	}
+	var tmp [10]byte
+	i := len(tmp)
+	for n > 0 {
+		i--
+		tmp[i] = byte('0' + n%10)
+		n /= 10
+	}
+	b.Write(tmp[i:])
+}
+
+// ─── SAM tag helpers ──────────────────────────────────────────────────────────
+
+func getStringTag(r *sam.Record, tag string) (string, bool) {
+	t := sam.Tag{tag[0], tag[1]}
+	for _, aux := range r.AuxFields {
+		if aux.Tag() == t {
+			if s, ok := aux.Value().(string); ok {
+				return s, true
+			}
+		}
+	}
+	return "", false
+}
+
 // ─── main ─────────────────────────────────────────────────────────────────────
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "Usage: preproc_barcodes <pheniqs.json> <input.bam>\n")
+	nThreads := flag.Int("threads", 4, "Number of compression threads for gzip output")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: preproc_barcodes [options] <pheniqs.json> <input.bam> <out_R1.fq.gz> <out_R2.fq.gz>\n\nOptions:\n")
+		flag.PrintDefaults()
+	}
+	flag.Parse()
+	args := flag.Args()
+	if len(args) != 4 {
+		flag.Usage()
 		os.Exit(1)
 	}
-	jsonPath := os.Args[1]
-	bamPath := os.Args[2]
 
-	// ── parse JSON ──────────────────────────────────────────────────────────
+	threads := *nThreads
+	if threads < 1 {
+		threads = 1
+	}
+	if threads > runtime.NumCPU() {
+		threads = runtime.NumCPU()
+	}
+
+	jsonPath := args[0]
+	bamPath := args[1]
+	r1Path := args[2]
+	r2Path := args[3]
+
+	// ── parse JSON ────────────────────────────────────────────────────────────
 	jf, err := os.Open(jsonPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening JSON: %v\n", err)
@@ -98,7 +208,6 @@ func main() {
 	}
 	jf.Close()
 
-	// Build lookup maps: barcode-sequence -> numeric code (prefix stripped).
 	stagger := make(map[string]string, len(pj.Decoder.Stagger.Codec))
 	for k, v := range pj.Decoder.Stagger.Codec {
 		if len(v.Barcode) > 0 {
@@ -112,7 +221,7 @@ func main() {
 		}
 	}
 
-	// ── open BAM ────────────────────────────────────────────────────────────
+	// ── open BAM ──────────────────────────────────────────────────────────────
 	bf, err := os.Open(bamPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening BAM: %v\n", err)
@@ -127,87 +236,52 @@ func main() {
 	}
 	defer br.Close()
 
-	// ── open SAM writer (stdout, no header, matching Python behaviour) ───────
-	outBuf := bufio.NewWriterSize(os.Stdout, 1<<20)
-	defer outBuf.Flush()
-
-	sw, err := sam.NewWriter(outBuf, br.Header(), sam.FlagDecimal)
+	// ── open FASTQ writers ────────────────────────────────────────────────────
+	// Split thread budget evenly between the two writers so total
+	// compression goroutines == --threads.
+	threadsPerWriter := threads / 2
+	if threadsPerWriter < 1 {
+		threadsPerWriter = 1
+	}
+	fw1, err := newFastqWriter(r1Path, "/1", 4, threadsPerWriter)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating SAM writer: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error opening R1 output: %v\n", err)
 		os.Exit(1)
 	}
+	defer fw1.close()
 
-	// ── process records ──────────────────────────────────────────────────────
+	fw2, err := newFastqWriter(r2Path, "/2", 4, threadsPerWriter)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error opening R2 output: %v\n", err)
+		os.Exit(1)
+	}
+	defer fw2.close()
+
+	// ── process records ───────────────────────────────────────────────────────
 	for {
 		rec, err := br.Read()
 		if err != nil {
-			break // EOF or error — either way stop
+			break // EOF
 		}
 
-		// Find RX tag.
-		if rx, ok := getStringTag(rec, "RX"); ok {
-			bxVal, vxVal := reconstructBarcode(rx, stagger, bc)
-			setIntTag(rec, "VX", vxVal)
-			setStringTag(rec, "BX", bxVal)
+		rx, hasRX := getStringTag(rec, "RX")
+		if !hasRX {
+			continue // no RX tag — skip
 		}
 
-		if err := sw.Write(rec); err != nil {
+		bxVal, vxVal := reconstructBarcode(rx, stagger, bc)
+
+		// Route to R1 or R2 by flag bits 0x40 / 0x80.
+		var fw *fastqWriter
+		if rec.Flags&sam.Read1 != 0 {
+			fw = fw1
+		} else {
+			fw = fw2
+		}
+
+		if err := fw.writeRecord(rec.Name, bxVal, vxVal, rec.Seq.Expand(), rec.Qual); err != nil {
 			fmt.Fprintf(os.Stderr, "Error writing record: %v\n", err)
 			os.Exit(1)
 		}
 	}
 }
-
-// ─── SAM tag helpers ──────────────────────────────────────────────────────────
-// biogo/hts stores tags as []sam.Aux. Each Aux is a raw byte slice:
-// [tag0, tag1, type, ...value bytes]. We manipulate them directly to avoid
-// allocating new sam.Record objects.
-
-// getStringTag returns the string value of a two-letter tag, and whether it
-// was found.
-func getStringTag(r *sam.Record, tag string) (string, bool) {
-	t := sam.Tag{tag[0], tag[1]}
-	for _, aux := range r.AuxFields {
-		if aux.Tag() == t {
-			if s, ok := aux.Value().(string); ok {
-				return s, true
-			}
-		}
-	}
-	return "", false
-}
-
-// setStringTag overwrites an existing tag or appends a new Z-type tag.
-func setStringTag(r *sam.Record, tag, value string) {
-	t := sam.Tag{tag[0], tag[1]}
-	newAux, err := sam.NewAux(t, value)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating string tag %s: %v\n", tag, err)
-		os.Exit(1)
-	}
-	for i, aux := range r.AuxFields {
-		if aux.Tag() == t {
-			r.AuxFields[i] = newAux
-			return
-		}
-	}
-	r.AuxFields = append(r.AuxFields, newAux)
-}
-
-// setIntTag overwrites an existing tag or appends a new i-type tag.
-func setIntTag(r *sam.Record, tag string, value int) {
-	t := sam.Tag{tag[0], tag[1]}
-	newAux, err := sam.NewAux(t, int32(value))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating int tag %s: %v\n", tag, err)
-		os.Exit(1)
-	}
-	for i, aux := range r.AuxFields {
-		if aux.Tag() == t {
-			r.AuxFields[i] = newAux
-			return
-		}
-	}
-	r.AuxFields = append(r.AuxFields, newAux)
-}
-
