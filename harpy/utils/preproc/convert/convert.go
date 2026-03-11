@@ -297,7 +297,7 @@ func main() {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Total unique barcodes:               %d\n", len(set))
-	fmt.Fprintf(os.Stderr, "Total reads with valid barcodes:     %d\n", valids)
-	fmt.Fprintf(os.Stderr, "Total reads with corrected barcodes: %d\n", corrected)
+	fmt.Fprintf(os.Stdout, "Total unique barcodes:               %d\n", len(set))
+	fmt.Fprintf(os.Stdout, "Total reads with valid barcodes:     %d\n", valids)
+	fmt.Fprintf(os.Stdout, "Total reads with corrected barcodes: %d\n", corrected)
 }
