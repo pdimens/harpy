@@ -50,10 +50,14 @@ type pheniqsJSON struct {
 
 // ─── barcode reconstruction ───────────────────────────────────────────────────
 
-func reconstructBarcode(nucBC string, stagger, bc map[string]string) (string, int) {
+func reconstructBarcode(nucBC, origBC string, stagger, bc map[string]string) (string, int, int) {
+	corrected := 0
 	seg := strings.SplitN(nucBC, "-", 4)
+	if nucBC != origBC {
+		corrected = 1
+	}
 	if len(seg) != 4 {
-		return "A00C00B00D00", 0
+		return "A00C00B00D00", 0, corrected
 	}
 	A := "A" + lookup(bc, seg[1])
 	B := "B" + lookup(bc, seg[2])
@@ -63,7 +67,7 @@ func reconstructBarcode(nucBC string, stagger, bc map[string]string) (string, in
 	if A == "A00" || B == "B00" || C == "C00" || D == "D00" {
 		valid = 0
 	}
-	return A + C + B + D, valid
+	return A + C + B + D, valid, corrected
 }
 
 func lookup(m map[string]string, key string) string {
@@ -258,6 +262,10 @@ func main() {
 	defer fw2.close()
 
 	// ── process records ───────────────────────────────────────────────────────
+	var valids int
+	var corrected int
+	set := make(map[string]struct{}, 1_000_000)
+
 	for {
 		rec, err := br.Read()
 		if err != nil {
@@ -265,11 +273,15 @@ func main() {
 		}
 
 		rx, hasRX := getStringTag(rec, "RX")
+		ox, _ := getStringTag(rec, "RX")
 		if !hasRX {
 			continue // no RX tag — skip
 		}
 
-		bxVal, vxVal := reconstructBarcode(rx, stagger, bc)
+		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, stagger, bc)
+		valids += vxVal
+		corrected += corrVal
+		set[bxVal] = struct{}{}
 
 		// Route to R1 or R2 by flag bits 0x40 / 0x80.
 		var fw *fastqWriter
@@ -284,4 +296,8 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	fmt.Fprintf(os.Stderr, "Total unique barcodes:               %d\n", len(set))
+	fmt.Fprintf(os.Stderr, "Total reads with valid barcodes:     %d\n", valids)
+	fmt.Fprintf(os.Stderr, "Total reads with corrected barcodes: %d\n", corrected)
 }

@@ -299,6 +299,7 @@ rule build_report:
         "multiqc {params} {input} > {output} 2> {log}"
 
 rule all:
+    localrule: True
     default_target: True
     input:
         "athena/athena.asm.fa",

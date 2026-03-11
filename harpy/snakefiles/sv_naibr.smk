@@ -3,6 +3,7 @@ import re
 from pathlib import Path
 from harpy.common.file_ops import naibr_extra, pop_manifest
 
+localrules: all, naibr_config, aggregate_variants
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 

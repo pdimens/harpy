@@ -2,6 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
+localrules: all, summarize_blocks
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
@@ -259,7 +260,7 @@ rule phase_report:
         }} 2> {log} > {output.ipynb}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         vcf = "variants.phased.bcf",

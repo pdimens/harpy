@@ -3,6 +3,7 @@ from pathlib import Path
 import re
 from harpy.common.file_ops import pop_manifest
 
+localrules: all, aggregate_variants
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 

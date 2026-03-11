@@ -173,6 +173,7 @@ rule build_report:
 
 rule all:
     default_target: True
+    localrule: True
     input:
         "scaffolds.fasta",
         "reports/assembly.metrics.html" if not skip_reports else []

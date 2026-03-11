@@ -77,6 +77,7 @@ use rule extract_forward as extract_reverse with:
         "-2"
 
 rule all:
+    localrule: True
     default_target: True
     input:
         collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames)

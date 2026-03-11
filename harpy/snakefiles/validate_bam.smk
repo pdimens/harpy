@@ -2,6 +2,7 @@ import os
 import re
 from pathlib import Path
 
+localrules: all, concat_results
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 

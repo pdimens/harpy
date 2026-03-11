@@ -13,6 +13,7 @@ unknown_samples  = PARAMETERS.get("samples", False)
 unknown_barcodes = PARAMETERS.get("barcodes", False)
 schemafile       = INPUTS["schema"]
 
+localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     FR = r"[12]",
