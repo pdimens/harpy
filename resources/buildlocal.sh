@@ -14,6 +14,7 @@ pip install --no-deps --disable-pip-version-check -e . && rm -rf build
 {
     cd harpy/utils/preproc
     go get github.com/biogo/hts@latest
+    go get github.com/klauspost/pgzip
     go build -ldflags="-s -w" -o gih-stagger stagger.go
     go build -ldflags="-s -w" -o gih-convert convert/convert.go
     chmod +x gih-stagger gih-convert
