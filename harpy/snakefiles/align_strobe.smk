@@ -53,13 +53,14 @@ rule align:
         fastq = get_fq,
         genome   = workflow_geno
     output:  
-        temp("samples/{sample}/{sample}.strobe.sam")
+        temp("samples/{sample}/{sample}.strobe.bam")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
-        unmapped_strobe = "" if keep_unmapped else "-U",
-        unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
+        um_strobe = "" if keep_unmapped else "-U",
         static = "-N 2 -C" if is_standardized else "-N 2",
+        RGid = lambda wc: f"--rg-id={wc.get('sample')}",
+        RGsm = lambda wc: f"--rg-SM={wc.get('sample')}"
         extra = extra
     threads:
         min(4, workflow.cores - 1)
@@ -70,7 +71,8 @@ rule align:
     shell:
         """
         {{
-            strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} {params.unmapped}
+            strobealign {params} -t {threads} {input.genome} {input.fastq} {params.unmapped} |
+            samtools view -h -O BAM
         }} 2> {log} > {output} 
         """
 
@@ -86,7 +88,7 @@ rule mark_duplicates:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
     params: 
-        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.sam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.sam | samtools collate -O -u -",
+        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.bam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.bam | samtools collate -O -u -",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = PARAMETERS['min-map-quality']
     resources:
@@ -207,7 +209,7 @@ rule sample_reports:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            process-notebook {output.tmp} {wildcards.sample} strobealign {params.lr_type}
+            harpy-utils process-notebook {output.tmp} {wildcards.sample} strobealign {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 

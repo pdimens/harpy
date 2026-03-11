@@ -75,13 +75,13 @@ rule align:
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        temp("samples/{sample}/{sample}.sam")
+        temp("samples/{sample}/{sample}.bam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
         static = "-C -v 2 -T 10" if is_standardized else "-v 2 -T 10",
-        unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
+        unmapped = "-F 4" if not keep_unmapped else "",
         extra = extra
     threads:
         min(6, workflow.cores - 1)
@@ -92,13 +92,14 @@ rule align:
     shell:
         """
         {{
-            bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} {params.unmapped}
+            bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
+            samtools view -h -O BAM {params.unmapped}
         }} 2> {log} > {output}
         """     
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.sam",
+        sam    = "samples/{sample}/{sample}.bam",
         genome = workflow_geno,
         faidx  = workflow_geno_idx
     output:
@@ -108,7 +109,7 @@ rule mark_duplicates:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
     params:
-        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.sam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.sam | samtools collate -O -u -",
+        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.bam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.bam | samtools collate -O -u -",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = PARAMETERS['min-map-quality']
     resources:
@@ -249,7 +250,7 @@ rule barcode_report:
         """
         {{
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process-notebook {output.tmp} {params.lr_type}
+            harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 
