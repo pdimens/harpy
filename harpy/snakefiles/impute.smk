@@ -22,12 +22,12 @@ bamlist       = INPUTS["alignments"]
 
 bamdict       = dict(zip(bamlist, bamlist))
 if region:
-    contigs,positions = region.split(":")
+    contigs,positions      = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
     # remove the buffer to make it an htslib-style region
-    region = f"{contigs}:{startpos}-{endpos}"
+    region                 = f"{contigs}:{startpos}-{endpos}"
     # make the contig a list to fit with the existing workflow design
-    contigs = [contigs]
+    contigs                = [contigs]
 else:
     with open(INPUTS["biallelic-contigs"], "r") as f:
         contigs = [line.rstrip() for line in f]

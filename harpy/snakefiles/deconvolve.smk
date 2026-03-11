@@ -15,7 +15,7 @@ window_size = PARAMETERS.get("window-size", 40)
 density 	= PARAMETERS.get("density", 3) 
 dropout     = PARAMETERS.get("dropout", 0)
 
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 def get_fq1(wildcards):

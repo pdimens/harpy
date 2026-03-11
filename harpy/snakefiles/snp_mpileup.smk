@@ -33,7 +33,7 @@ if os.path.isfile(region_input):
     regions = dict(zip(intervals, intervals))
 else:
     intervals = [region_input]
-    regions = {f"{region_input}" : f"{region_input}"}
+    regions   = {f"{region_input}" : f"{region_input}"}
 
 rule process_reference:
     input:
@@ -98,8 +98,6 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}",
         annot_call = "-a GQ,GP",
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
-    threads:
-        1
     shell:
         """
         bcftools mpileup --threads {threads} --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
@@ -120,11 +118,9 @@ rule sort_variants:
 rule concat_variants:
     input:
         collect("sort/{part}.bcf.csi", part = intervals),
-        bcf = collect("sort/{part}.bcf", part = intervals),
-        logs = collect("logs/mpileup/{part}.mpileup.log", part = intervals)
+        bcf = collect("sort/{part}.bcf", part = intervals)
     output:
         concatlist = temp("logs/bcf.files"),
-        log = "logs/mpileup.log",
         bcf = "variants.raw.bcf",
         csi = "variants.raw.bcf.csi"
     log:
@@ -135,17 +131,24 @@ rule concat_variants:
         workflow.cores - 1 
     shell:  
         """
-        for i in {input.logs}; do
-            interval=$(basename "$i" .mpileup.log)
-            awk -v prefix="$interval" '{{print prefix "\t" $0}}' "$i"
-        done >> {output.log}
-        for i in {input.bcf}; do
-            echo $i
-        done >> {output.concatlist}
+        for i in {input.bcf}; do echo $i; done >> {output.concatlist}
         {{
             bcftools concat -f {output.concatlist} --threads {params} --naive |
             bcftools sort - --write-index -Ob -o {output.bcf}
         }} 2> {log}
+        """
+
+rule concat_logs:
+    input:
+        collect("logs/mpileup/{part}.mpileup.log", part = intervals)
+    output:
+        "logs/mpileup.log"
+    shell:  
+        """
+        for i in {input}; do
+            interval=$(basename "$i" .mpileup.log)
+            awk -v prefix="$interval" '{{print prefix "\t" $0}}' "$i"
+        done >> {output}
         """
 
 rule realign_indels:
@@ -184,7 +187,7 @@ rule variant_report:
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data}
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook {output.tmp} variants.{wildcards.type}
+            harpy-utils process-notebook {output.tmp} variants.{wildcards.type}
         }} 2> {log} > {output.ipynb}
         """
 

@@ -7,11 +7,11 @@ PARAMETERS = config.get('Parameters', {})
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-schemafile = INPUTS["schema"]
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
-qxrx = PARAMETERS.get("qx-rx", False)
-unknown_samples = PARAMETERS.get("samples", False)
+skip_reports     = WORKFLOW.get("reports", {}).get("skip", False)
+qxrx             = PARAMETERS.get("qx-rx", False)
+unknown_samples  = PARAMETERS.get("samples", False)
 unknown_barcodes = PARAMETERS.get("barcodes", False)
+schemafile       = INPUTS["schema"]
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",

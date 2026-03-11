@@ -34,7 +34,7 @@ if os.path.exists(regions_input):
     regions = dict(zip(intervals, intervals))
 else:
     intervals = [regions_input]
-    regions = {f"{regions_input}" : f"{regions_input}"}
+    regions   = {f"{regions_input}" : f"{regions_input}"}
 
 rule process_reference:
     input:
@@ -116,9 +116,7 @@ rule concat_variants:
         workflow.cores - 1 
     shell:  
         """
-        for i in {input.bcf}; do
-            echo $i >> {output.filelist}
-        done
+        for i in {input.bcf}; do echo $i; done >> {output.concatlist}
         {{
             bcftools concat -f {input.filelist} --threads {params} --naive |
             bcftools sort - --write-index -Ob -o {output.bcf}
@@ -162,7 +160,7 @@ rule variant_report:
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
             papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook {output.tmp} variants.{wildcards.type}
+            harpy-utils process-notebook {output.tmp} variants.{wildcards.type}
         }} 2> {log} > {output.ipynb}
         """
 

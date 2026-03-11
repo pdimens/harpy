@@ -26,7 +26,7 @@ FQ1        = INPUTS["fastq-r1"]
 FQ2        = INPUTS["fastq-r2"]
 
 lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
-lineagedb = lineage_map.get(organism, "bacteria")
+lineagedb   = lineage_map.get(organism, "bacteria")
 odb_version = 12
 
 rule cloudspades:

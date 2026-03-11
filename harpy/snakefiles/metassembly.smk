@@ -16,9 +16,9 @@ organism     = WORKFLOW.get("reports", {}).get("organism_type", 'bacteria')
 FQ1          = INPUTS["fastq_r1"]
 FQ2          = INPUTS["fastq_r2"]
 
-spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+spadesdir   = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
-lineagedb = lineage_map.get(organism, "bacteria")
+lineagedb   = lineage_map.get(organism, "bacteria")
 odb_version = 12
 
 rule sort_by_barcode:

@@ -9,23 +9,23 @@ PARAMETERS = config.get('Parameters', {})
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-lr_type = WORKFLOW.get("linkedreads", {}).get("type", 'none')
-is_standardized = WORKFLOW.get("linkedreads", {}).get("standardized", False)
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
-windowsize  = PARAMETERS.get("depth-windowsize", 50000)
+lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+is_standardized   = WORKFLOW.get("linkedreads", {}).get("standardized", False)
+skip_reports      = WORKFLOW.get("reports", {}).get("skip", False)
+windowsize        = PARAMETERS.get("depth-windowsize", 50000)
 molecule_distance = PARAMETERS.get("distance-threshold", 0)
-keep_unmapped = PARAMETERS.get("keep-unmapped", False)
-extra 		= PARAMETERS.get("extra", "") 
-fqlist      = INPUTS["fastq"]
-genomefile 	= INPUTS["reference"]
+keep_unmapped     = PARAMETERS.get("keep-unmapped", False)
+extra 		      = PARAMETERS.get("extra", "") 
+fqlist            = INPUTS["fastq"]
+genomefile 	      = INPUTS["reference"]
 
-ignore_bx = lr_type == "none"
-bn 			= os.path.basename(genomefile)
-bn = bn[:-3] if bn.lower().endswith(".gz") else bn
+bn 			  = os.path.basename(genomefile)
+bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+ignore_bx     = lr_type == "none"
+bn            = bn[:-3] if bn.lower().endswith(".gz") else bn
 workflow_geno = f"workflow/reference/{bn}"
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-d = dict(zip(samplenames, samplenames))
+samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
+d             = dict(zip(samplenames, samplenames))
 
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.

@@ -79,19 +79,21 @@ rule pad_barcodes:
         FQ1 = get_fq1,
         FQ2 = get_fq2
     output:
-        pipe("stagger/{sample}.stagger.bam")
+        pipe("stagger/{sample}.stagger.sam")
     params:
         f'--me {me_seq}',
         f'--max-mismatch {mismatch}',
         f'--min-len {minlen}'
+    threads:
+        4
     log:
         "logs/{sample}.stagger.log"
     shell:
-        "gih-stagger {params} {input.FQ1} {input.FQ2} > {output} 2> {log}"
+        "gih-stagger --threads {threads} {params} {input.FQ1} {input.FQ2} > {output} 2> {log}"
 
 rule extract_barcodes:
     input:
-        stagger = "stagger/{sample}.stagger.bam",
+        stagger = "stagger/{sample}.stagger.sam",
         pheniqs_conf = "workflow/pheniqs.config.json"
     output:
         bam = temp("extract/{sample}.bam"),
@@ -152,7 +154,7 @@ rule format_barcodes:
     threads:
         2
     shell:
-        "gih-convert {input} | samtools fastq -@ 1 -N -T VX,BX -1 {output.fq1} -2 {output.fq2} 2> {log}"
+        "gih-convert --threads {threads} {input} {output} 2> {log}"
 
 rule assess_quality:
     input:

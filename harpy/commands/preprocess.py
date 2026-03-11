@@ -82,7 +82,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
 @click.option('-l', '--min-len', panel = "Parameters", type = click.IntRange(10, 300), default = 30, show_default=True, help = "Min insert length after removing ME sequence (ignoring barcodes)")
-@click.option('-n', '--mismatch', panel = "Parameters", default = 1, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
+@click.option('-n', '--mismatch', panel = "Parameters", default = 2, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
