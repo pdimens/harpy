@@ -4,17 +4,22 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION      = config['Workflow']['harpy-version']
-fqlist       = config["Inputs"]["fastq"]
-molecule_distance = config["Parameters"].get("distance-threshold", 0)
-ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
-is_standardized = config["Workflow"]["linkedreads"].get("standardized", False)
-lr_type = config["Workflow"]["linkedreads"]["type"]
-keep_unmapped = config["Parameters"].get("keep-unmapped", False)
-extra 		= config["Parameters"].get("extra", "") 
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-windowsize  = config["Parameters"].get("depth-windowsize", 50000)
-genomefile 	= config["Inputs"]["reference"]
+WORKFLOW    = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+lr_type = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+is_standardized = WORKFLOW.get("linkedreads", {}).get("standardized", False)
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+molecule_distance = PARAMETERS.get("distance-threshold", 0)
+keep_unmapped = PARAMETERS.get("keep-unmapped", False)
+extra 		= PARAMETERS.get("extra", "") 
+windowsize  = PARAMETERS.get("depth-windowsize", 50000)
+fqlist       = INPUTS["fastq"]
+genomefile 	= INPUTS["reference"]
+
+ignore_bx = lr_type == "none"
 bn 			= os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
@@ -105,7 +110,7 @@ rule mark_duplicates:
     params:
         cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.sam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.sam | samtools collate -O -u -",
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = config["Parameters"]['min-map-quality']
+        quality = PARAMETERS['min-map-quality']
     resources:
         mem_mb = 2000
     threads:

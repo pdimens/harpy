@@ -5,20 +5,25 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION           = config['Workflow']['harpy-version']
-bc_type           = config["Workflow"]["linkedreads"]["type"]
-skip_reports      = config["Workflow"]["reports"].get("skip", False)
-plot_contigs      = config["Workflow"]["reports"].get("plot-contigs", 'default')
-plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-pruning           = config["Parameters"].get("prune", 30)
-map_qual          = config["Parameters"].get("min-map-quality", 20)
-base_qual         = config["Parameters"].get("min-base-quality", 13)
-molecule_distance = config["Parameters"].get("distance-threshold", 100000)
-samples_from_vcf  = config["Parameters"].get("prioritize-vcf-samples", False)
-extra             = config.get("extra", "") 
-variantfile       = config["Inputs"]["vcf"]
-bamlist           = config["Inputs"]["alignments"]
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+bc_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+skip_reports      = WORKFLOW.get("reports", {}).get("skip", False)
+plot_contigs      = WORKFLOW.get("reports", {}).get("plot-contigs", 'default')
+pruning           = PARAMETERS.get("prune", 30)
+map_qual          = PARAMETERS.get("min-map-quality", 20)
+base_qual         = PARAMETERS.get("min-base-quality", 13)
+molecule_distance = PARAMETERS.get("distance-threshold", 100000)
+samples_from_vcf  = PARAMETERS.get("prioritize-vcf-samples", False)
+extra             = PARAMETERS.get("extra", "") 
+variantfile       = INPUTS["vcf"]
+bamlist           = INPUTS["alignments"]
+
 bamdict           = dict(zip(bamlist, bamlist))
+plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 invalid_regex = {
     "haplotagging" : "'$4 !~ /[ABCD]00/'",
     "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
@@ -37,8 +42,8 @@ if samples_from_vcf:
 else:
     samplenames = [Path(i).stem for i in bamlist]
 
-if config["Inputs"].get("reference", None):
-    genomefile = config["Inputs"]["reference"]
+if INPUTS.get("reference", None):
+    genomefile = INPUTS["reference"]
     if genomefile.lower().endswith(".gz"):
         bn = Path(Path(genomefile).stem).stem
     else:

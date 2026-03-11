@@ -1,34 +1,33 @@
 import os
 
-VERSION = config['Workflow']['harpy-version']
-FQ1 = config["Inputs"]["fastq-r1"]
-FQ2 = config["Inputs"]["fastq-r2"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-organism = config["Workflow"]["reports"]["organism-type"]
-lineage_map = {
-    "eukaryote": "eukaryota",
-    "fungus": "fungi",
-    "bacteria": "bacteria"
-}
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports = WORKFlOW.get("reports", {}).get("skip", False)
+organism     = WORKFLOW.get("reports", {}).get("organism-type", "bacteria")
+# SPADES
+max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 'auto')
+k_param      = PARAMETERS.get("spades", {}).get("k", 10000)
+spades_extra = PARAMETERS.get("spades", {}).get("extra", "")
+# ARCS
+mapq       = PARAMETERS.get("tigmint", {}).get("minimum_mapping-quality", 0)
+mismatch   = PARAMETERS.get("tigmint", {}).get("mismatch", 5)
+mol_dist   = PARAMETERS.get("tigmint", {}).get("molecule-distance", 50000)
+mol_len    = PARAMETERS.get("tigmint", {}).get("molecule-length", 2000)
+span       = PARAMETERS.get("tigmint", {}).get("span", 20)
+min_align  = PARAMETERS.get("arcs", {}).get("minimum-aligned-reads", 5)
+min_contig = PARAMETERS.get("arcs", {}).get("minimum-contig-length", 500)
+seq_id     = PARAMETERS.get("arcs", {}).get("minimum-sequence-identity", 98)
+arcs_extra = PARAMETERS.get("arcs", {}).get("extra", "")
+links      = PARAMETERS.get("links", {}).get("minimum-links", 5)
+FQ1        = INPUTS["fastq-r1"]
+FQ2        = INPUTS["fastq-r2"]
+
+lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
 lineagedb = lineage_map.get(organism, "bacteria")
 odb_version = 12
-
-# SPADES
-max_mem      = config["Parameters"]["spades"].get("max-memory", 'auto')
-k_param      = config["Parameters"]["spades"].get("k", 10000)
-spades_extra = config["Parameters"]["spades"].get("extra", "")
-
-# ARCS
-mapq       = config["Parameters"]["tigmint"].get("minimum_mapping-quality", 0)
-mismatch   = config["Parameters"]["tigmint"].get("mismatch", 5)
-mol_dist   = config["Parameters"]["tigmint"].get("molecule-distance", 50000)
-mol_len    = config["Parameters"]["tigmint"].get("molecule-length", 2000)
-span       = config["Parameters"]["tigmint"].get("span", 20)
-min_align  = config["Parameters"]["arcs"].get("minimum-aligned-reads", 5)
-min_contig = config["Parameters"]["arcs"].get("minimum-contig-length", 500)
-seq_id     = config["Parameters"]["arcs"].get("minimum-sequence-identity", 98)
-arcs_extra = config["Parameters"]["arcs"].get("extra", "")
-links      = config["Parameters"]["links"].get("minimum-links", 5)
 
 rule cloudspades:
     input:

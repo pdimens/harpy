@@ -5,10 +5,10 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION     = config['Workflow']['harpy-version']
-lr_platform = config["Workflow"]["linkedreads"]["type"]
-bamlist = config["Inputs"]
-bamdict = dict(zip(bamlist, bamlist))
+VERSION     = config.get("Workflow", {}).get('harpy-version', 'latest')
+lr_platform = config.get("Workflow", {}).get("linkedreads", {}).get("type", 'none')
+bamlist     = config["Inputs"]
+bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 
 def get_alignments(wildcards):

@@ -6,16 +6,21 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-VERSION       = config['Workflow']['harpy-version']
-bamlist       = config["Inputs"]["alignments"]
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+region        = PARAMETERS.get("region", None)
+stitch_params = PARAMETERS["stitch"]
+stitch_extra  = PARAMETERS.get("extra", "None")
+grid_size     = PARAMETERS.get("grid-size", 1)
+variantfile   = INPUTS["vcf"]
+paramfile     = INPUTS["parameters"]
+bamlist       = INPUTS["alignments"]
+
 bamdict       = dict(zip(bamlist, bamlist))
-variantfile   = config["Inputs"]["vcf"]
-paramfile     = config["Inputs"]["parameters"]
-skip_reports  = config["Workflow"]["reports"].get("skip", False)
-region        = config["Parameters"].get("region", None)
-stitch_params = config["Parameters"]["stitch"]
-stitch_extra  = config["Parameters"].get("extra", "None")
-grid_size     = config["Parameters"].get("grid-size", 1)
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -24,8 +29,7 @@ if region:
     # make the contig a list to fit with the existing workflow design
     contigs = [contigs]
 else:
-    biallelic = config["Inputs"]["biallelic-contigs"]
-    with open(biallelic, "r") as f:
+    with open(INPUTS["biallelic-contigs"], "r") as f:
         contigs = [line.rstrip() for line in f]
 
 # instantiate static STITCH arguments

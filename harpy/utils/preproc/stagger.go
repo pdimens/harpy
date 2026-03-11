@@ -84,8 +84,8 @@ func (f *fastqReader) next() (fastqRecord, bool) {
 	header = header[1:]
 
 	var name, comment string
-	if idx := strings.IndexByte(header, ' '); idx >= 0 {
-		name, comment = header[:idx], header[idx+1:]
+	if before, after, ok := strings.Cut(header, " "); ok {
+		name, comment = before, after
 	} else {
 		name = header
 	}
@@ -164,19 +164,21 @@ func findME(seq, me []byte, maxMismatch int) int {
 
 	bestPos := -1
 	bestMM := maxMismatch + 1
+	//totalN := 0
 
 	for pos := winStart; pos <= winEnd; pos++ {
 		mm := 0
-		for i := 0; i < meLen; i++ {
+		for i := range meLen {
 			r := seq[pos+i]
 			m := me[i]
-			if r == 'N' || m == 'N' {
+			if r == 'N' {
+				//totalN++
 				continue // wildcard — not a mismatch
 			}
 			if r != m {
 				mm++
-				if mm >= bestMM {
-					break
+				if mm >= bestMM { //|| totalN > 2 {
+					break // break out if N's exceed 1
 				}
 			}
 		}
@@ -219,10 +221,10 @@ func makeRecord(name string, seq, asciiQual []byte, isRead1 bool) (*sam.Record, 
 	r, err := sam.NewRecord(
 		name,
 		nil, nil, // ref, mRef — unmapped
-		-1, -1,   // pos, mPos
-		0,        // tLen
-		255,      // mapQ — unavailable
-		nil,      // CIGAR
+		-1, -1, // pos, mPos
+		0,   // tLen
+		255, // mapQ — unavailable
+		nil, // CIGAR
 		seq,
 		asciiQualToPhred(asciiQual),
 		nil, // AUX

@@ -2,12 +2,16 @@ import os
 import yaml
 from collections import Counter
 
-VERSION    = config['Workflow']['harpy-version']
-schemafile = config["Inputs"]["schema"]
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-qxrx = config["Parameters"].get("qx-rx", False)
-unknown_samples = config["Parameters"]["samples"]
-unknown_barcodes = config["Parameters"]["barcodes"]
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+schemafile = INPUTS["schema"]
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+qxrx = PARAMETERS.get("qx-rx", False)
+unknown_samples = PARAMETERS.get("samples", False)
+unknown_barcodes = PARAMETERS.get("barcodes", False)
 
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
@@ -29,8 +33,9 @@ onstart:
             {"Project Homepage": "https://github.com/pdimens/harpy"}
         ]
     }
-    with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
-        yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
+    if not skip_reports:
+        with open("workflow/multiqc.yaml", "w", encoding="utf-8") as yml:
+            yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
 samplenames = Counter()
 [samplenames.update(i.strip().split()[0:1]) for i in open(schemafile.'r').readlines() if not i.startswith("#")]
@@ -44,8 +49,6 @@ if unknown_barcodes:
 rule barcode_segments:
     output:
         collect("workflow/segment_{letter}.bc", letter = ["A","C","B","D"])
-    container:
-        None
     shell:
         "harpy-utils haplotag-acbd workflow"
 

@@ -4,15 +4,20 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION       = config['Workflow']['harpy-version']
-lr_type       = config["Workflow"]["linkedreads"].get("type", 'none')
-skip_reports  = config["Workflow"]["reports"].get("skip", False)
-min_len 	  = config["Parameters"].get("min-len", 30)
-max_len 	  = config["Parameters"].get("max-len", 150)
-extra 	      = config["Parameters"].get("extra", "") 
-trim_adapters = config["Parameters"].get("trim_adapters", None)
-dedup         = config["Parameters"].get("deduplicate", False)
-fqlist        = config["Inputs"]
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+lr_type       = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+min_len 	  = PARAMETERS.get("min-len", 30)
+max_len 	  = PARAMETERS.get("max-len", 150)
+extra 	      = PARAMETERS.get("extra", "") 
+trim_adapters = PARAMETERS.get("trim_adapters", None)
+dedup         = PARAMETERS.get("deduplicate", False)
+fqlist        = INPUTS
+
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 if trim_adapters:

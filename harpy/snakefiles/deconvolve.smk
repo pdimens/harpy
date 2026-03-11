@@ -4,12 +4,17 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION     = config['Workflow']['harpy-version']
-fqlist      = config["Inputs"]
-kmer_length = config["Parameters"].get("kmer-length", 21)
-window_size = config["Parameters"].get("window-size", 40)
-density 	= config["Parameters"].get("density", 3) 
-dropout     = config["Parameters"].get("dropout", 0)
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+fqlist      = INPUTS
+kmer_length = PARAMETERS.get("kmer-length", 21)
+window_size = PARAMETERS.get("window-size", 40)
+density 	= PARAMETERS.get("density", 3) 
+dropout     = PARAMETERS.get("dropout", 0)
+
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 

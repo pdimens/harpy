@@ -4,24 +4,26 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION     = config['Workflow']['harpy-version']
-ploidy 		= config["Parameters"].get("ploidy", 2)
-extra 	    = config["Parameters"].get("extra", "") 
-regions_input = config["Inputs"]["regions"]
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-bamlist     = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["Inputs"]["reference"]
-bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    genome_zip  = True
-    bn = bn[:-3]
-else:
-    genome_zip  = False
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+ploidy 		  = PARAMETERS.get("ploidy", 2)
+extra 	      = PARAMETERS.get("extra", "") 
+bamlist       = INPUTS["alignments"]
+genomefile 	  = INPUTS["reference"]
+regions_input = INPUTS["regions"]
+groupings 	  = INPUTS.get("groupings", [])
+
+bamdict       = dict(zip(bamlist, bamlist))
+bn            = os.path.basename(genomefile)
+genome_zip    = bn.lower().endswith(".gz")
+bn            = bn[:-3] if genome_zip else bn
 workflow_geno = f"workflow/reference/{bn}"
-groupings 	= config["Inputs"].get("groupings", [])
-samplenames = {Path(i).stem for i in bamlist}
-sampldict = dict(zip(bamlist, samplenames))
+samplenames   = {Path(i).stem for i in bamlist}
+sampldict     = dict(zip(bamlist, samplenames))
 
 if os.path.exists(regions_input):
     with open(regions_input, "r") as reg_in:

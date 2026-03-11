@@ -5,22 +5,21 @@ from pathlib import Path
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION     = config['Workflow']['harpy-version']
-genomefile  = config["Inputs"]["reference"]
-bamlist     = config["Inputs"]["alignments"]
-vcffile     = config["Inputs"]["vcf"]
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+genomefile  = INPUTS["reference"]
+bamlist     = INPUTS["alignments"]
+vcffile     = INPUTS["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
-extra       = config["Parameters"].get("extra", None) 
-mol_dist    = config["Parameters"].get("distance-threshold", 100000)
-bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
-else:
-    workflow_geno = f"workflow/reference/{bn}"
-if vcffile.lower().endswith("bcf"):
-    vcfindex = vcffile + ".csi"
-else:
-    vcfindex = vcffile + ".tbi"
+extra       = PARAMETERS.get("extra", None) 
+mol_dist    = PARAMETERS.get("distance-threshold", 100000)
+
+bn            = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
+vcfindex      = f"{vcffile}.csi" if vcffile.lower().endswith("bcf") else f"{vcffile}.tbi"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""

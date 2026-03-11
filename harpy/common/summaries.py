@@ -14,7 +14,7 @@ class Summary:
         return "\n\n".join(self.summary)
 
     def align_bwa(self):
-        ignore_bx = self.config["Workflow"]["linkedreads"]["type"] == "none"
+        ignore_bx = self.config["Workflow"].get("linkedreads", {}).get("type", 'none') == "none"
         is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
         keep_unmapped = self.config["Parameters"]["keep-unmapped"]
         extra 		= self.config["Parameters"].get("extra", "") 
@@ -44,7 +44,7 @@ class Summary:
 
     def align_strobe(self):
         genomefile 	= self.config["Inputs"]["reference"]
-        ignore_bx = self.config["Workflow"]["linkedreads"]["type"] == "none"
+        ignore_bx = self.config["Workflow"].get("linkedreads", {}).get("type", 'none') == "none"
         is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
         keep_unmapped = self.config["Parameters"]["keep-unmapped"]
 
@@ -264,7 +264,7 @@ class Summary:
         self.summary.append(athena)
 
     def phase_snp(self):
-        bc_type           = self.config["Workflow"]["linkedreads"]["type"]
+        bc_type           = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
         pruning           = self.config["Parameters"]["prune"]
         map_qual          = self.config["Parameters"]["min-map-quality"]
         base_qual         = self.config["Parameters"]["min-base-quality"]
@@ -385,7 +385,7 @@ class Summary:
         self.summary.append(normalize)
 
     def validate_bam(self) -> str:
-        lr_platform = self.config["Workflow"]["linkedreads"]["type"]
+        lr_platform = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
         self.summary.append("The harpy validate bam workflow ran using these parameters:")
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
@@ -396,7 +396,7 @@ class Summary:
         return "\n\n".join(self.summary)
 
     def validate_fastq(self):
-        lr_platform = self.config["Workflow"]["linkedreads"]["type"]
+        lr_platform = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
         valids = "Validations were performed with:\n"
         valids += f"\tcheck_fastq {lr_platform} sample.fastq > sample.txt"
         self.summary.append("The harpy validate fastq workflow ran using these parameters:")

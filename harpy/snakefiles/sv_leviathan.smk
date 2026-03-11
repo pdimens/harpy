@@ -6,29 +6,31 @@ from harpy.common.file_ops import pop_manifest
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 
-VERSION      = config['Workflow']['harpy-version']
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-plot_contigs = config["Workflow"]["reports"].get("plot-contigs", 'default')
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-genomefile 	= config["Inputs"]["reference"]
-bamlist     = config["Inputs"]["alignments"]
-groupfile 	= config["Inputs"].get("groupings", None)
-extra 		= config["Parameters"].get("extra", "") 
-min_size    = config["Parameters"].get("min-size", 1000)
-min_bc      = config["Parameters"].get("min-barcodes", 2)
-iterations  = config["Parameters"].get("iterations", 50)
-small_thresh = config["Parameters"]["variant-thresholds"].get("small", 95)
-medium_thresh = config["Parameters"]["variant-thresholds"].get("medium", 95)
-large_thresh = config["Parameters"]["variant-thresholds"].get("large", 95)
-duplcates_thresh = config["Parameters"]["variant-thresholds"].get("duplicates", 10)
-popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
-populations  = popdict.keys() if groupfile else None
-target       = populations if groupfile else {Path(i).stem for i in bamlist}
-bn 			 = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
-else:
-    workflow_geno = f"workflow/reference/{bn}"
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+plot_contigs  = WORKFLOW.get("reports". {}).get("plot-contigs", 'default')
+extra 		  = PARAMETERS.get("extra", "") 
+min_size      = PARAMETERS.get("min-size", 1000)
+min_bc        = PARAMETERS.get("min-barcodes", 2)
+iterations    = PARAMETERS.get("iterations", 50)
+small_thresh  = PARAMETERS.get("variant-thresholds", {}).get("small", 95)
+medium_thresh = PARAMETERS.get("variant-thresholds", {}).get("medium", 95)
+large_thresh  = PARAMETERS.get("variant-thresholds", {}).get("large", 95)
+dup_thresh    = PARAMETERS.get("variant-thresholds", {}).get("duplicates", 10)
+genomefile    = INPUTS["reference"]
+bamlist       = INPUTS["alignments"]
+groupfile     = INPUTS.get("groupings", None)
+
+plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+popdict       = pop_manifest(groupfile, bamlist) if groupfile else None
+populations   = popdict.keys() if groupfile else None
+target        = populations if groupfile else {Path(i).stem for i in bamlist}
+bn 			  = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -136,7 +138,7 @@ rule call_variants:
         small  = f"-s {small_thresh}",
         medium  = f"-m {medium_thresh}",
         large  = f"-l {large_thresh}",
-        dupes  = f"-d {duplcates_thresh}",
+        dupes  = f"-d {dup_thresh}",
         extra = extra
     threads:
         workflow.cores - 1

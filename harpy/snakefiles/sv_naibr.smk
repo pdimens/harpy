@@ -6,28 +6,29 @@ from harpy.common.file_ops import naibr_extra, pop_manifest
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION      = config['Workflow']['harpy-version']
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-plot_contigs = config["Workflow"]["reports"].get("plot-contigs", 'default')
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-genomefile   = config["Inputs"]["reference"]
-bamlist      = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-groupfile    = config["Inputs"].get("groupings", None)
-extra        = config["Parameters"].get("extra", None) 
-min_size     = config["Parameters"].get("min-size", 1000)
-min_barcodes = config["Parameters"].get("min-barcodes", 2)
-min_quality  = config["Parameters"].get("min-map-quality", 30)
-mol_dist     = config["Parameters"].get("molecule-distance", 100000)
-popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
-populations  = popdict.keys() if groupfile else None
-target       = populations if groupfile else {Path(i).stem for i in bamlist}
-bn           = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
-else:
-    workflow_geno = f"workflow/reference/{bn}"
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+plot_contigs = WORKFLOW.get("reports", {}).get("plot-contigs", 'default')
+extra        = PARAMETERS.get("extra", None) 
+min_size     = PARAMETERS.get("min-size", 1000)
+min_barcodes = PARAMETERS.get("min-barcodes", 2)
+min_quality  = PARAMETERS.get("min-map-quality", 30)
+mol_dist     = PARAMETERS.get("molecule-distance", 100000)
+genomefile   = INPUTS["reference"]
+bamlist      = INPUTS["alignments"]
+groupfile    = INPUTS.get("groupings", None)
+
+plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+bamdict       = dict(zip(bamlist, bamlist))
+popdict       = pop_manifest(groupfile, bamlist) if groupfile else None
+populations   = popdict.keys() if groupfile else None
+target        = populations if groupfile else {Path(i).stem for i in bamlist}
+bn            = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 argdict = naibr_extra(
     {"min_mapq" : min_quality, "d" : mol_dist, "min_sv" : min_size, "k": min_barcodes},
     extra

@@ -4,10 +4,10 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION     = config['Workflow']['harpy-version']
-lr_platform = config["Workflow"]["linkedreads"]["type"]
-fqlist = config["Inputs"]
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+VERSION     = config.get("Workflow", {}).get('harpy-version', 'latest')
+lr_platform = config.get("Workflow", {}).get("linkedreads", {}).get("type", 'none')
+fqlist      = config["Inputs"]
+bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 def get_fq1(wildcards):

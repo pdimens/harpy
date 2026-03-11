@@ -5,12 +5,16 @@ import yaml
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-VERSION      = config['Workflow']['harpy-version']
-fqlist       = config["Inputs"]
-skip_reports = config["Workflow"]["reports"].get("skip", False)
-me_seq       = config["Parameters"].get("ME-sequence", "AGATGTGTATAAGAGACAG")
-mismatch     = config["Parameters"].get("ME-mismatch", 1) 
-minlen       = config["Parameters"].get("min-len", 10) 
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+fqlist       = INPUTS
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
+mismatch     = PARAMETERS.get("ME-mismatch", 1) 
+minlen       = PARAMETERS.get("min-len", 10) 
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

@@ -1,22 +1,23 @@
 import os
 
-VERSION = config['Workflow']['harpy-version']
-FQ1 = config["Inputs"]["fastq_r1"]
-FQ2 = config["Inputs"]["fastq_r2"]
-BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]
-max_mem = config["Parameters"]["spades"].get("max_memory", 10000)
-k_param = config["Parameters"]["spades"].get("k", 'auto')
-ignore_bx = config["Parameters"]["spades"].get("ignore_barcodes", False)
-extra = config["Parameters"]["spades"].get("extra", "")
+WORKFLOW   = config.get('Workflow', {})
+PARAMETERS = config.get('Parameters', {})
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+BX_TAG       = WORKFLOW.get("linkedreads", {})["barcode_tag"]
+max_mem      = PARAMETERS.get("spades", {}).get("max_memory", 10000)
+k_param      = PARAMETERS.get("spades", {}).get("k", 'auto')
+ignore_bx    = PARAMETERS.get("spades", {}).get("ignore_barcodes", False)
+extra        = PARAMETERS.get("spades", {}).get("extra", "")
+force_athena = PARAMETERS.get("athena", {}).get("force", False)
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+organism     = WORKFLOW.get("reports", {}).get("organism_type", 'bacteria')
+FQ1          = INPUTS["fastq_r1"]
+FQ2          = INPUTS["fastq_r2"]
+
 spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
-force_athena = config["Parameters"]["athena"].get("force", False)
-skip_reports  = config["Workflow"]["reports"].get("skip", False)
-organism = config["Workflow"]["reports"].get("organism_type", 'bacteria')
-lineage_map = {
-    "eukaryote": "eukaryota",
-    "fungus": "fungi",
-    "bacteria": "bacteria"
-}
+lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
 lineagedb = lineage_map.get(organism, "bacteria")
 odb_version = 12
 
@@ -30,17 +31,12 @@ rule sort_by_barcode:
     log:
         "logs/sort_by_barcode.log"
     params:
-        BX_TAG
+        tag = BX_TAG,
+        prefix = "fastq_preproc/tmp"
     threads:
         workflow.cores
     shell:
-        """
-        {{
-            samtools import -T "*" {input} |
-            samtools sort -@ {threads} -O SAM -t {params} |
-            samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
-        }} 2> {log}
-        """
+        "djinn fastq sort -t {threads} {params} {input} 2> {log}"
 
 rule format_barcode:
     input:
