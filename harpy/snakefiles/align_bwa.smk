@@ -6,19 +6,19 @@ wildcard_constraints:
 
 VERSION      = config['Workflow']['harpy-version']
 fqlist       = config["Inputs"]["fastq"]
-molecule_distance = config["Parameters"]["distance-threshold"]
+molecule_distance = config["Parameters"].get("distance-threshold", 0)
 ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
-is_standardized = config["Workflow"]["linkedreads"]["standardized"]
+is_standardized = config["Workflow"]["linkedreads"].get("standardized", False)
 lr_type = config["Workflow"]["linkedreads"]["type"]
-keep_unmapped = config["Parameters"]["keep-unmapped"]
+keep_unmapped = config["Parameters"].get("keep-unmapped", False)
 extra 		= config["Parameters"].get("extra", "") 
+skip_reports = config["Workflow"]["reports"].get("skip", False)
+windowsize  = config["Parameters"].get("depth-windowsize", 50000)
 genomefile 	= config["Inputs"]["reference"]
 bn 			= os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 genome_zip  = True if bn.lower().endswith(".gz") else False
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-skip_reports = config["Workflow"]["reports"]["skip"]
-windowsize  = config["Parameters"]["depth-windowsize"]
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))

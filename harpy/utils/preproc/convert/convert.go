@@ -147,8 +147,8 @@ func main() {
 		// Find RX tag.
 		if rx, ok := getStringTag(rec, "RX"); ok {
 			bxVal, vxVal := reconstructBarcode(rx, stagger, bc)
-			setStringTag(rec, "BX", bxVal)
 			setIntTag(rec, "VX", vxVal)
+			setStringTag(rec, "BX", bxVal)
 		}
 
 		if err := sw.Write(rec); err != nil {

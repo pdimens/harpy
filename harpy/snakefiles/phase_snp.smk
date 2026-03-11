@@ -7,14 +7,14 @@ wildcard_constraints:
 
 VERSION           = config['Workflow']['harpy-version']
 bc_type           = config["Workflow"]["linkedreads"]["type"]
-skip_reports      = config["Workflow"]["reports"]["skip"]
-plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
+skip_reports      = config["Workflow"]["reports"].get("skip", False)
+plot_contigs      = config["Workflow"]["reports"].get("plot-contigs", 'default')
 plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-pruning           = config["Parameters"]["prune"]
-map_qual          = config["Parameters"]["min-map-quality"]
-base_qual         = config["Parameters"]["min-base-quality"]
-molecule_distance = config["Parameters"]["distance-threshold"]
-samples_from_vcf  = config["Parameters"]["prioritize-vcf-samples"]
+pruning           = config["Parameters"].get("prune", 30)
+map_qual          = config["Parameters"].get("min-map-quality", 20)
+base_qual         = config["Parameters"].get("min-base-quality", 13)
+molecule_distance = config["Parameters"].get("distance-threshold", 100000)
+samples_from_vcf  = config["Parameters"].get("prioritize-vcf-samples", False)
 extra             = config.get("extra", "") 
 variantfile       = config["Inputs"]["vcf"]
 bamlist           = config["Inputs"]["alignments"]

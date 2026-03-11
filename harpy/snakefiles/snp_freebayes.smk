@@ -5,10 +5,10 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 VERSION     = config['Workflow']['harpy-version']
-ploidy 		= config["Parameters"]["ploidy"]
+ploidy 		= config["Parameters"].get("ploidy", 2)
 extra 	    = config["Parameters"].get("extra", "") 
 regions_input = config["Inputs"]["regions"]
-skip_reports = config["Workflow"]["reports"]["skip"]
+skip_reports = config["Workflow"]["reports"].get("skip", False)
 bamlist     = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 genomefile 	= config["Inputs"]["reference"]

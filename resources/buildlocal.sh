@@ -18,6 +18,7 @@ pip install --no-deps --disable-pip-version-check -e . && rm -rf build
     go build -ldflags="-s -w" -o gih-convert convert/convert.go
     chmod +x gih-stagger gih-convert
     cp gih-stagger gih-convert ${CONDA_PREFIX}/bin/
+    cd ../../../
 }
 
 # associated scripts

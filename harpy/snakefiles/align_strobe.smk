@@ -12,12 +12,12 @@ bn 			= os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     bn = bn[:-3]
 workflow_geno = f"workflow/reference/{bn}"
-windowsize  = config["Parameters"]["depth-windowsize"]
-molecule_distance = config["Parameters"]["distance-threshold"]
+windowsize  = config["Parameters"].get("depth-windowsize", 50000)
+molecule_distance = config["Parameters"].get("distance-threshold", 0)
 ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
-is_standardized = config["Workflow"]["linkedreads"]["standardized"]
-keep_unmapped = config["Parameters"]["keep-unmapped"]
-skip_reports = config["Workflow"]["reports"]["skip"]
+is_standardized = config["Workflow"]["linkedreads"].get("standardized", False)
+keep_unmapped = config["Parameters"].get("keep-unmapped", False)
+skip_reports = config["Workflow"]["reports"].get("skip", False)
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d = dict(zip(samplenames, samplenames))

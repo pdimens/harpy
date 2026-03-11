@@ -4,14 +4,14 @@ VERSION = config['Workflow']['harpy-version']
 FQ1 = config["Inputs"]["fastq_r1"]
 FQ2 = config["Inputs"]["fastq_r2"]
 BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]
-max_mem = config["Parameters"]["spades"]["max_memory"]
-k_param = config["Parameters"]["spades"]["k"]
-ignore_bx = config["Parameters"]["spades"]["ignore_barcodes"]
+max_mem = config["Parameters"]["spades"].get("max_memory", 10000)
+k_param = config["Parameters"]["spades"].get("k", 'auto')
+ignore_bx = config["Parameters"]["spades"].get("ignore_barcodes", False)
 extra = config["Parameters"]["spades"].get("extra", "")
 spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
-force_athena = config["Parameters"]["athena"]["force"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-organism = config["Workflow"]["reports"]["organism_type"]
+force_athena = config["Parameters"]["athena"].get("force", False)
+skip_reports  = config["Workflow"]["reports"].get("skip", False)
+organism = config["Workflow"]["reports"].get("organism_type", 'bacteria')
 lineage_map = {
     "eukaryote": "eukaryota",
     "fungus": "fungi",

@@ -11,7 +11,7 @@ bamlist     = config["Inputs"]["alignments"]
 vcffile     = config["Inputs"]["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 extra       = config["Parameters"].get("extra", None) 
-mol_dist    = config["Parameters"]["distance-threshold"]
+mol_dist    = config["Parameters"].get("distance-threshold", 100000)
 bn          = os.path.basename(genomefile)
 if bn.lower().endswith(".gz"):
     workflow_geno = f"workflow/reference/{bn[:-3]}"

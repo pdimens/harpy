@@ -4,8 +4,8 @@ from collections import Counter
 
 VERSION    = config['Workflow']['harpy-version']
 schemafile = config["Inputs"]["schema"]
-skip_reports = config["Workflow"]["reports"]["skip"]
-qxrx = config["Parameters"]["qx-rx"]
+skip_reports = config["Workflow"]["reports"].get("skip", False)
+qxrx = config["Parameters"].get("qx-rx", False)
 unknown_samples = config["Parameters"]["samples"]
 unknown_barcodes = config["Parameters"]["barcodes"]
 

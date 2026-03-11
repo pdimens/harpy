@@ -11,11 +11,11 @@ bamlist       = config["Inputs"]["alignments"]
 bamdict       = dict(zip(bamlist, bamlist))
 variantfile   = config["Inputs"]["vcf"]
 paramfile     = config["Inputs"]["parameters"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
+skip_reports  = config["Workflow"]["reports"].get("skip", False)
 region        = config["Parameters"].get("region", None)
 stitch_params = config["Parameters"]["stitch"]
 stitch_extra  = config["Parameters"].get("extra", "None")
-grid_size     = config["Parameters"]["grid-size"]
+grid_size     = config["Parameters"].get("grid-size", 1)
 if region:
     contigs,positions = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]

@@ -1,4 +1,4 @@
-module stagger_gih
+module gih-stagger
 
 go 1.25.0
 

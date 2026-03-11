@@ -12,21 +12,23 @@ lineage_map = {
 }
 lineagedb = lineage_map.get(organism, "bacteria")
 odb_version = 12
+
 # SPADES
-max_mem      = config["Parameters"]["spades"]["max-memory"]
-k_param      = config["Parameters"]["spades"]["k"]
+max_mem      = config["Parameters"]["spades"].get("max-memory", 'auto')
+k_param      = config["Parameters"]["spades"].get("k", 10000)
 spades_extra = config["Parameters"]["spades"].get("extra", "")
+
 # ARCS
-mapq       = config["Parameters"]["tigmint"]["minimum_mapping-quality"]
-mismatch   = config["Parameters"]["tigmint"]["mismatch"]
-mol_dist   = config["Parameters"]["tigmint"]["molecule-distance"]
-mol_len    = config["Parameters"]["tigmint"]["molecule-length"]
-span       = config["Parameters"]["tigmint"]["span"]
-min_align  = config["Parameters"]["arcs"]["minimum-aligned-reads"]
-min_contig = config["Parameters"]["arcs"]["minimum-contig-length"]
-seq_id     = config["Parameters"]["arcs"]["minimum-sequence-identity"]
+mapq       = config["Parameters"]["tigmint"].get("minimum_mapping-quality", 0)
+mismatch   = config["Parameters"]["tigmint"].get("mismatch", 5)
+mol_dist   = config["Parameters"]["tigmint"].get("molecule-distance", 50000)
+mol_len    = config["Parameters"]["tigmint"].get("molecule-length", 2000)
+span       = config["Parameters"]["tigmint"].get("span", 20)
+min_align  = config["Parameters"]["arcs"].get("minimum-aligned-reads", 5)
+min_contig = config["Parameters"]["arcs"].get("minimum-contig-length", 500)
+seq_id     = config["Parameters"]["arcs"].get("minimum-sequence-identity", 98)
 arcs_extra = config["Parameters"]["arcs"].get("extra", "")
-links      = config["Parameters"]["links"]["minimum-links"]
+links      = config["Parameters"]["links"].get("minimum-links", 5)
 
 rule cloudspades:
     input:

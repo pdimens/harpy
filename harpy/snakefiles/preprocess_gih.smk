@@ -7,9 +7,10 @@ wildcard_constraints:
 
 VERSION      = config['Workflow']['harpy-version']
 fqlist       = config["Inputs"]
-skip_reports = config["Workflow"]["reports"]["skip"]
-me_seq       = config["Parameters"]["ME-sequence"] 
-overlap      = config["Parameters"]["ME-overlap"] 
+skip_reports = config["Workflow"]["reports"].get("skip", False)
+me_seq       = config["Parameters"].get("ME-sequence", "AGATGTGTATAAGAGACAG")
+mismatch     = config["Parameters"].get("ME-mismatch", 1) 
+minlen       = config["Parameters"].get("min-len", 10) 
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -50,35 +51,39 @@ rule all:
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         reports = "reports/preprocess.QA.html" if not skip_reports else []
 
-rule find_ME_seq:
-    input:
-        get_fq1
-    output:
-        info = pipe("ME_position/{sample}.info")
-    log:
-        "logs/{sample}.findME.log"
-    params:
-        f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null"
-    threads:
-        2
-    conda:
-        "envs/qc.yaml"
-    container:
-        f"docker://pdimens/harpy:qc_{VERSION}"
-    shell:
-        "cutadapt {params} --info-file {output.info} --cores {threads} {input} 2> {log}"
+#rule find_ME_seq:
+#    input:
+#        get_fq1
+#    output:
+#        info = pipe("ME_position/{sample}.info")
+#    log:
+#        "logs/{sample}.findME.log"
+#    params:
+#        f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null"
+#    threads:
+#        2
+#    conda:
+#        "envs/qc.yaml"
+#    container:
+#        f"docker://pdimens/harpy:qc_{VERSION}"
+#    shell:
+#        "cutadapt {params} --info-file {output.info} --cores {threads} {input} 2> {log}"
 
+#info = "ME_position/{sample}.info",
 rule pad_barcodes:
     input:
-        info = "ME_position/{sample}.info",
         FQ1 = get_fq1,
         FQ2 = get_fq2
     output:
         pipe("stagger/{sample}.stagger.bam")
+    params:
+        f'--me {me_seq}',
+        f'--max-mismatch {mismatch}',
+        f'--min-len {minlen}'
     log:
         "logs/{sample}.stagger.log"
     shell:
-        "gih-stagger {input.FQ1} {input.FQ2} < {input.info} > {output} 2> {log}"
+        "gih-stagger {params} {input.FQ1} {input.FQ2} > {output} 2> {log}"
 
 rule extract_barcodes:
     input:

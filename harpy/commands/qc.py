@@ -14,7 +14,7 @@ from harpy.common.workflow import Workflow
 @click.option('-x', '--extra-params', panel = "Parameters", type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-l', '--length', panel = "Parameters", default = "30,150", type=MultiInt(2, minimum=30), show_default = True, help = 'Minimum,Maximum read lengths')
 @click.option('-a', '--trim-adapters', panel = "Parameters", type = str, help = 'Detect and trim adapters')
-@click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
+@click.option('-U', '--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')

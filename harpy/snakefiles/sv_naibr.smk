@@ -7,18 +7,18 @@ wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
 VERSION      = config['Workflow']['harpy-version']
-skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
+skip_reports = config["Workflow"]["reports"].get("skip", False)
+plot_contigs = config["Workflow"]["reports"].get("plot-contigs", 'default')
 plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 genomefile   = config["Inputs"]["reference"]
 bamlist      = config["Inputs"]["alignments"]
 bamdict     = dict(zip(bamlist, bamlist))
 groupfile    = config["Inputs"].get("groupings", None)
 extra        = config["Parameters"].get("extra", None) 
-min_size     = config["Parameters"]["min-size"]
-min_barcodes = config["Parameters"]["min-barcodes"]
-min_quality  = config["Parameters"]["min-map-quality"]
-mol_dist     = config["Parameters"]["molecule-distance"]
+min_size     = config["Parameters"].get("min-size", 1000)
+min_barcodes = config["Parameters"].get("min-barcodes", 2)
+min_quality  = config["Parameters"].get("min-map-quality", 30)
+mol_dist     = config["Parameters"].get("molecule-distance", 100000)
 popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
 populations  = popdict.keys() if groupfile else None
 target       = populations if groupfile else {Path(i).stem for i in bamlist}

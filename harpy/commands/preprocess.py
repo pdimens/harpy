@@ -81,7 +81,8 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
-@click.option('-o', '--me-overlap', panel = "Parameters", default = 19, show_default = True, type = click.IntRange(0,300, clamp = True), help = 'ME sequence overlap')
+@click.option('-l', '--min-len', panel = "Parameters", type = click.IntRange(10, 300), default = 30, show_default=True, help = "Min insert length after removing ME sequence (ignoring barcodes)")
+@click.option('-n', '--mismatch', panel = "Parameters", default = 1, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
@@ -94,7 +95,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output, me_seq, me_overlap, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def gih(inputs, output, me_seq, mismatch, min_len, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
@@ -115,7 +116,8 @@ def gih(inputs, output, me_seq, me_overlap, threads, snakemake, skip_reports, qu
     fetch_template("pheniqs.config.json", os.path.join(output, "workflow", "pheniqs.config.json"))
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
-    workflow.param(me_overlap, "ME-overlap")
+    workflow.param(mismatch, "ME-mismatch")
+    workflow.param(min_len, "min-length")
     
     workflow.info = {
         "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",

@@ -64,14 +64,14 @@
     "decoder": {
         "stagger": {
             "codec": {
-                "@001": { "barcode": [ "TTTTTTT" ] },
-                "@002": { "barcode": [ "CCCCCCA" ] },
-                "@003": { "barcode": [ "GGGGGCA" ] },
-                "@004": { "barcode": [ "AAAAACA" ] },
-                "@005": { "barcode": [ "TTTTACA" ] },
-                "@006": { "barcode": [ "CCCTACA" ] },
-                "@007": { "barcode": [ "GGCTACA" ] },
-                "@008": { "barcode": [ "TACTACA" ] }
+                "@01": { "barcode": [ "TTTTTTT" ] },
+                "@02": { "barcode": [ "CCCCCCA" ] },
+                "@03": { "barcode": [ "GGGGGCA" ] },
+                "@04": { "barcode": [ "AAAAACA" ] },
+                "@05": { "barcode": [ "TTTTACA" ] },
+                "@06": { "barcode": [ "CCCTACA" ] },
+                "@07": { "barcode": [ "GGCTACA" ] },
+                "@08": { "barcode": [ "TACTACA" ] }
             }
         },
         "segment": {
