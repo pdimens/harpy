@@ -338,6 +338,7 @@ func processBatch(
 
 func main() {
 	meSeq := flag.String("me", "CTGTCTCTTATACACATCT", "ME sequence to search for")
+	statsfile := flag.String("stats", "stats.txt", "File name for stats output")
 	maxMM := flag.Int("max-mismatch", 2, "Maximum mismatches allowed in ME match (matches cutadapt -e 0.11 with 19bp ME)")
 	minLen := flag.Int("min-len", 30, "Minimum biological sequence length after ME excision; shorter reads are discarded")
 	nThreads := flag.Int("threads", 4, "Number of worker threads")
@@ -456,7 +457,13 @@ func main() {
 
 	outBuf.Flush()
 
-	fmt.Fprintf(os.Stderr, "Total read pairs processed:            %d\n", total.Load())
-	fmt.Fprintf(os.Stderr, "Discarded (ME sequence not found):     %d\n", discarded.Load())
-	fmt.Fprintf(os.Stderr, "Discarded (post-trim read too short):  %d\n", tooShort.Load())
+	file, err := os.Create(*statsfile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error creating stats file: %v\n", err)
+	}
+	defer file.Close()
+
+	fmt.Fprintf(file, "Total read pairs processed:            %d\n", total.Load())
+	fmt.Fprintf(file, "Discarded (ME sequence not found):     %d\n", discarded.Load())
+	fmt.Fprintf(file, "Discarded (post-trim read too short):  %d\n", tooShort.Load())
 }

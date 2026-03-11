@@ -81,15 +81,15 @@ rule pad_barcodes:
         FQ2 = get_fq2
     output:
         sam = pipe("stagger/{sample}.stagger.sam"),
-        stats = "reports/data/{sample}.pad"
+        stats = "reports/data/{sample}.MEstats"
+    log:
+        "logs/{sample}.stagger.log"
     params:
         f'--me {me_seq}',
         f'--max-mismatch {mismatch}',
         f'--min-len {minlen}'
     threads:
         4
-    log:
-        "logs/{sample}.stagger.log"
     shell:
         "gih-stagger --threads {threads} {params} --stats {output.stats} {input.FQ1} {input.FQ2} > {output.sam} 2> {log}"
 
@@ -117,13 +117,14 @@ rule format_barcodes:
         "extract/{sample}.bam"
     output:
         fq1 = "{sample}.R1.fq.gz",
-        fq2 = "{sample}.R2.fq.gz"
+        fq2 = "{sample}.R2.fq.gz",
+        stats = "reports/data/{sample}.BXstats"
     log:
-        "logs/{sample}.format.BX.log"
+        "logs/{sample}.convert.log"
     threads:
         2
     shell:
-        "gih-convert --threads {threads} {input} {output} 2> {log}"
+        "gih-convert --threads {threads} {input} {output.fq1} {output.fq2} > {output.stats} 2> {log}"
 
 rule assess_quality:
     input:
