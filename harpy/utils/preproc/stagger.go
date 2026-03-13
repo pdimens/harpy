@@ -390,7 +390,7 @@ func main() {
 	header.Version = "1.6"
 	header.SortOrder = sam.Unsorted
 
-	outBuf := bufio.NewWriterSize(os.Stdout, 1<<20)
+	outBuf := bufio.NewWriterSize(os.Stdout, 2<<20)
 
 	// Write header via sam.Writer, then use outBuf directly for record lines.
 	headerWriter, err := sam.NewWriter(outBuf, header, sam.FlagDecimal)

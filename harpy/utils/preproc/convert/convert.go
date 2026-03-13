@@ -98,11 +98,10 @@ func newFastqWriter(path string, readnum string, level, threads int) (*fastqWrit
 		f.Close()
 		return nil, err
 	}
-	gz.SetConcurrency(1<<20, threads)
-
+	gz.SetConcurrency(2<<20, threads)
 	return &fastqWriter{
 		gz:  gz,
-		buf: bufio.NewWriterSize(gz, 1<<20),
+		buf: bufio.NewWriterSize(gz, 2<<20),
 		dir: readnum,
 	}, nil
 }
@@ -233,7 +232,7 @@ func main() {
 	}
 	defer bf.Close()
 
-	br, err := bam.NewReader(bufio.NewReaderSize(bf, 1<<20), 1)
+	br, err := bam.NewReader(bufio.NewReaderSize(bf, 2<<20), 1)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating BAM reader: %v\n", err)
 		os.Exit(1)
