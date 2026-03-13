@@ -12,12 +12,12 @@ mkdir -p ${CONDA_PREFIX}/bin
 pip install --no-deps --disable-pip-version-check -e . && rm -rf build
 
 {
-    cd harpy/utils/preproc
-    go build -ldflags="-s -w" -o gih-stagger stagger.go
-    go build -ldflags="-s -w" -o gih-convert convert/convert.go
+    cd harpy/utils/stagger && go build -ldflags="-s -w" -o ../gih-stagger stagger.go
+    cd ../convert && go build -ldflags="-s -w" -o ../gih-convert convert.go
+    cd ..
     chmod +x gih-stagger gih-convert
     mv gih-stagger gih-convert ${CONDA_PREFIX}/bin/
-    cd ../../..
+    cd ../..
 }
 
 # associated scripts

@@ -1,21 +1,21 @@
-// stagger_gih - finds the ME sequence in R1 reads, removes it, adds the
+// gih-stagger - finds the ME sequence in R1 reads, removes it, adds the
 // appropriate stagger prefix, and writes interleaved unaligned SAM to stdout.
 //
 // Replaces the cutadapt --info-file pipeline entirely. ME detection uses a
 // bounded Hamming scan (≤2 mismatches, N in read matches anything) over the
 // expected ME position window, matching cutadapt -e 0.11 --overlap 19
-// --match-read-wildcards behaviour.
+// --match-read-wildcards behavior.
 //
 // Usage:
 //
-//	stagger_gih [options] <R1.fastq[.gz]> <R2.fastq[.gz]>
+//	gih-stagger [options] <R1.fastq[.gz]> <R2.fastq[.gz]>
 //
 // Build:
 //
-//	go mod init stagger_gih
+//	go mod init stagger
 //	go get github.com/biogo/hts@latest
 //	go get github.com/klauspost/pgzip
-//	go build -ldflags="-s -w" -o stagger_gih stagger_gih.go
+//	go build -ldflags="-s -w" -o gih-stagger stagger.go
 package main
 
 import (
@@ -343,7 +343,7 @@ func main() {
 	minLen := flag.Int("min-len", 30, "Minimum biological sequence length after ME excision; shorter reads are discarded")
 	nThreads := flag.Int("threads", 4, "Number of worker threads")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: stagger_gih [options] <R1.fastq[.gz]> <R2.fastq[.gz]>\n\nOptions:\n")
+		fmt.Fprintf(os.Stderr, "Usage: gih-stagger [options] <R1.fastq[.gz]> <R2.fastq[.gz]>\n\nOptions:\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -463,7 +463,7 @@ func main() {
 	}
 	defer file.Close()
 
-	fmt.Fprintf(file, "Total read pairs processed:            %d\n", total.Load())
-	fmt.Fprintf(file, "Discarded (ME sequence not found):     %d\n", discarded.Load())
-	fmt.Fprintf(file, "Discarded (post-trim read too short):  %d\n", tooShort.Load())
+	fmt.Fprintf(file, "Total read pairs processed:           %d\n", total.Load())
+	fmt.Fprintf(file, "Discarded (ME sequence not found):    %d\n", discarded.Load())
+	fmt.Fprintf(file, "Discarded (post-trim read too short): %d\n", tooShort.Load())
 }

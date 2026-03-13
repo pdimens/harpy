@@ -5,14 +5,14 @@
 //
 // Usage:
 //
-//	preproc_barcodes [--threads N] <pheniqs.json> <input.bam> <out_R1.fq.gz> <out_R2.fq.gz>
+//	convert [--threads N] <pheniqs.json> <input.bam> <out.R1.fq.gz> <out.R2.fq.gz>
 //
 // Build:
 //
-//	go mod init preproc_barcodes
+//	go mod init convert
 //	go get github.com/biogo/hts@latest
 //	go get github.com/klauspost/pgzip
-//	go build -ldflags="-s -w" -o preproc_barcodes preproc_barcodes.go
+//	go build -ldflags="-s -w" -o gih-convert convert.go
 package main
 
 import (
@@ -175,7 +175,7 @@ func getStringTag(r *sam.Record, tag string) (string, bool) {
 func main() {
 	nThreads := flag.Int("threads", 4, "Number of compression threads for gzip output")
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage: preproc_barcodes [options] <pheniqs.json> <input.bam> <out_R1.fq.gz> <out_R2.fq.gz>\n\nOptions:\n")
+		fmt.Fprintf(os.Stderr, "Usage: gih-convert [options] <pheniqs.json> <input.bam> <out_R1.fq.gz> <out_R2.fq.gz>\n\nOptions:\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
@@ -264,7 +264,6 @@ func main() {
 	var valids int
 	var corrected int
 	set := make(map[string]struct{}, 1_000_000)
-
 	for {
 		rec, err := br.Read()
 		if err != nil {

@@ -4,9 +4,9 @@ python -m ipykernel install --user
 
 ## preproc commands
 {
-    cd harpy/utils/preproc
-    go get github.com/biogo/hts@latest
-    go build -ldflags="-s -w" -o gih-stagger stagger.go
+    cd harpy/utils
+    go mod tidy
+    go build -ldflags="-s -w" -o gih-stagger stagger/stagger.go
     go build -ldflags="-s -w" -o gih-convert convert/convert.go
     chmod +x gih-stagger gih-convert
     cp gih-stagger gih-convert ${PREFIX}/bin/
