@@ -230,7 +230,7 @@ rule barcode_report:
         """
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process-notebook {output.tmp} {params.lr_type}
+            harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 

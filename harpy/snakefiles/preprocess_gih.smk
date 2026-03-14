@@ -132,7 +132,7 @@ rule barcode_counts:
     output:
         "reports/data/{sample}.bxcount"
     shell:
-        "djinn fastq count {input}"
+        "djinn fastq count {input} > {output}"
 
 rule assess_quality:
     input:
@@ -165,3 +165,23 @@ rule quality_report:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc --config workflow/multiqc.yaml {params} > {output} 2> {log}"
+
+rule barcode_report:
+    input:
+        counts = collect("reports/data/{sample}.bxcount", sample = samplenames),
+        stats = collect("reports/data/{sample}.BXstats", sample = samplenames),
+        me = collect("reports/data/{sample}.MEstats", sample = samplenames)
+    output:
+        tmp = temp("reports/library.performance.tmp.ipynb"),
+        ipynb = "reports/library.performance.ipynb"
+    log:
+        "logs/libary.performance.report.log"
+    params:
+        indir = "-p indir " + os.path.abspath("logs")
+    shell:
+        """
+        {{
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            harpy-utils process-notebook {output.tmp} {params.lr}
+        }} 2> {log} > {output.ipynb}
+        """
