@@ -98,7 +98,7 @@ def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|
             {"extend": "csvHtml5", "title": filename},
             {"extend": "excelHtml5", "title": filename}
         ],
-        fixedColumns = {"start": fixedcols} if fixedcols else {},
+        fixedColumns = {"left": fixedcols} if fixedcols else {},
         ordering = {"indicators": False, "handler": False},
         columnControl = [["order", "searchDropdown"]],
         showIndex= False,

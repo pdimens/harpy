@@ -100,3 +100,18 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - removed redundant validations between CLI checks and harpy checks
 - wording improvements for errors and doc text
 - [hopefully] no more double-printing of Snakemake errors
+
+
+## VScode + xeus-python bug
+#### TL;DR
+The root cause is essentially VS Code trying to upsell its Native REPL to users it thinks might benefit from it, without properly scoping that behavior away from already-running kernel sessions.
+
+#### Fix
+Chance VScode `python.terminal.shellIntegration.enabled` setting to `false`:
+```json
+"python.terminal.shellIntegration.enabled": false
+```
+
+#### Technical Details
+VS Code's Python extension has a feature called the Native REPL — an integrated interactive environment that it tries to promote when it detects certain kernel types. When you use xeus-python, VS Code identifies it as a non-standard kernel (since it's not the default IPython/ipykernel) and injects that "Ctrl+click to launch VS Code Native REPL" message as a kind of prompt/advertisement at the top of the notebook or interactive window output.
+This injection happens at the extension level, not from xeus-python itself — the message is being inserted by the Pylance or Python VS Code extension into the output stream before your kernel's actual output.

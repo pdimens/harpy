@@ -227,7 +227,7 @@ rule contig_report:
         """
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset}
         }} 2> {log} > {output.ipynb}
         """
@@ -260,7 +260,7 @@ rule impute_reports:
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             process-notebook {output.tmp} {wildcards.paramset}
         }} 2> {log} > {output.ipynb}
         """

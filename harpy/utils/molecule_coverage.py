@@ -43,7 +43,7 @@ def print_depth_counts(contig, counter_obj, intervals):
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-w', '--window', default = 10000, show_default = True, type = click.IntRange(min = 100, max_open=True), help = "Window size (in bp) to sum depths over")
-@click.argument('fai', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument('fai', required = True, type=click.File())
 @click.argument('statsfile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
 def molecule_coverage(fai, statsfile, window):
@@ -62,12 +62,11 @@ def molecule_coverage(fai, statsfile, window):
     contigs = {}
 
     # read the fasta index file as a dict of contig lengths
-    with open(fai, "r", encoding= "utf-8") as fai:
-        for line in fai:
-            splitline = line.split()
-            contig = splitline[0]
-            length = splitline[1]
-            contigs[contig] = int(length)
+    for line in fai:
+        splitline = line.split()
+        contig = splitline[0]
+        length = splitline[1]
+        contigs[contig] = int(length)
 
     with safe_read(statsfile) as statsfile:
         LASTCONTIG = None

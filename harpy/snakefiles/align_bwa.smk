@@ -230,7 +230,7 @@ rule sample_reports:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
             harpy-utils process-notebook {output.tmp} {wildcards.sample} BWA-MEM2 {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
@@ -250,7 +250,7 @@ rule barcode_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """

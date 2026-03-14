@@ -5,7 +5,7 @@ import random
 import string
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
-@click.argument("notebook", required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument("notebook", required = True, type=click.File())
 @click.argument("text", nargs = -1, type = str)
 @click.help_option('--help', hidden = True)
 def process_notebook(notebook, text):
@@ -22,8 +22,10 @@ def process_notebook(notebook, text):
     """
     _date = datetime.now().strftime('%Y-%m-%d')
     random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
-
+    text = list(text)
     for line in notebook:
+        if line.startswith("Ctrl click to launch"):
+            continue
         if 'PLACEHOLDER' in line:
             if text:
                 line = line.replace("PLACEHOLDER", text.pop(0))

@@ -126,6 +126,14 @@ rule format_barcodes:
     shell:
         "gih-convert --threads {threads} {input} {output.fq1} {output.fq2} > {output.stats} 2> {log}"
 
+rule barcode_counts:
+    input:
+        "{sample}.R1.fq.gz"
+    output:
+        "reports/data/{sample}.bxcount"
+    shell:
+        "djinn fastq count {input}"
+
 rule assess_quality:
     input:
         "{sample}.R{FR}.fq.gz"

@@ -197,8 +197,8 @@ rule report:
     shell:
         """s
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process-notebook {output.tmp} NAIBR
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} NAIBR
         }} 2> {log} > {output.ipynb}
         """
 

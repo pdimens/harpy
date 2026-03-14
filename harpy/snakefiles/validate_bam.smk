@@ -56,8 +56,8 @@ rule create_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            process-notebook {output.tmp} {params.lr_platform}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            harpy-utils process-notebook {output.tmp} {params.lr_platform}
         }} 2> {log} > {output.ipynb}
         """
 

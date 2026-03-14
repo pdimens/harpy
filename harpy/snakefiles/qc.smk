@@ -90,7 +90,7 @@ rule barcode_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             process-notebook {output.tmp} {params.lr}
         }} 2> {log} > {output.ipynb}
         """
