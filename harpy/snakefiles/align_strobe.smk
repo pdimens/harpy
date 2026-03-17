@@ -89,8 +89,8 @@ rule mark_duplicates:
         faidx  = f"{workflow_geno}.fai",
         optical ="logs/optical/{sample}.opt"
     output:
-        "{sample}.bam.bai" if lr_type == "none" else [],
-        bam = "{sample}.bam" if lr_type == "none" else temp("markdup/{sample}.bam") 
+        "{sample}.bam.bai" if lr_type == "none" or is_standardized else [],
+        bam = "{sample}.bam" if lr_type == "none" or is_standardized else temp("markdup/{sample}.bam") 
     log:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
@@ -114,7 +114,7 @@ rule mark_duplicates:
         rm -rf .{wildcards.sample}
         """
 
-if lr_type != "none":
+if lr_type != "none" or not is_standardized:
     rule standardize:
         input:
             "markdup/{sample}.bam"
