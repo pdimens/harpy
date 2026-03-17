@@ -87,7 +87,7 @@ rule concat_groups:
     shell:
         """
         {{
-            djinn sam conat --bx {input} | 
+            djinn sam concat --bx {input} | 
             samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
         }} 2> {log}
         """

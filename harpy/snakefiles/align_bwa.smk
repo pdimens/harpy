@@ -70,13 +70,21 @@ rule process_reference:
         }} 2> {log}
         """
 
+rule optical_dist:
+    input:
+        get_fq
+    output:
+        temp("logs/optical/{sample}.opt")
+    shell:
+        "harpy-utils optical-dist-fq {input} > {output}"
+xxxx
 rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        temp("samples/{sample}/{sample}.bam")
+        pipe("samples/{sample}/{sample}.sam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -85,7 +93,7 @@ rule align:
         unmapped = "-F 4" if not keep_unmapped else "",
         extra = extra
     threads:
-        min(6, workflow.cores - 1)
+        min(4, workflow.cores - 2)
     conda:
         "envs/align.yaml"
     container:
@@ -94,41 +102,58 @@ rule align:
         """
         {{
             bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
-            samtools view -h -O BAM {params.unmapped}
+            samtools view -h -u {params.unmapped}
         }} 2> {log} > {output}
         """     
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.bam",
+        sam    = "samples/{sample}/{sample}.sam",
         genome = workflow_geno,
-        faidx  = geno_idx
+        faidx  = f"{workflow_geno}.fai",
+        optical ="logs/optical/{sample}.opt"
     output:
-        bai = "{sample}.bam.bai",
-        bam = "{sample}.bam"
+        "{sample}.bam.bai" if lr_type == "none" else [],
+        bam = "{sample}.bam" if lr_type == "none" else temp("markdup/{sample}.bam") 
     log:
         debug = "logs/markdup/{sample}.markdup.log",
         stats = "logs/markdup/{sample}.markdup.stats"
-    params:
-        cmd = lambda wc: f"samtools collate -O -u samples/{wc.sample}/{wc.sample}.bam" if ignore_bx else f"djinn sam standardize --sam samples/{wc.sample}/{wc.sample}.bam | samtools collate -O -u -",
+    params: 
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = PARAMETERS['min-map-quality']
+        quality = PARAMETERS['min-map-quality'],
+        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
     resources:
         mem_mb = 2000
     threads:
-        4
+        2
     shell:
         """
         {{
-            OPTICAL_BUFFER=$(harpy-utils optical-dist {input.sam})
-            {params.cmd} |
-                samtools fixmate -z on -m -u - - |
-                samtools view -h -q {params.quality} |
-                samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-                samtools markdup -@ {threads} -S --write-index {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output.bam}##idx##{output.bai}
+            samtools collate -O -u {input.sam} - |
+            samtools fixmate -z on -m -u - - |
+            samtools view -h -u -q {params.quality} |
+            samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -S --write-index {params.bx_mode} -d {params.opt} -f {log.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {wildcards.sample}
+        rm -rf .{wildcards.sample}
         """
+
+if lr_type != "none":
+    rule standardize:
+        input:
+            "markdup/{sample}.bam"
+        output:
+            bai = "{sample}.bam.bai",
+            bam = "{sample}.bam"
+        log:
+            "logs/{sample}.std.log"
+        shell:
+            """
+            {{
+                djinn sam standardize {input} > {output.bam}
+                samtools index {output.bam}
+            }} 2> {log}
+            """
 
 rule sample_stats:
     input:
@@ -137,31 +162,12 @@ rule sample_stats:
     output: 
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat"),
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz"
-    params:
-        molecule_distance
-    log:
-        "logs/stats/{sample}.stats.log"
-    shell:
-        """
-        {{
-            samtools stats -d {input.bam} > {output.stats}
-            samtools flagstat {input.bam} > {output.flagstat}
-            harpy-utils bx-stats-sam -d {params} {input.bam} | gzip > {output.bxstats}
-        }} 2> {log}
-        """
-
-rule alignment_coverage:
-    input: 
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    output: 
-        "reports/data/coverage/{sample}.regions.bed.gz"
-    log:
-        "logs/stats/{sample}.depth.log"
+        depth    = "reports/data/coverage/{sample}.regions.bed.gz"
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
+    log:
+        "logs/stats/{sample}.stats.log"
     threads:
         2
     conda:
@@ -170,25 +176,31 @@ rule alignment_coverage:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
-        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
+        {{
+            samtools stats -d {input.bam} > {output.stats}
+            samtools flagstat {input.bam} > {output.flagstat}
+            mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam}
+        }} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
         """
 
-rule molecule_coverage:
+rule molecule_stats:
     input:
-        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        bam = "{sample}.bam",
         fai = f"{workflow_geno}.fai"
-    output:
-        "reports/data/coverage/{sample}.molcov.gz"
+    output: 
+        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        molcov = "reports/data/coverage/{sample}.molcov.gz"
     log:
-        "logs/{sample}.molcov.log"
+        stats = "logs/molcov/{sample}.molcov.log",
+        molcov = "logs/stats/{sample}.molstats.log"
     params:
-        windowsize
+        dist = molecule_distance,
+        window = windowsize
     shell:
         """
-        {{
-            harpy-utils molecule-coverage -w {params} {input.fai} {input.stats} | gzip
-        }} > {output} 2> {log}
+        harpy-utils bx-stats-sam -d {params.dist} {input.bam} 2> {log.stats} | gzip > {output.stats}
+        harpy-utils molecule-coverage -w {params.window} {input.fai} {output.stats} 2> {log.molcov} | gzip > {output.molcov}
         """
 
 rule samtools_report:

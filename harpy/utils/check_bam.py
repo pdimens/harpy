@@ -46,7 +46,7 @@ def check_bam(platform, input):
             except KeyError:
                 NO_BX += 1
                 continue
-            # do a regex search to find AXXCXXBXXDXX pattern in the BX
+            # do a regex search to find proper barcode pattern in the BX
             if not re.search(bc_pattern, bx):
                 # malformed BX tag
                 BAD_BX += 1

@@ -50,8 +50,8 @@ type pheniqsJSON struct {
 
 // ─── barcode reconstruction ───────────────────────────────────────────────────
 
-func reconstructBarcode(nucBC, origBC string, stagger, bc map[string]string) (string, int, int) {
-	corrected := 0
+func reconstructBarcode(nucBC, origBC string, stagger, bc *map[string]string) (string, int, int) {
+	var corrected int
 	seg := strings.SplitN(nucBC, "-", 4)
 	if nucBC != origBC {
 		corrected = 1
@@ -59,22 +59,26 @@ func reconstructBarcode(nucBC, origBC string, stagger, bc map[string]string) (st
 	if len(seg) != 4 {
 		return "A00C00B00D00", 0, corrected
 	}
-	A := "A" + lookup(bc, seg[1])
-	B := "B" + lookup(bc, seg[2])
-	C := "C" + lookup(bc, seg[3])
-	D := "D" + lookup(stagger, seg[0])
+
+	A := lookup(bc, &seg[1])
+	B := lookup(bc, &seg[2])
+	C := lookup(bc, &seg[3])
+	D := lookup(stagger, &seg[0])
+
 	valid := 1
-	if A == "A00" || B == "B00" || C == "C00" || D == "D00" {
+	if *A == "00" || *B == "00" || *C == "00" || *D == "00" {
 		valid = 0
 	}
-	return A + C + B + D, valid, corrected
+
+	return "A" + *A + "C" + *C + "B" + *B + "D" + *D, valid, corrected
 }
 
-func lookup(m map[string]string, key string) string {
-	if v, ok := m[key]; ok {
-		return v
+func lookup(m *map[string]string, key *string) *string {
+	if v, ok := (*m)[*key]; ok {
+		return &v
 	}
-	return "00"
+	empty := "00"
+	return &empty
 }
 
 // ─── FASTQ writer ─────────────────────────────────────────────────────────────
@@ -185,10 +189,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	threads := *nThreads
-	if threads < 1 {
-		threads = 1
-	}
+	threads := max(*nThreads, 1)
 	if threads > runtime.NumCPU() {
 		threads = runtime.NumCPU()
 	}
@@ -242,10 +243,7 @@ func main() {
 	// ── open FASTQ writers ────────────────────────────────────────────────────
 	// Split thread budget evenly between the two writers so total
 	// compression goroutines == --threads.
-	threadsPerWriter := threads / 2
-	if threadsPerWriter < 1 {
-		threadsPerWriter = 1
-	}
+	threadsPerWriter := max(threads/2, 1)
 	fw1, err := newFastqWriter(r1Path, "/1", 4, threadsPerWriter)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening R1 output: %v\n", err)
@@ -276,7 +274,7 @@ func main() {
 			continue // no RX tag — skip
 		}
 
-		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, stagger, bc)
+		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, &stagger, &bc)
 		valids += vxVal
 		corrected += corrVal
 		set[bxVal] = struct{}{}

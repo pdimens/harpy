@@ -13,7 +13,7 @@ from .parse_phaseblocks import parse_phaseblocks
 from .plot_depth import plot_depth
 from .process_notebook import process_notebook
 from .rename_bam import rename_bam
-from .optical_dist import optical_dist
+from .optical_dist import optical_dist_sam, optical_dist_fq
 
 @click.group(options_metavar='')
 @click.version_option(__version__, prog_name="utils.hpy", hidden = True)
@@ -29,7 +29,8 @@ cli.add_command(bx_stats_fq)
 cli.add_command(haplotag_acbd)
 cli.add_command(infer_sv)
 cli.add_command(molecule_coverage)
-cli.add_command(optical_dist)
+cli.add_command(optical_dist_sam)
+cli.add_command(optical_dist_fq)
 cli.add_command(parse_phaseblocks)
 cli.add_command(plot_depth)
 cli.add_command(process_notebook)

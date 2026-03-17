@@ -52,7 +52,8 @@ class HarpyEnvs():
             "bioconda::mosdepth",
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23",
-            "bioconda::quickdeconvolution"
+            "bioconda::quickdeconvolution",
+            "bioconda::samtools"
         ],
         "impute" : [
             "bioconda::r-stitch>=1.8.4"

@@ -89,7 +89,7 @@ rule pad_barcodes:
         f'--max-mismatch {mismatch}',
         f'--min-len {minlen}'
     threads:
-        4
+        3
     shell:
         "gih-stagger --threads {threads} {params} --stats {output.stats} {input.FQ1} {input.FQ2} > {output.sam} 2> {log}"
 

@@ -34,6 +34,9 @@ import (
 	"github.com/klauspost/pgzip"
 )
 
+const R1flag int = 77
+const R2flag int = 141
+
 // ── stagger pads ──────────────────────────────────────────────────────────────
 
 var padSeq = [8]string{
@@ -156,9 +159,9 @@ func (mc multiCloser) Close() error {
 // positions 44-65, covering the expected ME start range of 51-58 with margin.
 // 'N' in the read matches any base and does not count as a mismatch.
 // Returns the 0-based start position of the best match, or -1 if not found.
-func findME(seq, me []byte, maxMismatch int) int {
-	meLen := len(me)
-	readLen := len(seq)
+func findME(seq, me *[]byte, maxMismatch *int) int {
+	meLen := len(*me)
+	readLen := len(*seq)
 	if readLen < meLen {
 		return -1
 	}
@@ -172,16 +175,16 @@ func findME(seq, me []byte, maxMismatch int) int {
 	}
 
 	bestPos := -1
-	bestMM := maxMismatch + 1
+	bestMM := *maxMismatch + 1
 
 	for pos := winStart; pos <= winEnd; pos++ {
 		mm := 0
 		for i := range meLen {
-			r := seq[pos+i]
+			r := (*seq)[pos+i]
 			if r == 'N' {
 				continue
 			}
-			if r != me[i] {
+			if r != (*me)[i] {
 				mm++
 				if mm >= bestMM {
 					break
@@ -197,7 +200,7 @@ func findME(seq, me []byte, maxMismatch int) int {
 		}
 	}
 
-	if bestMM <= maxMismatch {
+	if bestMM <= *maxMismatch {
 		return bestPos
 	}
 	return -1
@@ -209,9 +212,9 @@ func findME(seq, me []byte, maxMismatch int) int {
 // R1: 0x1|0x4|0x8|0x40 = 77   R2: 0x1|0x4|0x8|0x80 = 141
 func pairedFlag(isRead1 bool) int {
 	if isRead1 {
-		return 77
+		return R1flag
 	}
-	return 141
+	return R2flag
 }
 
 // workerState holds reusable per-goroutine scratch buffers.
@@ -271,7 +274,7 @@ func processBatch(
 		fq1 := &batch[i].fq1
 		fq2 := &batch[i].fq2
 
-		mePos := findME(fq1.seq, me, maxMismatch)
+		mePos := findME(&fq1.seq, &me, &maxMismatch)
 		if mePos == -1 {
 			discarded.Add(1)
 			continue

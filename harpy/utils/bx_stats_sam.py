@@ -129,8 +129,6 @@ def insert_size(rec) -> int:
         isize = max(abs(rec.template_length), rec.infer_query_length())
     return isize
 
-#@click.add_argument('-d', '--distance-threshold', type = int, default=0, help = "Calculate statistics assuming this distance threshold for linking alignments sharing a barcode")
-#@click.add_argument('input', help = "Input coordinate-sorted bam/sam file.")
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-d', '--distance-threshold', default = 0, show_default = True, type = click.IntRange(min = 0, max_open=True), help = 'Calculate statistics assuming this distance threshold for linking alignments sharing a barcode')
 @click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
