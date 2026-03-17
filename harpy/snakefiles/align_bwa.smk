@@ -11,8 +11,10 @@ INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
-is_standardized   = WORKFLOW.get("linkedreads", {}).get("standardized", False)
+bx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
+vx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
 skip_reports      = WORKFLOW.get("reports", {}).get("skip", False)
+illumina_old      = PARAMETERS.get("illumina-format-old", False)
 molecule_distance = PARAMETERS.get("distance-threshold", 0)
 keep_unmapped     = PARAMETERS.get("keep-unmapped", False)
 extra 		      = PARAMETERS.get("extra", "") 
@@ -77,7 +79,7 @@ rule optical_dist:
         temp("logs/optical/{sample}.opt")
     shell:
         "harpy-utils optical-dist-fq {input} > {output}"
-xxxx
+
 rule align:
     input:
         fastq      = get_fq,
@@ -89,7 +91,7 @@ rule align:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        static = "-C -v 2 -T 10" if is_standardized else "-v 2 -T 10",
+        static = "-C -v 2 -T 10" if illumina_old else "-v 2 -T 10",
         unmapped = "-F 4" if not keep_unmapped else "",
         extra = extra
     threads:
@@ -113,11 +115,11 @@ rule mark_duplicates:
         faidx  = f"{workflow_geno}.fai",
         optical ="logs/optical/{sample}.opt"
     output:
-        "{sample}.bam.bai" if lr_type == "none" or is_standardized else [],
-        bam = "{sample}.bam" if lr_type == "none" or is_standardized else temp("markdup/{sample}.bam") 
+        "{sample}.bam.bai" if lr_type == "none" or (bx_tag and vx_tag) else [],
+        bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam") ,
+        stats = "logs/markdup/{sample}.markdup.stats"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
-        stats = "logs/markdup/{sample}.markdup.stats"
     params: 
         bx_mode = "--barcode-tag BX" if not ignore_bx else "",
         quality = PARAMETERS['min-map-quality'],
@@ -133,12 +135,12 @@ rule mark_duplicates:
             samtools fixmate -z on -m -u - - |
             samtools view -h -u -q {params.quality} |
             samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -S --write-index {params.bx_mode} -d {params.opt} -f {log.stats} - {output.bam}
+            samtools markdup -@ 1 -S --write-index {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         rm -rf .{wildcards.sample}
         """
 
-if lr_type != "none" or not is_standardized:
+if lr_type != "none" or not (bx_tag and vx_tag):
     rule standardize:
         input:
             "markdup/{sample}.bam"

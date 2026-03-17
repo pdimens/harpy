@@ -20,10 +20,15 @@ class FASTQ():
         else:
             self.files = filenames
         self.bx_tag = False
+        self.vx_tag = False
+        # determine illumina format
+        self.illumina_old = True
         self.print = HarpyPrint(quiet)
         self.lr_type = "none"
         badfiles = []
 
+        #self.illu_old = re.compile(r'/[12]$')
+        self.illu_new = re.compile(r'[12]:[YN]:\d+')
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
         # check if any names will be clashing
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
@@ -73,7 +78,7 @@ class FASTQ():
         self.print.validation(True)
         
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
-
+        self.detect_illumina_format()
         if detect_bc:
             self.print.log("Detecting linked-read barcode format", newline=False)
             scanned = []
@@ -114,8 +119,24 @@ class FASTQ():
                     cmt = record.comment or ""
                     if "BX:Z" in cmt:
                         self.bx_tag = True
+                    if "VX:i" in cmt:
+                        self.vx_tag = True
+                    if self.bx_tag or self.vx_tag:
                         return
         self.print.validation(True)
+
+
+    def detect_illumina_format(self):
+        with pysam.FastxFile(self.files[0]) as f:
+            for read in f:
+                # Check old format: name ends with /1 or /2
+                #if self.illu_old.search(read.name):
+                #    self.illumina_old = "old"
+                # Check new format: comment field starts with 1: or 2:
+                if read.comment and self.illu_new.search(read.comment):
+                    self.illumina_old = False
+                # Only need to check the first read
+                break
 
     def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
         """

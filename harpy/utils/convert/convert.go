@@ -189,10 +189,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	threads := max(*nThreads, 1)
-	if threads > runtime.NumCPU() {
-		threads = runtime.NumCPU()
-	}
+	threads := min(max(*nThreads, 1), runtime.NumCPU())
 
 	jsonPath := args[0]
 	bamPath := args[1]

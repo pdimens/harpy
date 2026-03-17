@@ -62,10 +62,11 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
     fasta = FASTA(reference, quiet = quiet > 0)
 
     workflow.linkedreads["type"] = fastq.lr_type
-    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
     workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
+    workflow.param(fastq.illumina_old, "illumina-format-old")
     workflow.param(molecule_distance, "distance-threshold")
     workflow.param(min_quality, "min-map-quality")
     workflow.param(keep_unmapped, "keep-unmapped")
@@ -126,7 +127,8 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files,"fastq")
     workflow.linkedreads["type"] = fastq.lr_type
-    workflow.linkedreads["standardized"] = fastq.bx_tag
+    workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
+    workflow.param(fastq.illumina_old, "illumina-format-old")
     workflow.param(molecule_distance, "distance-threshold")
     workflow.param(min_quality, "min-map-quality")
     workflow.param(keep_unmapped, "keep-unmapped")
