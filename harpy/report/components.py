@@ -149,7 +149,7 @@ def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
     return (
     alt.Chart(df)
     .transform_calculate('percent', f'datum.count / {total}')
-    .mark_arc()
+    .mark_arc(innerRadius = 20)
     .encode(
         theta=alt.Theta('count:Q'),
         color = _color,
@@ -165,6 +165,30 @@ def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
     )
 )
 
+def convolutionbar(df: pd.DataFrame, title: str = ""):
+    total = df['count'].sum()
+    _names = list(df.columns)
+    _color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'turbo')
+    #_color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'lightgreyred')
+    return (
+        alt.Chart(df)
+        .transform_calculate('percent', f'datum.count / {total}')
+        .mark_bar()
+        .encode(
+            x=alt.X('count:Q', axis = None),
+            y=alt.Y(f'{_names[0]}:N', title = None, sort = 'ascending'),
+            color = _color,
+            tooltip = [
+                alt.Tooltip(f'{_names[0]}:O', title = _names[0].title()),
+                alt.Tooltip('percent:Q', title = "Percent", format = ".2%"),
+                alt.Tooltip("count:Q", title = "Count")
+            ]
+        )
+        .properties(
+            height = 100, width = 150,
+            title = alt.Title(title, align = 'center', anchor = 'middle')
+        )
+)
 
 def _makepanel(df, metric, title=None):
     '''Create an altair chart of read depth. Used internally by `depthplot()`'''

@@ -111,19 +111,17 @@ rule align:
 rule mark_duplicates:
     input:
         sam    = "samples/{sample}/{sample}.sam",
-        genome = workflow_geno,
-        faidx  = f"{workflow_geno}.fai",
         optical ="logs/optical/{sample}.opt"
     output:
-        "{sample}.bam.bai" if lr_type == "none" or (bx_tag and vx_tag) else [],
         bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam") ,
         stats = "logs/markdup/{sample}.markdup.stats"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params: 
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
+        bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS['min-map-quality'],
-        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
+        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip(),
+        tmprefix = lambda wc: f"samples/{wc.sample}/.{wc.sample}"
     resources:
         mem_mb = 2000
     threads:
@@ -131,11 +129,11 @@ rule mark_duplicates:
     shell:
         """
         {{
-            samtools collate -O -u {input.sam} - |
+            samtools collate -T {params.tmprefix}.collate -O -u {input.sam} - |
             samtools fixmate -z on -m -u - - |
             samtools view -h -u -q {params.quality} |
-            samtools sort -T .{wildcards.sample} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -S --write-index {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
+            samtools sort -T {params.tmprefix}.sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {params.tmprefix}.mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         rm -rf .{wildcards.sample}
         """
@@ -145,23 +143,17 @@ if lr_type != "none" or not (bx_tag and vx_tag):
         input:
             "markdup/{sample}.bam"
         output:
-            bai = "{sample}.bam.bai",
-            bam = "{sample}.bam"
+            "{sample}.bam"
         log:
             "logs/{sample}.std.log"
         shell:
-            """
-            {{
-                djinn sam standardize {input} > {output.bam}
-                samtools index {output.bam}
-            }} 2> {log}
-            """
+            "djinn sam standardize {input} > {output} 2> {log}"
 
 rule sample_stats:
     input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
+        "{sample}.bam"
     output: 
+        temp("{sample}.bam.bai"),
         stats    = temp("reports/data/samtools_stats/{sample}.stats"),
         flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat"),
         depth    = "reports/data/coverage/{sample}.regions.bed.gz"
@@ -179,9 +171,10 @@ rule sample_stats:
     shell:
         """
         {{
-            samtools stats -d {input.bam} > {output.stats}
-            samtools flagstat {input.bam} > {output.flagstat}
-            mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam}
+            samtools index {input}
+            samtools stats -d {input} > {output.stats}
+            samtools flagstat {input} > {output.flagstat}
+            mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input}
         }} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
         """
@@ -272,7 +265,7 @@ rule barcode_report:
 rule all:
     default_target: True
     input:
-        bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam", "bam.bai"]),
+        bams = collect("{sample}.bam", sample = samplenames),
         samtools = "reports/bwa.stats.html" if not skip_reports else [],
         reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
         bx_report = "reports/barcode.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []

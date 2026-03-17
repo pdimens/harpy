@@ -146,7 +146,7 @@ class Workflow():
         
         for target in self.notebook_files:
             dest_file = os.path.join(self.workflow_directory, target)
-            source_file = resources.files("harpy.report") / target
+            source_file = resources.files("harpy.report.notebooks") / target
             try:
                 with resources.as_file(source_file) as _source:
                     shutil.copy2(_source, dest_file)

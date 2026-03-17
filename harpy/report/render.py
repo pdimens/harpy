@@ -196,15 +196,26 @@ class ReportRender():
                             'children': recursive_transform(value, os.path.join(build_path, key))
                         })
                     elif isinstance(value, set):
-                        # Value is a terminal directory
                         for i in value:
                             if "reports" in i:
-                                result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
+                                result.append({'pattern': f"{os.path.join(origpath, i, '**.ipynb')}"})
+                                #                                               ↑ was hardcoded "reports", now uses actual subdir name
                             else:
                                 result.append({
                                     'title': i,
                                     'children': recursive_transform(value, os.path.join(origpath, i))
                                 })
+
+                    #elif isinstance(value, set):
+                    #    # Value is a terminal directory
+                    #    for i in value:
+                    #        if "reports" in i:
+                    #            result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
+                    #        else:
+                    #            result.append({
+                    #                'title': i,
+                    #                'children': recursive_transform(value, os.path.join(origpath, i))
+                    #            })
                 return result
             else:
                 # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}

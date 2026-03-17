@@ -48,6 +48,7 @@ class LaunchSnakemake():
         self.print = printer
         self.progress = self.print.progressbar()
         self.bash = BashFormatter(indent_size=4)
+        self.snakemake_errors: list[str] = ["MissingInputException", "SyntaxError", "NameError", "RuleException"]
 
         try:
             self.workflow_setup()
@@ -379,20 +380,25 @@ class LaunchSnakemake():
                 self.print.print(self.output, style="red")
                 self.nextline()
 
-        if "MissingInputException" in self.output:
+        if any(i in self.output for i in self.snakemake_errors):
             while self.output:
                 self.print.print(self.output, style = "red", end = "")
                 self.nextline()
 
-        elif "SyntaxError" in self.output:
-            while self.output:
-                self.print.print(self.output, style = "red", end = "")
-                self.nextline()
-
-        elif "NameError" in self.output:
-            while self.output:
-                self.print.print(self.output, style = "red", end = "")
-                self.nextline()
+        #if "SyntaxError" in self.output:
+        #    while self.output:
+        #        self.print.print(self.output, style = "red", end = "")
+        #        self.nextline()
+#
+        #if "NameError" in self.output:
+        #    while self.output:
+        #        self.print.print(self.output, style = "red", end = "")
+        #        self.nextline()
+#
+        #if "RuleException" in self.output:
+        #    while self.output:
+        #        self.print.print(self.output, style = "red", end = "")
+        #        self.nextline()
 
         # Parse rule-based errors #
         while self.output:
