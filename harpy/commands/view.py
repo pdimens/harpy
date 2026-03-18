@@ -61,7 +61,7 @@ def config(directory, edit):
 @click.command()
 @click.help_option('--help', hidden = True)
 @click.argument('program', required=False, type=str)
-def environments(program):
+def envs(program):
     """
     Print the Snakemake-managed conda environments
 
@@ -95,12 +95,13 @@ def environments(program):
                     dep = line.split("::")[-1].rstrip()
                     deps.append(dep.rstrip())
                     #deps += f" {dep.rstrip()}"
-        if (program and program.lower() in deps) or not program:
+        stripdeps = [j.split("=")[0] for j in deps]
+        if not program or any([program in j for j in stripdeps]):
             _subtree = tree.add("[bold]" + i.removesuffix('.yaml'), style = "blue")
             for d in deps:
                 if program:
                     if program.lower() in d:
-                        _subtree.add(d, style = 'bold green', highlight = False)
+                        _subtree.add(d + " <", style = 'bold green', highlight = False)
                     else:
                         _subtree.add(d, style = 'dim default', highlight = False)
                 else:
@@ -238,7 +239,7 @@ def snakeparams(directory, edit):
     )
 
 view.add_command(config)
-view.add_command(environments)
+view.add_command(envs)
 view.add_command(error)
 view.add_command(log)
 view.add_command(snakefile)
