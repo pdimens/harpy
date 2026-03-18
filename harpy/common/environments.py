@@ -18,7 +18,7 @@ class HarpyEnvs():
         "align" : [
             "bioconda::bwa-mem2",
             "bioconda::bwa",
-            "bioconda::samtools=1.22",
+            "bioconda::samtools=1.23",
             "bioconda::seqtk",
             "bioconda::strobealign",
             "bioconda::tabix"
