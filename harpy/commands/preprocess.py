@@ -55,7 +55,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     subsequent analyses, but may be useful for your own diagnostics. 
     """
     workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output, container, clean, quiet, no_validation=True) 
-    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
+    workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["qc"]
     
     workflow.inputs = {
@@ -107,6 +107,7 @@ def gih(inputs, output, me_seq, mismatch, min_len, threads, snakemake, skip_repo
     """
     workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output, container, clean, quiet, no_validation=True) 
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
+    workflow.notebook_files = ["preproc_stats.ipynb"]
     workflow.conda = ["qc", "preprocess"]
 
     ## checks and validations ##

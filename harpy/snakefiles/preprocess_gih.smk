@@ -54,27 +54,10 @@ rule all:
     default_target: True
     input: 
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
-        reports = "reports/preprocess.QA.html" if not skip_reports else []
+        collect("reports/data/{sample}.bxcount", sample = samplenames),
+        "reports/preprocess.QA.html" if not skip_reports else [],
+        "reports/library_performance.ipynb" if not skip_reports else []
 
-#rule find_ME_seq:
-#    input:
-#        get_fq1
-#    output:
-#        info = pipe("ME_position/{sample}.info")
-#    log:
-#        "logs/{sample}.findME.log"
-#    params:
-#        f"-g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null"
-#    threads:
-#        2
-#    conda:
-#        "envs/qc.yaml"
-#    container:
-#        f"docker://pdimens/harpy:qc_{VERSION}"
-#    shell:
-#        "cutadapt {params} --info-file {output.info} --cores {threads} {input} 2> {log}"
-
-#info = "ME_position/{sample}.info",
 rule pad_barcodes:
     input:
         FQ1 = get_fq1,
@@ -170,18 +153,19 @@ rule barcode_report:
     input:
         counts = collect("reports/data/{sample}.bxcount", sample = samplenames),
         stats = collect("reports/data/{sample}.BXstats", sample = samplenames),
-        me = collect("reports/data/{sample}.MEstats", sample = samplenames)
+        me = collect("reports/data/{sample}.MEstats", sample = samplenames),
+        ipynb = "workflow/preproc_stats.ipynb"
     output:
-        tmp = temp("reports/library.performance.tmp.ipynb"),
-        ipynb = "reports/library.performance.ipynb"
+        tmp = temp("reports/preproc_stats.tmp.ipynb"),
+        ipynb = "reports/library_performance.ipynb"
     log:
         "logs/libary.performance.report.log"
     params:
-        indir = "-p indir " + os.path.abspath("logs")
+        indir = "-p indir " + os.path.abspath("reports/data/")
     shell:
         """
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr}
+            harpy-utils process-notebook {output.tmp}
         }} 2> {log} > {output.ipynb}
         """

@@ -24,11 +24,12 @@ itables = ">=2.6.2,<3"
 pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
 papermill = ">=2.6.0,<3"
-djinn = "2.1.*"
+djinn = "2.3.*"
 mosdepth = ">=0.3.10,<0.4"
 beautysh = ">=6.4.2,<7"
 ipykernel = ">=7.2.0,<8"
 xeus-python = ">=0.18.1,<0.19"
+polars = ">=1.39.2,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}

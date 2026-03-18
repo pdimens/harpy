@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import polars as pl
 from harpy.common.file_ops import safe_read
 
 def last_line(filename: str) -> str:
@@ -22,6 +23,24 @@ def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
         _l = lengths
     _l.sort(reverse = True)
     cum_sum = 0 
+    for i in _l:
+        cum_sum += i
+        if cum_sum >= threshold:
+            return i
+    return max(lengths)
+
+def nxx_polars(lengths: list[int] | pd.Series | pl.Series, X: int = 50) -> int:
+    '''
+    Calculate and return the NX value of a list of numbers, where `X` is
+    the kind of NX value you want. For example, `X=50` would return the `N50`.
+    '''
+    threshold = sum(lengths) * (X / 100)
+    if isinstance(lengths, (pd.Series, pl.Series)):
+        _l = lengths.to_list()
+    else:
+        _l = list(lengths)
+    _l.sort(reverse=True)
+    cum_sum = 0
     for i in _l:
         cum_sum += i
         if cum_sum >= threshold:
@@ -68,6 +87,31 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
                 'interval': labels[:-1],
                 colname: binned_counts.values
             })
+
+def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: bool = False, max_val = 0, precision = 2) -> pl.DataFrame:
+    '''
+    Calculates a binned histogram of counts from the input `data` for bins of size `bin_size`
+    with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
+    '''
+    col_max = max_val if max_val else int(data.max())
+    bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
+    
+    labels = [f"{round(i, precision)}-{round(i + bin_size, precision)}" for i in bins]
+
+    # Cut into bins using searchsorted
+    bin_indices = np.searchsorted(bins, data.to_numpy(), side='right') - 1
+    bin_indices = np.clip(bin_indices, 0, len(bins) - 2)
+
+    colname = 'proportion' if normalize else 'count'
+
+    counts = np.bincount(bin_indices, minlength=len(bins) - 1).astype(float)
+    values = counts / counts.sum() if normalize else counts
+
+    return pl.DataFrame({
+        'bin': bins[:-1].astype(str),
+        'interval': labels[:-1],
+        colname: values
+    })
 
 def process_variants(df, bin_size=50) -> pd.DataFrame:
     """

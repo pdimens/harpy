@@ -35,4 +35,4 @@ an Issue](https://github.com/pdimens/harpy/issues/new/choose) on GitHub.
 Stand-alone HTML reports created by other software (_e.g._ `fastp` or `MultiQC`) are not inlcluded into this aggregation due to
 software limitations. 
 :::
-:::
+::::
