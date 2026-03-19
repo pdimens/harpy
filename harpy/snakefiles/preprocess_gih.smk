@@ -56,7 +56,7 @@ rule all:
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         collect("reports/data/{sample}.bxcount", sample = samplenames),
         "reports/preprocess.QA.html" if not skip_reports else [],
-        "reports/library_performance.ipynb" if not skip_reports else []
+        "reports/lr.performance.ipynb" if not skip_reports else []
 
 rule pad_barcodes:
     input:
@@ -157,7 +157,7 @@ rule barcode_report:
         ipynb = "workflow/preproc_stats.ipynb"
     output:
         tmp = temp("reports/preproc_stats.tmp.ipynb"),
-        ipynb = "reports/library_performance.ipynb"
+        ipynb = "reports/lr.performance.ipynb"
     log:
         "logs/libary.performance.report.log"
     params:

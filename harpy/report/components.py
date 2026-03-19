@@ -241,3 +241,4 @@ def depthplot(df, title):
         _param = 'Read Depth' if coverage else 'Molecule Depth'
         res = _makepanel(df, _param, title = f"{title} ({_param})")
     return res.interactive(bind_y = False)
+
