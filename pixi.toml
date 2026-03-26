@@ -5,8 +5,6 @@ channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
 version = "4.0"
 
-[tasks]
-
 [dependencies]
 bcftools = ">=1.22"
 click = ">=8.2"
@@ -24,13 +22,23 @@ pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
 papermill = ">=2.6.0,<3"
 djinn = "2.3.*"
-mosdepth = ">=0.3.10,<0.4"
 beautysh = ">=6.4.2,<7"
-ipykernel = ">=7.2.0,<8"
 xeus-python = ">=0.18.1,<0.19"
 polars = ">=1.39.2,<2"
 vl-convert-python = ">=2.0.0rc1,<3"
 snakemake-minimal = ">=9.17.2,<10"
+go = ">=1.26.1,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
+
+[tasks]
+build = {cmd = """
+    cd harpy/utils/stagger && go build -ldflags="-s -w" -o ../gih-stagger stagger.go &&
+    cd ../convert && go build -ldflags="-s -w" -o ../gih-convert convert.go &&
+    cd ../standardize && go build -ldflags="-s -w" -o ../djinn-standardize standardize.go &&
+    cd .. &&
+    chmod +x gih-stagger gih-convert djinn-standardize &&
+    mv gih-stagger gih-convert djinn-standardize ${CONDA_PREFIX}/bin/ &&
+    cd ../..
+""", inputs = ["harpy/utils/**/*.go"]}
