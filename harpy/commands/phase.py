@@ -116,7 +116,7 @@ def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_qualit
     workflow = Workflow("phase_snp", "phase_snp.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["hapcut.ipynb"]
-    workflow.conda = ["phase", "report"]
+    workflow.conda = ["phase"]
 
     ## checks and validations ##
     alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)

@@ -14,7 +14,7 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
 plot_contigs  = WORKFLOW.get("reports". {}).get("plot-contigs", 'default')
-extra 		  = PARAMETERS.get("extra", "") 
+extra         = PARAMETERS.get("extra", "")
 min_size      = PARAMETERS.get("min-size", 1000)
 min_bc        = PARAMETERS.get("min-barcodes", 2)
 iterations    = PARAMETERS.get("iterations", 50)
@@ -30,7 +30,7 @@ plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else pl
 popdict       = pop_manifest(groupfile, bamlist) if groupfile else None
 populations   = popdict.keys() if groupfile else None
 target        = populations if groupfile else {Path(i).stem for i in bamlist}
-bn 			  = os.path.basename(genomefile)
+bn            = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 
 def get_alignments(wildcards):

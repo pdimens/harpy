@@ -119,7 +119,7 @@ rule concat_variants:
         """
         for i in {input.bcf}; do echo $i; done >> {output.concatlist}
         {{
-            bcftools concat -f {input.filelist} --threads {params} --naive |
+            bcftools concat -f {output.concatlist} --threads {params} --naive |
             bcftools sort - --write-index -Ob -o {output.bcf}
         }} 2> {log}
         """

@@ -219,7 +219,7 @@ class HarpyPrint():
         '''
         If not `quiet`, print either a red x or green check following a validation log message
         '''
-        if not self.quiet > 0:
+        if self.quiet == 0:
             if success:
                 self.print("[green]🗸[/]")
             else:
@@ -228,7 +228,7 @@ class HarpyPrint():
     def log(self, text, newline:bool = True):
         '''Print a rich-style log with the time in magenta and text in default'''
         _now =  time.strftime(r'[dim magenta]\[%H:%M:%S][/]')
-        if not self.quiet > 0:
+        if self.quiet == 0:
             self.print(_now, text, highlight=False, end = "\n" if newline else " ")
     
     def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
