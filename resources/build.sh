@@ -1,7 +1,5 @@
 {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
 
-python -m ipykernel install --user
-
 ## preproc commands
 {
     cd harpy/utils/stagger
