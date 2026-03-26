@@ -156,7 +156,6 @@ rule aggregate_variants:
         "deletions.bedpe",
         "duplications.bedpe"
     run:
-        from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
             header = ["Population","Chr1","Break1","Chr2","Break2","SplitMolecules","DiscordantReads","Orientation","Haplotype","Score","PassFilter","SV"]
             _ = inversions.write("\t".join(header) + "\n")
