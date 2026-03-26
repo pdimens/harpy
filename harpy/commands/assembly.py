@@ -81,8 +81,6 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output, extra_params,a
 
     workflow.initialize(setup)
 
-"""Perform a linked-read aware metassembly"""
-
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/metassembly")
 # SPADES
 @click.option('-b', '--bx-tag', panel = "Metassembly Parameters", type = click.Choice(['BX', 'BC'], case_sensitive=False), default = "BX", show_default=True, help = "The header tag with the barcode (`BX` or `BC`)")
