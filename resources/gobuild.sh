@@ -1,6 +1,5 @@
-{{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
+#! /usr/bin/env bash
 
-## build Go binaries
 {
     cd harpy/utils/stagger
     go mod tidy && go build -ldflags="-s -w" -o ../gih-stagger stagger.go
