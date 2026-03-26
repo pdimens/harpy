@@ -71,10 +71,15 @@ jobs:
           activate-environment: true
       - name: set envvar
         run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
-      - name: harpy demultiplex
+      - name: harpy preproc meier2021
         run: |
-          harpy preprocess meier2021 --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
-          ls -lh Demultiplex
+          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
+          ls -lh Preproc/meier
+      - name: harpy preproc gih
+        run: |
+          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih* && \
+          ls -lh Preproc/gih
+
 
   validate:
     needs: changes
@@ -220,7 +225,7 @@ jobs:
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy snp mpileup --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   freebayes:
@@ -247,7 +252,7 @@ jobs:
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy snp freebayes --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   impute:
@@ -275,12 +280,12 @@ jobs:
       - name: impute from vcf
         if: always()
         run: |
-          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -O vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute/*/*
       - name: impute one region
         if: always()
         run: |
-          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -O regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute/*/*
 
   phase:
@@ -308,18 +313,18 @@ jobs:
       - name: phase with indels
         if: always()
         run: |
-          harpy phase snp --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
+          harpy phase snp --quiet 2 -O phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phaseindel
       - name: phase from vcf
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && rename-bam -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam && \
+          harpy phase --quiet 2 --vcf-samples -O phasevcf test/vcf/test.bcf test/bam && \
           ls -lh phasevcf
       - name: phase bam
         if: always()
         run: |
-          harpy phase bam --quiet 2 -o phasebam test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
+          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phasebam
 
   leviathan:
@@ -347,7 +352,7 @@ jobs:
       - name: leviathan-pop
         if: always()
         run: | 
-          harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -O SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathanpop
 
   naibr:
@@ -370,22 +375,22 @@ jobs:
         run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: naibr
         run: |
-          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
+          harpy sv naibr --quiet 2 -O SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
         run: |
-          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
+          harpy sv naibr --quiet 2 -O SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
       - name: naibr with phasing
         if: always()
         run: |
-          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
+          harpy sv naibr --quiet 2 -O SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phase
       - name: naibr pop with phasing
         if: always()
         run: |
-          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy sv naibr --quiet 2 -O SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/phasepop
 
   assembly:

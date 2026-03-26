@@ -6,7 +6,7 @@ import rich_click as click
 from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
-env_list = ["all", "align", "assembly", "metassembly", "phase", "qc", "stitch", "variants"]
+env_list = ['all'] + list(HarpyEnvs().environments().keys())
 
 @click.command(hidden = True)
 @click.help_option('--help', hidden = True)
@@ -48,6 +48,7 @@ def conda(workflows):
     - impute
     - metassembly
     - phase
+    - preprocess
     - qc
     - variants
     """
