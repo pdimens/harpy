@@ -23,6 +23,7 @@ def phase():
 @click.option('-x', '--extra-params', panel = "Parameters", type = HapCutParams(), help = 'Additional whatshap haplotag parameters, in quotes')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/bam", show_default=True,  help = 'Output directory name')
+@click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(3, 999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
@@ -37,7 +38,7 @@ def phase():
 @click.argument('reference',required = True, type=FASTAfile(), nargs = 1)
 @click.argument('vcf', required = True, type = VCFfile(), nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, reference, snakemake, extra_params, quiet, hpc, clean, container, setup, no_temp):
+def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, ploidy, reference, snakemake, extra_params, quiet, hpc, clean, container, setup, no_temp):
     """
     Phase alignments using phased SNPs
 
@@ -64,8 +65,9 @@ def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, 
     workflow.input(fasta.file, "reference")
     workflow.input(alignments.files, "alignments")
     workflow.param(molecule_distance, "distance-threshold")
-    workflow.param(alignments.lr_type != "none", "use-linked-info")
+    workflow.param(ploidy, "ploidy")
     workflow.param(vcf_samples, "prioritize-vcf-samples")
+    workflow.param(alignments.lr_type != "none", "use-linked-info")
     if extra_params:
         workflow.param(extra_params, "extra")
 
