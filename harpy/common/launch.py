@@ -430,3 +430,6 @@ class LaunchSnakemake():
                 break
             else:
                 self.process_error()
+            # stop after the first full error block is printed
+            if self.error_printed and not self.grouperror:
+                return
