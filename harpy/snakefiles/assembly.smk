@@ -9,8 +9,8 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 skip_reports = REPORTS.get("skip", False)
 organism     = REPORTS.get("organism-type", "bacteria")
 # SPADES
-max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 'auto')
-k_param      = PARAMETERS.get("spades", {}).get("k", 10000)
+max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 10000)
+k_param      = PARAMETERS.get("spades", {}).get("k", "auto")
 spades_extra = PARAMETERS.get("spades", {}).get("extra", "")
 # ARCS
 mapq       = PARAMETERS.get("tigmint", {}).get("min-mapping-quality", 0)

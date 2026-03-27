@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PIXI_VERSION: v0.62.0
+  TTY_COMPATIBLE: 1
 
 jobs:
   changes:
@@ -56,8 +56,8 @@ jobs:
     name: preprocess meier2021
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      #- name: set envvar
+      #  run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:

@@ -75,7 +75,7 @@ rule align:
         RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        min(4, workflow.cores - 2)
+        max(1, min(4, workflow.cores - 2))
     conda:
         "envs/align.yaml"
     container:

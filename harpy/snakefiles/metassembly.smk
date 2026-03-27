@@ -2,20 +2,20 @@ import os
 
 WORKFLOW   = config.get('Workflow') or {}
 PARAMETERS = config.get('Parameters') or {}
-REPORTS    = WORKFLOW.get("reports") or {} 
+REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-BX_TAG       = WORKFLOW.get("linkedreads", {})["barcode_tag"]
-max_mem      = PARAMETERS.get("spades", {}).get("max_memory", 10000)
+BX_TAG       = WORKFLOW.get("linkedreads", {}).get("barcode-tag", "BX")
+max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 10000)
 k_param      = PARAMETERS.get("spades", {}).get("k", 'auto')
-ignore_bx    = PARAMETERS.get("spades", {}).get("ignore_barcodes", False)
+ignore_bx    = PARAMETERS.get("spades", {}).get("ignore-barcodes", False)
 extra        = PARAMETERS.get("spades", {}).get("extra", "")
 force_athena = PARAMETERS.get("athena", {}).get("force", False)
 skip_reports = REPORTS.get("skip", False)
-organism     = REPORTS.get("organism_type", 'bacteria')
-FQ1          = INPUTS["fastq_r1"]
-FQ2          = INPUTS["fastq_r2"]
+organism     = REPORTS.get("organism-type", 'bacteria')
+FQ1          = INPUTS["fastq-r1"]
+FQ2          = INPUTS["fastq-r2"]
 
 spadesdir   = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}

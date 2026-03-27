@@ -56,7 +56,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     """
     workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output, container, clean, quiet, no_validation=True) 
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["qc"]
+    workflow.conda = ["qc", "preprocess"]
     
     workflow.inputs = {
         "schema" : schema,

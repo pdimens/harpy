@@ -223,7 +223,7 @@ rule contig_report:
         k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-p extra:{stitch_extra}"
+        extra   = f"-p extra {stitch_extra}"
     shell:
         """
         {{

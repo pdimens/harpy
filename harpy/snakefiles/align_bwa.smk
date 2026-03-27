@@ -96,7 +96,7 @@ rule align:
         unmapped = "-F 4" if not keep_unmapped else "",
         extra = extra
     threads:
-        min(4, workflow.cores - 2)
+        max(1, min(4, workflow.cores - 2))
     conda:
         "envs/align.yaml"
     container:
