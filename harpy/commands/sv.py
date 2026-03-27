@@ -138,8 +138,8 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
     workflow.conda = ["variants"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, check_phase = True, quiet = quiet > 0)
-    fasta =  FASTA(reference, quiet = quiet > 0)
+    alignments = XAM(inputs, check_phase = True, quiet = quiet)
+    fasta =  FASTA(reference, quiet = quiet)
     if contigs:
         fasta.match_contigs(contigs)
 

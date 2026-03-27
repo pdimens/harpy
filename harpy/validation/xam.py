@@ -14,7 +14,7 @@ class XAM():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     """
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, check_phase:bool = False, quiet:bool = False):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, check_phase:bool = False, quiet:int = 0):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:

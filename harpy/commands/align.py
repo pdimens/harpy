@@ -58,8 +58,8 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
     workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
-    fasta = FASTA(reference, quiet = quiet > 0)
+    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet)
+    fasta = FASTA(reference, quiet = quiet)
 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
@@ -121,8 +121,8 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
     workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc= not unlinked, quiet= quiet > 0)
-    fasta = FASTA(reference, quiet= quiet > 0)
+    fastq = FASTQ(inputs, detect_bc= not unlinked, quiet = quiet)
+    fasta = FASTA(reference, quiet = quiet)
 
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files,"fastq")

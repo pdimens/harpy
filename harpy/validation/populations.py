@@ -6,7 +6,7 @@ class Populations():
     '''
     A class to contain and validate a sample-grouping input file.
     '''
-    def __init__(self, filename, infiles, quiet:bool = False):
+    def __init__(self, filename, infiles, quiet:int = 0):
         self.file = filename
         self.print = HarpyPrint(quiet)
         self.print.log("Validating all input samples are present in populations file", newline=False)

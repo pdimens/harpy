@@ -8,7 +8,7 @@ class FASTA():
     '''
     A class to contain and validate a FASTA input file.
     '''
-    def __init__(self, fasta, quiet:bool = False):
+    def __init__(self, fasta, quiet:int = 0):
         self.file = fasta
         self.print = HarpyPrint(quiet)
         self.print.log("Validating input FASTA file format", newline = False)

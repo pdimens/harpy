@@ -11,7 +11,7 @@ class VCF():
     '''
     A class to contain and validate a VCF input file.
     '''
-    def __init__(self, filename:str, workdir:str, quiet:bool = False):
+    def __init__(self, filename:str, workdir:str, quiet:int = 0):
         os.makedirs(workdir, exist_ok = True)
 
         self.file = filename

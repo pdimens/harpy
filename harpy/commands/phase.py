@@ -54,8 +54,8 @@ def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, 
     workflow.conda = ["phase"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet)
     vcffile.check_phase()
     vcffile.match_samples(alignments.files, vcf_samples)
     fasta = FASTA(reference)
@@ -121,8 +121,8 @@ def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_qualit
     workflow.conda = ["phase"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet > 0)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet)
     vcffile.match_samples(alignments.files, vcf_samples)
     if contigs:
         vcffile.match_contigs(contigs)

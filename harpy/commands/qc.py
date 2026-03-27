@@ -54,7 +54,7 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
     workflow.conda = ["qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet > 0)
+    fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet)
     if trim_adapters:
         if trim_adapters != "auto":
             if not os.path.isfile(trim_adapters):

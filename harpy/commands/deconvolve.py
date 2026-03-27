@@ -40,7 +40,7 @@ def deconvolve(inputs, output, kmer_length, window_size, density, dropout, threa
     workflow.conda = ["qc"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, quiet= quiet > 0)
+    fastq = FASTQ(inputs, quiet = quiet)
     
     workflow.input(fastq.files)
     workflow.param(kmer_length, "kmer-length")       

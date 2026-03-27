@@ -49,7 +49,7 @@ def bam(inputs, output, threads, snakemake, quiet, hpc, clean, container, setup,
     workflow.notebook_files = ["validate_bam.ipynb"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet)
 
     workflow.linkedreads["type"] = alignments.lr_type
     workflow.input(alignments.files)
@@ -91,7 +91,7 @@ def fastq(inputs, output, threads, snakemake, quiet, hpc, clean, container, setu
     workflow.notebook_files = ["validate_fastq.ipynb"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet > 0)
+    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet)
 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.input(fastq.files)

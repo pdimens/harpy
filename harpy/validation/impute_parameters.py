@@ -9,7 +9,7 @@ class ImputeParams():
     A class to contain and validate a STITCH imputation parameter file.
     Validation checks the STITCH parameter file for column names, order, types, missing values, etc.
     '''
-    def __init__(self, filename, quiet:bool = False):
+    def __init__(self, filename, quiet:int = 0):
         self.file: str = filename
         self.print = HarpyPrint(quiet)
 

@@ -52,7 +52,7 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output, extra_params,a
     workflow.conda = ["assembly","qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2], quiet= quiet > 0)
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet = quiet)
 
     workflow.notebooks["skip"] = skip_reports
     workflow.notebooks["organism-type"] = organism_type
@@ -117,7 +117,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     workflow.conda = ["align", "assembly", "metassembly", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2], quiet = quiet > 0)
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet = quiet)
     fastq.bc_or_bx(bx_tag)
 
     workflow.linkedreads["barcode-tag"] = bx_tag.upper()

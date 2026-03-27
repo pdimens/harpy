@@ -65,8 +65,8 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
     workflow.conda = ["variants"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, quiet = quiet > 0)
-    fasta = FASTA(reference, quiet = quiet > 0)
+    alignments = XAM(inputs, quiet = quiet)
+    fasta = FASTA(reference, quiet = quiet)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
@@ -136,8 +136,8 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
     workflow.notebook_files = ["bcftools_stats.ipynb"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, quiet = quiet > 0)
-    fasta = FASTA(reference, quiet = quiet > 0)
+    alignments = XAM(inputs, quiet = quiet)
+    fasta = FASTA(reference, quiet = quiet)
     fasta.validate_region(regions)
 
     region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
