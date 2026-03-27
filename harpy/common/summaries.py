@@ -77,16 +77,16 @@ class Summary:
         k_param      = self.config["Parameters"]["spades"]["k"]
         spades_extra = self.config["Parameters"]["spades"].get("extra", "")
         # ARCS
-        mapq       = self.config["Parameters"]["tigmint"]["minimum-mapping-quality"]
+        mapq       = self.config["Parameters"]["tigmint"]["min-mapping-quality"]
         mismatch   = self.config["Parameters"]["tigmint"]["mismatch"]
         mol_dist   = self.config["Parameters"]["tigmint"]["molecule-distance"]
         mol_len    = self.config["Parameters"]["tigmint"]["molecule-length"]
         span       = self.config["Parameters"]["tigmint"]["span"]
-        min_align  = self.config["Parameters"]["arcs"]["minimum-aligned-reads"]
-        min_contig = self.config["Parameters"]["arcs"]["minimum-contig-length"]
-        seq_id     = self.config["Parameters"]["arcs"]["minimum-sequence-identity"]
+        min_align  = self.config["Parameters"]["arcs"]["min-aligned-reads"]
+        min_contig = self.config["Parameters"]["arcs"]["min-contig-length"]
+        seq_id     = self.config["Parameters"]["arcs"]["min-sequence-identity"]
         arcs_extra = self.config["Parameters"]["arcs"].get("extra", "")
-        links      = self.config["Parameters"]["links"]["minimum-links"]
+        links      = self.config["Parameters"]["links"]["min-links"]
         k_param = k_param
         max_mem = max_mem // 1000
         spades_extra = spades_extra
