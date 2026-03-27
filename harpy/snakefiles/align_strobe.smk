@@ -95,7 +95,7 @@ rule mark_duplicates:
     params:
         tmprefix = lambda wc: f"samples/{wc.sample}/.{wc.sample}",
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
-        quality = PARAMETERS['min-map-quality'],
+        quality = PARAMETERS.get('min-map-quality', 30),
         opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
     resources:
         mem_mb = 2000
