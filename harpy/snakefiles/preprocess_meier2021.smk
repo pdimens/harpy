@@ -101,9 +101,9 @@ rule assess_quality:
     threads:
         1
     conda:
-        "envs/qc.yaml"
+        "envs/preprocess.yaml"
     container:
-        f"docker://pdimens/harpy:qc_{VERSION}"
+        f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
         ( falco --quiet --threads {threads} -skip-report -skip-summary -data-filename {output} {input} ) > {log} 2>&1 ||
