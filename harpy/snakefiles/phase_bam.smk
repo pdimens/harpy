@@ -15,8 +15,9 @@ genomefile  = INPUTS["reference"]
 bamlist     = INPUTS["alignments"]
 vcffile     = INPUTS["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
-extra       = PARAMETERS.get("extra", None) 
 mol_dist    = PARAMETERS.get("distance-threshold", 100000)
+extra       = PARAMETERS.get("extra", None) 
+ploidy       = PARAMETERS.get("ploidy", 2) 
 
 bn            = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
@@ -91,10 +92,11 @@ rule phase_alignments:
         bam = temp("phased/{sample}.phased.bam"),
         log = "logs/{sample}.phase.log"
     params:
-        f"--linked-read-distance-cutoff {mol_dist}",
+        f"--ploidy {ploidy}",
+        f"-d {mol_dist}",
         "--tag-supplementary copy-primary",
         "--no-supplementary-strand-match",
-        f"--supplementary-distance {mol_dist}",
+        f"--supplementary-distance {3 * mol_dist}",
         "--ignore-read-groups",
         "--skip-missing-contigs",
         extra
@@ -103,9 +105,14 @@ rule phase_alignments:
     container:
         f"docker://pdimens/harpy:phase_{VERSION}"
     threads:
-        4
+        3
     shell:
-        "whatshap haplotag --sample {wildcards.sample} --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
+        """
+        {{
+            whatshap haplotag --sample {wildcards.sample} --reference {input.ref} {input.vcf} {input.aln} |
+            samtools view -@ 1 -h -O BAM > {output.bam}
+        }} 2> {output.log}
+        """
 
 rule log_phasing:
     input:
@@ -147,7 +154,7 @@ rule sort_phased_bam:
     threads:
         2
     shell:
-        "samtools sort -@ 1 -o {output} -O BAM --write-index -m {resources.mem_mb}M {input} 2> {log}"
+        "samtools sort -@ 1 -o {output} -O BAM -m {resources.mem_mb}M {input} 2> {log}"
 
 rule all:
     default_target: True
