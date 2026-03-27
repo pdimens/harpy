@@ -5,13 +5,13 @@ localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 lr_type       = WORKFLOW.get("linkedreads", {}).get("type", 'none')
-skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports  = REPORTS.get("skip", False)
 min_len 	  = PARAMETERS.get("min-len", 30)
 max_len 	  = PARAMETERS.get("max-len", 150)
 extra 	      = PARAMETERS.get("extra", "") 

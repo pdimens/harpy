@@ -7,13 +7,14 @@ localrules: all, aggregate_variants
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
-plot_contigs  = WORKFLOW.get("reports", {}).get("plot-contigs", "default")
+skip_reports  = REPORTS.get("skip", False)
+plot_contigs  = REPORTS.get("plot-contigs", "default")
 extra         = PARAMETERS.get("extra", "")
 min_size      = PARAMETERS.get("min-size", 1000)
 min_bc        = PARAMETERS.get("min-barcodes", 2)

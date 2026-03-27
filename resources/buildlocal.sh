@@ -17,6 +17,6 @@ pip install --no-deps --disable-pip-version-check -e . && rm -rf build
     go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
     go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
     chmod +x gih-stagger gih-convert djinn-standardize
-    mv gih-stagger gih-convert djinn-standardize ${PREFIX}/bin/
+    mv gih-stagger gih-convert djinn-standardize "${CONDA_PREFIX}/bin/"
     cd ../..
 }

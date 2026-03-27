@@ -167,7 +167,7 @@ class HarpyPrint():
             # Check if this is the `base` conda environment
             current_env = os.environ.get('CONDA_DEFAULT_ENV')
             if current_env == 'base':
-                errortext += "\n[yellow]Notice:[/] Harpy detected that you're in the [blue]base[/] conda environment; conda recommends against installing anything into the [base]base[/] environment."
+                errortext += "\n[yellow]Notice:[/] Harpy detected that you're in the [blue]base[/] conda environment; conda recommends against installing anything into the [blue]base[/] environment."
             # Check the channel priority setting
             try:
                 from conda.base.context import context

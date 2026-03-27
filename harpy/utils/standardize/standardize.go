@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
@@ -155,7 +156,11 @@ func main() {
 	for {
 		rec, err := br.Read()
 		if err != nil {
-			break // EOF
+			if err == io.EOF {
+				break
+			}
+			fmt.Fprintf(os.Stderr, "Error reading BAM: %v\n", err)
+			os.Exit(1)
 		}
 
 		bxVal, hasBX := GetStringTag(rec, "BX")
@@ -172,11 +177,15 @@ func main() {
 					// matches[2] is the stlfr barcode e.g. "1_2_3"
 					bxVal = matches[2]
 				}
+				SetVX(rec, invalid.MatchString(bxVal))
+				SetBX(rec, bxVal)
 			}
-			SetVX(rec, invalid.MatchString(bxVal))
-			SetBX(rec, bxVal)
+			// if no barcode at all (bxVal == ""), then don't modify the read at all
 		}
 
-		w.Write(rec)
+		if err := w.Write(rec); err != nil {
+			fmt.Fprintf(os.Stderr, "Error writing BAM: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }

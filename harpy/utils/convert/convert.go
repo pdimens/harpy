@@ -18,6 +18,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -88,6 +89,7 @@ func lookup(m *map[string]string, key *string) *string {
 // Writes go directly into the bufio buffer, which flushes to pgzip only
 // when its 1MB capacity is reached — no intermediate per-record copy.
 type fastqWriter struct {
+	f   *os.File
 	gz  *pgzip.Writer
 	buf *bufio.Writer
 	dir string
@@ -105,10 +107,27 @@ func newFastqWriter(path string, readnum string, level, threads int) (*fastqWrit
 	}
 	gz.SetConcurrency(2<<20, threads)
 	return &fastqWriter{
+		f:   f,
 		gz:  gz,
 		buf: bufio.NewWriterSize(gz, 2<<20),
 		dir: readnum,
 	}, nil
+}
+
+func (fw *fastqWriter) close() error {
+	var errs []error
+
+	if err := fw.buf.Flush(); err != nil {
+		errs = append(errs, fmt.Errorf("flushing buffer: %w", err))
+	}
+	if err := fw.gz.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("closing gzip writer: %w", err))
+	}
+	if err := fw.f.Close(); err != nil {
+		errs = append(errs, fmt.Errorf("closing file: %w", err))
+	}
+
+	return errors.Join(errs...)
 }
 
 // writeRecord writes a single FASTQ record directly into the bufio buffer.
@@ -116,40 +135,63 @@ func newFastqWriter(path string, readnum string, level, threads int) (*fastqWrit
 // bufio only flushes to pgzip when its 1MB buffer is full, so no intermediate
 // per-record copy is needed.
 func (fw *fastqWriter) writeRecord(name string, bxTag string, vxTag int, seq []byte, qual []uint8) error {
-	// Header: @name\tVX:i:<vx>\tBX:Z:<bx>
-	fw.buf.WriteByte('@')
-	fw.buf.WriteString(name)
-	fw.buf.WriteString(fw.dir)
-	fw.buf.WriteString("\tVX:i:")
-	writeInt(fw.buf, vxTag)
-	fw.buf.WriteString("\tBX:Z:")
-	fw.buf.WriteString(bxTag)
-	fw.buf.WriteByte('\n')
-
-	// Sequence
-	fw.buf.Write(seq)
-	fw.buf.WriteString("\n+\n")
-
-	// Quality — convert raw Phred → ASCII Phred+33 inline
-	for _, q := range qual {
-		fw.buf.WriteByte(q + 33)
+	w := errWriter{buf: fw.buf}
+	w.writeString("@")
+	w.writeString(name)
+	w.writeString(fw.dir)
+	w.writeString("\tVX:i:")
+	w.writeInt(vxTag)
+	w.writeString("\tBX:Z:")
+	w.writeString(bxTag)
+	w.writeByte('\n')
+	w.write(seq)
+	w.writeString("\n+\n")
+	if w.err != nil {
+		return w.err
 	}
-	fw.buf.WriteByte('\n')
-	return nil
+	for _, q := range qual {
+		if err := fw.buf.WriteByte(q + 33); err != nil {
+			return err
+		}
+	}
+	return fw.buf.WriteByte('\n')
 }
 
-func (fw *fastqWriter) close() error {
-	if err := fw.buf.Flush(); err != nil {
-		return err
+// errWriter wraps bufio.Writer and stops writing after the first error,
+// so call sites can batch writes and check once at the end.
+type errWriter struct {
+	buf *bufio.Writer
+	err error
+}
+
+func (w *errWriter) write(b []byte) {
+	if w.err == nil {
+		_, w.err = w.buf.Write(b)
 	}
-	return fw.gz.Close()
+}
+
+func (w *errWriter) writeString(s string) {
+	if w.err == nil {
+		_, w.err = w.buf.WriteString(s)
+	}
+}
+
+func (w *errWriter) writeByte(b byte) {
+	if w.err == nil {
+		w.err = w.buf.WriteByte(b)
+	}
+}
+
+func (w *errWriter) writeInt(n int) {
+	if w.err == nil {
+		w.err = writeInt(w.buf, n)
+	}
 }
 
 // writeInt writes a non-negative integer to b without allocating.
-func writeInt(b *bufio.Writer, n int) {
+func writeInt(b *bufio.Writer, n int) error {
 	if n == 0 {
-		b.WriteByte('0')
-		return
+		return b.WriteByte('0')
 	}
 	var tmp [10]byte
 	i := len(tmp)
@@ -158,7 +200,8 @@ func writeInt(b *bufio.Writer, n int) {
 		tmp[i] = byte('0' + n%10)
 		n /= 10
 	}
-	b.Write(tmp[i:])
+	_, err := b.Write(tmp[i:])
+	return err
 }
 
 // ─── SAM tag helpers ──────────────────────────────────────────────────────────
@@ -271,9 +314,12 @@ func main() {
 		}
 
 		rx, hasRX := getStringTag(rec, "RX")
-		ox, _ := getStringTag(rec, "RX")
+		ox, hasOX := getStringTag(rec, "OX")
 		if !hasRX {
 			continue // no RX tag — skip
+		}
+		if !hasOX {
+			ox = rx
 		}
 
 		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, &stagger, &bc)

@@ -7,12 +7,13 @@ wildcard_constraints:
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports  = REPORTS.get("skip", False)
 region        = PARAMETERS.get("region", None)
 stitch_params = PARAMETERS["stitch"]
 stitch_extra  = PARAMETERS.get("extra", "None")

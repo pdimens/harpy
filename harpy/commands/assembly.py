@@ -62,17 +62,17 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output, extra_params,a
     workflow.param(max_memory, "spades:max-memory")
     if extra_params:
         workflow.param(extra_params, "spades:extra")
-    workflow.param(min_quality, "tigmint:minimum-mapping-quality")
+    workflow.param(min_quality, "tigmint:min-mapping-quality")
     workflow.param(mismatch, "tigmint:mismatch")
     workflow.param(molecule_distance, "tigmint:molecule-distance")
     workflow.param(molecule_length, "tigmint:molecule-length")
     workflow.param(span, "tigmint:span")
-    workflow.param(min_aligned, "arcs:minimum-aligned-reads")
-    workflow.param(contig_length, "arcs:minimum-contig-length")
-    workflow.param(seq_identity, "arcs:minimum-sequence-identity")
+    workflow.param(min_aligned, "arcs:min-aligned-reads")
+    workflow.param(contig_length, "arcs:min-contig-length")
+    workflow.param(seq_identity, "arcs:min-sequence-identity")
     if arcs_extra:
         workflow.param(arcs_extra, "arcs:extra")
-    workflow.param(links, "links:minimum-links")
+    workflow.param(links, "links:min-links")
 
     workflow.info ={
         "Kmer Length" : workflow.parameters["spades"]["k"],

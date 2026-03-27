@@ -1,7 +1,7 @@
 import os
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
@@ -11,8 +11,8 @@ k_param      = PARAMETERS.get("spades", {}).get("k", 'auto')
 ignore_bx    = PARAMETERS.get("spades", {}).get("ignore_barcodes", False)
 extra        = PARAMETERS.get("spades", {}).get("extra", "")
 force_athena = PARAMETERS.get("athena", {}).get("force", False)
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
-organism     = WORKFLOW.get("reports", {}).get("organism_type", 'bacteria')
+skip_reports = REPORTS.get("skip", False)
+organism     = REPORTS.get("organism_type", 'bacteria')
 FQ1          = INPUTS["fastq_r1"]
 FQ2          = INPUTS["fastq_r2"]
 

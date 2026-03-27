@@ -2,12 +2,12 @@ import os
 import yaml
 from collections import Counter
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports     = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports     = REPORTS.get("skip", False)
 qxrx             = PARAMETERS.get("qx-rx", False)
 unknown_samples  = PARAMETERS.get("samples", False)
 unknown_barcodes = PARAMETERS.get("barcodes", False)

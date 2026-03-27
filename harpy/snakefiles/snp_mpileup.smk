@@ -5,12 +5,12 @@ localrules: all, concat_logs
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports = REPORTS.get("skip", False)
 ploidy 		 = PARAMETERS.get("ploidy", 2)
 mp_extra 	 = PARAMETERS.get("extra", "")
 bamlist      = INPUTS["alignments"]

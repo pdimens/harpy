@@ -36,8 +36,6 @@ class ReadCloud():
         '''
         if not self.positions:
             return
-        if not self.valid:
-            sys.stdout.write(f"{self.chromosome}\tinvalid\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count)))
         result = ""
         # sort alignment extrema by leftmost position and sort the subsequent info the same way
         sort_values = [sublist[0] for sublist in self.positions]
@@ -111,8 +109,12 @@ class ReadCloud():
 
 def writestats(x: dict[str,ReadCloud], thresh):
     '''write to file the bx stats dictionary as a table'''
-    for cloud in x:
-        x[cloud].deconvolve(thresh)
+    for cloud in x.values():
+        if not cloud.valid:
+            sys.stdout.write(f"{cloud.chromosome}\tinvalid\t" + cloud.stats(0, 0, 0, sum(cloud.bp), sum(cloud.count)))
+            cloud.reset()
+            continue
+        cloud.deconvolve(thresh)
 
 def insert_size(rec) -> int:
     '''Calculate the insert size'''
@@ -153,7 +155,7 @@ def bx_stats_sam(distance_threshold, input):
         for read in alnfile.fetch(until_eof=True):
             chrom = read.reference_name
             # check if the current chromosome is different from the previous one
-            # if so, print the dict to file and empty it (a consideration for RAM usage)
+            # if so, process the dict
             if LAST_CONTIG and chrom != LAST_CONTIG:
                 writestats(d, distance_threshold)
             LAST_CONTIG = chrom

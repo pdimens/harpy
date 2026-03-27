@@ -6,13 +6,13 @@ localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 fqlist       = INPUTS
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports = REPORTS.get("skip", False)
 me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
 mismatch     = PARAMETERS.get("ME-mismatch", 1) 
 minlen       = PARAMETERS.get("min-length", 10) 

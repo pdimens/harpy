@@ -18,15 +18,8 @@ def plot_depth(contigs, prefix, molcov, coverage):
     - contigs: name(s) of contigs to plot, space-separated (default = 30 largest)
     """
     if not molcov and not coverage:
-        sys.stderr.write(f"At least one of `-a` or `-m` need to be provided\n")
+        sys.stderr.write(f"At least one of `-c` or `-m` need to be provided\n")
         sys.exit(1)
-    if molcov and not os.path.isfile(molcov):
-        sys.stderr.write(f"File {molcov} does not exist.\n")
-        sys.exit(1)
-    if coverage and not os.path.isfile(coverage):
-        sys.stderr.write(f"File {coverage} does not exist.\n")
-        sys.exit(1)
-
     # moved here to reduce import lag when using CLI
     from harpy.report.theme import palette
     from harpy.report.components import depthplot

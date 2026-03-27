@@ -22,19 +22,18 @@ def check_fastq(platform, input):
     BAD_SAM_SPEC: int = 0
     BX_NOT_LAST: int = 0
 
+    platform = platform.lower()
     samspec = re.compile(r'[A-Z][A-Z]:[AifZHB]:')
     def check_samspec(fq_comment):
+        nonlocal BAD_SAM_SPEC, BX_NOT_LAST
         splithead = fq_comment.split()
         for i in splithead:
             # if comments dont start with TAG:TYPE:, invalid SAM spec
             if not samspec.match(i):
-                nonlocal BAD_SAM_SPEC
                 BAD_SAM_SPEC += 1
-            # if the BX:Z: isn't at the end, add to BX_NOT_LAST
-            if not splithead[-1].startswith('BX:Z'):
-                nonlocal BX_NOT_LAST
-                BX_NOT_LAST += 1
-    platform = platform.lower()
+        # if BX:Z: exists but isn't the last tag, count once per read  
+        if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):  
+            BX_NOT_LAST += 1
     if platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
         def check_read(fq_record):
@@ -55,7 +54,7 @@ def check_fastq(platform, input):
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 
-    if platform == "tellseq":
+    else:
         barcode = re.compile(r'\:[ATCGN]+$')
         def check_read(fq_record):
             if not barcode.search(fq_record.name):

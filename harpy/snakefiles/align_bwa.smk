@@ -5,15 +5,16 @@ localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-WORKFLOW    = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW    = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
 bx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
 vx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
-skip_reports      = WORKFLOW.get("reports", {}).get("skip", False)
+skip_reports      = REPORTS.get("skip", False)
 illumina_old      = PARAMETERS.get("illumina-format-old", False)
 molecule_distance = PARAMETERS.get("distance-threshold", 0)
 keep_unmapped     = PARAMETERS.get("keep-unmapped", False)
@@ -135,7 +136,7 @@ rule mark_duplicates:
             samtools sort -T {params.tmprefix}.sort -u -l 0 -m {resources.mem_mb}M - |
             samtools markdup -@ 1 -T {params.tmprefix}.mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf .{wildcards.sample}
+        rm -rf {params.tmprefix}*
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):
@@ -146,8 +147,10 @@ if lr_type != "none" and not (bx_tag and vx_tag):
             "{sample}.bam"
         log:
             "logs/{sample}.std.log"
+        threads:
+            2
         shell:
-            "djinn sam standardize {input} > {output} 2> {log}"
+            "djinn-standardize --threads {threads} {input} > {output} 2> {log}"
 
 rule sample_stats:
     input:

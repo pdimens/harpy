@@ -6,14 +6,14 @@ localrules: all, summarize_blocks
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 bc_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
-skip_reports      = WORKFLOW.get("reports", {}).get("skip", False)
-plot_contigs      = WORKFLOW.get("reports", {}).get("plot-contigs", 'default')
+skip_reports      = REPORTS.get("skip", False)
+plot_contigs      = REPORTS.get("plot-contigs", 'default')
 pruning           = PARAMETERS.get("prune", 30)
 map_qual          = PARAMETERS.get("min-map-quality", 20)
 base_qual         = PARAMETERS.get("min-base-quality", 13)

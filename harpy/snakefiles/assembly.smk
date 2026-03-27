@@ -1,27 +1,28 @@
 import os
 
-WORKFLOW   = config.get('Workflow', {})
-PARAMETERS = config.get('Parameters', {})
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
-organism     = WORKFLOW.get("reports", {}).get("organism-type", "bacteria")
+skip_reports = REPORTS.get("skip", False)
+organism     = REPORTS.get("organism-type", "bacteria")
 # SPADES
 max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 'auto')
 k_param      = PARAMETERS.get("spades", {}).get("k", 10000)
 spades_extra = PARAMETERS.get("spades", {}).get("extra", "")
 # ARCS
-mapq       = PARAMETERS.get("tigmint", {}).get("minimum_mapping-quality", 0)
+mapq       = PARAMETERS.get("tigmint", {}).get("min-mapping-quality", 0)
 mismatch   = PARAMETERS.get("tigmint", {}).get("mismatch", 5)
 mol_dist   = PARAMETERS.get("tigmint", {}).get("molecule-distance", 50000)
 mol_len    = PARAMETERS.get("tigmint", {}).get("molecule-length", 2000)
 span       = PARAMETERS.get("tigmint", {}).get("span", 20)
-min_align  = PARAMETERS.get("arcs", {}).get("minimum-aligned-reads", 5)
-min_contig = PARAMETERS.get("arcs", {}).get("minimum-contig-length", 500)
-seq_id     = PARAMETERS.get("arcs", {}).get("minimum-sequence-identity", 98)
+min_align  = PARAMETERS.get("arcs", {}).get("min-aligned-reads", 5)
+min_contig = PARAMETERS.get("arcs", {}).get("min-contig-length", 500)
+seq_id     = PARAMETERS.get("arcs", {}).get("min-sequence-identity", 98)
 arcs_extra = PARAMETERS.get("arcs", {}).get("extra", "")
-links      = PARAMETERS.get("links", {}).get("minimum-links", 5)
+links      = PARAMETERS.get("links", {}).get("min-links", 5)
 FQ1        = INPUTS["fastq-r1"]
 FQ2        = INPUTS["fastq-r2"]
 
