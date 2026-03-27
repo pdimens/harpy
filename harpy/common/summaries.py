@@ -1,7 +1,5 @@
 """Basic functions to write the workflow summaries"""
 import os
-
-from pandas.io.stata import Self
 from harpy.common.file_ops import naibr_extra
 
 class Summary:
