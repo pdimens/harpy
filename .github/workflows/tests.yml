@@ -56,6 +56,8 @@ jobs:
     name: preprocess meier2021
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -66,8 +68,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy preproc meier2021
         run: |
           harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
@@ -84,6 +84,8 @@ jobs:
     name: validate
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -94,8 +96,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test validate fastq
         run: |
           harpy validate fastq test/fastq && \
@@ -112,6 +112,8 @@ jobs:
     name: qc
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -122,8 +124,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy qc
         run: |
           harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
@@ -135,6 +135,8 @@ jobs:
     name: deconvolve
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -145,8 +147,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: harpy deconvolve
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
@@ -158,6 +158,8 @@ jobs:
     name: align BWA
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -168,8 +170,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test bwa
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
@@ -181,6 +181,8 @@ jobs:
     name: align strobe
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -191,8 +193,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: test strobealign
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
@@ -204,6 +204,8 @@ jobs:
     name: mpileup
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -214,8 +216,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: snp mpileup
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
@@ -231,6 +231,8 @@ jobs:
     name: freebayes
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -241,8 +243,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: snp freebayes
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
@@ -258,6 +258,8 @@ jobs:
     name: impute
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -268,8 +270,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: impute
         run: |
           harpy impute --quiet 2 --grid-size 1500 test/stitch.params test/vcf/test.bcf test/bam && \
@@ -291,6 +291,8 @@ jobs:
     name: phase
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -301,8 +303,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: phase
         run: |
           harpy phase snp --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
@@ -316,12 +316,12 @@ jobs:
         if: always()
         run: |
           cp test/bam/sample1.bam test/bam/pineapple.bam && harpy-utils rename-bam -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -O phasevcf test/vcf/test.bcf test/bam && \
+          harpy phase snp --quiet 2 --vcf-samples -O phasevcf test/vcf/test.bcf test/bam && \
           ls -lh phasevcf
       - name: phase bam
         if: always()
         run: |
-          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
+          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.phased.bcf test/bam && \
           ls -lh phasebam
 
   leviathan:
@@ -330,6 +330,8 @@ jobs:
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -340,8 +342,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: leviathan
         run: |
           harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
@@ -358,6 +358,8 @@ jobs:
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -368,8 +370,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: naibr
         run: |
           harpy sv naibr --quiet 2 -O SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
@@ -379,16 +379,6 @@ jobs:
         run: |
           harpy sv naibr --quiet 2 -O SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
-      - name: naibr with phasing
-        if: always()
-        run: |
-          harpy sv naibr --quiet 2 -O SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
-          ls -lh SV/phase
-      - name: naibr pop with phasing
-        if: always()
-        run: |
-          harpy sv naibr --quiet 2 -O SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
-          ls -lh SV/phasepop
 
   assembly:
     needs: changes
@@ -396,6 +386,8 @@ jobs:
     name: assembly
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -406,8 +398,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
       - name: test assembly
@@ -429,6 +419,8 @@ jobs:
     name: miscellaneous
     runs-on: ubuntu-latest
     steps:
+      - name: set envvar
+        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -439,8 +431,6 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: template impute
         run: harpy template impute
       - name: template groupings

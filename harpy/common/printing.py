@@ -1,5 +1,6 @@
 """Module of pretty-printing for errors and prompts"""
 
+from contextlib import nullcontext
 import os
 import sys
 import time
@@ -233,6 +234,8 @@ class HarpyPrint():
     
     def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
         """Returns a nicely formatted live-panel with the progress bar in it"""
+        if self.quiet == 2:
+            return nullcontext()
         return Live(
             Panel(
                 progressbar, title = title, border_style="dim"

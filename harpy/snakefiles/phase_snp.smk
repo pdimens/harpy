@@ -8,6 +8,7 @@ wildcard_constraints:
 
 WORKFLOW   = config.get('Workflow') or {}
 PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
@@ -245,7 +246,7 @@ rule phase_report:
         data = "reports/blocks.summary.gz",
         ipynb = "workflow/hapcut.ipynb"
     output:
-        tmp = temp("reports/phase.tmp.ipynb")
+        tmp = temp("reports/phase.tmp.ipynb"),
         ipynb = "reports/phase.ipynb"
     log:
         "logs/report.log"

@@ -7,6 +7,7 @@ wildcard_constraints:
 
 WORKFLOW   = config.get('Workflow') or {}
 PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
