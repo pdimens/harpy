@@ -13,7 +13,7 @@ INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 skip_reports  = WORKFLOW.get("reports", {}).get("skip", False)
-plot_contigs  = WORKFLOW.get("reports". {}).get("plot-contigs", 'default')
+plot_contigs  = WORKFLOW.get("reports", {}).get("plot-contigs", "default")
 extra         = PARAMETERS.get("extra", "")
 min_size      = PARAMETERS.get("min-size", 1000)
 min_bc        = PARAMETERS.get("min-barcodes", 2)
