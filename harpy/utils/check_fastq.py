@@ -28,19 +28,22 @@ def check_fastq(platform, input):
         for i in splithead:
             # if comments dont start with TAG:TYPE:, invalid SAM spec
             if not samspec.match(i):
+                nonlocal BAD_SAM_SPEC
                 BAD_SAM_SPEC += 1
             # if the BX:Z: isn't at the end, add to BX_NOT_LAST
             if not splithead[-1].startswith('BX:Z'):
+                nonlocal BX_NOT_LAST
                 BX_NOT_LAST += 1
-
     platform = platform.lower()
     if platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
         def check_read(fq_record):
             if 'BX:Z:' not in fq_record.comment:
+                nonlocal NO_BX
                 NO_BX += 1
                 return
             if not barcode.search(fq_record.comment):
+                nonlocal BAD_BX
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 
@@ -48,6 +51,7 @@ def check_fastq(platform, input):
         barcode = re.compile(r'#\d+_\d+_\d+$')
         def check_read(fq_record):
             if not barcode.search(fq_record.name):
+                nonlocal BAD_BX
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 
@@ -55,6 +59,7 @@ def check_fastq(platform, input):
         barcode = re.compile(r'\:[ATCGN]+$')
         def check_read(fq_record):
             if not barcode.search(fq_record.name):
+                nonlocal BAD_BX
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 

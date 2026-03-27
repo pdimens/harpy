@@ -15,7 +15,7 @@ fqlist       = INPUTS
 skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
 me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
 mismatch     = PARAMETERS.get("ME-mismatch", 1) 
-minlen       = PARAMETERS.get("min-len", 10) 
+minlen       = PARAMETERS.get("min-length", 10) 
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}

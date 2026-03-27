@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"strings"
@@ -262,7 +263,11 @@ func main() {
 	for {
 		rec, err := br.Read()
 		if err != nil {
-			break // EOF
+			if err == io.EOF {
+				break
+			}
+			fmt.Fprintf(os.Stderr, "Error reading BAM: %v\n", err)
+			os.Exit(1)
 		}
 
 		rx, hasRX := getStringTag(rec, "RX")

@@ -5,7 +5,7 @@ PARAMETERS = config.get('Parameters', {})
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports = WORKFlOW.get("reports", {}).get("skip", False)
+skip_reports = WORKFLOW.get("reports", {}).get("skip", False)
 organism     = WORKFLOW.get("reports", {}).get("organism-type", "bacteria")
 # SPADES
 max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 'auto')

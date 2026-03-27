@@ -208,7 +208,7 @@ class HarpyPrint():
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr 
         """
-        result, error = self.bash.beautify_string(data = text)
+        result, _ = self.bash.beautify_string(data = text)
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)

@@ -32,5 +32,9 @@ go = ">=1.26.1,<2"
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
 
-[activation]
-scripts = ["resources/gobuild.sh"]
+[tasks]
+build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}
+build-convert     = {cmd = "go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go", inputs = ["harpy/utils/convert/convert.go"], outputs = ["harpy/utils/gih-convert"]}
+build-standardize = {cmd = "go build -C harpy/utils/standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go", inputs = ["harpy/utils/standardize/standardize.go"], outputs = ["harpy/utils/djinn-standardize"]}
+install = {cmd = "chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize && mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize $CONDA_PREFIX/bin/", depends-on = ["build-stagger", "build-convert", "build-standardize"]}
+build = {depends-on = ["install"]}

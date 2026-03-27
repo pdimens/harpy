@@ -163,13 +163,15 @@ func main() {
 			SetVX(rec, invalid.MatchString(bxVal))
 		} else {
 			matches := stlfTell.FindStringSubmatch(rec.Name)
-			switch {
-			case matches[1] != "":
-				// matches[1] is the tellseq barcode e.g. "ATCGN"
-				bxVal = matches[1]
-			case matches[2] != "":
-				// matches[2] is the stlfr barcode e.g. "1_2_3"
-				bxVal = matches[2]
+			if matches != nil {
+				switch {
+				case len(matches) > 1 && matches[1] != "":
+					// matches[1] is the tellseq barcode e.g. "ATCGN"
+					bxVal = matches[1]
+				case len(matches) > 2 && matches[2] != "":
+					// matches[2] is the stlfr barcode e.g. "1_2_3"
+					bxVal = matches[2]
+				}
 			}
 			SetVX(rec, invalid.MatchString(bxVal))
 			SetBX(rec, bxVal)

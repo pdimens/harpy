@@ -2,12 +2,11 @@
 
 ## build Go binaries
 {
-    cd harpy/utils/stagger
-    go mod tidy && go build -ldflags="-s -w" -o ../gih-stagger stagger.go
-    cd ../convert
-    go mod tidy && go build -ldflags="-s -w" -o ../gih-convert convert.go
-    cd ../standardize
-    go mod tidy && go build -ldflags="-s -w" -o ../djinn-standardize standardize.go
-    cd .. && chmod +x gih-stagger gih-convert djinn-standardize
-    mv gih-stagger gih-convert djinn-standardize ${CONDA_PREFIX}/bin/
+    cd harpy/utils
+    go build -C stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
+    go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
+    go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
+    chmod +x gih-stagger gih-convert djinn-standardize
+    mv gih-stagger gih-convert djinn-standardize ${PREFIX}/bin/
 }
+

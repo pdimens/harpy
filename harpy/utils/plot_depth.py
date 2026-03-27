@@ -45,7 +45,8 @@ def plot_depth(contigs, prefix, molcov, coverage):
         if contigs:
             missing = set(contigs) - _contigs
             if missing:
-                sys.stderr.write(f"Requested contigs were not found in {os.path.relpath(coverage)}:\n{'\n'.join(missing)}\n")
+                missing_str = '\n'.join(missing)
+                sys.stderr.write(f"Requested contigs were not found in {os.path.relpath(coverage)}:\n{missing_str}\n")
                 sys.exit(1)
 
     if molcov:

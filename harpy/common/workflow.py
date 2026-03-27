@@ -215,7 +215,7 @@ class Workflow():
         file to workdir to use with --configfile if `writefile = True` (default)
         """
         self.config["Workflow"]["name"] = self.name
-        self.config["Workflow"]["harpy-version"] = float(self.version)
+        self.config["Workflow"]["harpy-version"] = self.version
         if self.linkedreads:
             self.config["Workflow"]["linkedreads"] = self.linkedreads
         if self.notebooks:

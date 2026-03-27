@@ -39,7 +39,7 @@ onstart:
             yaml.dump(configs, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
 
 samplenames = Counter()
-[samplenames.update(i.strip().split()[0:1]) for i in open(schemafile.'r').readlines() if not i.startswith("#")]
+[samplenames.update(i.strip().split()[0:1]) for i in open(schemafile, 'r').readlines() if not i.startswith("#")]
 duplicates = len(samplenames) != samplenames.total()
 samplenames = set(samplenames.keys())
 if unknown_samples:

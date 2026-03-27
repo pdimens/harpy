@@ -463,6 +463,7 @@ func main() {
 	file, err := os.Create(*statsfile)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating stats file: %v\n", err)
+		os.Exit(1)
 	}
 	defer file.Close()
 

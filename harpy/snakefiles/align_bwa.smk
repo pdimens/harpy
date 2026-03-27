@@ -138,7 +138,7 @@ rule mark_duplicates:
         rm -rf .{wildcards.sample}
         """
 
-if lr_type != "none" or not (bx_tag and vx_tag):
+if lr_type != "none" and not (bx_tag and vx_tag):
     rule standardize:
         input:
             "markdup/{sample}.bam"

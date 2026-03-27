@@ -181,7 +181,7 @@ rule merge_vcf:
         else:
             with open(output.filelist, "w") as fout:
                 _ = fout.write("\n".join(input.vcf))
-            shell("bcftools concat --threads {threads} -Ob -o {output.bcf} --write-index -f {input.files} 2> {log}")
+            shell("bcftools concat --threads {threads} -Ob -o {output.bcf} --write-index -f {output.filelist} 2> {log}")
 
 rule extract_region:
     input:
@@ -214,7 +214,7 @@ rule contig_report:
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        stats   = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        stats   = lambda wc: "-p statsfile " + os.path.abspath(f"{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
         plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
         model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",

@@ -37,7 +37,7 @@ class ReadCloud():
         if not self.positions:
             return
         if not self.valid:
-            sys.stdout.write("{self.chromosome}\tinvalid\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count)))
+            sys.stdout.write(f"{self.chromosome}\tinvalid\t" + self.stats(0, 0, 0, sum(self.bp), sum(self.count)))
         result = ""
         # sort alignment extrema by leftmost position and sort the subsequent info the same way
         sort_values = [sublist[0] for sublist in self.positions]

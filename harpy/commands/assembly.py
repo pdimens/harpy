@@ -117,7 +117,7 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     workflow.conda = ["align", "assembly", "metassembly", "qc"]
 
     ## checks and validations ##
-    fastq = FASTQ([fastq_r1,fastq_r2], quiet > 0)
+    fastq = FASTQ([fastq_r1,fastq_r2], quiet = quiet > 0)
     fastq.bc_or_bx(bx_tag)
 
     workflow.linkedreads["barcode-tag"] = bx_tag.upper()
@@ -125,12 +125,12 @@ def metassembly(fastq_r1, fastq_r2, bx_tag, kmer_length, max_memory, unlinked, o
     workflow.notebooks["organism-type"] = organism_type
     workflow.input(fastq_r1, "fastq-r1")
     workflow.input(fastq_r2, "fastq-r2")
-    workflow.param("spades:ignore-barcodes", unlinked)
-    workflow.param("spades:k", 'auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)))
-    workflow.param("spades:max-memory", max_memory)
+    workflow.param(unlinked, "spades:ignore-barcodes")
+    workflow.param('auto' if kmer_length == "auto" else ",".join(map(str,kmer_length)), "spades:k")
+    workflow.param(max_memory, "spades:max-memory")
     if extra_params:
-        workflow.param("spades:extra", extra_params)
-    workflow.param("athena:force", force)
+        workflow.param(extra_params, "spades:extra")
+    workflow.param(force, "athena:force")
 
     workflow.info = {
         "Barcode Tag" : bx_tag.upper(),
