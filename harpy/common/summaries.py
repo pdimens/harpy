@@ -1,25 +1,31 @@
 """Basic functions to write the workflow summaries"""
 import os
-import re
+
+from pandas.io.stata import Self
 from harpy.common.file_ops import naibr_extra
 
 class Summary:
     def __init__(self, version, config: dict):
-        self.config: dict = config
         self.summary: list[str] = [f"Harpy Version: {version}"]
+        self.WORKFLOW    = config.get('Workflow') or {}
+        self.PARAMETERS = config.get('Parameters') or {}
+        self.INPUTS     = config['Inputs']
 
     def get(self) -> str:
-        self.__getattribute__(self.config["Workflow"]["name"])()
-        self.summary.append("The Snakemake command invoked:\n\t" + self.config["Workflow"]['snakemake']['relative'])
+        self.__getattribute__(self.WORKFLOW["name"])()
+        self.summary.append("The Snakemake command invoked:\n\t" + self.WORKFLOW['snakemake']['relative'])
         return "\n\n".join(self.summary)
 
     def align_bwa(self):
-        ignore_bx = self.config["Workflow"].get("linkedreads", {}).get("type", 'none') == "none"
-        is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
-        keep_unmapped = self.config["Parameters"]["keep-unmapped"]
-        extra 		= self.config["Parameters"].get("extra", "") 
-        genomefile 	= self.config["Inputs"]["reference"]
-        quality = self.config["Parameters"]["min-map-quality"]
+        ignore_bx = self.WORKFLOW.get("linkedreads", {}).get("type", 'none') == "none"
+        bx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
+        vx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
+
+        is_standardized = bx_tag and vx_tag
+        keep_unmapped = self.PARAMETERS.get("keep-unmapped", False)
+        extra 		= self.PARAMETERS.get("extra", "") 
+        genomefile 	= self.INPUTS["reference"]
+        quality = self.PARAMETERS.get("min-map-quality", 30)
 
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
@@ -29,67 +35,71 @@ class Summary:
         align = "Sequences were aligned with BWA using:\n"
         align += f'\tbwa mem {bwa_static} {extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {unmapped} -q {quality}"
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
+        standardization = "Barcodes were standardized to BX + VX format in the aligments using:\n"
+        standardization += "\tdjinn-standardize {input.bam} > {output.bam}"
         self.summary.append("The harpy align bwa workflow ran using these parameters:")
         self.summary.append(f"The provided genome: {genomefile}")
         self.summary.append(align)
-        self.summary.append(standardization)
+        if not ignore_bx:
+            self.summary.append(standardization)
         self.summary.append(duplicates)
 
     def align_strobe(self):
-        genomefile 	= self.config["Inputs"]["reference"]
-        ignore_bx = self.config["Workflow"].get("linkedreads", {}).get("type", 'none') == "none"
-        is_standardized = self.config["Workflow"]["linkedreads"]["standardized"]
-        keep_unmapped = self.config["Parameters"]["keep-unmapped"]
+        ignore_bx = self.WORKFLOW.get("linkedreads", {}).get("type", 'none') == "none"
+        bx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
+        vx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
 
-        quality = self.config["Parameters"]["min-map-quality"]
+        is_standardized = bx_tag and vx_tag
+        keep_unmapped = self.PARAMETERS.get("keep-unmapped", False)
+        extra 		= self.PARAMETERS.get("extra", "") 
+        genomefile 	= self.INPUTS["reference"]
+        quality = self.PARAMETERS.get("min-map-quality", 30)
+
         unmapped_strobe = "" if keep_unmapped else "-U"
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
         static = "-C" if is_standardized else ""
-        extra = self.config["Parameters"].get("extra", "") 
+        extra = self.PARAMETERS.get("extra", "") 
 
         align = "Sequences were aligned with strobealign using:\n"
         align += f"\tstrobealign {unmapped_strobe} {static} --rg-id=SAMPLE --rg=SM:SAMPLE {extra} genome reads.F.fq reads.R.fq |\n"
         align += f"\t\tsamtools view -h {unmapped} -q {quality}"
-        standardization = "Barcodes were standardized in the aligments using:\n"
-        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
+        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         self.summary.append("The harpy align strobe workflow ran using these parameters:")
         self.summary.append(f"The provided genome: {genomefile}")
         self.summary.append(align)
-        self.summary.append(standardization)
+        if not ignore_bx:
+            self.summary.append(standardization)
         self.summary.append(duplicates)
 
     def assembly(self):
         # SPADES
-        max_mem      = self.config["Parameters"]["spades"]["max-memory"]
-        k_param      = self.config["Parameters"]["spades"]["k"]
-        spades_extra = self.config["Parameters"]["spades"].get("extra", "")
+        max_mem      = self.PARAMETERS.get("spades", {}).get("max-memory", 'auto')
+        k_param      = self.PARAMETERS.get("spades", {}).get("k", 10000)
+        spades_extra = self.PARAMETERS.get("spades", {}).get("extra", "")
         # ARCS
-        mapq       = self.config["Parameters"]["tigmint"]["min-mapping-quality"]
-        mismatch   = self.config["Parameters"]["tigmint"]["mismatch"]
-        mol_dist   = self.config["Parameters"]["tigmint"]["molecule-distance"]
-        mol_len    = self.config["Parameters"]["tigmint"]["molecule-length"]
-        span       = self.config["Parameters"]["tigmint"]["span"]
-        min_align  = self.config["Parameters"]["arcs"]["min-aligned-reads"]
-        min_contig = self.config["Parameters"]["arcs"]["min-contig-length"]
-        seq_id     = self.config["Parameters"]["arcs"]["min-sequence-identity"]
-        arcs_extra = self.config["Parameters"]["arcs"].get("extra", "")
-        links      = self.config["Parameters"]["links"]["min-links"]
-        k_param = k_param
-        max_mem = max_mem // 1000
-        spades_extra = spades_extra
+        mapq       = self.PARAMETERS.get("tigmint", {}).get("min-mapping-quality", 0)
+        mismatch   = self.PARAMETERS.get("tigmint", {}).get("mismatch", 5)
+        mol_dist   = self.PARAMETERS.get("tigmint", {}).get("molecule-distance", 50000)
+        mol_len    = self.PARAMETERS.get("tigmint", {}).get("molecule-length", 2000)
+        span       = self.PARAMETERS.get("tigmint", {}).get("span", 20)
+        min_align  = self.PARAMETERS.get("arcs", {}).get("min-aligned-reads", 5)
+        min_contig = self.PARAMETERS.get("arcs", {}).get("min-contig-length", 500)
+        seq_id     = self.PARAMETERS.get("arcs", {}).get("min-sequence-identity", 98)
+        arcs_extra = self.PARAMETERS.get("arcs", {}).get("extra", "")
+        links      = self.PARAMETERS.get("links", {}).get("min-links", 5)
+
         params = [
             "-C scaffold",
             "-j THREADS",
@@ -116,10 +126,10 @@ class Summary:
         self.summary.append(arcs)
 
     def deconvolve(self):
-        kmer_length = self.config["Parameters"]["kmer-length"]
-        window_size = self.config["Parameters"]["window-size"]
-        density 	= self.config["Parameters"]["density"] 
-        dropout     = self.config["Parameters"]["dropout"]
+        kmer_length = self.PARAMETERS.get("kmer-length", 21)
+        window_size = self.PARAMETERS.get("window-size", 40)
+        density 	= self.PARAMETERS.get("density", 3) 
+        dropout     = self.PARAMETERS.get("dropout", 0)
 
         interleave = "fastq files were interleaved with seqtk:\n"
         interleave += "\tseqtk mergepe forward.fq reverse.fq"
@@ -133,60 +143,8 @@ class Summary:
         self.summary.append(deconv)
         self.summary.append(recover)
 
-    def preprocess_meier2021(self):
-        schemafile = self.config["Inputs"]["demultiplex_schema"]
-        qxrx = self.config["Parameters"]["qx-rx"]
-        unknown_samples = self.config["Parameters"]["samples"]
-        unknown_barcodes = self.config["Parameters"]["barcodes"]
-
-        R1 = self.config["Inputs"]["R1"],
-        R2 = self.config["Inputs"]["R2"],
-        I1 = self.config["Inputs"]["I1"],
-        I2 = self.config["Inputs"]["I2"],
-        outdir = f"--samples {os.getcwd()}",
-        qxrx = "--rx --qx" if qxrx else "",
-        unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
-        unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
-
-        inputs = "The multiplexed input files:\n"
-        inputs += f"\tread 1: {R1}\n"
-        inputs += f"\tread 2: {R2}\n"
-        inputs += f"\tindex 1: {I1}\n"
-        inputs += f"\tindex 2: {I2}\n"
-        inputs += f"Sample demultiplexing schema: {schemafile}"
-        demux = "Samples were demultiplexed using:\n"
-        demux += f"\tdmox --R1 --R2 --I1 --I2 {outdir} {qxrx} {unknown_barcodes} {unknown_samples}"
-        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
-        self.summary.append("The harpy preprocess workflow ran using these parameters:")
-        self.summary.append("Linked Read Barcode Design: Meier et al. 2021")
-        self.summary.append(inputs)
-        self.summary.append(demux)
-        self.summary.append(qc)
-
-    def preprocess_gih(self):
-        findME = "Input FASTQs had their R1s inspected for the position of ME sequence:\n"
-        findME += "\tcutadapt -g {me_seq} --overlap {overlap} -e 0.11 --match-read-wildcards --action none -o /dev/null --info-file {output.info} --cores {threads} R1.fq\n"
-        findME += "The resulting INFO file was then summarized using:\n"
-        findME += """\tawk -F '\\t' '{a[$2]++; if($2>=0) {b[$3]++; c[$4]++;} else next;} END {print "col2=mismatch"; for(i in a) print a[i],i; print "\\ncol3=startpost"; for(j in b) print b[j],j; print "\\ncol4=endpos"; for(k in c) print c[k],k;}'"""
-        stagger = "The INFO file and summary were used to add a stagger to the R1 files and convert to unaligned BAM:\n"
-        stagger += "\tstagger-GIH {input} | samtools import -s - > {output} 2> {log}"
-        pheniqs = "The now-interleaved unaligned BAM was used as input into Pheniqs for barcode extraction:\n"
-        pheniqs += "\tpheniqs mux --input {BAM} --input {BAM} --output {output.bam} --quality -c pheniqs.conf.json --report output.json"
-        recode = "Finally, the nucleotides were converted into standardized haplotagging ACBD format:\n"
-        recode += "\tpreproc-barcodes {BAM} | samtools fastq -N -T VX,BX -1 R1.fq.gz -2 R2.fq.gz"
-        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
-        self.summary.append("The harpy preprocess workflow ran using these parameters:")
-        self.summary.append("Linked Read Barcode Design: Iqbal et al. 2026")
-        self.summary.append(findME)
-        self.summary.append(stagger)
-        self.summary.append(pheniqs)
-        self.summary.append(recode)
-        self.summary.append(qc)
-
     def impute(self):
-        region = self.config["Parameters"].get("region", None)
+        region = self.PARAMETERS.get("region", None)
         if region:
             _,positions = region.split(":")
             startpos,endpos,buffer = [int(i) for i in positions.split("-")]
@@ -195,11 +153,11 @@ class Summary:
             regiontext += f"\t\tbuffer = {buffer},\n"
         else:
             regiontext = ""
-        paramfiletext = "\t".join(open(self.config["Inputs"]["parameters"], "r").readlines())
+        paramfiletext = "\t".join(open(self.INPUTS["parameters"], "r").readlines())
         preproc = "Preprocessing was performed with:\n"
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
         preproc += """\tbcftools query -i '(STRLEN(REF)==1) & (STRLEN(ALT[0])==1) & (REF!="N")' -f '%CHROM\\t%POS\\t%REF\\t%ALT\\n'"""
-        stitchparam = f"The STITCH parameter file: {self.config['Inputs']['parameters']}\n"
+        stitchparam = f"The STITCH parameter file: {self.INPUTS['parameters']}\n"
         stitchparam += f"\t{paramfiletext}"
         stitch = "Within R, STITCH was invoked with the following parameters:\n"
         stitch += "\tSTITCH(\n"
@@ -217,32 +175,35 @@ class Summary:
         stitch += "\t\tniterations = 40,\n"
         stitch += "\t\tswitchModelIteration = 39,\n"
         stitch += "\t\tsplitReadIterations = NA,\n"
-        if self.config["Parameters"]["grid-size"] > 1:
-            stitch += f"\t\tgridWindowSize = {self.config["Parameters"]['grid-size']}\n"
+        if self.PARAMETERS.get("grid-size", 1) > 1:
+            stitch += f"\t\tgridWindowSize = {self.PARAMETERS.get("grid-size", 1)}\n"
         stitch += "\t\toutputdir = outdir,\n"
         stitch += "\t\toutput_filename = outfile\n\t)"
         stitchextra = "Additional STITCH parameters provided (overrides existing values above):\n"
-        stitchextra += "\t" + self.config["Parameters"].get("extra", "None")
+        stitchextra += "\t" + self.PARAMETERS.get("extra", "None")
         self.summary.append("The harpy impute workflow ran using these parameters:")
-        self.summary.append(f"The provided variant file: {self.config['Inputs']['vcf']}")
+        self.summary.append(f"The provided variant file: {self.INPUTS['vcf']}")
         self.summary.append(preproc)
         self.summary.append(stitchparam)
         self.summary.append(stitchextra)
 
     def metassembly(self):
-        bx = self.config["Workflow"]["linkedreads"]["barcode-tag"]
-        max_mem = self.config["Parameters"]["spades"]["max-memory"]
-        k_param = self.config["Parameters"]["spades"]["k"]
-        ignore_bx = self.config["Parameters"]["spades"]["ignore-barcodes"]
-        extra = self.config["Parameters"]["spades"].get("extra", "")
+        BX_TAG       = self.WORKFLOW.get("linkedreads", {})["barcode_tag"]
+        max_mem      = self.PARAMETERS.get("spades", {}).get("max_memory", 10000)
+        k_param      = self.PARAMETERS.get("spades", {}).get("k", 'auto')
+        ignore_bx    = self.PARAMETERS.get("spades", {}).get("ignore_barcodes", False)
+        extra        = self.PARAMETERS.get("spades", {}).get("extra", "")
+        force_athena = self.PARAMETERS.get("athena", {}).get("force", False)
+        force = "--force_reads" if force_athena else ""
+        extra = self.PARAMETERS["spades"].get("extra", "")
         spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 
         bxsort = "FASTQ inputs were sorted by their linked-read barcodes:\n"
         bxsort += "\tsamtools import -T \"*\" FQ1 FQ2 |\n"
-        bxsort += f"\tsamtools sort -O SAM -t {bx} |\n"  
+        bxsort += f"\tsamtools sort -O SAM -t {BX_TAG} |\n"  
         bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"  
         bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
-        bxappend += f"\tsed 's/{bx}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
+        bxappend += f"\tsed 's/{BX_TAG}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         if not ignore_bx:
             spades = "Reads were assembled using cloudspades:\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {extra}"
@@ -254,7 +215,7 @@ class Summary:
         interleaved = "Barcode-sorted Athena-compliant sequences were interleaved with seqtk:\n"
         interleaved += "\tseqtk mergepe FQ1 FQ2 > INTERLEAVED.FQ"
         athena = "Athena ran with the config file Harpy built from the files created from the previous steps:\n"
-        athena += "\tathena-meta --config athena.config"
+        athena += f"\tathena-meta {force} --config athena.config"
         self.summary.append("The harpy metassembly workflow ran using these parameters:")
         self.summary.append(bxsort)
         self.summary.append(bxappend)
@@ -264,20 +225,21 @@ class Summary:
         self.summary.append(athena)
 
     def phase_snp(self):
-        bc_type           = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
-        pruning           = self.config["Parameters"]["prune"]
-        map_qual          = self.config["Parameters"]["min-map-quality"]
-        base_qual         = self.config["Parameters"]["min-base-quality"]
-        molecule_distance = self.config["Parameters"]["distance-threshold"]
-        extra             = self.config["Parameters"].get("extra", "") 
-        variantfile       = self.config["Inputs"]["vcf"]
+        bc_type           = self.WORKFLOW.get("linkedreads", {}).get("type", 'none')
+        pruning           = self.PARAMETERS.get("prune", 30)
+        map_qual          = self.PARAMETERS.get("min-map-quality", 20)
+        base_qual         = self.PARAMETERS.get("min-base-quality", 13)
+        molecule_distance = self.PARAMETERS.get("distance-threshold", 100000)
+
+        extra             = self.PARAMETERS.get("extra", "") 
+        variantfile       = self.INPUTS["vcf"]
         invalid_regex = {
             "haplotagging" : "'$4 !~ /[ABCD]00/'",
             "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
             "tellseq": "'$4 !~ /N/'"
         }
         linkarg = "--10x 0" if bc_type == "none" else "--10x 1"
-        indelarg   = "--indels 1 --ref reference.fasta" if self.config["Inputs"].get("reference", None) else ""
+        indelarg   = "--indels 1 --ref reference.fasta" if self.INPUTS.get("reference", None) else ""
         hairs_params = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000"
         prune = f"--threshold {pruning}" if pruning > 0 else "--no_prune 1"
 
@@ -301,14 +263,24 @@ class Summary:
         self.summary.append(annot)
 
     def phase_bam(self):
-        extra             = self.config["Parameters"].get("extra", "") 
-        variantfile       = self.config["Inputs"]["vcf"]
-
+        mol_dist    = self.PARAMETERS.get("distance-threshold", 100000)
+        extra       = self.PARAMETERS.get("extra", "") 
+        ploidy      = self.PARAMETERS.get("ploidy", 2) 
+        variantfile = self.INPUTS["vcf"]
+        params = [
+            f"--ploidy {ploidy}",
+            f"-d {mol_dist}",
+            "--tag-supplementary copy-primary",
+            "--no-supplementary-strand-match",
+            f"--supplementary-distance {3 * mol_dist}",
+            "--ignore-read-groups",
+            "--skip-missing-contigs",
+        ]
+        params = " ".join(params)
         validsplit = "The input alignments had their records filtered for valid barcodes:\n"
         validsplit += "\tdjinn sam filter-invalid --invalid sample.bam"
         phase = "Phasing was performed using whatshap:\n"
-        phaseparam = "--linked-read-distance-cutoff {moldist} --tag-supplementary copy-primary --no-supplementary-strand-match --supplementary-distance {moldist} --ignore-read-groups --skip-missing-contigs"
-        phase += f"\twhatshap haplotag --sample name --reference input.ref {phaseparam} {extra} input.vcf input.bam"
+        phase += f"\twhatshap haplotag --sample name --reference input.ref {params} {extra} input.vcf input.bam"
         concataln = "Invalid-barcode alignments were added back to the phased alignments using:\n"
         concataln += "\tsamtools merge sample.phased.bam sample.invalid.bam | samtools sort -"
         self.summary.append("The harpy phase snp workflow ran using these parameters:")
@@ -317,28 +289,91 @@ class Summary:
         self.summary.append(phase)
         self.summary.append(concataln)
 
+
+    def preprocess_meier2021(self):
+        schemafile = self.INPUTS["schema"]
+        qxrx             = self.PARAMETERS.get("qx-rx", False)
+        unknown_samples  = self.PARAMETERS.get("samples", False)
+        unknown_barcodes = self.PARAMETERS.get("barcodes", False)
+
+        R1 = self.INPUTS["R1"],
+        R2 = self.INPUTS["R2"],
+        I1 = self.INPUTS["I1"],
+        I2 = self.INPUTS["I2"],
+        outdir = f"--samples {os.getcwd()}",
+        qxrx = "--rx --qx" if qxrx else "",
+        unknown_barcodes = "--undetermined-barcodes _unknown_barcodes" if unknown_barcodes else "",
+        unknown_samples = "--undetermined-samples _unknown_samples" if unknown_samples else ""
+
+        inputs = "The multiplexed input files:\n"
+        inputs += f"\tread 1: {R1}\n"
+        inputs += f"\tread 2: {R2}\n"
+        inputs += f"\tindex 1: {I1}\n"
+        inputs += f"\tindex 2: {I2}\n"
+        inputs += f"Sample demultiplexing schema: {schemafile}"
+        demux = "Samples were demultiplexed using:\n"
+        demux += f"\tdmox --R1 --R2 --I1 --I2 {outdir} {qxrx} {unknown_barcodes} {unknown_samples}"
+        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
+        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
+        self.summary.append("The harpy preprocess workflow ran using these parameters:")
+        self.summary.append("Linked Read Barcode Design: Meier et al. 2021")
+        self.summary.append(inputs)
+        self.summary.append(demux)
+        self.summary.append(qc)
+
+    def preprocess_gih(self):
+        me_seq   = self.PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
+        mismatch = self.PARAMETERS.get("ME-mismatch", 1) 
+        minlen   = self.PARAMETERS.get("min-length", 10) 
+
+        stagger = "Input FASTQs had the ME sequence identified and removed, then provided a nucleotide padding sequence (if necessary):\n"
+        stagger += f"\tgih-stagger --me {me_seq} --max-mismatch {mismatch} --min-len {minlen} --stats output.stats FQ1 FQ2 > output.sam"
+        pheniqs = "The resulting interleaved unaligned SAM file was then piped into the Pheniqs for barcode demultiplexing:\n"
+        pheniqs += "\tpheniqs mux --output output.sam --quality -c pheniqs.config.json --report output.json < input.sam"
+        recode = "Finally, the nucleotides were converted into standardized haplotagging ACBD format and FASTQ format:\n"
+        recode += "\tgih-convert input.sam fq1 fq2 > output.stats"
+        qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
+        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
+        self.summary.append("The harpy preprocess workflow ran using these parameters:")
+        self.summary.append("Linked Read Barcode Design: Iqbal et al. 2026")
+        self.summary.append(stagger)
+        self.summary.append(pheniqs)
+        self.summary.append(recode)
+        self.summary.append(qc)
+
     def qc(self):
-        minlen = f"--length_required {self.config["Parameters"]['min-len']}"
-        maxlen = f"--max_len1 {self.config["Parameters"]['max-len']}"
-        extra = self.config["Parameters"].get("extra", "") 
-        trim_adapters = self.config["Parameters"].get("trim_adapters", None)
+        min_len 	  = self.PARAMETERS.get("min-len", 30)
+        max_len 	  = self.PARAMETERS.get("max-len", 150)
+        extra 	      = self.PARAMETERS.get("extra", "") 
+        trim_adapters = self.PARAMETERS.get("trim_adapters", None)
+        dedup         = self.PARAMETERS.get("deduplicate", False)
+
         if trim_adapters:
             trim_arg = "--detect_adapter_for_pe" if trim_adapters == "auto" else f"--adapter_fasta {trim_adapters}"
         else:
             trim_arg = "--disable_adapter_trimming"
-        dedup = "-D" if self.config["Parameters"]["deduplicate"] else ""
+
+        params = [
+            "--trim_poly_g",
+            "--cut_right",
+            f"--length_required {min_len}",
+            f"--max_len1 {max_len}",
+            trim_arg,
+            "-D" if dedup else "",
+            extra
+        ]
 
         fastp = "fastp ran using:\n"
-        fastp += "\tfastp --trim_poly_g --cut_right " + " ".join([minlen,maxlen,trim_arg,dedup,extra])
+        fastp += "\tfastp  " + " ".join(params)
         self.summary.append("The harpy qc workflow ran using these parameters:")
         self.summary.append(fastp)
     
     def snp_freebayes(self):
-        ploidy 		= self.config["Parameters"]["ploidy"]
-        extra 	    = self.config["Parameters"].get("extra", "") 
-        regions_input = self.config["Inputs"]["regions"]
-        genomefile 	= os.path.basename(self.config["Inputs"]["reference"])
-        groupings 	= self.config["Inputs"].get("groupings", None)
+        ploidy 		  = self.PARAMETERS.get("ploidy", 2)
+        extra 	      = self.PARAMETERS.get("extra", "") 
+        genomefile 	  = self.INPUTS["reference"]
+        regions_input = self.INPUTS["regions"]
+        groupings 	  = self.INPUTS.get("groupings", [])
 
         params = f"-p {ploidy} "
         params += f"--populations {groupings} " if groupings else ''
@@ -359,11 +394,12 @@ class Summary:
         self.summary.append(normalize)
     
     def snp_mpileup(self):
-        mp_extra = self.config["Parameters"].get("extra", "")
-        genomefile = self.config["Inputs"]["reference"]
-        groupings = self.config["Inputs"].get("groupings", [])
-        region_input = self.config["Inputs"]["regions"]
-        ploidy = self.config["Parameters"]["ploidy"]
+        ploidy 		 = self.PARAMETERS.get("ploidy", 2)
+        mp_extra 	 = self.PARAMETERS.get("extra", "")
+        genomefile 	 = self.INPUTS["reference"]
+        groupings 	 = self.INPUTS.get("groupings", [])
+        region_input = self.INPUTS["regions"]
+
         params = f"--ploidy {ploidy} --populations "
         params += f"{groupings}" if groupings else "-"
 
@@ -384,35 +420,19 @@ class Summary:
         self.summary.append(merged)
         self.summary.append(normalize)
 
-    def validate_bam(self) -> str:
-        lr_platform = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
-        self.summary.append("The harpy validate bam workflow ran using these parameters:")
-        valids = "Validations were performed with:\n"
-        valids += f"\tcheck_bam {lr_platform} sample.bam > sample.txt"
-        self.summary.append(valids)
-        sm = "The Snakemake command invoked:\n"
-        sm += f"\t{self.config["Workflow"]['snakemake']['relative']}"
-        self.summary.append(sm)
-        return "\n\n".join(self.summary)
-
-    def validate_fastq(self):
-        lr_platform = self.config["Workflow"].get("linkedreads", {}).get("type", 'none')
-        valids = "Validations were performed with:\n"
-        valids += f"\tcheck_fastq {lr_platform} sample.fastq > sample.txt"
-        self.summary.append("The harpy validate fastq workflow ran using these parameters:")
-        self.summary.append(valids)
 
     def sv_leviathan(self):
-        genomefile = os.path.basename(self.config["Inputs"]["reference"])
-        groupfile 	= self.config["Inputs"].get("groupings", None)
-        min_size = self.config["Parameters"]["min-size"]
-        min_bc = self.config["Parameters"]["min-barcodes"]
-        iterations = self.config["Parameters"]["iterations"]
-        small_thresh = self.config["Parameters"]["variant-thresholds"]["small"]
-        medium_thresh = self.config["Parameters"]["variant-thresholds"]["medium"]
-        large_thresh = self.config["Parameters"]["variant-thresholds"]["large"]
-        duplcates_thresh = self.config["Parameters"]["variant-thresholds"]["duplicates"]
-        extra = self.config["Parameters"].get("extra", "") 
+        genomefile = os.path.basename(self.INPUTS["reference"])
+        groupfile 	= self.INPUTS.get("groupings", None)
+        extra         = self.PARAMETERS.get("extra", "")
+        min_size      = self.PARAMETERS.get("min-size", 1000)
+        min_bc        = self.PARAMETERS.get("min-barcodes", 2)
+        iterations    = self.PARAMETERS.get("iterations", 50)
+        small_thresh  = self.PARAMETERS.get("variant-thresholds", {}).get("small", 95)
+        medium_thresh = self.PARAMETERS.get("variant-thresholds", {}).get("medium", 95)
+        large_thresh  = self.PARAMETERS.get("variant-thresholds", {}).get("large", 95)
+        dup_thresh    = self.PARAMETERS.get("variant-thresholds", {}).get("duplicates", 10)
+
         params = " ".join([
             f"-v {min_size}",
             f"-c {min_bc}",
@@ -420,7 +440,7 @@ class Summary:
             f"-s {small_thresh}",
             f"-m {medium_thresh}",
             f"-l {large_thresh}",
-            f"-d {duplcates_thresh}",
+            f"-d {dup_thresh}",
             extra
         ])
 
@@ -432,18 +452,19 @@ class Summary:
         self.summary.append(f"The provided reference genome: {genomefile}")
         if groupfile:
             self.summary.append(f"The provided populations grouping file: {groupfile}")
-            self.summary.append("The alignments were concatenated using:\n\tdjinn sam concat --bx samples.bam... > group.bam")
+            self.summary.append("The alignments were concatenated using:\n\tdjinn sam concat samples.bam... > group.bam")
         self.summary.append(bc_idx)
         self.summary.append(svcall)
 
     def sv_naibr(self):
-        genomefile   = os.path.basename(self.config["Inputs"]["reference"])
-        groupfile    = self.config["Inputs"].get("groupings", None)
-        extra        = self.config["Parameters"].get("extra", None) 
-        min_size     = self.config["Parameters"]["min-size"]
-        min_barcodes = self.config["Parameters"]["min-barcodes"]
-        min_quality  = self.config["Parameters"]["min-map-quality"]
-        mol_dist     = self.config["Parameters"]["molecule-distance"]
+        genomefile   = os.path.basename(self.INPUTS["reference"])
+        groupfile    = self.INPUTS.get("groupings", None)
+        extra        = self.PARAMETERS.get("extra", None) 
+        min_size     = self.PARAMETERS.get("min-size", 1000)
+        min_barcodes = self.PARAMETERS.get("min-barcodes", 2)
+        min_quality  = self.PARAMETERS.get("min-map-quality", 30)
+        mol_dist     = self.PARAMETERS.get("molecule-distance", 100000)
+
         argdict = naibr_extra(
             {"min_mapq" : min_quality, "d" : mol_dist, "min_sv" : min_size, "k": min_barcodes},
             extra
@@ -457,5 +478,24 @@ class Summary:
         self.summary.append(f"The provided reference genome: {genomefile}")
         if groupfile:
             self.summary.append(f"The provided populations grouping file: {groupfile}")
-            self.summary.append("The alignments were concatenated using:\n\tdjinn sam concat --bx samples.bam... > group.bam")
+            self.summary.append("The alignments were concatenated using:\n\tdjinn sam concat samples.bam... > group.bam")
         self.summary.append(naibr)
+
+
+    def validate_bam(self) -> str:
+        lr_platform = self.WORKFLOW.get("linkedreads", {}).get("type", 'none')
+        self.summary.append("The harpy validate bam workflow ran using these parameters:")
+        valids = "Validations were performed with:\n"
+        valids += f"\tharpy-utils check-bam {lr_platform} sample.bam > sample.txt"
+        self.summary.append(valids)
+        sm = "The Snakemake command invoked:\n"
+        sm += f"\t{self.WORKFLOW['snakemake']['relative']}"
+        self.summary.append(sm)
+        return "\n\n".join(self.summary)
+
+    def validate_fastq(self):
+        lr_platform = self.WORKFLOW.get("linkedreads", {}).get("type", 'none')
+        valids = "Validations were performed with:\n"
+        valids += f"\tharpy-utils check-fastq {lr_platform} sample.fastq > sample.txt"
+        self.summary.append("The harpy validate fastq workflow ran using these parameters:")
+        self.summary.append(valids)
