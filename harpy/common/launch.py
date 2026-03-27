@@ -381,26 +381,10 @@ class LaunchSnakemake():
                 self.nextline()
 
         if any(i in self.output for i in self.snakemake_errors):
-            while self.output:
+            while "Shutting down, this might" not in self.output:
                 self.print.print(self.output, style = "red", end = "")
                 self.nextline()
 
-        #if "SyntaxError" in self.output:
-        #    while self.output:
-        #        self.print.print(self.output, style = "red", end = "")
-        #        self.nextline()
-#
-        #if "NameError" in self.output:
-        #    while self.output:
-        #        self.print.print(self.output, style = "red", end = "")
-        #        self.nextline()
-#
-        #if "RuleException" in self.output:
-        #    while self.output:
-        #        self.print.print(self.output, style = "red", end = "")
-        #        self.nextline()
-
-        # Parse rule-based errors #
         while self.output:
             self.nextline()
             if "Exiting because a job execution failed" in self.output:

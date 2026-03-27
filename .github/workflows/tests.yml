@@ -53,7 +53,7 @@ jobs:
   preprocess:
     needs: changes
     if: ${{ needs.changes.outputs.preproc == 'true' }}
-    name: preprocess meier2021
+    name: preprocess
     runs-on: ubuntu-latest
     steps:
       #- name: set envvar
@@ -98,7 +98,7 @@ jobs:
       - run: pixi run build
       - name: test validate fastq
         run: |
-          harpy validate fastq test/fastq && \
+          harpy validate fastq --quiet 2 test/fastq && \
           ls -lh Validate/fastq
       - name: test validate bam
         if: always()
