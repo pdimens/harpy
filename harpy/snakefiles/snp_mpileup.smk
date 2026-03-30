@@ -16,8 +16,15 @@ ploidy 		 = PARAMETERS.get("ploidy", 2)
 mp_extra 	 = PARAMETERS.get("extra", "")
 bamlist      = INPUTS["alignments"]
 genomefile 	 = INPUTS["reference"]
-groupings 	 = INPUTS.get("groupings", [])
 region_input = INPUTS["regions"]
+# attempt to get processed, then source, then nothing
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if not os.path.isfile(groupings):
+        groupings.get("source") or []
+else:
+    groupings = []
 
 bamdict           = dict(zip(bamlist, bamlist))
 bn                = os.path.basename(genomefile)

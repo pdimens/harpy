@@ -25,12 +25,18 @@ large_thresh  = PARAMETERS.get("variant-thresholds", {}).get("large", 95)
 dup_thresh    = PARAMETERS.get("variant-thresholds", {}).get("duplicates", 10)
 genomefile    = INPUTS["reference"]
 bamlist       = INPUTS["alignments"]
-groupfile     = INPUTS.get("groupings", None)
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if not os.path.isfile(groupings):
+        groupings.get("source") or []
+else:
+    groupings = []
 
 plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-popdict       = pop_manifest(groupfile, bamlist) if groupfile else None
-populations   = popdict.keys() if groupfile else None
-target        = populations if groupfile else {Path(i).stem for i in bamlist}
+popdict       = pop_manifest(groupings, bamlist) if groupings else None
+populations   = popdict.keys() if groupings else None
+target        = populations if groupings else {Path(i).stem for i in bamlist}
 bn            = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 

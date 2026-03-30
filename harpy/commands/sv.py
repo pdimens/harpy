@@ -74,7 +74,8 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
     if populations:
         popfile = Populations(populations, alignments.files)
         popfile.copy_to_workflow(output)
-        workflow.input(popfile.file, "groupings")
+        workflow.input(popfile.file, "groupings:source")
+        workflow.input("workflow/sample.groups", "groupings:processed")
     workflow.input(alignments.files, "alignments")
 
     workflow.notebooks["skip"] = skip_reports
@@ -149,7 +150,8 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
     if populations:
         popfile = Populations(populations, alignments.files)
         popfile.copy_to_workflow(output)
-        workflow.input(popfile.file, "groupings")
+        workflow.input(popfile.file, "groupings:source")
+        workflow.input("workflow/sample.groups", "groupings:processed")
     workflow.input(alignments.files, "alignments")
     workflow.param(min_barcodes, "min-barcodes")
     workflow.param(min_quality, "min-map-quality")
