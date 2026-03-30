@@ -5,7 +5,6 @@ import importlib.resources as resources
 import os
 import shutil
 import sys
-import time as _time
 import yaml
 from harpy.common.environments import HarpyEnvs
 from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
@@ -262,7 +261,7 @@ class Workflow():
         table = self.print.table()
         table.add_column("detail", justify="left", style="light_steel_blue", no_wrap=True)
         table.add_column("value", justify="left")
-        table.add_row("Start:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        table.add_row("Start:", self.print.time_now())
         for k,v in self.info.items():
                 table.add_row(f"{k}:", f"{v}")
         self.print.print("")
@@ -278,7 +277,7 @@ class Workflow():
         datatable = self.print.table()
         datatable.add_column("detail", justify="left", style="green", no_wrap=True)
         datatable.add_column("value", justify="left")
-        datatable.add_row("End:", _time.strftime('%d %b %Y [dim]@[/] %H:%M'))
+        datatable.add_row("End:", self.print.time_now())
         datatable.add_row("Duration:", time_text)
         if self.summary:
             datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))

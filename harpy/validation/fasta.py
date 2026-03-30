@@ -11,7 +11,7 @@ class FASTA():
     def __init__(self, fasta, quiet:int = 0):
         self.file = fasta
         self.print = HarpyPrint(quiet)
-        self.print.log("Validating input FASTA file format", newline = False)
+        self.print.log("Correct FASTA file format", newline = False)
         # validate fasta file contents
         line_num = 0
         seq_id = 0
@@ -77,7 +77,7 @@ class FASTA():
 
     def match_contigs(self, contigs: str):
         """Checks whether a list of contigs are present in a fasta file"""
-        self.print.log("Validating input contigs against those in the input FASTA", newline=False)
+        self.print.log("Contigs present in input FASTA", newline=False)
         valid_contigs = []
         with pysam.FastxFile(self.file, persist=False) as fa:
             for record in fa:
@@ -115,7 +115,7 @@ class FASTA():
         except ValueError:
             pass
 
-        self.print.log("Validating input regions to those in the input FASTA", newline=False)
+        self.print.log("Input regions present in FASTA", newline=False)
 
         # is a file specifying regions
         contigs = self.contigs()

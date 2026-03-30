@@ -104,11 +104,13 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
     def write_recipes(self, outdir: str, envs: list= []) -> None:
         """Create the YAML files of the workflow conda dependencies"""
+        if not envs:
+            return
         environ = self.__environments__
         _out = os.path.join(outdir, "workflow", "envs")
         os.makedirs(_out, exist_ok = True)
         # if none provided, use all
-        if not envs:
+        if "all" in envs:
             envs = list(environ.keys())
 
         for i in envs:
@@ -180,6 +182,8 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""
+    if not envs:
+        return
     if not os.path.exists(f"{dirpath}/workflow/envs"):
         HarpyPrint().error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
     envlist = os.listdir(f"{dirpath}/workflow/envs")

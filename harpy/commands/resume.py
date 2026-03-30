@@ -30,11 +30,12 @@ def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = Fa
         val = val.get(key, {})
 
     if not val:
-        hp.error(
-            "incorrect workflow.yaml",
-            "The [blue]workflow.yaml[/] file is missing one or more the necessary/expected keys.",
-            f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{key}[/] key (and it is not empty) under the [green]{section}[/] section."
-        )
+        if not allow_missing:
+            hp.error(
+                "incorrect workflow.yaml",
+                "The [blue]workflow.yaml[/] file is missing one or more the necessary/expected keys.",
+                f"Please verify that [blue]workflow/workflow.yaml[/] is not missing the [green]{key}[/] key (and it is not empty) under the [green]{section}[/] section."
+            )
     return val
 
 def snakemake_profile_extract(d: dict, key: str):
@@ -111,7 +112,8 @@ def resume(directory, absolute, direct, threads, clean, quiet):
 
     _sdm = snakemake_profile_extract(snakemake_config, "software-deployment-method")
     if _sdm != "apptainer":
-        workflow.conda = config_extract(harpy_config, "Workflow", "snakemake:conda-envs")
+        allow_missing = "validate" in _name or "mpileup" in _name
+        workflow.conda = config_extract(harpy_config, "Workflow", "snakemake:conda-envs", allow_missing)
         check_environments(_dir, workflow.conda)
 
     # inherit workflow report part, if present

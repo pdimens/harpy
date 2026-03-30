@@ -56,8 +56,6 @@ jobs:
     name: preprocess
     runs-on: ubuntu-latest
     steps:
-      #- name: set envvar
-      #  run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -84,8 +82,6 @@ jobs:
     name: validate
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -112,8 +108,6 @@ jobs:
     name: qc
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -135,8 +129,6 @@ jobs:
     name: deconvolve
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -158,8 +150,6 @@ jobs:
     name: align BWA
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -181,8 +171,6 @@ jobs:
     name: align strobe
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -204,8 +192,6 @@ jobs:
     name: mpileup
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -231,8 +217,6 @@ jobs:
     name: freebayes
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -258,8 +242,6 @@ jobs:
     name: impute
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -291,8 +273,6 @@ jobs:
     name: phase
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -330,8 +310,6 @@ jobs:
     name: sv leviathan
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -358,8 +336,6 @@ jobs:
     name: sv naibr
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -386,8 +362,6 @@ jobs:
     name: assembly
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -419,8 +393,6 @@ jobs:
     name: miscellaneous
     runs-on: ubuntu-latest
     steps:
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
       - name: Checkout
         uses: actions/checkout@v6
         with:

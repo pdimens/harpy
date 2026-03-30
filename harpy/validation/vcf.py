@@ -25,7 +25,7 @@ class VCF():
         Identify which contigs have at least 5 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
-        self.print.log("Finding contigs with at least 5 biallelic SNPs", newline=False)
+        self.print.log("Finding contigs with ≥ 5 biallelic SNPs", newline=False)
 
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
         with pysam.VariantFile(self.file) as _vcf:
@@ -69,7 +69,7 @@ class VCF():
 
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
-        self.print.log("Checking if VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
+        self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
@@ -111,7 +111,7 @@ class VCF():
 
     def match_contigs(self, contigs: list[str]):
         """Check if the supplied contigs are present in the VCF"""
-        self.print.log("Chekcing input contigs exist in VCF", newline=False)
+        self.print.log("Input contigs exist in VCF", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             vcf_contigs = list(_vcf.header.contigs)
         bad_names = []
@@ -144,7 +144,7 @@ class VCF():
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
-        self.print.log("Checking input regions exist in VCF", newline=False)
+        self.print.log("Input regions exist in VCF", newline=False)
         startpos = 0
         endpos = 0
         buffer = 0

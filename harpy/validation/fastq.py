@@ -45,8 +45,6 @@ class FASTQ():
                         break
             except (ValueError, OSError):
                 badfiles.append(i)
-
-        for i in self.files:
             sans_ext = os.path.basename(re_ext.sub("", str(i)))
             if sans_ext in uniqs:
                 dupes.append(sans_ext)

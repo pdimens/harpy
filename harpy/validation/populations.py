@@ -9,7 +9,7 @@ class Populations():
     def __init__(self, filename, infiles, quiet:int = 0):
         self.file = filename
         self.print = HarpyPrint(quiet)
-        self.print.log("Validating all input samples are present in populations file", newline=False)
+        self.print.log("Input samples present in populations file", newline=False)
 
         rows = []
         with open(self.file, "r", encoding="utf-8") as f:

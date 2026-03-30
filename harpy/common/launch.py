@@ -146,7 +146,7 @@ class LaunchSnakemake():
         merged_text = ""
         _log = self.output.rstrip().split()[1]
         self.print.print("")
-        self.print.rule(f"[bold]Log: {_log.rstrip(':')}", style = "yellow")
+        self.print.rule(f"[bold]{_log.rstrip(':')}", style = "yellow")
         if "empty file" in self.output:
             self.print.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
             self.nextline()

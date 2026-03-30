@@ -54,10 +54,10 @@ def conda(workflows):
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", None, False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
-    _he = HarpyEnvs()
-    _he.write_recipes(workflow.output_directory)
+    _henv = HarpyEnvs()
+    _henv.write_recipes(workflow.output_directory, ["all"])
     if "all" in workflows:
-        workflows = list(_he.environments().keys())
+        workflows = list(_henv.environments().keys())
     workflow.fetch_snakefile()
 
     config_params = "--config"

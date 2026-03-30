@@ -79,6 +79,9 @@ class HarpyPrint():
         self.status = self.console.status
         self.bash = BashFormatter(indent_size=4)
 
+    def time_now(self) -> str:
+        return time.strftime('%H:%M [dim]on[/] %d %b %Y')
+
     def table(self, title = None, caption = None, tstyle = None, cstyle = None):
         '''
         Insantiate a generic but standardized table style for harpy output
@@ -177,7 +180,7 @@ class HarpyPrint():
             except ModuleNotFoundError:
                 pass
         self.rule(f"[bold]{errortype}[/][default dim]", style = "red")
-        self.print("[red]Time:[/] " + time.strftime('%d %b %Y [dim]@[/] %H:%M'), highlight=False)
+        self.print("[red]Time:[/] " + self.time_now(), highlight=False)
         self.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
         self.print(errortext)
         self.rule("[bold]Error Reported by Snakemake", style = "red")
@@ -197,7 +200,7 @@ class HarpyPrint():
         datatable.add_column("detail", justify="left", style="red", no_wrap=True)
         datatable.add_column("value", justify="left")
         datatable.add_row("Harpy Version:", __version__)
-        datatable.add_row("Time:", time.strftime('%d %b %Y @ %H:%M'))
+        datatable.add_row("Time:", self.time_now())
         datatable.add_row("Duration:", time_text)
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
         self.rule("[bold]Workflow Error[/]", style = "red")
