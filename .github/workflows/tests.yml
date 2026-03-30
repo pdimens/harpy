@@ -299,7 +299,7 @@ jobs:
       - name: phase bam
         if: always()
         run: |
-          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.phased.bcf test/bam && \
+          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.phased.bcf test/bam/sample*.bam && \
           ls -lh phasebam
 
   leviathan:
