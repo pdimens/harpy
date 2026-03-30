@@ -99,6 +99,7 @@ class LaunchSnakemake():
             self.print_logfile()
             return
         text = self.output.removeprefix("    ").rstrip().lstrip()
+        text = text.replace("(check log file(s) for error details)", "")
         valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
         _split = text.split(':')
         if _split[0] == "message":
@@ -163,6 +164,12 @@ class LaunchSnakemake():
             merged_text += self.output
         if "====" in self.output:
             logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
+            # purge out all unnecessary papermill error text
+            if "papermill.exceptions.PapermillExecutionError:" in logtext:
+                logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
+                chunks = logtext.split("\n\n")
+                filtered = [c for c in chunks if not c.startswith("File ")]
+                logtext = "\n\n".join(filtered)
             self.print.print("[red]" + logtext, overflow = "ignore", crop = False)
             self.nextline()
 
@@ -241,10 +248,6 @@ class LaunchSnakemake():
                     self.deps = True
                     self.deploy_text += "[dim]Installing workflow software"
                     break
-                #if "Downloading and installing remote packages" in self.output or "Running post-deploy" in self.output:
-                #    self.deps = True
-                #    self.deploy_text += "[dim]Installing workflow software"
-                #    break
                 if "Pulling singularity image" in self.output:
                     self.deps = True
                     self.deploy_text += "[dim]Building software container"
@@ -381,39 +384,37 @@ class LaunchSnakemake():
                 self.nextline()
 
         if any(i in self.output for i in self.snakemake_errors):
-            while "Shutting down, this might" not in self.output:
-                self.print.print(self.output, style = "red", end = "")
+            while "Exiting because a job execution failed." not in self.output:
+                #self.print.print(self.output, style = "red", end = "")
                 self.nextline()
 
         while self.output:
             self.nextline()
-            if "Exiting because a job execution failed" in self.output:
+            if "Error in group" in self.output:
+                self.grouperror = True
+                self.print.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
                 self.nextline()
-                if "Error in group" in self.output:
-                    self.grouperror = True
-                    self.print.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
-                    self.nextline()
-                if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
-                    # this is the [timestamp] line
-                    self.print.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
-                    break
+            if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
+                # this is the [timestamp] line
+                self.print.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
+                break
 
         # error in rule line
         while self.output:
             self.nextline()
             if "Error in rule" in self.output or "Error in group" in self.output:
-                if self.error_printed and not self.grouperror:
-                    break
+                #if self.error_printed and not self.grouperror:
+                #    break
                 self.print.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
                 self.error_printed = True
             elif self.output.strip().startswith("shell:"):
                 self.print_shellcmd()
             elif self.output.startswith("Complete log"):
-                break
+                return
             elif self.output.startswith("WorkflowError"):
-                break
+                return
             else:
                 self.process_error()
             # stop after the first full error block is printed
-            if self.error_printed and not self.grouperror:
-                return
+            #if self.error_printed and not self.grouperror:
+            #    return
