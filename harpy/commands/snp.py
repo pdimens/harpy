@@ -81,7 +81,8 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
     workflow.input(fasta.file, "reference")
     workflow.input(region, "regions")
     if populations:
-        popfile = Populations(populations, alignments.files)
+        popfile = Populations(populations, alignments.files, quiet)
+        popfile.copy_to_workflow(output)
         workflow.input(popfile.file, "groupings:source")
         workflow.input("workflow/sample.groups", "groupings:processed")
     workflow.input(alignments.files, "alignments")
@@ -153,7 +154,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
     workflow.input(fasta.file, "reference")
     workflow.input(region, "regions")
     if populations:
-        popfile = Populations(populations, alignments.files)
+        popfile = Populations(populations, alignments.files, quiet)
         popfile.copy_to_workflow(output)
         workflow.input(popfile.file, "groupings:source")
         workflow.input("workflow/sample.groups", "groupings:processed")
