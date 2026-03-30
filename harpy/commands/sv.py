@@ -72,7 +72,7 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
 
     workflow.input(fasta.file, "reference")
     if populations:
-        popfile = Populations(populations, alignments.files)
+        popfile = Populations(populations, alignments.files, quiet)
         popfile.copy_to_workflow(output)
         workflow.input(popfile.file, "groupings:source")
         workflow.input("workflow/sample.groups", "groupings:processed")
@@ -148,7 +148,7 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
     workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(fasta.file, "reference")
     if populations:
-        popfile = Populations(populations, alignments.files)
+        popfile = Populations(populations, alignments.files, quiet)
         popfile.copy_to_workflow(output)
         workflow.input(popfile.file, "groupings:source")
         workflow.input("workflow/sample.groups", "groupings:processed")
