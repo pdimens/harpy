@@ -79,7 +79,7 @@ rule demultiplex:
     threads:
         workflow.cores
     conda:
-        "envs/qc.yaml"
+        "envs/preprocess.yaml"
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:

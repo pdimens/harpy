@@ -21,8 +21,8 @@ regions_input = INPUTS["regions"]
 grp          = INPUTS.get("groupings") or {}
 if grp:
     groupings = grp.get("processed", [])
-    if not os.path.isfile(groupings):
-        groupings.get("source", [])
+    if isinstance(groupings, str) and not os.path.isfile(groupings):
+        groupings = grp.get("source", [])
 else:
     groupings = []
 

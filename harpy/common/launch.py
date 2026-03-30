@@ -48,7 +48,7 @@ class LaunchSnakemake():
         self.print = printer
         self.progress = self.print.progressbar()
         self.bash = BashFormatter(indent_size=4)
-        self.snakemake_errors: list[str] = ["MissingInputException", "SyntaxError", "NameError", "RuleException"]
+        self.snakemake_errors: list[str] = ["MissingInputException", "SyntaxError", "NameError", "AttributeError", "RuleException"]
 
         try:
             self.workflow_setup()
@@ -372,7 +372,7 @@ class LaunchSnakemake():
                 self.nextline()
             return
 
-        if "MissingInputException" in self.output:
+        if "MissingInputException" or "AttributeError" in self.output:
             while self.output.strip():
                 self.print.print(self.output, end = "", style="red")
                 self.nextline()
