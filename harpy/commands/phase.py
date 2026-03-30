@@ -58,7 +58,7 @@ def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, 
     vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet)
     vcffile.check_phase()
     vcffile.match_samples(alignments.files, vcf_samples)
-    fasta = FASTA(reference)
+    fasta = FASTA(reference, quiet)
 
     workflow.linkedreads["type"] = alignments.lr_type
     workflow.input(vcffile.file, "vcf")
@@ -132,7 +132,7 @@ def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_qualit
     workflow.notebooks["plot-contigs"] = contigs if contigs else "default"
     workflow.input(vcffile.file, "vcf")
     if reference:
-        fasta = FASTA(reference)
+        fasta = FASTA(reference, quiet)
         workflow.input(fasta.file, "reference")
     workflow.input(alignments.files, "alignments")
     workflow.param(prune_threshold, "prune")

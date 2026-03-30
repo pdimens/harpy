@@ -65,8 +65,8 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
     workflow.conda = ["align", "variants"]
 
     ## checks and validations ##
-    alignments = XAM(inputs)
-    fasta = FASTA(reference)
+    alignments = XAM(inputs, nonlinked_ok = False, quiet = quiet)
+    fasta = FASTA(reference, quiet)
     if contigs:
         fasta.match_contigs(contigs)     
 
@@ -139,7 +139,7 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
     workflow.conda = ["variants"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, check_phase = True, quiet = quiet)
+    alignments = XAM(inputs, nonlinked_ok = False, check_phase = True, quiet = quiet)
     fasta =  FASTA(reference, quiet = quiet)
     if contigs:
         fasta.match_contigs(contigs)

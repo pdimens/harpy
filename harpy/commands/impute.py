@@ -49,9 +49,9 @@ def impute(parameters, vcf, inputs, output, region, grid_size, threads, vcf_samp
     workflow.conda = ["impute"]
 
     ## checks and validations ##
-    params = ImputeParams(parameters, quiet > 0)
-    alignments = XAM(inputs, quiet > 0)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet > 0)
+    params = ImputeParams(parameters, quiet)
+    alignments = XAM(inputs, quiet = quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet)
     vcffile.find_biallelic_contigs()
     vcffile.match_samples(alignments.files, vcf_samples)
     if region:
