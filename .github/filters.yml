@@ -2,7 +2,7 @@ common: &common
   - 'harpy/common/**'
   - 'harpy/__main__.py'
   - 'harpy/validation/**'
-  - 'harpy/common/report.py'
+  - 'harpy/report/**'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
 environments: &environments
