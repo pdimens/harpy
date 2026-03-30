@@ -50,7 +50,7 @@ rule filter_invalid:
         get_alignments
     output:
         temp("filtered/{sample}.bam.bai"),
-        temp("filtered/{sample}.invalid.bam"),    
+        invalid = temp("filtered/{sample}.invalid.bam"),    
         valid = temp("filtered/{sample}.bam")
     log:
         "logs/{sample}.filter_invalid.log"
@@ -59,7 +59,7 @@ rule filter_invalid:
     shell:
         """
         {{
-            djinn sam filter-invalid --invalid -t {threads} {input} > {output.valid}
+            djinn sam filter-invalid -t {threads} --invalid {output.invalid} {input} > {output.valid}
             samtools index {output.valid}  
         }} 2> {log}
         """

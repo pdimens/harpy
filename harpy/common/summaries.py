@@ -276,7 +276,7 @@ class Summary:
         ]
         params = " ".join(params)
         validsplit = "The input alignments had their records filtered for valid barcodes:\n"
-        validsplit += "\tdjinn sam filter-invalid --invalid sample.bam"
+        validsplit += "\tdjinn sam filter-invalid --invalid sample.invalid.bam sample.bam"
         phase = "Phasing was performed using whatshap:\n"
         phase += f"\twhatshap haplotag --sample name --reference input.ref {params} {extra} input.vcf input.bam"
         concataln = "Invalid-barcode alignments were added back to the phased alignments using:\n"
