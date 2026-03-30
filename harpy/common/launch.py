@@ -70,7 +70,11 @@ class LaunchSnakemake():
             self.progress.stop()
             self.process_finish()
             self.process.terminate()
-            self.process.wait()
+            try:
+                self.process.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.communicate()
             purge_empty_logs(outdir)
 
     def is_done(self) -> bool:
@@ -119,11 +123,6 @@ class LaunchSnakemake():
 
     def print_shellcmd(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
-        #_table = self.print.table()
-        #_table.add_column("Lpadding", justify="left")
-        #_table.add_column("shell", justify="left")
-        #_table.add_column("Rpadding", justify="left")
-
         text = ""
         while "(command exited" not in self.output or not self.output:
             self.nextline()
@@ -135,11 +134,6 @@ class LaunchSnakemake():
         self.print.print("")
         self.print.rule("[bold default]Error-causing Command", style = 'red')
         self.print.shell(text)
-        #text = re.sub(r' {2,}|\t+', '  ', text)
-        #res, err = self.bash.beautify_string(text)
-        #cmd = Syntax(escape(res), lexer = "bash", tab_size=4, word_wrap=True, padding=1, theme = "paraiso-dark")
-        #_table.add_row("  ", cmd, "  ")
-        #self.print.print("[bold default]shell:", _table)
 
     def print_logfile(self):
         '''process and print the contents of a logfile in the snakemake error log'''
@@ -304,7 +298,7 @@ class LaunchSnakemake():
 
     def monitor_jobs(self):
         '''monitors the Snakemake stderr output while jobs are running'''
-        if self.exitcode > -1 or self.process.poll():
+        if self.is_done():
             return
         with self.print.progresspanel(self.progress):
             self.task_ids["total_progress"] = self.progress.add_task(
@@ -388,7 +382,7 @@ class LaunchSnakemake():
                 #self.print.print(self.output, style = "red", end = "")
                 self.nextline()
 
-        while self.output:
+        while self.output and "(100%) done" not in self.output:
             self.nextline()
             if "Error in group" in self.output:
                 self.grouperror = True
@@ -400,7 +394,7 @@ class LaunchSnakemake():
                 break
 
         # error in rule line
-        while self.output:
+        while self.output and "(100%) done" not in self.output:
             self.nextline()
             if "Error in rule" in self.output or "Error in group" in self.output:
                 #if self.error_printed and not self.grouperror:
