@@ -372,6 +372,11 @@ class LaunchSnakemake():
                 self.nextline()
             return
 
+        if "MissingInputException" in self.output:
+            while self.output.strip():
+                self.print.print(self.output, end = "", style="red")
+                self.nextline()
+
         if "MissingOutputException" in self.output:
             while "Shutting down, this might" not in self.output:
                 self.print.print(self.output, style="red")
