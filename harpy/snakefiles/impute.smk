@@ -249,13 +249,13 @@ rule impute_reports:
         "{paramset}/logs/reports/imputestats.log"
     params:
         basedir = lambda wc: "-p basedir " + os.path.abspath("{wc.paramset}/reports/data/"),
-        model   = lambda wc: f"-p model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-p usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-p bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-p k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-p s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-p ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-p extra:{stitch_extra}"
+        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-p extra {stitch_extra}"
     shell:
         """
         {{
