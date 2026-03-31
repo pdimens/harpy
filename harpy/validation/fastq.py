@@ -112,7 +112,7 @@ class FASTQ():
         Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
-        self.print.log("Checking files for BX:Z tag", newline=False)
+        self.print.log("Inputs have BX:Z tag", newline=False)
         scanned = []
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
@@ -149,7 +149,7 @@ class FASTQ():
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
-        self.print.log("Checking files for BX:Z or BC:Z tags", newline=False)
+        self.print.log("Inputs have BX:Z or BC:Z tags", newline=False)
         primary = "BX:Z" if tag == "BX" else "BC:Z"
         secondary = "BC:Z" if tag == "BX" else "BX:Z"
         for fastq in self.files:
