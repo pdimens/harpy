@@ -91,7 +91,7 @@ def assembly(fastq_r1, fastq_r2, kmer_length, max_memory, output, extra_params,a
 @click.option('--force', panel = "Workflow Options", hidden = True, is_flag = True, default = False, help = 'Use athena with --force_reads')
 # Common Workflow
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Metassembly", show_default=True,  help = 'Output directory name')
-@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1,999, clamp = True), help = 'Number of threads to use')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 6, show_default = True, type = click.IntRange(6,999, clamp = True), help = 'Number of threads to use')
 @click.option('-u', '--organism-type', panel = "Metassembly Parameters", type = click.Choice(['prokaryote', 'eukaryote', 'fungus'], case_sensitive=False), default = "eukaryote", show_default=True, help = "Organism type for assembly report [`eukaryote`,`prokaryote`,`fungus`]")
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
