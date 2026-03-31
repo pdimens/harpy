@@ -48,7 +48,7 @@ class LaunchSnakemake():
         self.print = printer
         self.progress = self.print.progressbar()
         self.bash = BashFormatter(indent_size=4)
-        self.snakemake_errors: list[str] = ["MissingInputException", "SyntaxError", "NameError", "AttributeError", "RuleException"]
+        self.snakemake_errors: list[str] = ["InputFunctionException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
 
         try:
             self.workflow_setup()
@@ -198,7 +198,7 @@ class LaunchSnakemake():
                 _active = self.job_inventory[job].active()
                 if _active < 1:
                     self.pause_progress(job)
-                    self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]…")
+                    self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]⋯")
                 else:
                     self.progress.update(task_id, advance = 1, refresh = True, active = _active)
                 self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = f"[bold]{self.total_active}")
@@ -372,20 +372,20 @@ class LaunchSnakemake():
                 self.nextline()
             return
 
-        if "MissingInputException" or "AttributeError" in self.output:
+        if any(i in self.output for i in self.snakemake_errors):
             while self.output.strip():
                 self.print.print(self.output, end = "", style="red")
                 self.nextline()
-
+            return
+            
         if "MissingOutputException" in self.output:
-            while "Shutting down, this might" not in self.output:
+            print("CORPULAte")
+            while self.output.strip() or "Shutting down, this might" not in self.output:
                 self.print.print(self.output, style="red")
                 self.nextline()
 
-        if any(i in self.output for i in self.snakemake_errors):
-            while "Exiting because a job execution failed." not in self.output:
-                #self.print.print(self.output, style = "red", end = "")
-                self.nextline()
+        while "Exiting because a job execution failed. Look below for error messages" not in self.output:
+            self.nextline()
 
         while self.output and "(100%) done" not in self.output:
             self.nextline()
@@ -396,11 +396,16 @@ class LaunchSnakemake():
             if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
                 # this is the [timestamp] line
                 self.print.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
-                break
+            break
 
         # error in rule line
         while self.output and "(100%) done" not in self.output:
+            #while "Exiting because a job execution failed." not in self.output:
+            #    self.nextline()
             self.nextline()
+            if "RuleException" in self.output:
+                print("WE GOT A PROBLEM HERE")
+                sys.exit(1)
             if "Error in rule" in self.output or "Error in group" in self.output:
                 #if self.error_printed and not self.grouperror:
                 #    break

@@ -26,13 +26,13 @@ def stall(directory):
     """
     hp = HarpyPrint()
     directory = directory.rstrip("/")
-    PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
+    PROFILE_FILE = os.path.join(directory, "workflow", "profile.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
 
     if not os.path.exists(CONFIG_FILE):
         hp.error("missing workflow config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
     if not os.path.exists(PROFILE_FILE):
-        hp.error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
+        hp.error("missing snakemake config", f"Target directory [blue]{directory}[/] does not contain the file [bold]workflow/profile.yaml[/]")
 
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
@@ -95,7 +95,7 @@ def rule(directory):
     """
     hp = HarpyPrint()
     directory = directory.rstrip("/")
-    PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
+    PROFILE_FILE = os.path.join(directory, "workflow", "profile.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
 
     if not os.path.exists(f'{directory}/.snakemake/log'):
@@ -148,7 +148,7 @@ def rule(directory):
         if not os.path.exists(CONFIG_FILE):
             hp.error("missing workflow config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/workflow.yaml[/]")
         if not os.path.exists(PROFILE_FILE):
-            hp.error("missing snakemake config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/config.yaml[/]")
+            hp.error("missing snakemake config", f"The failing rule is missing inputs, which requires Snakemake to be re-run so they can be generated, but target directory [blue]{directory}[/] does not contain the file [bold]workflow/profile.yaml[/]")
         hp.log("Missing input files:\n  [yellow]" + '\n  '.join(infiles))
 
         with open(CONFIG_FILE, 'r', encoding="utf-8") as f:

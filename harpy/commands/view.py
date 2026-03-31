@@ -202,18 +202,18 @@ def snakefile(directory, edit):
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.help_option('--help', hidden = True)
 @click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
-def snakeparams(directory, edit):
+def profile(directory, edit):
     """
     Browse or edit a workflow's Snakemake configurations
     
     The snakemake configuration file has the runtime parameters snakemake was invoked with (i.e.,
     computational specifics that don't impact your results). The only required input is the output folder
-    previously created by Harpy where you can find `workflow/config.yaml`.
+    previously created by Harpy where you can find `workflow/profile.yaml`.
     """
     hp = HarpyPrint()
     err_dir = os.path.join(directory, "workflow")
-    target_file = os.path.join(err_dir, "config.yaml")
-    err_file = "There is no [blue]config.yaml[/] file"
+    target_file = os.path.join(err_dir, "profile.yaml")
+    err_file = "There is no [blue]profile.yaml[/] file"
     if not os.path.exists(err_dir):
         hp.error(
             "directory not found", 
@@ -243,4 +243,4 @@ view.add_command(envs)
 view.add_command(error)
 view.add_command(log)
 view.add_command(snakefile)
-view.add_command(snakeparams)
+view.add_command(profile)

@@ -42,7 +42,7 @@ class Workflow():
         self.parameters: dict = {}
         self.config: dict = {"Workflow": {}, "Parameters": {}, "Inputs": {}}
         self.profile: dict = {}
-        self.hpc: str = ""
+        self.hpc : dict = {}
         self.clean: str = clean if clean else ""
         self.container: bool = container
         self.conda: list[str] = []
@@ -104,7 +104,15 @@ class Workflow():
                 "The path to the output directory includes one or more directories with a space in the name, which is guaranteed to cause errors.",
                 f"Rename the path such that there are no spaces in the name:\n{formatted_path}"
             )
+        if hpc:
+            with open(hpc, 'r', encoding="utf-8") as f:
+                self.hpc = yaml.full_load(f)
+            if '__use_yte__' in self.hpc:
+                del self.hpc['__use_yte__']
+            #hpc_dir = os.path.join(self.workflow_directory, "hpc")
+            #self.profile["workflow-profile"] = hpc_dir
         self.profile = {
+            **({'__use_yte__': True} if hpc else {}),
             "cores" : threads,
             "rerun-incomplete": True,
             "show-failed-logs": True,
@@ -125,17 +133,15 @@ class Workflow():
         _command_rel = ["snakemake", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
         _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml")]
         _command_rel += ["--profile", os.path.join(workdir_rel, "profile.yaml")]
-        if hpc:
-            self.hpc = hpc
-            hpc_dir = os.path.join(self.workflow_directory, "hpc")
-            self.profile["workflow-profile"] = hpc_dir
+
         if notemp:
             _command.append("--no-temp")
             _command_rel.append("--no-temp")
         if sm_extra:
             _command.append(sm_extra)
             _command_rel.append(sm_extra)
-
+        
+        self.profile = self.profile | self.hpc
         self.snakemake_cmd_absolute = " ".join(_command)
         self.snakemake_cmd_relative = " ".join(_command_rel)
 
@@ -197,13 +203,13 @@ class Workflow():
                     "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
                 )
 
-    def fetch_hpc(self):
-        """If self.hpc exists, copy it into `workflow/hpc/config.yaml`"""
-        if not self.hpc:
-            return
-        hpc_dest = os.path.join(self.workflow_directory, "hpc")
-        os.makedirs(hpc_dest, exist_ok=True)
-        shutil.copy2(self.hpc, os.path.join(hpc_dest, "config.yaml"))
+    #def fetch_hpc(self):
+    #    """If self.hpc exists, read it into memory as a dict"""
+    #    if not self.hpc:
+    #        return
+    #    with open(self.hpcfile, 'r', encoding="utf-8") as f:
+    #        self.hpc = yaml.full_load(f)
+    #    self.profile = self.profile | self.hpc
 
     def write_snakemake_profile(self):
         """Writes the Snakemake profile to a file. The profile is expected to be a dict"""
@@ -298,7 +304,7 @@ class Workflow():
         self.fetch_snakefile()
         self.fetch_scripts()
         self.fetch_notebooks()
-        self.fetch_hpc()
+        #self.fetch_hpc()
         self.onstart()
         if not setup:
             self.launch()

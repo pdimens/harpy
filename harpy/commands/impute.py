@@ -75,7 +75,7 @@ def impute(parameters, vcf, inputs, output, region, grid_size, threads, vcf_samp
         "Input VCF" : os.path.basename(vcf),
         "Samples": min(len(vcffile.samples), alignments.count),
         "Parameter File" : os.path.basename(parameters),
-        **({'Contigs': f"{len(vcffile.biallelic_contigs)} [dim](with at least 5 biallelic SNPs)"} if region else {"Target Region" : region}),
+        **({'Contigs': f"{len(vcffile.biallelic_contigs)} [dim](with ≥ 5 biallelic SNPs)"} if region else {"Target Region" : region}),
         'Output Folder' : os.path.relpath(output) + "/"
     }
 

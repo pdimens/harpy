@@ -84,7 +84,7 @@ class VCF():
 
     def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
-        self.print.log("Checking alignment samples == VCF samples", newline=False)
+        self.print.log("Alignment samples in VCF", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             vcfsamples = list(_vcf.header.samples)
         #vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()

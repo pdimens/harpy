@@ -38,6 +38,7 @@
   - `downsample` (replaced by `Djinn` software)
   - `simulate` (replaced by `Mimick` and `VISOR-HACks` softwares)
 ### renamed
+- `config.yaml` is now `profile.yaml` to minimize confusion and make it aligned with latest Snakemake version
 - `demultiplex` is now `preprocess` to better reflect what the commands do
 - `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
 - `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow
@@ -67,6 +68,7 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - 4 SV reports consolidated into 1
 - printing functions consolidated into `HarpyPrint` class
 ### misc workflow
+- hpc.yaml profile parameters now merged into `profile.yaml` so all the profile information exists in a single file
 - workflow yaml files now include a `VERSION` variable that syncs with the Harpy version used
   - populates the `container` version tags within snakefile rules
   - this makes container versions reliable by default, but entirely hackable to manually dissociate harpy version and container version

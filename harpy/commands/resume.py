@@ -42,9 +42,9 @@ def snakemake_profile_extract(d: dict, key: str):
     val = d.get(key, None)
     if not val:
         hp.error(
-            "incorrect config.yaml",
-            "The [blue]config.yaml[/] file is missing one or more the necessary/expected keys.",
-            f"Please verify that [blue]workflow/config.yaml[/] is not missing the [green]{key}[/] key (and it is not empty)."
+            "incorrect profile.yaml",
+            "The [blue]profile.yaml[/] file is missing one or more the necessary/expected keys.",
+            f"Please verify that [blue]workflow/profile.yaml[/] is not missing the [green]{key}[/] key (and it is not empty)."
         )
     return val
 
@@ -66,27 +66,27 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     present in `directory/workflow/workflow.yaml`.
 
     The target directory must have:
-    - the `workflow/config.yaml` file
+    - the `workflow/profile.yaml` file
     - the `workflow/workflow.yaml` file
     - `workflow/envs/*.yaml` file(s) if using conda
     - `workflow/hpc/config.yaml` if using HPC
     """
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
-    PROFILE_FILE = os.path.join(directory, "workflow", "config.yaml")
+    PROFILE_FILE = os.path.join(directory, "workflow", "profile.yaml")
     if not os.path.exists(PROFILE_FILE):
-        hp.error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/config.yaml[/]")
+        hp.error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/profile.yaml[/]")
     if not os.path.exists(CONFIG_FILE):
         hp.error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
     
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config: dict = yaml.full_load(f)
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
-        snakemake_config: dict = yaml.full_load(f)
+        snakemake_profile: dict = yaml.full_load(f)
 
-    #container = snakemake_config["software-deployment-method"] == "apptainer"
+    #container = snakemake_profile["software-deployment-method"] == "apptainer"
     _name = config_extract(harpy_config, "Workflow", "name")
     _allow_noparams = True if "validate" in _name else False
-    _dir = snakemake_profile_extract(snakemake_config, "directory")
+    _dir = snakemake_profile_extract(snakemake_profile, "directory")
     _inputs = config_extract(harpy_config, "Inputs")
 
     workflow = Workflow(_name, "NA", _dir, False, clean, quiet, no_validation=True)
@@ -110,7 +110,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
                 _abs_cmd.append(i)
         workflow.snakemake_cmd_absolute = " ".join(_abs_cmd)
 
-    _sdm = snakemake_profile_extract(snakemake_config, "software-deployment-method")
+    _sdm = snakemake_profile_extract(snakemake_profile, "software-deployment-method")
     if _sdm != "apptainer":
         allow_missing = "validate" in _name or "mpileup" in _name
         workflow.conda = config_extract(harpy_config, "Workflow", "snakemake:conda-envs", allow_missing)
@@ -125,8 +125,8 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     workflow.write_workflow_config()
 
     if threads:
-        snakemake_config["cores"] = threads
-        workflow.profile = snakemake_config
+        snakemake_profile["cores"] = threads
+        workflow.profile = snakemake_profile
         workflow.write_snakemake_profile()
 
     workflow.info = {

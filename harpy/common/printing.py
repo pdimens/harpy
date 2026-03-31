@@ -157,14 +157,14 @@ class HarpyPrint():
     def onstart(self, text: str, title: str) -> None:
         """Print a panel of info on workflow run to stderr"""
         self.print("")
-        self.rule(f"[bold]harpy {title}", style = "light_steel_blue")
+        self.rule(f"[bold]{title}", style = "light_steel_blue")
         self.print(text)
 
     def setup_error(self, exitcode: int) -> None:
         """Print a red panel with snakefile or conda/singularity error text to stderr"""
         if exitcode == 1:
             errortype = "Snakefile Error"
-            errortext = "Something is wrong with the Snakefile for this workflow. If you manually edited the Snakefile, see the error below for troubleshooting. If you didn't, it's probably a bug (oops!) and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+            errortext = "Something is wrong with this Snakefile. If you manually edited it, see the error below for troubleshooting. If you didn't, it may be a bug and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         else:
             errortype = "Software Environment Error"
             errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Apptainer environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
@@ -179,10 +179,11 @@ class HarpyPrint():
                     errortext += "\n[yellow]Notice:[/] Your conda channel priority is configured as [yellow]strict[/], which can sometimes cause issues with Snakemake creating conda environments. Ignore this detail if you are using [blue]--container[/]."
             except ModuleNotFoundError:
                 pass
+        self.print("")
         self.rule(f"[bold]{errortype}[/][default dim]", style = "red")
         self.print("[red]Time:[/] " + self.time_now(), highlight=False)
         self.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
-        self.print(errortext)
+        self.print(errortext + "\n")
         self.rule("[bold]Error Reported by Snakemake", style = "red")
 
     def on_error(self, logfile: str, _time) -> None:
@@ -199,7 +200,7 @@ class HarpyPrint():
         datatable = self.table()
         datatable.add_column("detail", justify="left", style="red", no_wrap=True)
         datatable.add_column("value", justify="left")
-        datatable.add_row("Harpy Version:", __version__)
+        datatable.add_row("Harpy:", f"v{__version__}")
         datatable.add_row("Time:", self.time_now())
         datatable.add_row("Duration:", time_text)
         datatable.add_row("Workflow Log: ", os.path.relpath(logfile))
