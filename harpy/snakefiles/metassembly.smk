@@ -27,8 +27,8 @@ rule sort_by_barcode:
         fq_f = FQ1,
         fq_r = FQ2
     output:
-        fq_f = temp("fastq_preproc/tmp.R1.fq"),
-        fq_r = temp("fastq_preproc/tmp.R2.fq")
+        fq_f = temp("fastq_preproc/input.R1.fq.gz"),
+        fq_r = temp("fastq_preproc/input.R2.fq.gz")
     log:
         "logs/sort_by_barcode.log"
     params:
@@ -39,15 +39,15 @@ rule sort_by_barcode:
     shell:
         "djinn fastq sort -t {threads} {params} {input} 2> {log}"
 
-rule format_barcode:
-    input:
-        "fastq_preproc/tmp.R{FR}.fq"
-    output:
-        temp("fastq_preproc/input.R{FR}.fq.gz")
-    params:
-        BX_TAG
-    shell:
-        "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
+#rule format_barcode:
+#    input:
+#        "fastq_preproc/tmp.R{FR}.fq"
+#    output:
+#        temp("fastq_preproc/input.R{FR}.fq.gz")
+#    params:
+#        BX_TAG
+#    shell:
+#        "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
 rule error_correction:
     input:

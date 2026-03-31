@@ -379,12 +379,12 @@ class LaunchSnakemake():
             return
             
         if "MissingOutputException" in self.output:
-            print("CORPULAte")
-            while self.output.strip() or "Shutting down, this might" not in self.output:
-                self.print.print(self.output, style="red")
+            while "WorkflowError:" not in self.output:
+                self.print.print(self.output, end = "", style="red")
                 self.nextline()
+            return
 
-        while "Exiting because a job execution failed. Look below for error messages" not in self.output:
+        while self.output or "Exiting because a job execution failed. Look below for error messages" not in self.output:
             self.nextline()
 
         while self.output and "(100%) done" not in self.output:
