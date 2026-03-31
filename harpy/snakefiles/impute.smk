@@ -248,7 +248,7 @@ rule impute_reports:
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
-        basedir = lambda wc: "-p basedir " + os.path.abspath("{wc.paramset}/reports/data/"),
+        basedir = lambda wc: "-p basedir " + os.path.abspath(f"{wc.paramset}/reports/data/"),
         model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
         bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
