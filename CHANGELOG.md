@@ -39,6 +39,7 @@
   - `simulate` (replaced by `Mimick` and `VISOR-HACks` softwares)
 ### renamed
 - `config.yaml` is now `profile.yaml` to minimize confusion and make it aligned with latest Snakemake version
+  - `view snakeparams` has been updated to `view profile` to match this
 - `demultiplex` is now `preprocess` to better reflect what the commands do
 - `diagnose` is now `diagnose stall` to accomodate distinction from new `diagnose rule`
 - `phase` has been renamed `phase snp` to accommodate a disctinction from the new `phase bam` workflow

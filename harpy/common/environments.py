@@ -64,7 +64,7 @@ class HarpyEnvs():
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus",
-            "conda-forge::setuptools"
+            "conda-forge::setuptools<82"
         ]
     }
 

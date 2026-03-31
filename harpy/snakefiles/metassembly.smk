@@ -33,7 +33,7 @@ rule sort_by_barcode:
         "logs/sort_by_barcode.log"
     params:
         tag = BX_TAG,
-        prefix = "fastq_preproc/tmp"
+        prefix = "fastq_preproc/input"
     threads:
         workflow.cores
     shell:
