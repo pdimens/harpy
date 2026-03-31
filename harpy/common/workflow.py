@@ -119,10 +119,12 @@ class Workflow():
             "directory": self.output_directory
         }
         _command = ["snakemake", "--snakefile", os.path.join(self.workflow_directory, "workflow.smk")]
-        _command += ["--configfile", os.path.join(self.workflow_directory, "workflow.yaml"), "--profile", self.workflow_directory]
+        _command += ["--configfile", os.path.join(self.workflow_directory, "workflow.yaml")]
+        _command += ["--profile", os.path.join(self.workflow_directory, "profile.yaml")]
         workdir_rel = os.path.relpath(self.workflow_directory)
         _command_rel = ["snakemake", "--snakefile", os.path.join(workdir_rel, "workflow.smk")]
-        _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml"), "--profile", workdir_rel]
+        _command_rel += ["--configfile", os.path.join(workdir_rel, "workflow.yaml")]
+        _command_rel += ["--profile", os.path.join(workdir_rel, "profile.yaml")]
         if hpc:
             self.hpc = hpc
             hpc_dir = os.path.join(self.workflow_directory, "hpc")
@@ -205,8 +207,8 @@ class Workflow():
 
     def write_snakemake_profile(self):
         """Writes the Snakemake profile to a file. The profile is expected to be a dict"""
-        with open(os.path.join(self.workflow_directory, 'config.yaml'), "w", encoding="utf-8") as sm_config:
-            yaml.dump(self.profile, sm_config, sort_keys=False, width=float('inf'))
+        with open(os.path.join(self.workflow_directory, 'profile.yaml'), "w", encoding="utf-8") as sm_profile:
+            yaml.dump(self.profile, sm_profile, sort_keys=False, width=float('inf'))
 
     def write_workflow_config(self, writefile: bool = True) -> None:
         """
@@ -265,7 +267,7 @@ class Workflow():
         for k,v in self.info.items():
                 table.add_row(f"{k}:", f"{v}")
         self.print.print("")
-        self.print.rule("[bold]harpy " + self.name.replace("_", " "), style = "light_steel_blue")
+        self.print.rule("[bold]" + self.name.replace("_", " "), style = "light_steel_blue")
         self.print.print(table)
 
     def onsuccess(self):
@@ -283,7 +285,7 @@ class Workflow():
             datatable.add_row("Summary: ", os.path.join(_relpath, "workflow", os.path.basename(self.summary)))
         _smlog = last_sm_log(self.output_directory)
         if _smlog:
-            datatable.add_row("Workflow Log:", os.path.join(_relpath, ".snakemake", 'log', _smlog))
+            datatable.add_row("Log:", os.path.join(_relpath, ".snakemake", 'log', _smlog))
         self.print.rule("[bold]Workflow Finished[/]", style="green")
         self.print.print(datatable)
 

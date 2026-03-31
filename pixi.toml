@@ -26,7 +26,7 @@ beautysh = ">=6.4.2,<7"
 xeus-python = ">=0.18.1,<0.19"
 polars = ">=1.39.2,<2"
 vl-convert-python = ">=2.0.0rc1,<3"
-snakemake-minimal = ">=9.17.2,<10"
+snakemake-minimal = ">=9.19.0,<10"
 go = ">=1.26.1,<2"
 
 [pypi-dependencies]
