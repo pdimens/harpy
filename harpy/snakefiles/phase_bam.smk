@@ -112,8 +112,8 @@ rule phase_alignments:
         """
         {{
             whatshap haplotag --sample {wildcards.sample} --reference {input.ref} {input.vcf} {input.aln} |
-            samtools view -@ 1 -h -O BAM > {output.bam}
-        }} 2> {output.log}
+            samtools view -@ 1 -h -O BAM
+        }} > {output.bam} 2> {output.log}
         """
 
 rule log_phasing:
