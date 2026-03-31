@@ -4,17 +4,20 @@ import os
 import pysam
 import re
 from harpy.common.printing import HarpyPrint
-from harpy.validation.barcodes import which_linkedread_sam
+
+HAPLOTAGGING_RX = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
+STLFR_RX = re.compile(r"^\d+_\d+_\d+$")
+TELLSEQ_RX = re.compile(r"^[ATCGN]+$")
 
 class XAM():
     """
-    A class to contain and validate BAM/SAM input files. If detect_bc is True, will scan the first 100
+    A class to contain and validate BAM/SAM input files. If detect_bc is True, will scan the first `maxrec`
     records of the first [up to] 5 files to determine barcode type, stopping at the first detection of a
     recognizable barcode technology and sets the SAM.lr_type field with one of
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     """
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, check_phase:bool = False, quiet:int = 0):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, check_phase:bool = False, quiet:int = 0, maxrec = 100):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
@@ -22,7 +25,7 @@ class XAM():
         self.count = 0
         self.lr_type = "none"
         self.print = HarpyPrint(quiet)
-
+        self.max_records = maxrec
         re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
         uniqs = set()
         dupes = []
@@ -72,14 +75,14 @@ class XAM():
                 if i > 5:
                     break
                 scanned.append(os.path.basename(samfile))
-                self.lr_type = which_linkedread_sam(samfile)
+                self.lr_type = self.which_linkedread(samfile)
                 if self.lr_type != "none":
                     break
             if not nonlinked_ok and self.lr_type == "none":
                 self.print.validation(False)
                 self.print.error(
                     "incompatible data",
-                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 lines of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                    f"This command requires linked-read data in haplotagging, stlfr, or tellseq format, but none were found in the first {self.max_records} records of the first {len(scanned)} files.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                     "Files Scanned",
                     "\n".join(scanned)
@@ -93,7 +96,7 @@ class XAM():
             scanned.append(os.path.basename(samfile))
             # do lr barcode scan if enabled and not yet detected
             if detect_bc and self.lr_type == "none":
-                self.lr_type = which_linkedread_sam(samfile)
+                self.lr_type = self.which_linkedread(samfile)
             # do phased scan if enabled and not yet detected
             if check_phase and not any(_phased):
                 _phased.append(self.is_phased(samfile))
@@ -102,7 +105,7 @@ class XAM():
             self.print.validation(False)
             self.print.error(
                 "incompatible data",
-                "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Auto-detection scanned the first 100 records of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                f"This command requires linked-read data in haplotagging, stlfr, or tellseq format, but none were found in the first {self.max_records} records of the first {len(scanned)} files.",
                 "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                 "Files Scanned",
                 "\n".join(scanned)
@@ -112,7 +115,7 @@ class XAM():
             self.print.validation(False)
             self.print.error(
                 "incompatible data",
-                "Phased alignments are required as input, but harpy was unable to find the [green]HP[/] or [green]PS[/] tags that denote phasing in the first 100 records of up to the first 5 files.",
+                f"Phased alignments are required as input, but harpy was unable to find the [green]HP[/] or [green]PS[/] tags that denote phasing in the first {self.max_records} records of the first {len(scanned)} files.",
                 "Please double-check that these data are indeed phased (contain [green]HP[/] or [green]PS[/] tags), otherwise you can phase these alignments using [green]harpy phase bam[/].",
                 "Files Scanned",
                 "\n".join(scanned)
@@ -128,3 +131,23 @@ class XAM():
                 if (record.has_tag("PS") or record.has_tag("HP")):
                     return True
         return False
+    
+    def which_linkedread(self, file_path: str) -> str:
+        """
+        Scans the first `self.max_records` records of a SAM/BAM file and tries to determine the barcode technology
+        Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
+        """
+        with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+            for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
+                if i > 100:
+                    break
+                if not record.has_tag("BX"):
+                    continue
+                bx = record.get_tag("BX")
+                if TELLSEQ_RX.search(bx):
+                    return "tellseq"
+                if STLFR_RX.search(bx):
+                    return "stlfr"
+                if HAPLOTAGGING_RX.search(bx):
+                    return "haplotagging"
+        return "none"

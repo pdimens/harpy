@@ -4,7 +4,10 @@ import os
 import re
 import pysam
 from harpy.common.printing import HarpyPrint
-from harpy.validation.barcodes import which_linkedread
+
+HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
+STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
+TELLSEQ_RX = re.compile(r':([ATCGN]+)(\s|$)')
 
 class FASTQ():
     '''
@@ -14,7 +17,7 @@ class FASTQ():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     '''
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:int = 0):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:int = 0, maxrec = 100):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
@@ -25,6 +28,8 @@ class FASTQ():
         self.illumina_old = True
         self.print = HarpyPrint(quiet)
         self.lr_type = "none"
+        self.nonlink_ok = nonlinked_ok
+        self.max_records = maxrec
         badfiles = []
 
         #self.illu_old = re.compile(r'/[12]$')
@@ -87,32 +92,32 @@ class FASTQ():
                 if i % 2 == 0:
                     continue
                 scanned.append(os.path.basename(fq))
-                self.lr_type = which_linkedread(fq)
+                self.lr_type = self.which_linkedread(fq)
                 if self.lr_type != "none":
                     break
             self.bx_tag = self.lr_type == "haplotagging"
-            if not nonlinked_ok and self.lr_type == "none":
+            if not self.nonlink_ok and self.lr_type == "none":
                 self.print.validation(False)
                 self.print.error(
                     "incompatible data",
-                    "This command requires linked-read data, but harpy was unable to associate the input data as being haplotagging, stlfr, or tellseq format. Autodetection scanned the first 100 records of up to the first 5 files and failed to find barcodes conforming to those formatting standards.",
+                    f"This command requires linked-read data in haplotagging, stlfr, or tellseq format, but none were found in the first {self.max_records} records of the first {len(scanned)} files.",
                     "Please double-check that these data are indeed linked-read data and the barcodes are formatted according to that technology standard.",
                     "Files Scanned",
                     "\n".join(scanned)
                 )
             self.print.validation(True)
 
-    def has_bx_tag(self, max_records: int = 50):
+    def has_bx_tag(self):
         """
         Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
         self.print.log("Checking files for BX:Z tag", newline=False)
-
+        scanned = []
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
                 for i,record in enumerate(fq, 1):
-                    if i > max_records:
+                    if i > self.max_records:
                         break
                     cmt = record.comment or ""
                     if "BX:Z" in cmt:
@@ -120,23 +125,27 @@ class FASTQ():
                     if "VX:i" in cmt:
                         self.vx_tag = True
                     if self.bx_tag or self.vx_tag:
+                        self.print.validation(True)
                         return
-        self.print.validation(True)
-
+            scanned.append(i)
+        self.print.validation(False)
+        if not self.nonlink_ok:
+            self.print.error(
+                "incompatible data",
+                f"This command requires linked-read data with a BX:Z tag, but the BX:Z tag was not found in the first {self.max_records} records of the first {len(scanned)} files.",
+                "Please double-check that these data are indeed linked-read data and the barcodes are encoded in the BX:Z tag.",
+                "Files Scanned",
+                "\n".join(scanned)
+            )
 
     def detect_illumina_format(self):
         with pysam.FastxFile(self.files[0]) as f:
             for read in f:
-                # Check old format: name ends with /1 or /2
-                #if self.illu_old.search(read.name):
-                #    self.illumina_old = "old"
-                # Check new format: comment field starts with 1: or 2:
                 if read.comment and self.illu_new.search(read.comment):
                     self.illumina_old = False
-                # Only need to check the first read
                 break
 
-    def bc_or_bx(self, tag: str, max_records: int = 50) -> None:
+    def bc_or_bx(self, tag: str) -> None:
         """
         Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
@@ -148,7 +157,7 @@ class FASTQ():
             SECONDARY = False
             with pysam.FastxFile(fastq, persist=False) as fq:
                 for i,record in enumerate(fq, 1):
-                    if i > max_records:
+                    if i > self.max_records:
                         break
                     cmt = record.comment or ""
                     PRIMARY = (primary in cmt) or PRIMARY
@@ -170,3 +179,20 @@ class FASTQ():
                         "Check that this is linked-read data and that the barcode is demultiplexed from the sequence line into the read header as either a `BX:Z` or `BC:Z` tag."
                     )
         self.print.validation(True)
+
+    def which_linkedread(self, fastq: str) -> str:
+        """
+        Scans the first 100 records of a FASTQ file and tries to determine the barcode technology
+        Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
+        """
+        with pysam.FastxFile(fastq, persist=False) as fq:
+            for i,record in enumerate(fq, 1):
+                if i > self.max_records:
+                    break
+                if record.comment and HAPLOTAGGING_RX.search(record.comment):
+                    return "haplotagging"
+                if STLFR_RX.search(record.name):
+                    return "stlfr"
+                if TELLSEQ_RX.search(record.name):
+                    return "tellseq"
+        return "none"

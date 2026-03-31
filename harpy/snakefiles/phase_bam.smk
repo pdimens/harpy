@@ -91,6 +91,8 @@ rule phase_alignments:
     output:
         bam = temp("phased/{sample}.phased.bam"),
         log = "logs/{sample}.phase.log"
+    log:
+        "logs/{sample}.phase.log"
     params:
         f"--ploidy {ploidy}",
         f"-d {mol_dist}",
