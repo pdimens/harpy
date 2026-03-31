@@ -2,6 +2,7 @@
 
 from contextlib import nullcontext
 import os
+import re
 import sys
 import time
 from beautysh import BashFormatter
@@ -216,7 +217,7 @@ class HarpyPrint():
         result, _ = self.bash.beautify_string(data = text)
         if rules:
             self.console.rule("Shell Code", style = 'dim')
-        self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, style = style)
+        self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, end = "", style = style)
         if rules:
             self.console.rule(style = 'dim')
 
@@ -282,3 +283,144 @@ class HarpyPrint():
             console = self.console if stderr else None,
             expand=True
         )
+
+    def process_sm_errors(self, errtext):
+        '''
+        final processing of the snakemake stderr text after an error has occured,
+        returns early if ongoing or successful exit, otherwise processess the error text
+        '''
+        self.console.tab_size = 4
+        self.console._highlight = False
+        self.errortext = errtext
+        snakemake_errors: list[str] = ["InputFunctionException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
+
+        # shortcut to FileNotFoundError #
+        line = next(self.errortext)
+        if line.strip().startswith("FileNotFound"):
+            if "/envs/" in line and ".yaml'" in line:
+                self.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + line.split(":")[-1].replace("'", ""))
+            else:
+                self.print(line.strip(), style = "red")
+            return
+        # pick out conda-env errors
+        if line.strip().startswith("CreateCondaEnvir"):
+            while "To search for alternate" not in line:
+                line = next(self.errortext)
+                if line != "\n":
+                    if line.lstrip().startswith("-"):
+                        self.print(line.rstrip(), style = "bold red")
+                    else:
+                        self.print(line.rstrip(), style = "red")
+            return
+
+        if any(i in line for i in snakemake_errors):
+            for i in self.errortext:
+                self.print(i, end = "", style="red")
+            return
+        if "MissingOutputException" in line:
+            for i in self.errortext:
+                if "WorkflowError:" not in i:
+                #while "WorkflowError:" not in line:
+                #line = next(self.errortext)
+                    self.print(i, end = "", style="red")
+            return
+
+        for i in self.errortext:
+            if "Exiting because a job execution failed. Look below for error messages" in i:
+                break
+        for i in self.errortext:
+            if "(100%) done" in i:
+                break
+            if "Error in group" in i:
+                self.grouperror = True
+                self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
+                i = next(self.errortext).strip()
+            if i.startswith("[") and i.strip().endswith("]"):
+                # this is the [timestamp] line
+                self.print("[blue]" + i, overflow = "ignore", crop = False)
+                break
+
+        # error in rule line
+        for i in self.errortext:
+            if "(100%) done" in i:
+                break
+            if "RuleException" in i:
+                sys.exit(1)
+            if "Error in rule" in i or "Error in group" in i:
+                self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
+            elif i.strip().startswith("shell:"):
+                self.format_shell()
+            elif i.startswith("Complete log"):
+                return
+            elif i.startswith("WorkflowError"):
+                return
+            else:
+                self.process_error(i)
+
+    def process_error(self, txt):
+        '''interpret rule errors and print them with nice format'''
+        if txt.strip().startswith("Logfile"):
+            self.print_logfile(txt)
+            return
+        if "snakemake.logging" in txt:
+            return
+        text = txt.removeprefix("    ").rstrip().lstrip()
+        text = text.replace("(check log file(s) for error details)", "")
+        valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
+        _split = text.split(':')
+        if _split[0] == "message":
+            return
+        if len(_split) == 1 or _split[0] not in valid_keys:
+            self.print(f"[red]{escape(text)}", overflow = "ignore", crop = False)
+            return
+        key = _split[0]
+        vals = [i.strip() for i in _split[1].split(",")]
+        if len(vals) == 1:
+            if key == "conda-env":
+                self.print(f"[bold default]{key}: [/][red]" + escape(os.path.relpath(vals[0])))
+            else:
+                self.print(f"[bold default]{key}: [/][red]" + escape("".join(vals)))
+            return
+        self.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
+
+    def format_shell(self):
+        '''format the snakemake rule shell command nicely and print it to the console'''
+        text = ""
+        for i in self.errortext:
+            if "(command exited" in i:
+                break
+            text += i
+        self.rule("[bold default]Error-causing Command", style = 'red')
+        self.shell(text.strip("\n"))
+
+    def print_logfile(self, errline):
+        '''process and print the contents of a logfile in the snakemake error log'''
+        merged_text = ""
+        _log = errline.rstrip().split()[1]
+        self.print("")
+        self.rule(f"[bold]{_log.rstrip(':')}", style = "yellow")
+        if "empty file" in errline:
+            self.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
+            _ = next(self.errortext)
+            return
+        if "not found" in errline:
+            self.print(f"log file {_log} was not found\n", style = "red")
+            _ = next(self.errortext)
+            return
+        lines = 0
+        for i in self.errortext:
+            if lines == 2:
+                break
+            if "====" in i:
+                lines += 1
+                continue          
+            merged_text += i
+        logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
+        # purge out all unnecessary papermill error text
+        if "papermill.exceptions.PapermillExecutionError:" in logtext:
+            logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
+            chunks = logtext.split("\n\n")
+            filtered = [c for c in chunks if not c.startswith("File ")]
+            logtext = "\n\n".join(filtered)
+        self.print("[red]" + logtext, overflow = "ignore", crop = False)
+        _ = next(self.errortext)

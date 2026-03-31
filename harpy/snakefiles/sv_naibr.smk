@@ -66,7 +66,7 @@ rule process_reference:
     shell: 
         """
         {{
-            XXseqtk seq {input} > {output.geno}
+            seqtk seq {input} > {output.geno}
             samtools faidx --fai-idx {output.fai} {output.geno}
         }} 2> {log}
         """

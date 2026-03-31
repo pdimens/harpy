@@ -1,11 +1,9 @@
 """launch snakemake"""
 
 from datetime import datetime
-import os
 import re
 import sys
 import subprocess
-from rich.markup import escape
 from beautysh import BashFormatter
 from harpy.common.file_ops import last_sm_log, purge_empty_logs
 from harpy.common.printing import HarpyPrint
@@ -48,7 +46,7 @@ class LaunchSnakemake():
         self.print = printer
         self.progress = self.print.progressbar()
         self.bash = BashFormatter(indent_size=4)
-        self.snakemake_errors: list[str] = ["InputFunctionException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
+        self.errorlog = []
 
         try:
             self.workflow_setup()
@@ -68,14 +66,15 @@ class LaunchSnakemake():
             sys.exit(1)
         finally:
             self.progress.stop()
-            self.process_finish()
-            self.process.terminate()
-            try:
-                self.process.communicate(timeout=5)
-            except subprocess.TimeoutExpired:
-                self.process.kill()
-                self.process.communicate()
+            self.return_or_collect()
             purge_empty_logs(outdir)
+            if self.process.poll is None:
+                self.process.terminate()
+                try:
+                    self.process.communicate(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.process.kill()
+                    self.process.communicate()
 
     def is_done(self) -> bool:
         '''check if self.exitcode > -1 or a value exists for self.process.poll()'''
@@ -96,76 +95,6 @@ class LaunchSnakemake():
     def iserror(self) -> bool:
         '''logical check for erroring trigger words in snakemake output'''
         return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
-
-    def process_error(self):
-        '''interpret rule errors and print them with nice format'''
-        if self.output.strip().startswith("Logfile"):
-            self.print_logfile()
-            return
-        text = self.output.removeprefix("    ").rstrip().lstrip()
-        text = text.replace("(check log file(s) for error details)", "")
-        valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
-        _split = text.split(':')
-        if _split[0] == "message":
-            return
-        if len(_split) == 1 or _split[0] not in valid_keys:
-            self.print.print(f"[red]{escape(text)}", overflow = "ignore", crop = False)
-            return
-        key = _split[0]
-        vals = [i.strip() for i in _split[1].split(",")]
-        if len(vals) == 1:
-            if key == "conda-env":
-                self.print.print(f"[bold default]{key}: [/][red]" + escape(os.path.relpath(vals[0])))
-            else:
-                self.print.print(f"[bold default]{key}: [/][red]" + escape("".join(vals)))
-            return
-        self.print.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
-
-    def print_shellcmd(self):
-        '''format the snakemake rule shell command nicely and print it to the console'''
-        text = ""
-        while "(command exited" not in self.output or not self.output:
-            self.nextline()
-            if not self.output:
-                break
-            text += self.output
-
-        text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
-        self.print.print("")
-        self.print.rule("[bold default]Error-causing Command", style = 'red')
-        self.print.shell(text)
-
-    def print_logfile(self):
-        '''process and print the contents of a logfile in the snakemake error log'''
-        merged_text = ""
-        _log = self.output.rstrip().split()[1]
-        self.print.print("")
-        self.print.rule(f"[bold]{_log.rstrip(':')}", style = "yellow")
-        if "empty file" in self.output:
-            self.print.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
-            self.nextline()
-            return
-        if "not found" in self.output:
-            self.print.print(f"log file {_log} was not found\n", style = "red")
-            self.nextline()
-            return
-        lines = 0
-        while lines < 2:
-            self.nextline()
-            if "====" in self.output:
-                lines += 1
-                continue
-            merged_text += self.output
-        if "====" in self.output:
-            logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
-            # purge out all unnecessary papermill error text
-            if "papermill.exceptions.PapermillExecutionError:" in logtext:
-                logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
-                chunks = logtext.split("\n\n")
-                filtered = [c for c in chunks if not c.startswith("File ")]
-                logtext = "\n\n".join(filtered)
-            self.print.print("[red]" + logtext, overflow = "ignore", crop = False)
-            self.nextline()
 
     def nextline(self, strip: bool = False):
         """reads the next line of stderr"""
@@ -343,82 +272,15 @@ class LaunchSnakemake():
                 if self.output.startswith("Finished jobid: "):
                     self.update_finished_progress()
 
-    def process_finish(self):
-        '''final processing of the stderr text, returns early if ongoing or successful exit, otherwise processess the error text'''
+    def return_or_collect(self):
+        '''
+        return if the error code is 0, otherwise print the corresponding error and drain the buffer to
+        get all the error text for processing after
+        '''
         if self.exitcode <= 0:
             return
-        if self.exitcode in (1,2):
-            self.print.setup_error(self.exitcode)
-        elif self.exitcode == 3:
-            self.print.on_error(last_sm_log(self.outdir), datetime.now() - self.start_time)
-        self.print.console.tab_size = 4
-        self.print.console._highlight = False
-        # shortcut to FileNotFoundError #
-        if self.output.strip().startswith("FileNotFound"):
-            if "/envs/" in self.output and ".yaml'" in self.output:
-                self.print.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + self.output.split(":")[-1].replace("'", ""))
-            else:
-                self.print.print(self.output.strip(), style = "red")
-            return
-        # pick out conda-env errors
-        if self.output.strip().startswith("CreateCondaEnvir"):
-            self.nextline()
-            while self.output and "To search for alternate" not in self.output:
-                if self.output != "\n":
-                    if self.output.lstrip().startswith("-"):
-                        self.print.print(self.output.rstrip(), style = "bold red")
-                    else:
-                        self.print.print(self.output.rstrip(), style = "red")
-                self.nextline()
-            return
-
-        if any(i in self.output for i in self.snakemake_errors):
-            while self.output.strip():
-                self.print.print(self.output, end = "", style="red")
-                self.nextline()
-            return
-            
-        if "MissingOutputException" in self.output:
-            while "WorkflowError:" not in self.output:
-                self.print.print(self.output, end = "", style="red")
-                self.nextline()
-            return
-
-        while self.output or "Exiting because a job execution failed. Look below for error messages" not in self.output:
-            self.nextline()
-
-        while self.output and "(100%) done" not in self.output:
-            self.nextline()
-            if "Error in group" in self.output:
-                self.grouperror = True
-                self.print.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
-                self.nextline()
-            if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
-                # this is the [timestamp] line
-                self.print.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
-            break
-
-        # error in rule line
-        while self.output and "(100%) done" not in self.output:
-            #while "Exiting because a job execution failed." not in self.output:
-            #    self.nextline()
-            self.nextline()
-            if "RuleException" in self.output:
-                print("WE GOT A PROBLEM HERE")
-                sys.exit(1)
-            if "Error in rule" in self.output or "Error in group" in self.output:
-                #if self.error_printed and not self.grouperror:
-                #    break
-                self.print.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
-                self.error_printed = True
-            elif self.output.strip().startswith("shell:"):
-                self.print_shellcmd()
-            elif self.output.startswith("Complete log"):
-                return
-            elif self.output.startswith("WorkflowError"):
-                return
-            else:
-                self.process_error()
-            # stop after the first full error block is printed
-            #if self.error_printed and not self.grouperror:
-            #    return
+        
+        txt: list[str] = []
+        for line in self.process.stderr:
+            txt.append(line)
+        self.errorlog = iter(txt)

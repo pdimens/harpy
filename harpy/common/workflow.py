@@ -327,4 +327,9 @@ class Workflow():
                 f_out.write(Summary(self.version, self.config).get())
             self.onsuccess()
         else:
+            if sm.exitcode in (1,2):
+                self.print.setup_error(sm.exitcode)
+            elif sm.exitcode == 3:
+                self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
+            self.print.process_sm_errors(sm.errorlog)
             sys.exit(1)
