@@ -292,7 +292,7 @@ class HarpyPrint():
         self.console.tab_size = 4
         self.console._highlight = False
         self.errortext = errtext
-        snakemake_errors: list[str] = ["InputFunctionException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
+        snakemake_errors: list[str] = ["InputFunctionException", "MissingOutputException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
 
         # shortcut to FileNotFoundError #
         line = next(self.errortext)
@@ -316,13 +316,6 @@ class HarpyPrint():
         if any(i in line for i in snakemake_errors):
             for i in self.errortext:
                 self.print(i, end = "", style="red")
-            return
-        if "MissingOutputException" in line:
-            for i in self.errortext:
-                if "WorkflowError:" not in i:
-                #while "WorkflowError:" not in line:
-                #line = next(self.errortext)
-                    self.print(i, end = "", style="red")
             return
 
         for i in self.errortext:

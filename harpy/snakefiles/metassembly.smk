@@ -22,7 +22,7 @@ lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteri
 lineagedb   = lineage_map.get(organism, "bacteria")
 odb_version = 12
 
-rule sort_by_barcode:
+rule preprocess_reads:
     input:
         fq_f = FQ1,
         fq_r = FQ2
@@ -32,22 +32,18 @@ rule sort_by_barcode:
     log:
         "logs/sort_by_barcode.log"
     params:
-        tag = BX_TAG,
-        prefix = "fastq_preproc/input"
+        BX_TAG
     threads:
         workflow.cores
     shell:
-        "djinn fastq sort -t {threads} {params} {input} 2> {log}"
-
-#rule format_barcode:
-#    input:
-#        "fastq_preproc/tmp.R{FR}.fq"
-#    output:
-#        temp("fastq_preproc/input.R{FR}.fq.gz")
-#    params:
-#        BX_TAG
-#    shell:
-#        "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
+        """
+        {{
+            samtools import -@ 1 -T * {input} |
+            samtools sort -O SAM -t {params} |
+            sed 's/{params}:Z:[^[:space:]]*/&-1/g' |
+            samtools fastq -N -c 4 -T * -1 {output.fq_f} -2 {output.fq_r}
+        }} 2> {log}
+        """
 
 rule error_correction:
     input:
