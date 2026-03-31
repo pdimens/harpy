@@ -346,7 +346,7 @@ jobs:
       - run: pixi run build
       - name: naibr
         run: |
-          harpy sv naibr --quiet 2 -O SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
+          harpy sv naibr --quiet 2 test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
