@@ -51,7 +51,7 @@ jobs:
   resume:
     needs: changes
     if: ${{ needs.changes.outputs.resume == 'true' }}
-    name: qc
+    name: resume
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
