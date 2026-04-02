@@ -83,7 +83,11 @@ Reports have been completely rewritten (for the third time), moving away from R/
 - no more custom snakemake logfile handling (backported into `v3.2`)
   - `harpy view log` now points to the `.snakemake/log` folder, but is otherwise the same
 - snakefiles have harpy version at the top
-- workflow errors now include harpy version
+- workflow error reporting rewritten:
+  - now includes harpy version
+  - not relying on `while` loops of snakemake output (less likely for infinite hang after error)
+  - visual overhaul to make it less overwhelming
+
 - snakefiles now have a comment line on top that is synced with the harpy version to inform which version of harpy created them
 
 ### internal
