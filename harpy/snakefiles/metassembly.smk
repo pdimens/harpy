@@ -41,7 +41,7 @@ rule preprocess_reads:
             samtools import -@ 1 -T * {input} |
             samtools sort -O SAM -t {params} |
             sed 's/{params}:Z:[^[:space:]]*/&-1/g' |
-            samtools fastq -N -c 4 -T * -1 {output.fq_f} -2 {output.fq_r}
+            samtools fastq -N -c 4 -T * -1 {output.fq_f} -2 {output.fq_r} -
         }} 2> {log}
         """
 
