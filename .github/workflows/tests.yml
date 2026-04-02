@@ -65,8 +65,9 @@ jobs:
           activate-environment: true
       - run: pixi run build
       - name: harpy qc
+        run: harpy qc --setup test/fastq
+      - name: resume
         run: |
-          harpy qc --setup test/fastq && \
           harpy resume --quiet 2 QC && \
           ls -lh  QC
 
