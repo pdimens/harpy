@@ -415,7 +415,7 @@ class HarpyPrint():
             text += i
         self.print("")
         self.print("[bold black]── ❯ Command Invoked")
-        self.shell(text.strip("\n") + "\n")
+        self.shell(text.strip("\n"))
 
 
     def print_logfile(self, errline):
