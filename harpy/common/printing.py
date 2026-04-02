@@ -181,8 +181,8 @@ class HarpyPrint():
                 pass
         self.print("")
         self.rule(f"[bold]{errortype}[/][default dim]", style = "red")
+        self.print(f"[red]Harpy:[/] v{__version__}", highlight=False)
         self.print("[red]Time:[/] " + self.time_now(), highlight=False)
-        self.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
         self.print(errortext + "\n")
         self.print("[bold black]── ⚠ Error Reported by Snakemake")
 
