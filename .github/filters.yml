@@ -119,5 +119,5 @@ other: &other
   - *common
   - 'harpy/commands/template.py'
   - 'harpy/commands/hpc.py'
-resume: & resume
+resume: &resume
   - 'harpy/commands/resume.py'
