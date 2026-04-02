@@ -38,7 +38,7 @@ jobs:
       other: ${{ steps.filter.outputs.other }}
       convert: ${{ steps.filter.outputs.convert }}
       environments: ${{ steps.filter.outputs.environments }}
-      modules: ${{ steps.filter.outputs.modules }}
+      resume: ${{ steps.filter.outputs.resume }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -47,6 +47,28 @@ jobs:
         id: filter
         with:
           filters: .github/filters.yml
+
+  resume:
+    needs: changes
+    if: ${{ needs.changes.outputs.resume == 'true' }}
+    name: qc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Install Harpy
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          cache: false
+          activate-environment: true
+      - run: pixi run build
+      - name: harpy qc
+        run: |
+          harpy qc --setup test/fastq && \
+          harpy resume --quiet 2 QC && \
+          ls -lh  QC
 
   preprocess:
     needs: changes

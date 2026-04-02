@@ -119,19 +119,5 @@ other: &other
   - *common
   - 'harpy/commands/template.py'
   - 'harpy/commands/hpc.py'
-modules:
-  - *common
-  - *preproc
-  - *deconvolve
-  - *validate
-  - *qc
-  - *bwa
-  - *strobealign
-  - *mpileup
-  - *freebayes
-  - *impute
-  - *phase
-  - *leviathan
-  - *naibr
-  - *assembly
-  - *other
+resume: & resume
+  - 'harpy/commands/resume.py'
