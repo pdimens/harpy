@@ -315,7 +315,8 @@ class Workflow():
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
         sm = LaunchSnakemake(cmd, self.output_directory, self.quiet, self.print)
-
+        #print(sm.exitcode)
+        #return
         if self.clean:
             self.print.rule("[dim]Cleaning Output", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
@@ -331,5 +332,8 @@ class Workflow():
                 self.print.setup_error(sm.exitcode)
             elif sm.exitcode == 3:
                 self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
+            #TODO HANDLE MISSING OUTPUT EXCEPTION
+            #print(*[i for i in sm.errorlog])
+            #return
             self.print.process_sm_errors(sm.errorlog)
             sys.exit(1)

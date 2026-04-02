@@ -70,15 +70,17 @@ rule barcode_stats:
     input:
         "{sample}.R1.fq.gz"
     output: 
-        temp("logs/bxcount/{sample}.count.log")
+        temp("reports/data/{sample}.bxcount")
+    log:
+        "logs/bxcount/{sample}.count.log"
     params:
         lr_type
     shell:
-        "harpy-utils bx-stats-fq {params} {input} > {output}"
+        "harpy-utils bx-stats-fq {params} {input} > {output} 2> {log}"
 
 rule barcode_report:
     input:
-        data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
+        data = collect("reports/data/{sample}.bxcount", sample = samplenames),
         ipynb = f"workflow/qc_bx_stats.ipynb"
     output:
         tmp = temp("reports/barcode.summary.tmp.ipynb"),
@@ -86,7 +88,7 @@ rule barcode_report:
     log:
         "logs/barcode.report.log"
     params:
-        indir = "-p indir " + os.path.abspath("logs/bxcount"),
+        indir = "-p indir " + os.path.abspath("reports/data"),
         lr = lr_type
     shell:
         """

@@ -5,13 +5,13 @@ import os
 import re
 import sys
 import time
-from beautysh import BashFormatter
 from rich import box
 from rich.console import Console, RenderableType
 from rich.live import Live
 from rich.markup import escape
 from rich.panel import Panel
 from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn
+from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
@@ -78,7 +78,6 @@ class HarpyPrint():
         self.print = self.console.print
         self.file = self.console.file
         self.status = self.console.status
-        self.bash = BashFormatter(indent_size=4)
 
     def time_now(self) -> str:
         return time.strftime('%H:%M [dim]on[/] %d %b %Y')
@@ -165,10 +164,10 @@ class HarpyPrint():
         """Print a red panel with snakefile or conda/singularity error text to stderr"""
         if exitcode == 1:
             errortype = "Snakefile Error"
-            errortext = "Something is wrong with this Snakefile. If you manually edited it, see the error below for troubleshooting. If you didn't, it may be a bug and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+            errortext = "Something is wrong with this Snakefile. If you edited it, see the error below for troubleshooting, and if not, please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
         else:
             errortype = "Software Environment Error"
-            errortext = "There was an issue creating the software environment necessary to run this workflow. If you manually edited the conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. If you didn't, it might be a bug or related to how your system is setup for Conda or Apptainer environments and you should submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+            errortext = "There was an issue creating the environment for this workflow. If you manually edited the Conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. Otherwise, it may be a bug or related to your Conda/Apptainer setup—please report it on GitHub: [bold]https://github.com/pdimens/harpy/issues[/]"
             # Check if this is the `base` conda environment
             current_env = os.environ.get('CONDA_DEFAULT_ENV')
             if current_env == 'base':
@@ -185,7 +184,7 @@ class HarpyPrint():
         self.print("[red]Time:[/] " + self.time_now(), highlight=False)
         self.print(f"[red]Harpy Version:[/] {__version__}", highlight=False)
         self.print(errortext + "\n")
-        self.rule("[bold]Error Reported by Snakemake", style = "red")
+        self.print("[bold black]── ⚠ Error Reported by Snakemake")
 
     def on_error(self, logfile: str, _time) -> None:
         """
@@ -208,18 +207,19 @@ class HarpyPrint():
         self.rule("[bold]Workflow Error[/]", style = "red")
         self.print(datatable)
         self.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
-        self.rule("[bold]Source of Error", style = "red")
+
 
     def shell(self, text, rules: bool = False, style = None) -> None:
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr 
         """
-        result, _ = self.bash.beautify_string(data = text)
         if rules:
             self.console.rule("Shell Code", style = 'dim')
-        self.print(escape(result), soft_wrap=True, width = 1000, highlight = False, end = "", style = style)
+        code = Syntax(text, "sh", background_color='default', dedent=True, code_width=2000, theme = "one-dark")
+        self.print(code, soft_wrap=True, width = 2000, highlight = False, end = "", style = style)
         if rules:
             self.console.rule(style = 'dim')
+
 
     def validation(self, success: bool) -> None:
         '''
@@ -231,12 +231,14 @@ class HarpyPrint():
             else:
                 self.print("[red]𐄂[/]")
 
+
     def log(self, text, newline:bool = True):
         '''Print a rich-style log with the time in magenta and text in default'''
         _now =  time.strftime(r'[dim magenta]\[%H:%M:%S][/]')
         if self.quiet == 0:
             self.print(_now, text, highlight=False, end = "\n" if newline else " ")
-    
+
+
     def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
         """Returns a nicely formatted live-panel with the progress bar in it"""
         if self.quiet == 2:
@@ -249,6 +251,7 @@ class HarpyPrint():
             transient= self.quiet > 0,
             console=self.console
         )
+
 
     def progressbar(self) -> Progress:
         """
@@ -268,6 +271,7 @@ class HarpyPrint():
             expand=True
         )
 
+
     def pulsebar(self, stderr: bool = False) -> Progress:
         """
         The pre-configured transient pulsing progress bar that workflows use, typically for
@@ -284,6 +288,7 @@ class HarpyPrint():
             expand=True
         )
 
+
     def process_sm_errors(self, errtext):
         '''
         final processing of the snakemake stderr text after an error has occured,
@@ -291,33 +296,45 @@ class HarpyPrint():
         '''
         self.console.tab_size = 4
         self.console._highlight = False
-        self.errortext = errtext
-        snakemake_errors: list[str] = ["InputFunctionException", "MissingOutputException", "MissingInputException", "SyntaxError", "NameError", "AttributeError"]
+        self.errortext = iter(errtext)
+        self.missingoutput = []
 
         # shortcut to FileNotFoundError #
         line = next(self.errortext)
         if line.strip().startswith("FileNotFound"):
-            if "/envs/" in line and ".yaml'" in line:
+            if "envs/" in line and ".yaml'" in line:
                 self.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + line.split(":")[-1].replace("'", ""))
             else:
                 self.print(line.strip(), style = "red")
             return
         # pick out conda-env errors
-        if line.strip().startswith("CreateCondaEnvir"):
-            while "To search for alternate" not in line:
-                line = next(self.errortext)
-                if line != "\n":
-                    if line.lstrip().startswith("-"):
-                        self.print(line.rstrip(), style = "bold red")
-                    else:
-                        self.print(line.rstrip(), style = "red")
-            return
-
-        if any(i in line for i in snakemake_errors):
+        if "Could not create conda" in line:
             for i in self.errortext:
-                self.print(i, end = "", style="red")
+                if "To search for alternate" in i:
+                    break
+                if i.strip():
+                    if i.lstrip().startswith("-"):
+                        self.print(i.rstrip(), soft_wrap = True, width = 2000, style = "bold red")
+                    else:
+                        self.print(i.rstrip(), soft_wrap = True, width = 2000, style = "red")
             return
 
+        if ("Error" in line or "Exception" in line) and not ("RuleException" in line or "CalledProcessError" in line):
+            self.rule("[bold]Source of Error", style = "black")
+            self.print(line, highlight=False, soft_wrap = True, end = "", style = "red")
+            for i in self.errortext:
+                self.print(i, highlight = False, soft_wrap = True, end = "", style="red")
+            return
+
+        if "but some output files are missing" in line:
+            self.missingoutput.append(line)
+            for i in self.errortext:
+                if "Shutting down, this might" in i:
+                    break
+                elif "but some output files are missing" not in i:
+                    self.missingoutput[-1] += i
+                else:
+                    self.missingoutput.append(i)
         for i in self.errortext:
             if "Exiting because a job execution failed. Look below for error messages" in i:
                 break
@@ -325,14 +342,12 @@ class HarpyPrint():
             if "(100%) done" in i:
                 break
             if "Error in group" in i:
-                self.grouperror = True
-                self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
+                self.rule("[bold]Source of Error", style = "black")
+                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
                 i = next(self.errortext).strip()
             if i.startswith("[") and i.strip().endswith("]"):
                 # this is the [timestamp] line
-                self.print("[blue]" + i, overflow = "ignore", crop = False)
                 break
-
         # error in rule line
         for i in self.errortext:
             if "(100%) done" in i:
@@ -340,7 +355,9 @@ class HarpyPrint():
             if "RuleException" in i:
                 sys.exit(1)
             if "Error in rule" in i or "Error in group" in i:
-                self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
+                #self.print(f"[yellow bold]── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
+                self.rule(f"[yellow bold]Triggering Rule[/][default bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
+                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
             elif i.strip().startswith("shell:"):
                 self.format_shell()
             elif i.startswith("Complete log"):
@@ -349,13 +366,25 @@ class HarpyPrint():
                 return
             else:
                 self.process_error(i)
+        # if there were no log files but there was a MissingOutputException
+        if self.missingoutput:
+            for i in self.missingoutput:
+                i = i.partition("Waiting at most")[0]
+                self.print("[bold black]── ⚠ Error Reported by Snakemake")
+                self.print(i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
+
 
     def process_error(self, txt):
         '''interpret rule errors and print them with nice format'''
         if txt.strip().startswith("Logfile"):
+            if self.missingoutput:
+                _i = self.missingoutput.pop(0)
+                _i = _i.partition("Waiting at most")[0]
+                self.print("[bold black]── ⚠ Error Reported by Snakemake")
+                self.print(_i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
             self.print_logfile(txt)
             return
-        if "snakemake.logging" in txt:
+        if "snakemake.logging" in txt or "At least one job did not" in txt:
             return
         text = txt.removeprefix("    ").rstrip().lstrip()
         text = text.replace("(check log file(s) for error details)", "")
@@ -376,6 +405,7 @@ class HarpyPrint():
             return
         self.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
 
+
     def format_shell(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
         text = ""
@@ -383,21 +413,23 @@ class HarpyPrint():
             if "(command exited" in i:
                 break
             text += i
-        self.rule("[bold default]Error-causing Command", style = 'red')
-        self.shell(text.strip("\n"))
+        self.print("")
+        self.print("[bold black]── ❯ Command Invoked")
+        self.shell(text.strip("\n") + "\n")
+
 
     def print_logfile(self, errline):
         '''process and print the contents of a logfile in the snakemake error log'''
         merged_text = ""
         _log = errline.rstrip().split()[1]
         self.print("")
-        self.rule(f"[bold]{_log.rstrip(':')}", style = "yellow")
+        self.print(f"[bold black]── 🗎 {_log.rstrip(':')}")
         if "empty file" in errline:
-            self.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
+            self.print(f"{_log.replace(':','')} is empty\n", style = "dim")
             _ = next(self.errortext)
             return
         if "not found" in errline:
-            self.print(f"log file {_log} was not found\n", style = "red")
+            self.print(f"{_log} was not found\n", style = "red")
             _ = next(self.errortext)
             return
         lines = 0

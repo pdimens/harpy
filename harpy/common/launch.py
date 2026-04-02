@@ -4,12 +4,12 @@ from datetime import datetime
 import re
 import sys
 import subprocess
-from beautysh import BashFormatter
-from harpy.common.file_ops import last_sm_log, purge_empty_logs
+import time
+from harpy.common.file_ops import purge_empty_logs
 from harpy.common.printing import HarpyPrint
 
 EXIT_CODE_SUCCESS = 0
-EXIT_CODE_GENERIC_ERROR = 1
+EXIT_CODE_SNAKEFILE_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
 # quiet = 0 : print all things, full progressbar
@@ -37,16 +37,13 @@ class LaunchSnakemake():
         self.cmd: list[str] = sm_args.split()
         self.outdir: str = outdir
         self.process = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        self.errorlog = []
         self.output: str = ""
         self.job_inventory: dict = {}
         self.task_ids: dict = {}
         self.total_active: int = 0
-        self.grouperror: bool = False
-        self.error_printed: bool = False
         self.print = printer
         self.progress = self.print.progressbar()
-        self.bash = BashFormatter(indent_size=4)
-        self.errorlog = []
 
         try:
             self.workflow_setup()
@@ -67,14 +64,14 @@ class LaunchSnakemake():
         finally:
             self.progress.stop()
             self.return_or_collect()
-            purge_empty_logs(outdir)
-            if self.process.poll is None:
+            if self.process.poll() is None:
                 self.process.terminate()
                 try:
                     self.process.communicate(timeout=5)
                 except subprocess.TimeoutExpired:
                     self.process.kill()
                     self.process.communicate()
+            purge_empty_logs(outdir)
 
     def is_done(self) -> bool:
         '''check if self.exitcode > -1 or a value exists for self.process.poll()'''
@@ -143,7 +140,7 @@ class LaunchSnakemake():
         self.nextline()
         # check for syntax errors at the very beginning
         if self.process.poll() or self.iserror():
-            self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
+            self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_SNAKEFILE_ERROR
             self.exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in self.output else self.exitcode
             while self.output:
                 self.print.print(self.output, style = "red")
@@ -162,9 +159,6 @@ class LaunchSnakemake():
             else:
                 while self.output.startswith("Building DAG of jobs...") or self.output.startswith("Assuming"):
                     self.nextline()
-            if self.process.poll() or self.iserror():
-                self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
-                return
             while not self.output.startswith("Job stats:") and self.exitcode < 0:
                 # print dependency text only once
                 if "Creating conda environment" in self.output or "Running post-deploy" in self.output:
@@ -179,11 +173,12 @@ class LaunchSnakemake():
                     self.print.rule("[bold]All workflow outputs already present", style = "green")
                     sys.exit(0)
                 if "MissingInput" in self.output:
-                    self.exitcode = EXIT_CODE_GENERIC_ERROR
-                    break
-                if "AmbiguousRuleException" in self.output or "Error" in self.output or "Exception" in self.output:
-                    self.exitcode = EXIT_CODE_RUNTIME_ERROR
-                    break
+                    self.exitcode = EXIT_CODE_SNAKEFILE_ERROR
+                    return
+                if "Error" in self.output or "Exception" in self.output:
+                    self.exitcode = EXIT_CODE_SNAKEFILE_ERROR
+                    self.errorlog.append(self.output)
+                    return
                 self.nextline()
             # if dependency text present, print pulsing progress bar
             if self.deps:
@@ -222,7 +217,7 @@ class LaunchSnakemake():
                     pass
             # checkpoint
                 if self.process.poll() or self.iserror():
-                    self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
+                    self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_SNAKEFILE_ERROR
                     return
 
     def monitor_jobs(self):
@@ -278,9 +273,9 @@ class LaunchSnakemake():
         get all the error text for processing after
         '''
         if self.exitcode <= 0:
+            self.exitcode = max(self.exitcode, 0)
             return
         
-        txt: list[str] = []
         for line in self.process.stderr:
-            txt.append(line)
-        self.errorlog = iter(txt)
+            if not line.strip().endswith(", in <module>"):
+                self.errorlog.append(line)
