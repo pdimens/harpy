@@ -105,7 +105,7 @@ rule call_genotypes:
         annot_mp = "-a AD,INFO/FS",
         extra = mp_extra,
         ploidy = f"--ploidy {ploidy}",
-        annot_call = "-a GQ,GP",
+        annot_call = "-a AD,ADF,ADR,DP,GQ,GP,QS,SP",
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
     shell:
         """
