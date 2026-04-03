@@ -102,7 +102,7 @@ rule call_genotypes:
         "logs/call/{part}.call.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
-        annot_mp = "-a AD,ADF,ADR,DP,QS,SPINFO/FS",
+        annot_mp = "-a AD,ADF,ADR,DP,QS,SP,INFO/FS",
         extra = mp_extra,
         ploidy = f"--ploidy {ploidy}",
         annot_call = "-a GQ,GP",
