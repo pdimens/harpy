@@ -5,26 +5,35 @@ channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
 version = "4.0"
 
-[tasks]
-
 [dependencies]
-bcftools = "1.22.*"
+bcftools = ">=1.22"
 click = ">=8.2"
 conda = ">=24.8"
 htslib = "1.22.*"
 pysam = "0.23.*"
 python = ">=3.11"
 rich-click = ">=1.9.3"
-snakemake-minimal = ">=9.13"
-samtools = "1.22.*"
+samtools = ">=1.22"
 seqtk = "*"
 apptainer = ">=1.4.2,<2"
-djinn = ">=1.1,<2"
 jupyter-book = ">=2.1.0,<3"
 itables = ">=2.6.2,<3"
 pandas = ">=2.3.3,<3"
 altair = ">=6.0.0,<7"
 papermill = ">=2.6.0,<3"
+djinn = "2.3.*"
+xeus-python = ">=0.18.1,<0.19"
+polars = ">=1.39.2,<2"
+vl-convert-python = ">=2.0.0rc1,<3"
+snakemake-minimal = ">=9.19.0,<10"
+go = ">=1.26.1,<2"
 
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
+
+[tasks]
+build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}
+build-convert     = {cmd = "go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go", inputs = ["harpy/utils/convert/convert.go"], outputs = ["harpy/utils/gih-convert"]}
+build-standardize = {cmd = "go build -C harpy/utils/standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go", inputs = ["harpy/utils/standardize/standardize.go"], outputs = ["harpy/utils/djinn-standardize"]}
+install = {cmd = "chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize && mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize $CONDA_PREFIX/bin/", depends-on = ["build-stagger", "build-convert", "build-standardize"]}
+build = {depends-on = ["install"]}

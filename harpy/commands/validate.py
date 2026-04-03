@@ -3,15 +3,14 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
-from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.printing import workflow_info
+from harpy.common.cli_params import SnakemakeParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
 
-@click.group(options_metavar='', context_settings={"help_option_names" : ['--help']})
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.group()
+@click.help_option('--help', hidden = True)
 def validate():
     """
     File format checks for linked-read data
@@ -22,17 +21,18 @@ def validate():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/bam", show_default=True,  help = 'Output directory name')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
+def bam(inputs, output, threads, snakemake, quiet, hpc, clean, container, setup, no_temp):
     """
     Validate linked-read BAM file format
 
@@ -44,36 +44,37 @@ def bam(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, se
     fix your data, but it will report the number of records that feature errors to help you diagnose
     if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_bam", "validate_bam.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("validate_bam", "validate_bam.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["validate_bam.ipynb"]
 
     ## checks and validations ##
-    alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet > 0)
+    alignments = XAM(inputs, detect_bc=True, nonlinked_ok = False, quiet = quiet)
 
     workflow.linkedreads["type"] = alignments.lr_type
     workflow.input(alignments.files)
 
-    workflow.start_text = workflow_info(
-        ("Alignment Files:", alignments.count),
-        ("Barcode Type:", alignments.lr_type),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Alignment Files" : alignments.count,
+        "Barcode Type" : alignments.lr_type,
+        "Output Folder" : os.path.relpath(output) + "/"
+    }
 
     workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/validate/")
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Validate/fastq", show_default=True,  help = 'Output directory name')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(1, 999, clamp = True), help = 'Number of threads to use')
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, setup):
+def fastq(inputs, output, threads, snakemake, quiet, hpc, clean, container, setup, no_temp):
     """
     Validate linked-read FASTQ file format
 
@@ -85,22 +86,21 @@ def fastq(inputs, output_dir, threads, snakemake, quiet, hpc, clean, container, 
     of `TAG:TYPE:VALUE`. This **will not** fix your data, but it will report the number of reads
     that feature errors to help you diagnose if file formatting will cause downstream issues. 
     """
-    workflow = Workflow("validate_fastq", "validate_fastq.smk", output_dir, container, clean, quiet)
-    workflow.setup_snakemake(threads, hpc, snakemake)
+    workflow = Workflow("validate_fastq", "validate_fastq.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["validate_fastq.ipynb"]
 
     ## checks and validations ##
-    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet > 0)
+    fastq = FASTQ(inputs, detect_bc=True, nonlinked_ok=False, quiet = quiet)
 
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.input(fastq.files)
 
-    workflow.start_text = workflow_info(
-        ("FASTQ Files:", fastq.count),
-        ("Linked-Read Type:", fastq.lr_type),
-        ("Output Folder:", os.path.relpath(output_dir) + "/"),
-
-    )
+    workflow.info = {
+        "FASTQ Files" : fastq.count,
+        "Linked-Read Type" : fastq.lr_type,
+        "Output Folder" : os.path.relpath(output) + "/",
+    }
 
     workflow.initialize(setup)
 

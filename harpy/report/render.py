@@ -2,13 +2,15 @@
 
 import copy
 import glob
+from importlib import resources
 import os
 from pathlib import Path
+import shutil
 import uuid
 import subprocess
 import yaml
-from harpy.common.file_ops import fetch_template
-from harpy.common.printing import print_error
+from harpy.common.printing import HarpyPrint
+from harpy import __version__
 
 class ReportRender():
     def __init__(self, root: str = ""):
@@ -16,7 +18,7 @@ class ReportRender():
         self.configfile = os.path.join(root, "myst.yml")
         self.filetree: dict = {}
         self.filechanges: bool = False
-
+        self.print = HarpyPrint()
         if not os.path.exists(self.configfile):
             _yml = myst_yaml()
             self.scan_for_reports()
@@ -27,12 +29,19 @@ class ReportRender():
                 _yml = yaml.full_load(yml)
 
         if not os.path.isfile(os.path.join(root, ".report", "index.md")):
-            fetch_template("report_index.md", os.path.join(root, ".report", "index.md"))
-        if not os.path.isfile(os.path.join(root, ".report", "favicon.svg")):
-            fetch_template("favicon.png", os.path.join(root, ".report", "favicon.png"))
+            os.makedirs(os.path.join(root, ".report"), exist_ok=True)
+            with (
+                resources.as_file(resources.files("harpy.templates") / "report_index.md") as _source,
+                open(_source, 'r') as md,
+                open(os.path.join(root, ".report", "index.md"), 'w') as indexmd,
+                ):
+                indexmd.write(md.read().format(__version__))
+
+        if not os.path.isfile(os.path.join(root, ".report", "favicon.png")):
+            shutil.copy(str(resources.files("harpy.report") / 'favicon.png'), os.path.join(root, ".report", "favicon.png"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
-            print_error(
+            self.print.error(
                 "invalid MyST configuration",
                 "The [blue]myst.yml[/] file that was found is improperly formatted.",
                 "If you manually edited this file, please try to remake it using [blue]harpy report init[/], otherwise check that the file is in proper YAML format and has keys for [green]project[/] and [green]site[/]."
@@ -187,15 +196,26 @@ class ReportRender():
                             'children': recursive_transform(value, os.path.join(build_path, key))
                         })
                     elif isinstance(value, set):
-                        # Value is a terminal directory
                         for i in value:
                             if "reports" in i:
-                                result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
+                                result.append({'pattern': f"{os.path.join(origpath, i, '**.ipynb')}"})
+                                #                                               ↑ was hardcoded "reports", now uses actual subdir name
                             else:
                                 result.append({
                                     'title': i,
                                     'children': recursive_transform(value, os.path.join(origpath, i))
                                 })
+
+                    #elif isinstance(value, set):
+                    #    # Value is a terminal directory
+                    #    for i in value:
+                    #        if "reports" in i:
+                    #            result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
+                    #        else:
+                    #            result.append({
+                    #                'title': i,
+                    #                'children': recursive_transform(value, os.path.join(origpath, i))
+                    #            })
                 return result
             else:
                 # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}
@@ -298,7 +318,7 @@ def myst_yaml() -> dict:
             "id": rand_id(),
             **({"github" : git_url} if git_url else {}),
             "edit_url": 'null',
-            "title" : "Harpy Reports (v0.0.0)",
+            "title" : f"Harpy Reports (v{__version__})",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }

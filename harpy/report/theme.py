@@ -138,7 +138,7 @@ def harpy_theme() -> alt.theme.ThemeConfig:
            "line": {
                "color": markColor,
                "stroke": markColor,
-               "strokeWidth": 5,
+               "strokeWidth": 2,
            },
            "trail": {
                "color": markColor,

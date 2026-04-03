@@ -8,8 +8,8 @@ import sys
 import yaml
 from rich import box
 from rich.table import Table
-from .printing import print_error
-from harpy.common.version import VERSION
+from .printing import HarpyPrint
+from harpy import __version__
 
 class HarpyEnvs():
     '''The class that holds conda and pixi environments and means to create container dockerfiles'''
@@ -33,41 +33,29 @@ class HarpyEnvs():
             "bioconda::samtools",
             "bioconda::tigmint"
         ],
-        "demultiplex": [
-            "bioconda::dmox>=0.2"
-        ],
         "metassembly": [
             "bioconda::athena_meta=1.2"
         ],
+        "preprocess": [
+            "bioconda::dmox>=0.2",
+            "bioconda::pheniqs=2.1",
+        ],
         "phase" : [
             "bioconda::hapcut2",
+            "bioconda::samtools",
             "bioconda::whatshap"
         ],
         "qc" : [
             "conda-forge::click=8.2.1",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
+            "bioconda::mosdepth",
             "bioconda::multiqc=1.30",
             "bioconda::pysam=0.23",
-            "bioconda::quickdeconvolution"
+            "bioconda::quickdeconvolution",
+            "bioconda::samtools"
         ],
-        "report" : [
-            "conda-forge::quarto",
-            "conda-forge::r-dt",
-            "conda-forge::r-dplyr",
-            "conda-forge::r-highcharter",
-            "conda-forge::r-magrittr",
-            "conda-forge::r-plotly",
-            "conda-forge::r-scales",
-            "conda-forge::r-tidyr",
-            "conda-forge::r-viridislite", 
-            "conda-forge::r-xml2",
-            "r::r-biocircos"
-        ],
-        "simulations" : [
-            "bioconda::simug>1.0.0"
-        ],
-        "stitch" : [
+        "impute" : [
             "bioconda::r-stitch>=1.8.4"
         ],
         "variants" : [
@@ -75,7 +63,7 @@ class HarpyEnvs():
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
             "bioconda::naibr-plus",
-            "conda-forge::setuptools"
+            "conda-forge::setuptools<82"
         ]
     }
 
@@ -116,11 +104,13 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
     def write_recipes(self, outdir: str, envs: list= []) -> None:
         """Create the YAML files of the workflow conda dependencies"""
+        if not envs:
+            return
         environ = self.__environments__
         _out = os.path.join(outdir, "workflow", "envs")
         os.makedirs(_out, exist_ok = True)
         # if none provided, use all
-        if not envs:
+        if "all" in envs:
             envs = list(environ.keys())
 
         for i in envs:
@@ -176,7 +166,7 @@ ENTRYPOINT ["/app/entrypoint.sh"]
                 with open(f"container/{env}/pixi.fix.toml", "w") as out:
                     for line in toml:
                         if line.startswith("version"):
-                            line = f"version = \"{VERSION}\"\n"
+                            line = f"version = \"{__version__}\"\n"
                         out.write(line)
 
             os.remove(f"container/{env}/pixi.toml")
@@ -192,8 +182,10 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""
+    if not envs:
+        return
     if not os.path.exists(f"{dirpath}/workflow/envs"):
-        print_error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
+        HarpyPrint().error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
     envlist = os.listdir(f"{dirpath}/workflow/envs")
     errcount = 0
     errtable = Table(show_footer=True, box=box.SIMPLE)
@@ -206,7 +198,7 @@ def check_environments(dirpath: str, envs: list) -> None:
             errcount += 1
             errtable.add_row(f"[yellow bold]{i}.yaml", "[yellow bold]missing")
     if errcount > 0:
-        print_error(
+        HarpyPrint().error(
             "missing environment files",
             f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.",
             "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",

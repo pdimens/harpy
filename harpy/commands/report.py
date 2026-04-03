@@ -6,7 +6,7 @@ import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
 import subprocess
-from harpy.common.printing import print_error, CONSOLE
+from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 
 @click.command(epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
@@ -16,7 +16,7 @@ from harpy.report.render import ReportRender
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 0, help = 'Refresh interval, in seconds (disabled with `0`)')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
 def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     """
@@ -37,6 +37,8 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     if server_port:
         cmd += ["--server-port", f"{server_port}"]
 
+    hp = HarpyPrint()
+
     # clear out the existing build dir, if present
     if os.path.isdir("_build") and clear_cache:
         rmtree("_build", ignore_errors=True)
@@ -52,7 +54,10 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"
         panel = Panel(start_text, border_style = "medium_purple4", title = "[default bold]Harpy report[/]", subtitle= "[default]Terminate server with[/] [bold yellow]ctrl+c[/]")
-        with subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve, Live(panel, console = CONSOLE, auto_refresh = False, transient = True) as live:
+        with (
+            subprocess.Popen(cmd, cwd = directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True) as serve,
+            Live(panel, console = hp.console, auto_refresh = False, transient = True) as live
+        ):
             while not URL:
                 if serve.poll():
                     myst_error += "\n".join(serve.stderr.readlines())
@@ -82,10 +87,10 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     except KeyboardInterrupt:
         # clear the top part of the panel
         for _ in range(1):
-            CONSOLE.file.write("\033[F\033[K")
-        CONSOLE.file.flush()
+            hp.file.write("\033[F\033[K")
+        hp.file.flush()
     except ValueError:
-        print_error(
+        hp.error(
             "MyST server error",
             f"The [blue]myst start[/] command exited and reported this error:\n[yellow]{myst_error.strip()}[/]"
         )

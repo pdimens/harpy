@@ -1,26 +1,35 @@
 import os
 import re
 
+localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist      = config["Inputs"]["fastq"]
-extra 		= config["Parameters"].get("extra", "") 
-genomefile 	= config["Inputs"]["reference"]
-bn 			= os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    bn = bn[:-3]
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+bx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
+vx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
+skip_reports      = REPORTS.get("skip", False)
+illumina_old      = PARAMETERS.get("illumina-format-old", False)
+windowsize        = PARAMETERS.get("depth-windowsize", 50000)
+molecule_distance = PARAMETERS.get("distance-threshold", 0)
+keep_unmapped     = PARAMETERS.get("keep-unmapped", False)
+extra 		      = PARAMETERS.get("extra", "") 
+fqlist            = INPUTS["fastq"]
+genomefile 	      = INPUTS["reference"]
+
+bn 			  = os.path.basename(genomefile)
+bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+ignore_bx     = lr_type == "none"
+bn            = bn[:-3] if bn.lower().endswith(".gz") else bn
 workflow_geno = f"workflow/reference/{bn}"
-windowsize  = config["Parameters"]["depth-windowsize"]
-molecule_distance = config["Parameters"]["distance-threshold"]
-ignore_bx = config["Workflow"]["linkedreads"]["type"] == "none"
-is_standardized = config["Workflow"]["linkedreads"]["standardized"]
-keep_unmapped = config["Parameters"]["keep-unmapped"]
-skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]    
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-d = dict(zip(samplenames, samplenames))
+samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
+d             = dict(zip(samplenames, samplenames))
 
 def get_fq(wildcards):
     # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
@@ -43,188 +52,127 @@ rule process_reference:
         }} 2> {log}
         """
 
-rule make_depth_intervals:
+rule optical_dist:
     input:
-        fai = f"{workflow_geno}.fai"
+        get_fq
     output:
-        bed = "reports/data/coverage/coverage.bed"
-    run:
-        with open(input.fai, "r") as fai, open(output.bed, "w") as bed:
-            for line in fai:
-                splitline = line.split()
-                contig = splitline[0]
-                length = int(splitline[1])
-                starts = list(range(0, length, windowsize))
-                ends = [i - 1 for i in starts[1:]]
-                if not ends or ends[-1] != length:
-                    ends.append(length)
-                for start,end in zip(starts,ends):
-                    bed.write(f"{contig}\t{start}\t{end}\n")
+        temp("logs/optical/{sample}.opt")
+    shell:
+        "harpy-utils optical-dist-fq {input} > {output}"
 
 rule align:
     input:
         fastq = get_fq,
-        genome   = workflow_geno
+        genome = workflow_geno
     output:  
         pipe("samples/{sample}/{sample}.strobe.sam")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
-        unmapped_strobe = "" if keep_unmapped else "-U",
-        unmapped = "" if keep_unmapped else "| samtools view -h -F 4",
-        static = "-N 2 -C" if is_standardized else "-N 2",
+        um_strobe = "" if keep_unmapped else "-U",
+        static = "-N 2 -C" if illumina_old else "-N 2",
+        RGid = lambda wc: f"--rg-id={wc.get('sample')}",
+        RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        min(4, workflow.cores - 1)
+        max(1, min(4, workflow.cores - 2))
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_3.2"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        """
-        {{
-            strobealign {params.static} -t {threads} {params.unmapped_strobe} --rg-id={wildcards.sample} --rg=SM:{wildcards.sample} {params.extra} {input.genome} {input.fastq} {params.unmapped}
-        }} 2> {log} > {output} 
-        """
-
-rule standardize_barcodes:
-    input:
-        "samples/{sample}/{sample}.strobe.sam"
-    output:
-        temp("samples/{sample}/{sample}.standard.sam")
-    log:
-        "logs/{sample}.standardize.log"
-    shell:
-        "standardize_barcodes_sam > {output} 2> {log} < {input}"
+        "strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} > {output}"
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.standard.sam",
-        genome = workflow_geno,
-        faidx  = f"{workflow_geno}.fai"
+        sam    = "samples/{sample}/{sample}.strobe.sam",
+        optical ="logs/optical/{sample}.opt"
     output:
-        temp("samples/{sample}/{sample}.markdup.bam") if not ignore_bx else temp("markdup/{sample}.markdup.bam")
+        bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
+        stats = "logs/markdup/{sample}.markdup.stats"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
-        stats = "logs/markdup/{sample}.markdup.stats"
-    params: 
-        tmpdir = lambda wc: "." + d[wc.sample],
-        bx_mode = "--barcode-tag BX" if not ignore_bx else "",
-        quality = config["Parameters"]['min-map-quality']
+    params:
+        tmprefix = lambda wc: f"samples/{wc.sample}/.{wc.sample}",
+        bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
+        quality = PARAMETERS.get('min-map-quality', 30),
+        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
     resources:
         mem_mb = 2000
     threads:
         2
     shell:
         """
-        if grep -q "^[ABCD]" <<< $(samtools head -h 0 -n 1 {input.sam}); then
-            OPTICAL_BUFFER=2500
-        else
-            OPTICAL_BUFFER=100
-        fi
         {{
-            samtools collate -O -u {input.sam} |
-                samtools fixmate -z on -m -u - - |
-                samtools view -h -q {params.quality} |
-                samtools sort -T {params.tmpdir} -u --reference {input.genome} -l 0 -m {resources.mem_mb}M - |
-                samtools markdup -@ {threads} -S {params.bx_mode} -d $OPTICAL_BUFFER -f {log.stats} - {output} 
+            samtools collate -T {params.tmprefix}.collate -O -u {input.sam} - |
+            samtools fixmate -z on -m -u - - |
+            samtools view -h -u -q {params.quality} |
+            samtools sort -T {params.tmprefix}.sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {params.tmprefix}.mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {params.tmpdir}
+        rm -rf {params.tmprefix}*
         """
 
-rule assign_molecules:
-    priority: 100
-    input:
-        "samples/{sample}/{sample}.markdup.bam"
-    output:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    log:
-        "logs/assign_mi/{sample}.assign_me.log"
-    params:
-        molecule_distance
-    shell:
-        """
-        assign_mi -c {params} {input} > {output.bam} 2> {log}
-        samtools index {output.bam}
-        """
+if lr_type != "none" and not (bx_tag and vx_tag):
+    rule standardize:
+        input:
+            "markdup/{sample}.bam"
+        output:
+            "{sample}.bam"
+        log:
+            "logs/{sample}.std.log"
+        threads:
+            2
+        shell:
+            "djinn-standardize --threads {threads} {input} > {output} 2> {log}"
 
-rule barcode_stats:
+rule sample_stats:
     input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
+        "{sample}.bam"
     output: 
-        "reports/data/bxstats/{sample}.bxstats.gz"
-    log:
-        "logs/bxstats/{sample}.bxstats.log"
+        temp("{sample}.bam.bai"),
+        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
+        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat"),
+        depth    = "reports/data/coverage/{sample}.regions.bed.gz"
     params:
-        sample = lambda wc: d[wc.sample]
+        f"-b {windowsize}",
+        "-n --fast-mode"
+    log:
+        "logs/stats/{sample}.stats.log"
+    threads:
+        2
+    conda:
+        "envs/qc.yaml"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        "bx_stats {input.bam} > {output} 2> {log}"
+        """
+        {{
+            samtools index {input} 
+            samtools stats -d {input} > {output.stats}
+            samtools flagstat {input} > {output.flagstat}
+            mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input}
+        }} 2> {log}
+        rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
+        """
 
-rule molecule_coverage:
+rule molecule_stats:
     input:
-        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        bam = "{sample}.bam",
         fai = f"{workflow_geno}.fai"
     output: 
-        "reports/data/coverage/{sample}.molcov.gz"
+        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        molcov = "reports/data/coverage/{sample}.molcov.gz"
     log:
-        "logs/molcov/{sample}.molcov.log"
+        stats = "logs/molcov/{sample}.molcov.log",
+        molcov = "logs/stats/{sample}.molstats.log"
     params:
-        windowsize
-    shell:
-        "molecule_coverage -f {input.fai} -w {params} {input.stats} 2> {log} | gzip > {output}"
-
-rule alignment_coverage:
-    input: 
-        "{sample}.bam.bai",
-        bam = "{sample}.bam",
-        bed = "reports/data/coverage/coverage.bed"
-    output: 
-        "reports/data/coverage/{sample}.cov.gz"
-    shell:
-        "samtools bedcov -c {input.bed} {input.bam} | awk '{{ $6 = ($4 / ($3 + 1 - $2)); print }}' | gzip > {output}"
-
-rule configure_report:
-    input:
-        yaml = "workflow/_quarto.yml",
-        scss = "workflow/_harpy.scss"
-    output:
-        yaml = temp("reports/_quarto.yml"),
-        scss = temp("reports/_harpy.scss")
-    run:
-        import shutil
-        for i,o in zip(input,output):
-            shutil.copy(i,o)
-
-if ignore_bx:
-    rule index_bam:
-        input:
-            "markdup/{sample}.markdup.bam"
-        output:
-            "{sample}.bam.bai",
-            bam = "{sample}.bam"
-        shell:
-            """
-            mv {input} {output.bam}
-            samtools index {output.bam}
-            """
-
-rule general_stats:
-    input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    output: 
-        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
-        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat")
-    log:
-        "logs/stats/{sample}.samstats.log"
+        dist = molecule_distance,
+        window = windowsize
     shell:
         """
-        {{
-            samtools stats -d {input.bam} > {output.stats}
-            samtools flagstat {input.bam} > {output.flagstat}
-        }} 2> {log}
+        harpy-utils bx-stats-sam -d {params.dist} {input.bam} 2> {log.stats} | gzip > {output.stats}
+        harpy-utils molecule-coverage -w {params.window} {input.fai} {output.stats} 2> {log.molcov} | gzip > {output.molcov}
         """
 
 rule samtools_report:
@@ -242,14 +190,14 @@ rule samtools_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} > {output} 2> {log}"
 
 rule sample_reports:
     input:
         bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
-        coverage = "reports/data/coverage/{sample}.cov.gz",
+        coverage = "reports/data/coverage/{sample}.regions.bed.gz",
         molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
     output:
@@ -260,15 +208,14 @@ rule sample_reports:
         basedir = "-p basedir " + os.path.abspath("reports/data"),
         mol_dist = f"-p mol_dist {molecule_distance}",
         window_size = f"-p windowsize {windowsize}",
-        contigs = f"-p contigs {plot_contigs}" if plot_contigs != "default" else "",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
         "logs/{sample}.report.log"
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            process_notebook {wildcards.sample} strobealign {params.lr_type} {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            harpy-utils process-notebook {output.tmp} {wildcards.sample} strobealign {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -287,15 +234,15 @@ rule barcode_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process_notebook {params.lr_type} {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input: 
-        bams = collect("{sample}.{ext}", sample = samplenames, ext = ["bam","bam.bai"]),
+        bams = collect("{sample}.bam", sample = samplenames),
         samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
-        reports = collect("reports/{sample}.html", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.html" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        bx_report = "reports/barcode.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []

@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "harpy"
-version = "3.2"
+version = "4.0"
 authors = [{name = "Pavel Dimens"}]
 description = "An automated workflow to demultiplex sequences, trim reads, map sequences, call variants, impute genotypes, and phase haplotypes of Haplotagging data. Batteries included."
 requires-python = ">=3.11"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "GPL-3.0-or-later"
 dependencies = [
+    'beautysh',
     'click>8.0',
     'rich-click>=1.8',
     'pysam>=0.23',
@@ -19,25 +20,8 @@ dependencies = [
 
 [project.scripts]
 harpy = "harpy.__main__:cli"
-assign_mi = "harpy.scripts:assign_mi.main"
-bx_stats = "harpy.scripts:bx_stats.main"
-bx_to_end = "harpy.scripts:bx_to_end.main"
-check_bam = "harpy.scripts:check_bam.main"
-check_fastq = "harpy.scripts:check_fastq.main"
-concatenate_bam = "harpy.scripts:concatenate_bam.main"
-count_bx = "harpy.scripts:count_bx.main"
-deconvolve_alignments = "harpy.scripts:deconvolve_alignments.main"
-depth_windows = "harpy.scripts:depth_windows.main"
-extract_bxtags= "harpy.scripts:extract_bxtags.main"
-haplotag_acbd = "harpy.scripts:haplotag_acbd.main"
-haplotag_barcodes = "harpy.scripts:haplotag_barcodes.main"
-infer_sv = "harpy.scripts:infer_sv.main"
-make_windows = "harpy.scripts:make_windows.main"
-molecule_coverage = "harpy.scripts:molecule_coverage.main"
-parse_phaseblocks = "harpy.scripts:parse_phaseblocks.main"
-rename_bam = "harpy.scripts:rename_bam.main"
-standardize_barcodes_sam = "harpy.scripts:standardize_barcodes_sam.main"
-process_notebook = "harpy.scripts:process_notebook.main"
+hv = "harpy.commands.view:view"
+harpy-utils = "harpy.utils:cli"
 
 [project.urls]
 Homepage = "https://github.com/pdimens/harpy"

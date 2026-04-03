@@ -1,26 +1,38 @@
 import os
 from pathlib import Path
 
+localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-ploidy 		= config["Parameters"]["ploidy"]
-extra 	    = config["Parameters"].get("extra", "") 
-regions_input = config["Inputs"]["regions"]
-skip_reports = config["Workflow"]["reports"]["skip"]
-bamlist     = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["Inputs"]["reference"]
-bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    genome_zip  = True
-    bn = bn[:-3]
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = REPORTS.get("skip", False)
+ploidy 		  = PARAMETERS.get("ploidy", 2)
+extra 	      = PARAMETERS.get("extra", "") 
+bamlist       = INPUTS["alignments"]
+genomefile 	  = INPUTS["reference"]
+regions_input = INPUTS["regions"]
+# attempt to get processed, then source, then nothing
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if isinstance(groupings, str) and not os.path.isfile(groupings):
+        groupings = grp.get("source", [])
 else:
-    genome_zip  = False
+    groupings = []
+
+bamdict       = dict(zip(bamlist, bamlist))
+bn            = os.path.basename(genomefile)
+genome_zip    = bn.lower().endswith(".gz")
+bn            = bn[:-3] if genome_zip else bn
 workflow_geno = f"workflow/reference/{bn}"
-groupings 	= config["Inputs"].get("groupings", [])
-samplenames = {Path(i).stem for i in bamlist}
-sampldict = dict(zip(bamlist, samplenames))
+samplenames   = {Path(i).stem for i in bamlist}
+sampldict     = dict(zip(bamlist, samplenames))
 
 if os.path.exists(regions_input):
     with open(regions_input, "r") as reg_in:
@@ -31,7 +43,7 @@ if os.path.exists(regions_input):
     regions = dict(zip(intervals, intervals))
 else:
     intervals = [regions_input]
-    regions = {f"{regions_input}" : f"{regions_input}"}
+    regions   = {f"{regions_input}" : f"{regions_input}"}
 
 rule process_reference:
     input:
@@ -90,44 +102,35 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_3.2"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
             bcftools sort - --output {output.bcf} --write-index 2> /dev/null
         """
 
-rule concat_list:
-    input:
-        bcfs = collect("regions/{part}.bcf", part = intervals),
-    output:
-        bcf = "logs/bcf.files"
-    run:
-        with open(output.bcf, "w") as fout:
-            for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")
-
 rule concat_variants:
     input:
-        collect("regions/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = "logs/bcf.files"
+        collect("regions/{part}.bcf.csi", part = intervals),
+        bcf = collect("regions/{part}.bcf", part = intervals)
     output:
-        temp("variants.raw.unsort.bcf")
-    log:
-        "logs/concat.log"
-    threads:
-        workflow.cores
-    shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
-
-rule sort_variants:
-    input:
-        "variants.raw.unsort.bcf"
-    output:
+        concatlist = temp("logs/bcf.files"),
         bcf = "variants.raw.bcf",
         csi = "variants.raw.bcf.csi"
-    shell:
-        "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
+    log:
+        "logs/concat_sort.log"
+    threads:
+        workflow.cores
+    params:
+        workflow.cores - 1 
+    shell:  
+        """
+        for i in {input.bcf}; do echo $i; done >> {output.concatlist}
+        {{
+            bcftools concat -f {output.concatlist} --threads {params} --naive |
+            bcftools sort - --write-index -Ob -o {output.bcf}
+        }} 2> {log}
+        """
 
 rule realign_indels:
     input:
@@ -146,35 +149,27 @@ rule realign_indels:
     shell:
         "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"    
 
-rule general_stats:
-    input:
+rule variant_report:
+    input: 
         genome  = workflow_geno,
         ref_idx = f"{workflow_geno}.fai",
         bcf     = "variants.{type}.bcf",
-        idx     = "variants.{type}.bcf.csi"
-    output:
-        "reports/data/variants.{type}.stats",
-    shell:
-        """
-        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
-        """
-
-rule variant_report:
-    input: 
-        data = "reports/data/variants.{type}.stats",
+        idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"
     output:
-        report = "reports/variants.{type}.html",
-        ipynb = temp("reports/variants.{type}.ipynb")
+        data = temp("reports/data/variants.{type}.stats"),
+        tmp =  temp("reports/variants.{type}.tmp.ipynb"),
+        ipynb = "reports/variants.{type}.ipynb"
     log:
         "logs/variants.{type}.report.log"
     params:
-        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
+        lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook variants.{wildcards.type} {output.tmp}
+            bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} variants.{wildcards.type}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -182,5 +177,5 @@ rule all:
     default_target: True
     input:
         vcf = collect("variants.{file}.bcf", file = ["raw","normalized"]),
-        reports = collect("reports/variants.{file}.html", file = ["raw","normalized"]) if not skip_reports else []
+        reports = collect("reports/variants.{file}.ipynb", file = ["raw","normalized"]) if not skip_reports else []
 

@@ -5,7 +5,7 @@ Various system-level checks such as whether packages exist, architecture, etc.
 import os
 import platform
 import shutil
-from harpy.common.printing import print_error, print_notice
+from harpy.common.printing import HarpyPrint
 import rich_click as click
 from rich.markdown import Markdown
 
@@ -84,17 +84,17 @@ def package_absent(pkg: str, executor: bool = True) -> bool:
             out_text += f"\n\n```bash\nmamba install -c bioconda {pkg}\n```"
         if conda_check in [1,2]:
             if executor:
-                print_notice(Markdown(out_text))
+                HarpyPrint().notice(Markdown(out_text))
             else:
-                print_error("missing required package", Markdown(out_text))
+                HarpyPrint().error("missing required package", Markdown(out_text))
             return True
 
     if not is_pip_package_installed(pkg):
         out_text += f"\n\n```bash\npip install {pkg}\n```"
         if executor:
-            print_notice(Markdown(out_text))
+            HarpyPrint().notice(Markdown(out_text))
         else:
-            print_error("missing required package", Markdown(out_text))
+            HarpyPrint().error("missing required package", Markdown(out_text))
         return True
     
     return False
@@ -127,7 +127,7 @@ def is_arm(allowed: bool) -> None:
     if not _arm or allowed:
         return
     else:
-        print_error(
+        HarpyPrint().error(
             "incompatible architecture",
             "Your system was detected to use an ARM-based processor, for which not all of the software required by this workflow is compatible with and therefore conda will be unable to install. If possible, please try this command again on an x86-based machine (i.e. [blue]Intel[/] or [red]AMD[/] processors)."
         )

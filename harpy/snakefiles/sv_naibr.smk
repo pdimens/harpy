@@ -3,30 +3,41 @@ import re
 from pathlib import Path
 from harpy.common.file_ops import naibr_extra, pop_manifest
 
+localrules: all, naibr_config, aggregate_variants
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-genomefile   = config["Inputs"]["reference"]
-bamlist      = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-groupfile    = config["Inputs"].get("groupings", None)
-extra        = config["Parameters"].get("extra", None) 
-min_size     = config["Parameters"]["min-size"]
-min_barcodes = config["Parameters"]["min-barcodes"]
-min_quality  = config["Parameters"]["min-map-quality"]
-mol_dist     = config["Parameters"]["molecule-distance"]
-popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
-populations  = popdict.keys() if groupfile else None
-target       = populations if groupfile else {Path(i).stem for i in bamlist}
-bn           = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
-else:
-    workflow_geno = f"workflow/reference/{bn}"
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
+skip_reports = REPORTS.get("skip", False)
+plot_contigs = REPORTS.get("plot-contigs", 'default')
+extra        = PARAMETERS.get("extra", None) 
+min_size     = PARAMETERS.get("min-size", 1000)
+min_barcodes = PARAMETERS.get("min-barcodes", 2)
+min_quality  = PARAMETERS.get("min-map-quality", 30)
+mol_dist     = PARAMETERS.get("molecule-distance", 100000)
+genomefile   = INPUTS["reference"]
+bamlist      = INPUTS["alignments"]
+# attempt to get processed, then source, then nothing
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if not os.path.isfile(groupings):
+        groupings.get("source") or []
+else:
+    groupings = []
+
+plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+bamdict       = dict(zip(bamlist, bamlist))
+popdict       = pop_manifest(groupings, bamlist) if groupings else None
+populations   = popdict.keys() if groupings else None
+target        = populations if groupings else {Path(i).stem for i in bamlist}
+bn            = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 argdict = naibr_extra(
     {"min_mapq" : min_quality, "d" : mol_dist, "min_sv" : min_size, "k": min_barcodes},
     extra
@@ -60,7 +71,7 @@ rule process_reference:
         }} 2> {log}
         """
 
-if not groupfile:
+if not groupings:
     rule index_alignments:
         input:
             lambda wc: bamdict[wc.bam]
@@ -84,7 +95,7 @@ rule concat_groups:
     shell:
         """
         {{
-            concatenate_bam --bx {input} | 
+            djinn sam concat {input} | 
             samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
         }} 2> {log}
         """
@@ -123,7 +134,7 @@ rule call_variants:
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_3.2"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         "naibr {input.conf} > {log} 2>&1 && rm -rf naibrlog"
 
@@ -140,7 +151,7 @@ rule infer_variants:
         vcf   = "vcf/{sample}.vcf" 
     shell:
         """
-        infer_sv {input.bedpe} -f {output.fail} > {output.bedpe}
+        harpy-utils infer-sv {input.bedpe} -f {output.fail} > {output.bedpe}
         cp {input.refmt} {output.refmt}
         cp {input.vcf} {output.vcf}
         """
@@ -153,7 +164,6 @@ rule aggregate_variants:
         "deletions.bedpe",
         "duplications.bedpe"
     run:
-        from pathlib import Path
         with open(output[0], "w") as inversions, open(output[1], "w") as deletions, open(output[2], "w") as duplications:
             header = ["Population","Chr1","Break1","Chr2","Break2","SplitMolecules","DiscordantReads","Orientation","Haplotype","Score","PassFilter","SV"]
             _ = inversions.write("\t".join(header) + "\n")
@@ -192,10 +202,10 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """s
+        """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook NAIBR {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} NAIBR
         }} 2> {log} > {output.ipynb}
         """
 

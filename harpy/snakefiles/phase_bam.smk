@@ -2,24 +2,26 @@ import os
 import re
 from pathlib import Path
 
+localrules: all, log_phasing
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-genomefile  = config["Inputs"]["reference"]
-bamlist     = config["Inputs"]["alignments"]
-vcffile     = config["Inputs"]["vcf"]
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+genomefile  = INPUTS["reference"]
+bamlist     = INPUTS["alignments"]
+vcffile     = INPUTS["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
-extra       = config["Parameters"].get("extra", None) 
-mol_dist    = config["Parameters"]["distance-threshold"]
-bn          = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
-else:
-    workflow_geno = f"workflow/reference/{bn}"
-if vcffile.lower().endswith("bcf"):
-    vcfindex = vcffile + ".csi"
-else:
-    vcfindex = vcffile + ".tbi"
+mol_dist    = PARAMETERS.get("distance-threshold", 100000)
+extra       = PARAMETERS.get("extra", None) 
+ploidy       = PARAMETERS.get("ploidy", 2) 
+
+bn            = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
+vcfindex      = f"{vcffile}.csi" if vcffile.lower().endswith("bcf") else f"{vcffile}.tbi"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -48,7 +50,7 @@ rule filter_invalid:
         get_alignments
     output:
         temp("filtered/{sample}.bam.bai"),
-        temp("filtered/{sample}.invalid.bam"),    
+        invalid = temp("filtered/{sample}.invalid.bam"),    
         valid = temp("filtered/{sample}.bam")
     log:
         "logs/{sample}.filter_invalid.log"
@@ -57,7 +59,7 @@ rule filter_invalid:
     shell:
         """
         {{
-            djinn sam filter-invalid --invalid -t {threads} {input} > {output.valid}
+            djinn sam filter-invalid -t {threads} --invalid {output.invalid} {input} > {output.valid}
             samtools index {output.valid}  
         }} 2> {log}
         """
@@ -89,22 +91,30 @@ rule phase_alignments:
     output:
         bam = temp("phased/{sample}.phased.bam"),
         log = "logs/{sample}.phase.log"
+    log:
+        "logs/{sample}.phase.log"
     params:
-        f"--linked-read-distance-cutoff {mol_dist}",
+        f"--ploidy {ploidy}",
+        f"-d {mol_dist}",
         "--tag-supplementary copy-primary",
         "--no-supplementary-strand-match",
-        f"--supplementary-distance {mol_dist}",
+        f"--supplementary-distance {3 * mol_dist}",
         "--ignore-read-groups",
         "--skip-missing-contigs",
         extra
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_dev"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     threads:
-        4
+        3
     shell:
-        "whatshap haplotag --sample {wildcards.sample} --output-threads={threads} -o {output.bam} --reference {input.ref} {input.vcf} {input.aln} 2> {output.log}"
+        """
+        {{
+            whatshap haplotag --sample {wildcards.sample} --reference {input.ref} {input.vcf} {input.aln} |
+            samtools view -@ 1 -h -O BAM
+        }} > {output.bam} 2> {output.log}
+        """
 
 rule log_phasing:
     input:
@@ -146,7 +156,7 @@ rule sort_phased_bam:
     threads:
         2
     shell:
-        "samtools sort -@ 1 -o {output} -O BAM --write-index -m {resources.mem_mb}M {input} 2> {log}"
+        "samtools sort -@ 1 -o {output} -O BAM -m {resources.mem_mb}M {input} 2> {log}"
 
 rule all:
     default_target: True

@@ -5,10 +5,20 @@ import gzip
 import importlib.resources as resources
 import os
 from pathlib import Path
+import pysam
 import re
 import shutil
 import sys
-from harpy.common.printing import print_error
+import curses
+from datetime import datetime
+from pygments import highlight
+from pygments.lexers import get_lexer_by_name
+from pygments.formatters import get_formatter_by_name
+from click import echo_via_pager
+from rich.console import Console
+from rich.prompt import Prompt
+from rich.syntax import Syntax
+from harpy.common.printing import HarpyPrint
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -39,7 +49,7 @@ def fetch_template(target: str, outfile = None) -> None:
             with resources.as_file(source_file) as _source, open(_source, 'r') as f:
                 _out.write(f.read() + "\n")
     except (FileNotFoundError, KeyError):
-        print_error(
+        HarpyPrint().error(
             "template file missing",
             f"The required template file [blue bold]{target}[/] was not found within the Harpy installation.",
             "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be in a issue with your conda/mamba environment or configuration."
@@ -139,3 +149,161 @@ def naibr_extra(argsDict: dict, extra) -> dict:
             if "blacklist" in i or "candidates" in i:
                 argsDict[i[0].lstrip("-")] = i[1]
     return argsDict
+
+def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1):
+    """
+    Create a BED file of fixed intervals from a fasta or fai file (generated with samtools faidx).
+    Nearly identical to bedtools makewindows, except the intervals are nonoverlapping. `Window` is
+    the interval size, `mode` is whether to make `0` or `1` based  intervals.
+    """
+    def makewindows(_c_len, index_start, windowsize):
+        """create a file of the specified windows"""
+        start = index_start
+        end = min(_c_len, windowsize)
+        starts = [start]
+        ends = [end]
+        while end < _c_len:
+            end = min(end + windowsize, _c_len)
+            ends.append(end)
+            start += windowsize
+            starts.append(start)
+        return starts, ends
+
+    if input.lower().endswith("fai"):
+        with open(input, "r", encoding="utf-8") as fai, open(output, "w") as fout:
+            for line in fai:
+                lsplit = line.split("\t")
+                contig = lsplit[0]
+                c_len = int(lsplit[1])
+                c_len += mode
+                starts,ends = makewindows(c_len, mode, window)
+                for startpos,endpos in zip(starts, ends):
+                    fout.write(f"{contig}\t{startpos}\t{endpos}\n")
+        return
+
+    with pysam.FastxFile(input, persist = False) as FA, open(output, "w") as fout:
+        for record in FA:
+            chrom_name = record.name
+            chom_len = len(record.sequence)
+            starts,ends = makewindows(chom_len, mode, window)
+            for startpos,endpos in zip(starts, ends):
+                fout.write(f"{chrom_name}\t{startpos}\t{endpos}\n")
+
+#========== harpy view ==============#
+
+def check_terminal_colors():
+    # Initialize curses and always tear down
+    try:
+        _ = curses.initscr()
+        # Check if the terminal supports colors
+        if not curses.has_colors():
+            return 0
+        curses.start_color()
+        num_colors = curses.COLORS
+        # Determine the color type based on the number of colors
+        if num_colors <= 8:
+            return 8
+        else:
+            return 256
+    except curses.error:
+        # Non-interactive/unsupported terminals
+        return 0
+    finally:
+        try:
+            curses.endwin()
+        except curses.error:
+            pass
+
+def parse_file(infile: str):
+    '''
+    Print file contents via pygmentized `less`.
+    '''
+    hp = HarpyPrint()
+    if not os.access(infile, os.R_OK):
+        hp.error(
+            "incorrect permissions",
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
+        )
+    n_colors = check_terminal_colors()
+    if n_colors <= 8:
+        formatter = get_formatter_by_name("terminal")
+    else:
+        formatter = get_formatter_by_name("terminal256")
+
+    def _read_file(x: str):
+        compressed = is_gzip(x)
+        opener = gzip.open if compressed else open
+        mode = "rt" if compressed else "r"
+        lexer = get_lexer_by_name("yaml")
+        with opener(x, mode) as f:
+            for line in f:
+                yield highlight(line, lexer, formatter)
+    os.environ["PAGER"] = "less -R"
+    echo_via_pager(_read_file(infile), color = n_colors > 0)
+
+def parse_error(infile: str):
+    '''
+    Print syntax-highlighted error in snakemake log.
+    '''
+    hp = HarpyPrint()
+    if not os.access(infile, os.R_OK):
+        hp.error(
+            "incorrect permissions",
+            f"[blue]{infile}[/] does not have read access. Please check the file permissions."
+        )
+    with safe_read(infile) as f:
+        result = ""
+        for line in f:
+            if "error" in line.lower() or "exception" in line.lower():
+                result += line
+                while True:
+                    _line = f.readline()
+                    if not _line:
+                        break
+                    result += _line
+                break
+        hp.rule(f"[default]{os.path.relpath(infile)}", style = 'blue')
+        hp.print(Syntax(result, lexer= "yaml", background_color= 'default'), soft_wrap=True)
+
+def choose_logfile(directory: str, choose:bool) -> str:
+    hp = HarpyPrint()
+    err_dir = os.path.join(directory, ".snakemake", "log")
+    err_file = "There are no log files"
+    if not os.path.exists(err_dir):
+        hp.error(
+            "directory not found", 
+            f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
+        )
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    if not files:
+        hp.error(
+            "files not found", 
+            f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
+        )
+
+    files = sorted(files, key = os.path.getmtime, reverse = True)
+    if choose and len(files) > 1:
+        console = Console()
+        console.print()
+        #console.rule('Snakemake Log Files', style = "green")
+        _tb = hp.table()
+        _tb.show_header=True
+        _tb.add_column("[bold green]#", style="bold green", min_width=2)
+        _tb.add_column("[dim yellow]Last Modification",style = "dim yellow")
+        _tb.add_column("Log File", justify="right", no_wrap=True)
+        for i,j in enumerate(files,1):
+            filename = os.path.basename(j).removesuffix(".snakemake.log") + "[dim].snakemake.log[/]"
+            modtime = datetime.fromtimestamp(os.path.getmtime(j)).strftime('%Y-%m-%d %H:%M')
+            _tb.add_row(str(i), modtime , filename)
+        console.print(_tb)
+        selection = Prompt.ask(
+            "\n[bold blue]Select a log file by number ([bold green]#[/])[/]",
+            choices=list(str(i) for i in range(1,len(files) + 1)),
+            show_choices=False
+        )
+        
+        selected_idx = int(selection) - 1
+        target_file = files[selected_idx]
+    else:
+        target_file = files[0]
+    return target_file

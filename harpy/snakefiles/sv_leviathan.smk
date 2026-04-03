@@ -3,31 +3,42 @@ from pathlib import Path
 import re
 from harpy.common.file_ops import pop_manifest
 
+localrules: all, aggregate_variants
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
 
-skip_reports = config["Workflow"]["reports"]["skip"]
-plot_contigs = config["Workflow"]["reports"]["plot-contigs"]
-plot_contigs = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-genomefile 	= config["Inputs"]["reference"]
-bamlist     = config["Inputs"]["alignments"]
-groupfile 	= config["Inputs"].get("groupings", None)
-extra 		= config["Parameters"].get("extra", "") 
-min_size    = config["Parameters"]["min-size"]
-min_bc      = config["Parameters"]["min-barcodes"]
-iterations  = config["Parameters"]["iterations"]
-small_thresh = config["Parameters"]["variant-thresholds"]["small"]
-medium_thresh = config["Parameters"]["variant-thresholds"]["medium"]
-large_thresh = config["Parameters"]["variant-thresholds"]["large"]
-duplcates_thresh = config["Parameters"]["variant-thresholds"]["duplicates"]
-popdict      = pop_manifest(groupfile, bamlist) if groupfile else None
-populations  = popdict.keys() if groupfile else None
-target       = populations if groupfile else {Path(i).stem for i in bamlist}
-bn 			 = os.path.basename(genomefile)
-if bn.lower().endswith(".gz"):
-    workflow_geno = f"workflow/reference/{bn[:-3]}"
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = REPORTS.get("skip", False)
+plot_contigs  = REPORTS.get("plot-contigs", "default")
+extra         = PARAMETERS.get("extra", "")
+min_size      = PARAMETERS.get("min-size", 1000)
+min_bc        = PARAMETERS.get("min-barcodes", 2)
+iterations    = PARAMETERS.get("iterations", 50)
+small_thresh  = PARAMETERS.get("variant-thresholds", {}).get("small", 95)
+medium_thresh = PARAMETERS.get("variant-thresholds", {}).get("medium", 95)
+large_thresh  = PARAMETERS.get("variant-thresholds", {}).get("large", 95)
+dup_thresh    = PARAMETERS.get("variant-thresholds", {}).get("duplicates", 10)
+genomefile    = INPUTS["reference"]
+bamlist       = INPUTS["alignments"]
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if not os.path.isfile(groupings):
+        groupings.get("source") or []
 else:
-    workflow_geno = f"workflow/reference/{bn}"
+    groupings = []
+
+plot_contigs  = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
+popdict       = pop_manifest(groupings, bamlist) if groupings else None
+populations   = popdict.keys() if groupings else None
+target        = populations if groupings else {Path(i).stem for i in bamlist}
+bn            = os.path.basename(genomefile)
+workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
 
 def get_alignments(wildcards):
     """returns a list with the bam file for the sample based on wildcards.sample"""
@@ -47,7 +58,7 @@ rule process_reference:
     conda:
         "envs/align.yaml"
     container:
-        "docker://pdimens/harpy:align_3.2"
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell: 
         """
         {{
@@ -72,7 +83,7 @@ rule concat_groups:
     shell:
         """
         {{
-            concatenate_bam --bx {input} | 
+            djinn sam concat {input} | 
             samtools sort -@ {threads} -O bam -l 0 -m {resources.mem_mb}M --write-index -o {output.bam}##idx##{output.bai}
         }} 2> {log}
         """
@@ -91,7 +102,7 @@ if popdict:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_dev"
+            f"docker://pdimens/harpy:variants_{VERSION}"
         shell:
             "LRez index bam -p -b {input.bam} -o {output} --threads {threads}"
 else:
@@ -107,7 +118,7 @@ else:
         conda:
             "envs/variants.yaml"
         container:
-            "docker://pdimens/harpy:variants_dev"
+            f"docker://pdimens/harpy:variants_{VERSION}"
         shell:
             """
             {{
@@ -135,14 +146,14 @@ rule call_variants:
         small  = f"-s {small_thresh}",
         medium  = f"-m {medium_thresh}",
         large  = f"-l {large_thresh}",
-        dupes  = f"-d {duplcates_thresh}",
+        dupes  = f"-d {dup_thresh}",
         extra = extra
     threads:
         workflow.cores - 1
     conda:
         "envs/variants.yaml"
     container:
-        "docker://pdimens/harpy:variants_3.2"
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         "LEVIATHAN -b {input.bam} -i {input.bc_idx} {params} -g {input.genome} -o {output.vcf} -t {threads} --candidates {output.candidates} 2> {log.runlog}"
 
@@ -220,8 +231,8 @@ rule report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook LEVIATHAN {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} LEVIATHAN
         }} 2> {log} > {output.ipynb}
         """
 

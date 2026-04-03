@@ -1,4 +1,5 @@
 .snakemake/
+.harpyerror
 .vscode/
 .condarc
 .environments/
@@ -12,7 +13,7 @@ hpc/
 QC/
 Deconvolve/
 Downsample/
-Demultiplex/
+Preprocess/
 Genome/
 Align/
 SNP/

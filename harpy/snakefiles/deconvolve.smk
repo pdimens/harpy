@@ -4,12 +4,18 @@ import re
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-fqlist      = config["Inputs"]
-kmer_length = config["Parameters"]["kmer-length"]
-window_size = config["Parameters"]["window-size"]
-density 	= config["Parameters"]["density"] 
-dropout     = config["Parameters"]["dropout"]
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+fqlist      = INPUTS
+kmer_length = PARAMETERS.get("kmer-length", 21)
+window_size = PARAMETERS.get("window-size", 40)
+density 	= PARAMETERS.get("density", 3) 
+dropout     = PARAMETERS.get("dropout", 0)
+
+bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 def get_fq1(wildcards):
@@ -50,7 +56,7 @@ rule deconvolve:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "QuickDeconvolution -t {threads} -i {input} -o {output} {params} > {log} 2>&1"
 
@@ -71,6 +77,7 @@ use rule extract_forward as extract_reverse with:
         "-2"
 
 rule all:
+    localrule: True
     default_target: True
     input:
         collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames)

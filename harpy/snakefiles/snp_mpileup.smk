@@ -1,22 +1,37 @@
 import os
 from pathlib import Path
 
+localrules: all, concat_logs
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-skip_reports = config["Workflow"]["reports"]["skip"]
-ploidy 		= config["Parameters"]["ploidy"]
-mp_extra 	= config["Parameters"].get("extra", "")
-bamlist     = config["Inputs"]["alignments"]
-bamdict     = dict(zip(bamlist, bamlist))
-genomefile 	= config["Inputs"]["reference"]
-bn          = os.path.basename(genomefile)
-workflow_geno = f"workflow/reference/{bn}"
-genome_zip  = True if bn.lower().endswith(".gz") else False
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports = REPORTS.get("skip", False)
+ploidy 		 = PARAMETERS.get("ploidy", 2)
+mp_extra 	 = PARAMETERS.get("extra", "")
+bamlist      = INPUTS["alignments"]
+genomefile 	 = INPUTS["reference"]
+region_input = INPUTS["regions"]
+# attempt to get processed, then source, then nothing
+grp          = INPUTS.get("groupings") or {}
+if grp:
+    groupings = grp.get("processed", [])
+    if isinstance(groupings, str) and not os.path.isfile(groupings):
+        groupings = grp.get("source", [])
+else:
+    groupings = []
+
+bamdict           = dict(zip(bamlist, bamlist))
+bn                = os.path.basename(genomefile)
+genome_zip        = True if bn.lower().endswith(".gz") else False
+workflow_geno     = f"workflow/reference/{bn}"
 workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
-groupings 	= config["Inputs"].get("groupings", [])
-region_input = config["Inputs"]["regions"]
-samplenames = {Path(i).stem for i in bamlist}
+samplenames       = {Path(i).stem for i in bamlist}
 
 if os.path.isfile(region_input):
     with open(region_input, "r") as reg_in:
@@ -27,7 +42,7 @@ if os.path.isfile(region_input):
     regions = dict(zip(intervals, intervals))
 else:
     intervals = [region_input]
-    regions = {f"{region_input}" : f"{region_input}"}
+    regions   = {f"{region_input}" : f"{region_input}"}
 
 rule process_reference:
     input:
@@ -92,15 +107,13 @@ rule call_genotypes:
         ploidy = f"--ploidy {ploidy}",
         annot_call = "-a GQ,GP",
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
-    threads:
-        1
     shell:
         """
         bcftools mpileup --threads {threads} --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
             bcftools call -o {output.vcf} --multiallelic-caller --variants-only {params.ploidy} {params.annot_call} {params.groups} 2> {log}
         """
 
-rule sort_genotypes:
+rule sort_variants:
     input:
         bcf = temp("call/{part}.vcf")
     output:
@@ -111,50 +124,41 @@ rule sort_genotypes:
     shell:
         "bcftools sort --output {output.bcf} --write-index {input.bcf} 2> {log}"
 
-rule concat_list:
+rule concat_variants:
     input:
-        bcfs = collect("sort/{part}.bcf", part = intervals),
+        collect("sort/{part}.bcf.csi", part = intervals),
+        bcf = collect("sort/{part}.bcf", part = intervals)
     output:
-        "logs/bcf.files"
-    run:
-        with open(output[0], "w") as fout:
-            for bcf in input.bcfs:
-                _ = fout.write(f"{bcf}\n")  
+        concatlist = temp("logs/bcf.files"),
+        bcf = "variants.raw.bcf",
+        csi = "variants.raw.bcf.csi"
+    log:
+        "logs/concat_sort.log"
+    threads:
+        workflow.cores
+    params:
+        workflow.cores - 1 
+    shell:  
+        """
+        for i in {input.bcf}; do echo $i; done >> {output.concatlist}
+        {{
+            bcftools concat -f {output.concatlist} --threads {params} --naive |
+            bcftools sort - --write-index -Ob -o {output.bcf}
+        }} 2> {log}
+        """
 
 rule concat_logs:
     input:
         collect("logs/mpileup/{part}.mpileup.log", part = intervals)
     output:
         "logs/mpileup.log"
-    run:
-        with open(output[0], "w") as fout:
-            for file in input:
-                interval = os.path.basename(file).replace(".mpileup.log", "")
-                with open(file, "r") as fin:
-                    for line in fin:
-                        fout.write(f"{interval}\t{line}")
-
-rule concat_variants:
-    input:
-        collect("sort/{part}.{ext}", part = intervals, ext = ["bcf", "bcf.csi"]),
-        filelist = "logs/bcf.files"
-    output:
-        temp("variants.raw.unsort.bcf")
-    log:
-        "logs/concat.log"
-    threads:
-        workflow.cores
     shell:  
-        "bcftools concat -f {input.filelist} --threads {threads} --naive -Ob -o {output} 2> {log}"
-
-rule sort_variants:
-    input:
-        "variants.raw.unsort.bcf"
-    output:
-        bcf = "variants.raw.bcf",
-        csi = "variants.raw.bcf.csi"
-    shell:
-        "bcftools sort --write-index -Ob -o {output.bcf} {input} 2> /dev/null"
+        """
+        for i in {input}; do
+            interval=$(basename "$i" .mpileup.log)
+            awk -v prefix="$interval" '{{print prefix "\t" $0}}' "$i"
+        done >> {output}
+        """
 
 rule realign_indels:
     input:
@@ -173,34 +177,26 @@ rule realign_indels:
     shell:
         "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"
 
-rule general_stats:
-    input:
-        genome  = workflow_geno,
-        bcf     = "variants.{type}.bcf",
-        idx     = "variants.{type}.bcf.csi"
-    output:
-        "reports/data/variants.{type}.stats"
-    shell:
-        """
-        bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output} 2> /dev/null
-        """
-
 rule variant_report:
     input: 
-        data = "reports/data/variants.{type}.stats",
+        genome  = workflow_geno,
+        bcf     = "variants.{type}.bcf",
+        idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"
     output:
-        report = "reports/variants.{type}.html",
+        data = temp("reports/data/variants.{type}.stats"),
+        tmp = temp("reports/variants.{type}.tmp.ipynb"),
         ipynb = temp("reports/variants.{type}.ipynb")
     log:
         "logs/variants.{type}.report.log"
     params:
-        lambda wc: "-p infile " + os.path.abspath("reports/data/variants.{wc.type}.stats")
+        lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook variants.{wildcards.type} {output.tmp}
+            bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} variants.{wildcards.type}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -209,4 +205,4 @@ rule all:
     input:
         vcf = collect("variants.{file}.bcf", file = ["raw", "normalized"]),
         agg_log = "logs/mpileup.log",
-        reports = collect("reports/variants.{file}.html", file = ["raw", "normalized"]) if not skip_reports else []
+        reports = collect("reports/variants.{file}.ipynb", file = ["raw", "normalized"]) if not skip_reports else []

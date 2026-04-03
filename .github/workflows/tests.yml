@@ -8,23 +8,19 @@ on:
     branches:
       - main
 
-# Cancel in progress workflows on pull_requests.
-# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-a-fallback-value
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
-  CACHE_NUMBER: 0  # increase to reset cache manually
+  TTY_COMPATIBLE: 1
 
 jobs:
   changes:
     name: Detect File Changes
     runs-on: ubuntu-latest
-      # Required permissions
     permissions:
       pull-requests: read
-    # Set job outputs to values from filter step
     outputs:
       validate: ${{ steps.filter.outputs.validate }}
       deconvolve: ${{ steps.filter.outputs.deconvolve }}
@@ -42,38 +38,64 @@ jobs:
       other: ${{ steps.filter.outputs.other }}
       convert: ${{ steps.filter.outputs.convert }}
       environments: ${{ steps.filter.outputs.environments }}
-      modules: ${{ steps.filter.outputs.modules }}
+      resume: ${{ steps.filter.outputs.resume }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Check Which Files Have Changes
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         id: filter
         with:
           filters: .github/filters.yml
 
-  dmux_meier2021:
+  resume:
     needs: changes
-    if: ${{ needs.changes.outputs.preproc == 'true' }}
-    name: preprocess meier2021
+    if: ${{ needs.changes.outputs.resume == 'true' }}
+    name: resume
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
-      - name: harpy demultiplex
+      - run: pixi run build
+      - name: harpy qc
+        run: harpy qc --setup test/fastq
+      - name: resume
         run: |
-          harpy preprocess meier2021 --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
-          ls -lh Demultiplex
+          harpy resume --quiet 2 QC && \
+          ls -lh  QC
+
+  preprocess:
+    needs: changes
+    if: ${{ needs.changes.outputs.preproc == 'true' }}
+    name: preprocess
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+      - name: Install Harpy
+        uses: prefix-dev/setup-pixi@v0.9.4
+        with:
+          cache: false
+          activate-environment: true
+      - run: pixi run build
+      - name: harpy preproc meier2021
+        run: |
+          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
+          ls -lh Preproc/meier
+      - name: harpy preproc gih
+        run: |
+          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih* && \
+          ls -lh Preproc/gih
+
 
   validate:
     needs: changes
@@ -82,20 +104,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: test validate fastq
         run: |
-          harpy validate fastq test/fastq && \
+          harpy validate fastq --quiet 2 test/fastq && \
           ls -lh Validate/fastq
       - name: test validate bam
         if: always()
@@ -110,17 +130,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: harpy qc
         run: |
           harpy qc -x "--low_complexity_filter" --quiet 2 test/fastq && \
@@ -133,17 +151,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: harpy deconvolve
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
@@ -156,17 +172,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: test bwa
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
@@ -179,17 +193,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: test strobealign
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
@@ -202,24 +214,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: snp mpileup
         run: |
           harpy snp mpileup --quiet 2 -r test/positions.bed -x "--ignore-RG" test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy snp mpileup --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   freebayes:
@@ -229,24 +239,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: snp freebayes
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -o SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy snp freebayes --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SNP/poptest
 
   impute:
@@ -256,17 +264,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: impute
         run: |
           harpy impute --quiet 2 --grid-size 1500 test/stitch.params test/vcf/test.bcf test/bam && \
@@ -274,12 +280,12 @@ jobs:
       - name: impute from vcf
         if: always()
         run: |
-          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -O vcfImpute test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh vcfImpute/*/*
       - name: impute one region
         if: always()
         run: |
-          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -o regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
+          harpy impute --quiet 2 --grid-size 1500 --vcf-samples -O regionImpute -r 3L:3000-28110227-1000 test/stitch.params test/vcf/test.bcf test/bam && \
           ls -lh regionImpute/*/*
 
   phase:
@@ -289,17 +295,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: phase
         run: |
           harpy phase snp --quiet 2 -x "--max_iter 10001" test/vcf/test.bcf test/bam && \
@@ -307,18 +311,18 @@ jobs:
       - name: phase with indels
         if: always()
         run: |
-          harpy phase snp --quiet 2 -o phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
+          harpy phase snp --quiet 2 -O phaseindel -r test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
           ls -lh phaseindel
       - name: phase from vcf
         if: always()
         run: |
-          cp test/bam/sample1.bam test/bam/pineapple.bam && rename_bam -d pineapple1 test/bam/pineapple.bam
-          harpy phase --quiet 2 --vcf-samples -o phasevcf test/vcf/test.bcf test/bam && \
+          cp test/bam/sample1.bam test/bam/pineapple.bam && harpy-utils rename-bam -d pineapple1 test/bam/pineapple.bam
+          harpy phase snp --quiet 2 --vcf-samples -O phasevcf test/vcf/test.bcf test/bam && \
           ls -lh phasevcf
       - name: phase bam
         if: always()
         run: |
-          harpy phase bam --quiet 2 -o phasebam test/genome/genome.fasta.gz test/vcf/test.bcf test/bam && \
+          harpy phase bam --quiet 2 -O phasebam test/genome/genome.fasta.gz test/vcf/test.phased.bcf test/bam/sample*.bam && \
           ls -lh phasebam
 
   leviathan:
@@ -328,17 +332,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: leviathan
         run: |
           harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -x "-M 2002" test/genome/genome.fasta.gz test/bam && \
@@ -346,7 +348,7 @@ jobs:
       - name: leviathan-pop
         if: always()
         run: | 
-          harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -o SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          harpy sv leviathan --quiet 2 -m 100 -s 80,80,80 -b 1 -O SV/leviathanpop -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
           ls -lh SV/leviathanpop
 
   naibr:
@@ -356,36 +358,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: naibr
         run: |
-          harpy sv naibr --quiet 2 -o SV/naibr test/genome/genome.fasta.gz test/bam_phased && \
+          harpy sv naibr --quiet 2 test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/naibr
       - name: naibr pop
         if: always()
         run: |
-          harpy sv naibr --quiet 2 -o SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
+          harpy sv naibr --quiet 2 -O SV/pop -p test/samples.groups test/genome/genome.fasta.gz test/bam_phased && \
           ls -lh SV/pop
-      - name: naibr with phasing
-        if: always()
-        run: |
-          harpy sv naibr --quiet 2 -o SV/phase -v test/vcf/test.phased.bcf test/genome/genome.fasta.gz test/bam && \
-          ls -lh SV/phase
-      - name: naibr pop with phasing
-        if: always()
-        run: |
-          harpy sv naibr --quiet 2 -o SV/phasepop -v test/vcf/test.phased.bcf -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
-          ls -lh SV/phasepop
 
   assembly:
     needs: changes
@@ -394,17 +384,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: Clear Space
         uses: jlumbroso/free-disk-space@main
       - name: test assembly
@@ -427,17 +415,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.2
+        uses: prefix-dev/setup-pixi@v0.9.4
         with:
-          pixi-version: v0.62.0
           cache: false
           activate-environment: true
-      - name: set envvar
-        run: echo "TTY_COMPATIBLE=1" >> "$GITHUB_ENV"
+      - run: pixi run build
       - name: template impute
         run: harpy template impute
       - name: template groupings

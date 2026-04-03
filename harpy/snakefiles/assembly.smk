@@ -1,31 +1,34 @@
 import os
 
-FQ1 = config["Inputs"]["fastq-r1"]
-FQ2 = config["Inputs"]["fastq-r2"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-organism = config["Workflow"]["reports"]["organism-type"]
-lineage_map = {
-    "eukaryote": "eukaryota",
-    "fungus": "fungi",
-    "bacteria": "bacteria"
-}
-lineagedb = lineage_map.get(organism, "bacteria")
-odb_version = 12
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports = REPORTS.get("skip", False)
+organism     = REPORTS.get("organism-type", "bacteria")
 # SPADES
-max_mem      = config["Parameters"]["spades"]["max-memory"]
-k_param      = config["Parameters"]["spades"]["k"]
-spades_extra = config["Parameters"]["spades"].get("extra", "")
+max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 10000)
+k_param      = PARAMETERS.get("spades", {}).get("k", "auto")
+spades_extra = PARAMETERS.get("spades", {}).get("extra", "")
 # ARCS
-mapq       = config["Parameters"]["tigmint"]["minimum_mapping-quality"]
-mismatch   = config["Parameters"]["tigmint"]["mismatch"]
-mol_dist   = config["Parameters"]["tigmint"]["molecule-distance"]
-mol_len    = config["Parameters"]["tigmint"]["molecule-length"]
-span       = config["Parameters"]["tigmint"]["span"]
-min_align  = config["Parameters"]["arcs"]["minimum-aligned-reads"]
-min_contig = config["Parameters"]["arcs"]["minimum-contig-length"]
-seq_id     = config["Parameters"]["arcs"]["minimum-sequence-identity"]
-arcs_extra = config["Parameters"]["arcs"].get("extra", "")
-links      = config["Parameters"]["links"]["minimum-links"]
+mapq       = PARAMETERS.get("tigmint", {}).get("min-mapping-quality", 0)
+mismatch   = PARAMETERS.get("tigmint", {}).get("mismatch", 5)
+mol_dist   = PARAMETERS.get("tigmint", {}).get("molecule-distance", 50000)
+mol_len    = PARAMETERS.get("tigmint", {}).get("molecule-length", 2000)
+span       = PARAMETERS.get("tigmint", {}).get("span", 20)
+min_align  = PARAMETERS.get("arcs", {}).get("min-aligned-reads", 5)
+min_contig = PARAMETERS.get("arcs", {}).get("min-contig-length", 500)
+seq_id     = PARAMETERS.get("arcs", {}).get("min-sequence-identity", 98)
+arcs_extra = PARAMETERS.get("arcs", {}).get("extra", "")
+links      = PARAMETERS.get("links", {}).get("min-links", 5)
+FQ1        = INPUTS["fastq-r1"]
+FQ2        = INPUTS["fastq-r2"]
+
+lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
+lineagedb   = lineage_map.get(organism, "bacteria")
+odb_version = 12
 
 rule cloudspades:
     input:
@@ -44,7 +47,7 @@ rule cloudspades:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_3.2"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     threads:
         workflow.cores
     resources:
@@ -99,7 +102,7 @@ rule scaffolding:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_3.2"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         """
         arcs-make arcs-tigmint -C {params} 2> {log}
@@ -125,7 +128,7 @@ rule QUAST_assessment:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_3.2"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "quast.py --threads {threads} --pe12 {input.fastq} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -147,7 +150,7 @@ rule BUSCO_analysis:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_3.2"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "( busco -f -i {input} -c {threads} -m genome {params} > {log} 2>&1 ) || touch {output}"
 
@@ -165,12 +168,13 @@ rule build_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 
 rule all:
     default_target: True
+    localrule: True
     input:
         "scaffolds.fasta",
         "reports/assembly.metrics.html" if not skip_reports else []

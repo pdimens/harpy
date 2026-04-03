@@ -1,4 +1,5 @@
 #! /usr/bin/env bash
+set -euo pipefail 
 
 if [ -z "$CONDA_PREFIX" ]; then
     echo "Error: active conda environment not detected."
@@ -9,9 +10,14 @@ fi
 mkdir -p ${CONDA_PREFIX}/bin
 
 # install harpy proper
-pip install --no-deps --disable-pip-version-check -e . && \
-    rm -rf build
+pip install --no-deps --disable-pip-version-check -e . && rm -rf build
 
-# associated scripts
-#chmod +x harpy/bin/* 
-#cp -f harpy/bin/* ${CONDA_PREFIX}/bin/
+{
+    cd harpy/utils || exit 1  
+    go build -C stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
+    go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
+    go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
+    chmod +x gih-stagger gih-convert djinn-standardize
+    mv gih-stagger gih-convert djinn-standardize "${CONDA_PREFIX}/bin/"
+    cd ../..
+}

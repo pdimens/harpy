@@ -2,12 +2,14 @@ import os
 import re
 from pathlib import Path
 
+localrules: all, concat_results
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["Workflow"]["linkedreads"]["type"]
-bamlist = config["Inputs"]
-bamdict = dict(zip(bamlist, bamlist))
+VERSION     = config.get("Workflow", {}).get('harpy-version', 'latest')
+lr_platform = config.get("Workflow", {}).get("linkedreads", {}).get("type", 'none')
+bamlist     = config["Inputs"]
+bamdict     = dict(zip(bamlist, bamlist))
 samplenames = {Path(i).stem for i in bamlist}
 
 def get_alignments(wildcards):
@@ -24,7 +26,7 @@ rule check_bam:
     params:
         lr_platform
     shell: 
-        "check_bam {params} {input} > {output}"
+        "harpy-utils check-bam {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -34,8 +36,8 @@ rule concat_results:
     shell:
         """
         {{
-        echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
-        cat {input} | sort -k1
+            echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
+            cat {input} | sort -k1
         }} > {output}
         """
 
@@ -54,8 +56,8 @@ rule create_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            process_notebook {params.lr_platform} {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            harpy-utils process-notebook {output.tmp} {params.lr_platform}
         }} 2> {log} > {output.ipynb}
         """
 

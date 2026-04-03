@@ -8,15 +8,17 @@ import sys
 import glob
 import rich_click as click
 from harpy.commands.report import ReportRender
-from harpy.common.printing import print_error, print_notice, CONSOLE
+from harpy.common.printing import HarpyPrint
 from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import package_absent
+
+hp = HarpyPrint()
 
 @click.group()
 @click.command_panel("HPC Configurations", panel_styles={"border_style": "blue"})
 @click.command_panel("Input Files", panel_styles={"border_style": "blue"})
 @click.command_panel("Other", panel_styles={"border_style": "blue"})
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def template():
     """
     Create files and HPC configs for workflows
@@ -26,7 +28,7 @@ def template():
 
 @click.command(panel = "Input Files", no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def groupings(inputdir):
     """
     Create a template sample-grouping file
@@ -52,23 +54,23 @@ def groupings(inputdir):
        fqlist = [os.path.basename(i) for i in full_fqlist]
        bn_r = r"[\.\_][RF](?:[12])?(?:\_00[1-9])*\.f(?:ast)?q(?:\.gz)?$"
        if len(fqlist) == 0:
-            print_error(
+            hp.error(
                 "no files found",
                 f"No [bold]FASTQ[/] or [bold]BAM[/] files were detected in [blue]{inputdir}[/]",
                 "Check that [bold]FASTQ[/] file endings conform to [green].[/][[green]F[/][dim]|[/dim][green]R1[/]][green].[/][[green]fastq[/][dim]|[/dim][green]fq[/]][green].gz[/]\nCheck that [bold]BAM[/] files end in [green].bam[/]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
            )
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
-    CONSOLE.print(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[/]\n")
+    hp.print(f"\n[bold]{len(samplenames)}[/] samples detected in [blue]{inputdir}[/]\n")
     for i in samplenames:
         _ = sys.stdout.write(f'{i}\tpop1\n')
-    print_notice("Please review the resulting file, as all samples have been grouped into a single population")
+    hp.notice("Please review the resulting file, as all samples have been grouped into a single population")
 
 #TODO FIX EPILOG
-@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/#reports")
 @click.option('-a', '--action', is_flag = True, default = False, help = 'Add a report-building GitHub Action to the repository')
 @click.option('-u', '--update', is_flag = True, default = False, help = 'Scan the git project for reports and update `myst.yml`')
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def report(update, action):
     """
     Repository configuration to build report website
@@ -86,7 +88,7 @@ def report(update, action):
     else:
         if action:
             if not shutil.which("git"):
-                print_error(
+                hp.error(
                 "git not found",
                     "The [green]git[/] software was not found to identify the root directory of this project, therefore this is not considered to be a git-managed project."
                 )
@@ -95,7 +97,7 @@ def report(update, action):
                 git_dir = git_dir_proc.stdout.readline().strip()
                 git_dir_err = git_dir_proc.stderr.readline().strip()
                 if "not a git repository" in git_dir_err and action:
-                    print_error(
+                    hp.error(
                         "not git-managed",
                         "Configuring the project and GitHub Action requires this command to be run anywhere within a Git version-controlled directory, however [green]git[/] was unable to detect the root of this repository.",
                         "Please verify that this a git-managed repository, and if not, use [blue]git init[/] to set it up as one."
@@ -108,7 +110,7 @@ def report(update, action):
         _init.update_yaml()
 
 @click.command(panel = "HPC Configurations")
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def hpc_generic():
     """
     Create a template config for a generic scheduler
@@ -152,7 +154,7 @@ def hpc_generic():
     #rerun-incomplete: True
 
 @click.command(panel = "HPC Configurations")
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def hpc_lsf():
     """
     Create a template config for LSF
@@ -164,7 +166,7 @@ def hpc_lsf():
     package_absent("snakemake-executor-plugin-lsf")
 
 @click.command(panel = "HPC Configurations")
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def hpc_slurm():
     """
     Create a template config for SLURM
@@ -176,7 +178,7 @@ def hpc_slurm():
     package_absent("snakemake-executor-plugin-slurm")
 
 @click.command(panel = "HPC Configurations")
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def hpc_googlebatch():
     """
     Create a template config for Google Batch
@@ -189,7 +191,7 @@ def hpc_googlebatch():
 
 
 @click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
+@click.help_option('--help', hidden = True)
 def impute():
     """
     Create a template imputation parameter file
@@ -200,7 +202,7 @@ def impute():
     for your study system. Writes to `stdout`.
     """
     fetch_template("impute.tsv")
-    print_notice("Modify the model parameters as needed, but [yellow bold]do not add/remove columns.")
+    hp.notice("Modify the model parameters as needed, but [yellow bold]do not add/remove columns.")
 
 template.add_command(impute)
 template.add_command(groupings)

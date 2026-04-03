@@ -2,22 +2,30 @@ import os
 import subprocess
 from pathlib import Path
 
+localrules: all, summarize_blocks
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-bc_type           = config["Workflow"]["linkedreads"]["type"]
-skip_reports      = config["Workflow"]["reports"]["skip"]
-plot_contigs      = config["Workflow"]["reports"]["plot-contigs"]
-plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
-pruning           = config["Parameters"]["prune"]
-map_qual          = config["Parameters"]["min-map-quality"]
-base_qual         = config["Parameters"]["min-base-quality"]
-molecule_distance = config["Parameters"]["distance-threshold"]
-samples_from_vcf  = config["Parameters"]["prioritize-vcf-samples"]
-extra             = config.get("extra", "") 
-variantfile       = config["Inputs"]["vcf"]
-bamlist           = config["Inputs"]["alignments"]
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+bc_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+skip_reports      = REPORTS.get("skip", False)
+plot_contigs      = REPORTS.get("plot-contigs", 'default')
+pruning           = PARAMETERS.get("prune", 30)
+map_qual          = PARAMETERS.get("min-map-quality", 20)
+base_qual         = PARAMETERS.get("min-base-quality", 13)
+molecule_distance = PARAMETERS.get("distance-threshold", 100000)
+samples_from_vcf  = PARAMETERS.get("prioritize-vcf-samples", False)
+extra             = PARAMETERS.get("extra", "") 
+variantfile       = INPUTS["vcf"]
+bamlist           = INPUTS["alignments"]
+
 bamdict           = dict(zip(bamlist, bamlist))
+plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 invalid_regex = {
     "haplotagging" : "'$4 !~ /[ABCD]00/'",
     "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
@@ -36,8 +44,8 @@ if samples_from_vcf:
 else:
     samplenames = [Path(i).stem for i in bamlist]
 
-if config["Inputs"].get("reference", None):
-    genomefile = config["Inputs"]["reference"]
+if INPUTS.get("reference", None):
+    genomefile = INPUTS["reference"]
     if genomefile.lower().endswith(".gz"):
         bn = Path(Path(genomefile).stem).stem
     else:
@@ -128,7 +136,7 @@ rule extract_hairs:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         """
         extractHAIRS {params.static} --bam {input.bam} --VCF {input.vcf} --out {output.all_bc} > {log} 2>&1
@@ -149,7 +157,7 @@ rule link_fragments:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         "LinkFragments.py --bam {input.bam} --VCF {input.vcf} --fragments {input.fragments} --out {output} {params} > {log} 2>&1"
 
@@ -169,7 +177,7 @@ rule phase:
     conda:
         "envs/phase.yaml"
     container:
-        "docker://pdimens/harpy:phase_3.2"
+        f"docker://pdimens/harpy:phase_{VERSION}"
     shell:
         "HAPCUT2 --fragments {input.fragments} --vcf {input.vcf} --out {output.blocks} {params} > {log} 2>&1"
 
@@ -199,42 +207,38 @@ rule annotate_phase:
     shell:
         "bcftools annotate -a {input.phase} -o {output.bcf} {params} {input.orig} 2> {log}"
 
-rule create_merge_list:
-    input:
-        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames)
+rule merge_samples:
+    priority: 100
+    input: 
+        bcf = collect("phased_samples/{sample}.phased.annot.bcf", sample = samplenames),
+        csi = collect("phased_samples/{sample}.phased.annot.bcf.csi", sample = samplenames)
     output:
-        filelist = temp("phased_samples/bcf.list")
+        "variants.phased.bcf.csi",
+        filelist = temp("phased_samples/bcf.list"),
+        bcf = "variants.phased.bcf"
+    threads:
+        workflow.cores
     run:
         with open(output.filelist, "w") as f_out:
             for i in input.bcf:
                 f_out.write(i + "\n")
-
-rule merge_samples:
-    priority: 100
-    input: 
-        collect("phased_samples/{sample}.phased.annot.{ext}", sample = samplenames, ext = ["bcf", "bcf.csi"]),
-        filelist = "phased_samples/bcf.list"
-    output:
-        "variants.phased.bcf.csi",
-        bcf = "variants.phased.bcf"
-    threads:
-        workflow.cores
-    shell:
-        "bcftools merge --threads {threads} --force-single -l {input.filelist} -Ob -o {output.bcf} --write-index"
+        shell("bcftools merge --threads {threads} --force-single -l {output.filelist} -Ob -o {output.bcf} --write-index")
 
 rule summarize_blocks:
     input:
         collect("phase_blocks/{sample}.blocks", sample = samplenames)
     output:
         "reports/blocks.summary.gz"
+    log:
+        "logs/summary.log"
     shell:
         """
         {{
             echo -e "sample\\tcontig\\tn_snp\\tpos_start\\tblock_length"
             for i in {input}; do
-                parse_phaseblocks $i
+                harpy-utils parse-phaseblocks $i
             done
-        }} | gzip > {output}
+        }} 2> {log} | gzip > {output}
         """
 
 rule phase_report:
@@ -242,7 +246,7 @@ rule phase_report:
         data = "reports/blocks.summary.gz",
         ipynb = "workflow/hapcut.ipynb"
     output:
-        tmp = temp("reports/phase.tmp.ipynb")
+        tmp = temp("reports/phase.tmp.ipynb"),
         ipynb = "reports/phase.ipynb"
     log:
         "logs/report.log"
@@ -252,12 +256,12 @@ rule phase_report:
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook {wildcards.paramset} {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
-rule workflow_summary:
+rule all:
     default_target: True
     input:
         vcf = "variants.phased.bcf",

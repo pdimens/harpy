@@ -1,55 +1,49 @@
 import os
 
-FQ1 = config["Inputs"]["fastq_r1"]
-FQ2 = config["Inputs"]["fastq_r2"]
-BX_TAG = config["Workflow"]["linkedreads"]["barcode_tag"]
-max_mem = config["Parameters"]["spades"]["max_memory"]
-k_param = config["Parameters"]["spades"]["k"]
-ignore_bx = config["Parameters"]["spades"]["ignore_barcodes"]
-extra = config["Parameters"]["spades"].get("extra", "")
-spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
-force_athena = config["Parameters"]["athena"]["force"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-organism = config["Workflow"]["reports"]["organism_type"]
-lineage_map = {
-    "eukaryote": "eukaryota",
-    "fungus": "fungi",
-    "bacteria": "bacteria"
-}
-lineagedb = lineage_map.get(organism, "bacteria")
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {}
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+BX_TAG       = WORKFLOW.get("linkedreads", {}).get("barcode-tag", "BX")
+max_mem      = PARAMETERS.get("spades", {}).get("max-memory", 10000)
+k_param      = PARAMETERS.get("spades", {}).get("k", 'auto')
+ignore_bx    = PARAMETERS.get("spades", {}).get("ignore-barcodes", False)
+extra        = PARAMETERS.get("spades", {}).get("extra", "")
+force_athena = PARAMETERS.get("athena", {}).get("force", False)
+skip_reports = REPORTS.get("skip", False)
+organism     = REPORTS.get("organism-type", 'bacteria')
+FQ1          = INPUTS["fastq-r1"]
+FQ2          = INPUTS["fastq-r2"]
+
+spadesdir   = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
+lineage_map = {"eukaryote": "eukaryota", "fungus": "fungi", "bacteria": "bacteria"}
+lineagedb   = lineage_map.get(organism, "bacteria")
 odb_version = 12
 
-rule sort_by_barcode:
+rule preprocess_reads:
     input:
         fq_f = FQ1,
         fq_r = FQ2
     output:
-        fq_f = temp("fastq_preproc/tmp.R1.fq"),
-        fq_r = temp("fastq_preproc/tmp.R2.fq")
+        fq_f = temp("fastq_preproc/input.R1.fq.gz"),
+        fq_r = temp("fastq_preproc/input.R2.fq.gz")
     log:
         "logs/sort_by_barcode.log"
     params:
-        barcode_tag = BX_TAG
+        BX_TAG
     threads:
         workflow.cores
     shell:
         """
         {{
-            samtools import -T "*" {input} |
-            samtools sort -@ {threads} -O SAM -t {params.barcode_tag} |
-            samtools fastq -T "*" -1 {output.fq_f} -2 {output.fq_r}
+            samtools import -@ 1 -O SAM -T '*' {input} |
+            #sed 's/{params}:Z:[^[:space:]]*/&-1/g' |
+            samtools sort -O SAM -t {params} |
+            samtools fastq -N -c 4 -T '*' -1 {output.fq_f} -2 {output.fq_r}
         }} 2> {log}
         """
-
-rule format_barcode:
-    input:
-        "fastq_preproc/tmp.R{FR}.fq"
-    output:
-        temp("fastq_preproc/input.R{FR}.fq.gz")
-    params:
-        barcode_tag = BX_TAG
-    shell:
-        "sed 's/{params}:Z:[^[:space:]]*/&-1/g' {input} | bgzip > {output}"
 
 rule error_correction:
     input:
@@ -74,7 +68,7 @@ rule error_correction:
     conda:
         "envs/assembly.yaml"
     container:
-        "docker://pdimens/harpy:assembly_3.2"
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "metaspades.py -t {threads} {params} -1 {input.FQ_R1} -2 {input.FQ_R2} > {log}"
 
@@ -100,7 +94,7 @@ rule spades_assembly:
     conda:
         "envs/assembly.yaml"
     container:
-        None
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "metaspades.py -t {threads} {params} -1 {input.fastq_R1C} -2 {input.fastq_R2C} -s {input.fastq_UNC} > {log}"
 
@@ -121,6 +115,8 @@ rule cloudspades_metassembly:
         "logs/assembly.log"
     conda:
         "envs/assembly.yaml"
+    container:
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     threads:
         workflow.cores
     resources:
@@ -137,6 +133,8 @@ rule index_contigs:
         "logs/bwa.index.log"
     conda:
         "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         "bwa index {input}"
 
@@ -156,6 +154,8 @@ rule align_to_contigs:
         workflow.cores
     conda:
         "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         {{
@@ -219,6 +219,8 @@ rule athena_metassembly:
         final_asm = "athena/results/olc/athena.asm.fa"
     conda:
         "envs/metassembly.yaml"
+    container:
+        f"docker://pdimens/harpy:metassembly_{VERSION}"
     shell:
         """
         athena-meta {params.force} --config {input.config} &> {log} &&\\
@@ -243,6 +245,8 @@ rule QUAST_assessment:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         "metaquast.py --threads {threads} --pe1 {input.fastq_f} --pe2 {input.fastq_r} {params} {input.contigs} {input.scaffolds} 2> {log}"
 
@@ -264,6 +268,8 @@ rule BUSCO_analysis:
         workflow.cores
     conda:
         "envs/assembly.yaml"
+    container:
+        f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
         """
         ( busco -f -i {input} -c {threads} {params} > {log} 2>&1 ) || touch {output}
@@ -282,10 +288,15 @@ rule build_report:
         title = "--title \"Metassembly Metrics\""
     conda:
         "envs/qc.yaml"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
+    container:
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         "multiqc {params} {input} > {output} 2> {log}"
 
 rule all:
+    localrule: True
     default_target: True
     input:
         "athena/athena.asm.fa",

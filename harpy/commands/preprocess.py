@@ -3,46 +3,50 @@
 import os
 import rich_click as click
 from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
-from harpy.common.cli_types_generic import SnakemakeParams
-from harpy.common.printing import workflow_info
+from harpy.common.cli_params import SnakemakeParams
+from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import container_ok
 from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
 
+#TODO update docs link to dedicated pages
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
 def preprocess():
     """
-    preprocess haplotagging FASTQ files
+    Remove inline barcodes from raw FASTQs
 
+    The provided methods are specific to Haplotagging-style linked-read sequencing.
     Check that you are using the correct haplotagging method/technology, since the different
     barcoding approaches have very different demultiplexing strategies.
 
     **Haplotagging Technologies**
     - `meier2021`: the original haplotagging barcode strategy
       - Meier _et al._ (2021) doi: 10.1073/pnas.2015005118
+    - `gih`: updated/modified protocol developed by the Cornell GIH
+      - Iqbal _el al._ (in prep)
     """
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-u', '--keep-unknown-samples', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
 @click.option('-b', '--keep-unknown-barcodes', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with unrecognized barcodes')
 @click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Demultiplex", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.argument('schema', required = True, type=DemuxSchema())
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
-def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+@click.help_option('--help', hidden = True)
+def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
-    Demultiplex FASTQ files haplotagged with the Meier _et al._ 2021 protocol
+    Preprocess FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
     Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs after the options and schema (4 files, in that exact order). 
     The `SCHEMA` must have **no header** (i.e. no column names) and be in the format of `sample`\\<TAB\\>`barcode`,
@@ -50,9 +54,9 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
     subsequent analyses, but may be useful for your own diagnostics. 
     """
-    workflow = Workflow("demultiplex_meier2021", "demultiplex_meier2021.smk", output_dir, container, clean, quiet) 
+    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output, container, clean, quiet, no_validation=True) 
     workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["demultiplex", "qc"]
+    workflow.conda = ["qc", "preprocess"]
     
     workflow.inputs = {
         "schema" : schema,
@@ -61,70 +65,65 @@ def meier2021(r12_fq, i12_fq, output_dir, schema, qx_rx, keep_unknown_samples, k
         "I1": i12_fq[0][0],
         "I2": i12_fq[1][0]
     }
-    workflow.param("qx-rx", qx_rx)
-    workflow.param("barcodes", keep_unknown_barcodes)
-    workflow.param("samples", keep_unknown_samples)
+    workflow.param(qx_rx, "qx-rx")
+    workflow.param(keep_unknown_barcodes, "barcodes")
+    workflow.param(keep_unknown_samples, "samples")
     workflow.notebooks["skip"] = skip_reports
     
-    workflow.start_text = workflow_info(
-        ("Barcode Design:", "Meier [italic]et al.[/] 2021"),
-        ("Demultiplex Schema:", os.path.basename(schema)),
-        ("Include QX/RX tags", "Yes" if qx_rx else "No"),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Barcode Design": "Meier [italic]et al.[/] 2021",
+        "Demultiplex Schema": os.path.basename(schema),
+        "Include QX/RX tags" : "Yes" if qx_rx else "No",
+        "Output Folder" : os.path.relpath(output) + "/"
+    }
 
     workflow.initialize(setup)
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/demultiplex/")
-@click.option('-l', '--spacer-length', panel = "Parameters",  type = click.IntRange(min = 10), default = 77, help = 'Length of spacers between barcodes')
-@click.option('-m', '--min-length', panel = "Parameters", type = click.IntRange(min = 5),  default = 50, help = 'Minimum insert length (bp) of reads to retain')
-@click.option('-q', '--min-quality', panel = "Parameters", type = click.IntRange(min = 0), default = 20, help = 'Minimum average read quality to retain')
-@click.option('-t', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
-@click.option('-o', '--output-dir', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Demultiplex", show_default=True,  help = 'Output directory name')
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
+@click.option('-l', '--min-len', panel = "Parameters", type = click.IntRange(10, 300), default = 30, show_default=True, help = "Min insert length after removing ME sequence (ignoring barcodes)")
+@click.option('-n', '--mismatch', panel = "Parameters", default = 2, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
-@click.option('--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
-@click.option('--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False,  help = 'Setup the workflow and exit')
-@click.option('--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
-@click.option('--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
-@click.option('--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
-@click.option('--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
-@click.argument('barcodes', required = True, type=DemuxSchema())
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-@click.help_option('--help', panel = "Workflow Options", hidden = True)
-def gih(inputs, output_dir, barcodes, spacer_length, min_length, min_quality, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+@click.help_option('--help', hidden = True)
+def gih(inputs, output, me_seq, mismatch, min_len, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
-    Demultiplex FASTQ files haplotagged with the Genomics Innovation Hub protocol
+    Preprocess FASTQ files haplotagged with the GIH protocol
 
     
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
-    The `BARCODES` file must have **no header** (i.e. no column name). 
+    The resulting FASTQ file pairs will have inline barcodes removed and added to the sequence headers,
+    but will still need QC to remove adapters and low-quality reads/regions. 
     """
-    workflow = Workflow("demultiplex_gih", "demultiplex_gih.smk", output_dir, container, clean, quiet) 
-    workflow.setup_snakemake(threads, hpc, snakemake)
-    workflow.conda = ["demultiplex", "qc"]
+    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output, container, clean, quiet, no_validation=True) 
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
+    workflow.notebook_files = ["preproc_stats.ipynb"]
+    workflow.conda = ["qc", "preprocess"]
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = False, quiet= True)
-    with open(barcodes, "r") as f:
-        bc_seg_len = len(f.readline())
-
-    bc_len = (3 * bc_seg_len) + (2 * spacer_length)
-    bc_len_text = f"{bc_len} (3×barcode + 2×spacer)"
 
     workflow.notebooks["skip"] = skip_reports
+    fetch_template("pheniqs.config.json", os.path.join(output, "workflow", "pheniqs.config.json"))
     workflow.input(fastq.files)
-    workflow.param(bc_len, "barcode_length")
-    workflow.param(min_length, "minimum_length")
-    workflow.param(min_quality, "minimum_quality")
+    workflow.param(me_seq, "ME-sequence")
+    workflow.param(mismatch, "ME-mismatch")
+    workflow.param(min_len, "min-length")
     
-    workflow.start_text = workflow_info(
-        ("Barcode Design:", "Iqbal [italic]et al.[/] (in prep)"),
-        ("Total Barcode Length:", bc_len_text),
-        ("Min. insert length:", min_length),
-        ("Min. read quality:", min_quality),
-        ("Output Folder:", os.path.relpath(output_dir) + "/")
-    )
+    workflow.info = {
+        "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
+        "Output Folder": os.path.relpath(output) + "/"
+    }
 
     workflow.initialize(setup)
 

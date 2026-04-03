@@ -4,13 +4,12 @@ from datetime import datetime
 import re
 import sys
 import subprocess
-from rich.syntax import Syntax
-from harpy.common.file_ops import last_sm_log, purge_empty_logs
-from harpy.common.printing import CONSOLE, harpy_table, print_onerror, print_setup_error
-from harpy.common.progress import harpy_progressbar, harpy_pulsebar, harpy_progresspanel
+import time
+from harpy.common.file_ops import purge_empty_logs
+from harpy.common.printing import HarpyPrint
 
 EXIT_CODE_SUCCESS = 0
-EXIT_CODE_GENERIC_ERROR = 1
+EXIT_CODE_SNAKEFILE_ERROR = 1
 EXIT_CODE_CONDA_ERROR = 2
 EXIT_CODE_RUNTIME_ERROR = 3
 # quiet = 0 : print all things, full progressbar
@@ -29,7 +28,7 @@ class Rule:
 
 class LaunchSnakemake():
     """launch snakemake with the given commands and monitor its progress"""
-    def __init__(self, sm_args, outdir, quiet, CONSOLE = CONSOLE):
+    def __init__(self, sm_args, outdir, quiet, printer: HarpyPrint):
         self.exitcode = -1
         self.start_time = datetime.now()
         self.deps: bool = False
@@ -38,13 +37,13 @@ class LaunchSnakemake():
         self.cmd: list[str] = sm_args.split()
         self.outdir: str = outdir
         self.process = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text = True)
+        self.errorlog = []
         self.output: str = ""
         self.job_inventory: dict = {}
         self.task_ids: dict = {}
         self.total_active: int = 0
-        self.progress = harpy_progressbar(self.quiet)
-        self.grouperror: bool = False
-        self.error_printed: bool = False
+        self.print = printer
+        self.progress = self.print.progressbar()
 
         try:
             self.workflow_setup()
@@ -57,16 +56,21 @@ class LaunchSnakemake():
         except KeyboardInterrupt:
             if self.quiet < 2:
                 for _ in range(1):
-                    CONSOLE.file.write("\033[F\033[K")
-                CONSOLE.file.flush()
-            CONSOLE.print("")
-            CONSOLE.rule("[bold]Terminating Harpy", style = "yellow")
+                    self.print.file.write("\033[F\033[K")
+                self.print.file.flush()
+            self.print.print("")
+            self.print.rule("[bold]Terminating Harpy", style = "yellow")
             sys.exit(1)
         finally:
             self.progress.stop()
-            self.process_finish()
-            self.process.terminate()
-            self.process.wait()
+            self.return_or_collect()
+            if self.process.poll() is None:
+                self.process.terminate()
+                try:
+                    self.process.communicate(timeout=5)
+                except subprocess.TimeoutExpired:
+                    self.process.kill()
+                    self.process.communicate()
             purge_empty_logs(outdir)
 
     def is_done(self) -> bool:
@@ -82,82 +86,12 @@ class LaunchSnakemake():
     def nothing_to_do(self):
         '''check if self.output has the "Nothing to be" triggering text and exit with return code 0 if true'''
         if "Nothing to be" in self.output:
-            CONSOLE.rule("[bold]All outputs already present", style = "green")
+            self.print.rule("[bold]All outputs already present", style = "green")
             sys.exit(0)
 
     def iserror(self) -> bool:
         '''logical check for erroring trigger words in snakemake output'''
         return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
-
-    def process_error(self):
-        '''interpret rule errors and print them with nice format'''
-        if self.output.strip().startswith("Logfile"):
-            self.print_logfile()
-            return
-        text = self.output.removeprefix("    ").rstrip().lstrip()
-        valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
-        _split = text.split(':')
-        if _split[0] == "message":
-            return
-        if len(_split) == 1 or _split[0] not in valid_keys:
-            CONSOLE.print(f"[red]{text}", overflow = "ignore", crop = False)
-            return
-        key = _split[0]
-        vals = [i.strip() for i in _split[1].split(",")]
-        if len(vals) == 1:
-            if key == "conda-env":
-                CONSOLE.print(f"[bold default]{key}: [/][red]" + os.path.relpath(vals[0]))
-            else:
-                CONSOLE.print(f"[bold default]{key}: [/][red]" + "".join(vals))
-            return
-        CONSOLE.print(f"[bold default]{key}: [/]\n  [red]" + "\n  ".join(vals))
-
-    def print_shellcmd(self):
-        '''format the snakemake rule shell command nicely and print it to the console'''
-        _table = harpy_table()
-        _table.add_column("Lpadding", justify="left")
-        _table.add_column("shell", justify="left")
-        _table.add_column("Rpadding", justify="left")
-
-        text = ""
-        while "(command exited" not in self.output or not self.output:
-            self.nextline()
-            if not self.output:
-                break
-            text += self.output
-
-        text = text.replace("(command exited with non-zero exit code)", "").rstrip().lstrip().replace("\t", "  ")
-        text = re.sub(r' {2,}|\t+', '  ', text)
-        cmd = Syntax(text, lexer = "bash", tab_size=2, word_wrap=True, padding=1, dedent=True, theme = "paraiso-dark")
-        _table.add_row("  ", cmd, "  ")
-        CONSOLE.print("[bold default]shell:", _table)
-
-    def print_logfile(self):
-        '''process and print the contents of a logfile in the snakemake error log'''
-        merged_text = ""
-        _log = self.output.rstrip().split()[1]
-        CONSOLE.rule(f"[bold]Log File: {_log.rstrip(':')}", style = "yellow")
-        #CONSOLE.log(self.output)
-        if "empty file" in self.output:
-            CONSOLE.print(f"log file {_log.replace(':','')} is empty\n", style = "red")
-            self.nextline()
-            return
-        if "not found" in self.output:
-            CONSOLE.print(f"log file {_log} was not found\n", style = "red")
-            self.nextline()
-            return
-        lines = 0
-        while lines < 2:
-            self.nextline()
-            if "====" in self.output:
-                lines += 1
-                continue
-            merged_text += self.output
-        if "====" in self.output:
-            #if ".ipynb" in merged_text:
-            #    merged_text = "Error in " + merged_text.split("\nError in ")[-1]
-            CONSOLE.print("[red]" + re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "), overflow = "ignore", crop = False)
-            self.nextline()
 
     def nextline(self, strip: bool = False):
         """reads the next line of stderr"""
@@ -190,7 +124,7 @@ class LaunchSnakemake():
                 _active = self.job_inventory[job].active()
                 if _active < 1:
                     self.pause_progress(job)
-                    self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]…")
+                    self.progress.update(task_id, advance = 1, refresh = True, active = "[dim yellow]⋯")
                 else:
                     self.progress.update(task_id, advance = 1, refresh = True, active = _active)
                 self.progress.update(self.task_ids["total_progress"], refresh=True, advance=1, active = f"[bold]{self.total_active}")
@@ -206,56 +140,50 @@ class LaunchSnakemake():
         self.nextline()
         # check for syntax errors at the very beginning
         if self.process.poll() or self.iserror():
-            self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
+            self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_SNAKEFILE_ERROR
             self.exitcode = EXIT_CODE_CONDA_ERROR if "Conda" in self.output else self.exitcode
             while self.output:
-                CONSOLE.print(self.output, style = "red")
+                self.print.print(self.output, style = "red")
                 self.nextline()
 
     def workflow_setup(self):
         '''processes the workflow setup text snakemake prints to the console up to the end of the job summary table'''
         while self.exitcode < 0:
             if self.quiet < 2:
-                with CONSOLE.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow"):
+                with self.print.status("[dim]Preparing workflow", spinner = "point", spinner_style="yellow"):
                     while self.output.startswith("Building DAG of jobs...") or self.output.startswith("Assuming"):
                         self.nextline()
                 if "Nothing to be" in self.output:
-                    CONSOLE.rule("[bold]All outputs already present", style = "green")
+                    self.print.rule("[bold]All outputs already present", style = "green")
                     sys.exit(0)
             else:
                 while self.output.startswith("Building DAG of jobs...") or self.output.startswith("Assuming"):
                     self.nextline()
-            if self.process.poll() or self.iserror():
-                self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
-                return
             while not self.output.startswith("Job stats:") and self.exitcode < 0:
                 # print dependency text only once
                 if "Creating conda environment" in self.output or "Running post-deploy" in self.output:
                     self.deps = True
                     self.deploy_text += "[dim]Installing workflow software"
                     break
-                #if "Downloading and installing remote packages" in self.output or "Running post-deploy" in self.output:
-                #    self.deps = True
-                #    self.deploy_text += "[dim]Installing workflow software"
-                #    break
                 if "Pulling singularity image" in self.output:
                     self.deps = True
                     self.deploy_text += "[dim]Building software container"
                     break
                 if "Nothing to be" in self.output:
-                    CONSOLE.rule("[bold]All workflow outputs already present", style = "green")
+                    self.print.rule("[bold]All workflow outputs already present", style = "green")
                     sys.exit(0)
                 if "MissingInput" in self.output:
-                    self.exitcode = EXIT_CODE_GENERIC_ERROR
-                    break
-                if "AmbiguousRuleException" in self.output or "Error" in self.output or "Exception" in self.output:
-                    self.exitcode = EXIT_CODE_RUNTIME_ERROR
-                    break
+                    self.exitcode = EXIT_CODE_SNAKEFILE_ERROR
+                    return
+                if "Error" in self.output or "Exception" in self.output:
+                    self.exitcode = EXIT_CODE_SNAKEFILE_ERROR
+                    self.errorlog.append(self.output)
+                    return
                 self.nextline()
             # if dependency text present, print pulsing progress bar
             if self.deps:
-                progress = harpy_pulsebar(self.quiet)
-                with harpy_progresspanel(progress, quiet=self.quiet, title = self.deploy_text, refresh=8):
+                progress = self.print.pulsebar()
+                with self.print.progresspanel(progress, title = self.deploy_text, refresh=8):
                     _taskid = progress.add_task("[dim]Working...", total = None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -265,6 +193,7 @@ class LaunchSnakemake():
                         if self.process.poll() or self.iserror():
                             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else 2
                             break
+                        self.nothing_to_do()
                     progress.stop()
             if self.process.poll() or self.exitcode >= 0:
                 return
@@ -288,14 +217,14 @@ class LaunchSnakemake():
                     pass
             # checkpoint
                 if self.process.poll() or self.iserror():
-                    self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_GENERIC_ERROR
+                    self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_SNAKEFILE_ERROR
                     return
 
     def monitor_jobs(self):
         '''monitors the Snakemake stderr output while jobs are running'''
-        if self.exitcode > -1 or self.process.poll():
+        if self.is_done():
             return
-        with harpy_progresspanel(self.progress, quiet = self.quiet):
+        with self.print.progresspanel(self.progress):
             self.task_ids["total_progress"] = self.progress.add_task(
                     "[bold blue]Progress",
                     total= self.job_inventory["total"].total,
@@ -338,72 +267,15 @@ class LaunchSnakemake():
                 if self.output.startswith("Finished jobid: "):
                     self.update_finished_progress()
 
-    def process_finish(self):
-        '''final processing of the stderr text, returns early if ongoing or successful exit, otherwise processess the error text'''
+    def return_or_collect(self):
+        '''
+        return if the error code is 0, otherwise print the corresponding error and drain the buffer to
+        get all the error text for processing after
+        '''
         if self.exitcode <= 0:
+            self.exitcode = max(self.exitcode, 0)
             return
-        if self.exitcode in (1,2):
-            print_setup_error(self.exitcode)
-        elif self.exitcode == 3:
-            print_onerror(last_sm_log(self.outdir), datetime.now() - self.start_time)
-        CONSOLE.tab_size = 4
-        CONSOLE._highlight = False
-        # shortcut to FileNotFoundError #
-        if self.output.strip().startswith("FileNotFound"):
-            if "/envs/" in self.output and ".yaml'" in self.output:
-                CONSOLE.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + self.output.split(":")[-1].replace("'", ""))
-            else:
-                CONSOLE.print(self.output.strip(), style = "red")
-            return
-        # pick out conda-env errors
-        if self.output.strip().startswith("CreateCondaEnvir"):
-            self.nextline()
-            while self.output and "To search for alternate" not in self.output:
-                if self.output != "\n":
-                    if self.output.lstrip().startswith("-"):
-                        CONSOLE.print(self.output.rstrip(), style = "bold red")
-                    else:
-                        CONSOLE.print(self.output.rstrip(), style = "red")
-                self.nextline()
-            return
-
-        if "MissingOutputException" in self.output:
-            while "Shutting down, this might" not in self.output:
-                CONSOLE.print(self.output, style="red")
-                self.nextline()
-
-        if "MissingInputException" in self.output:
-            while self.output:
-                CONSOLE.print(self.output, style = "red", end = "")
-                self.nextline()
-
-        # Parse rule-based errors #
-        while self.output:
-            self.nextline()
-            if "Exiting because a job execution failed" in self.output:
-                self.nextline()
-                if "Error in group" in self.output:
-                    self.grouperror = True
-                    CONSOLE.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
-                    self.nextline()
-                if self.output.strip().startswith("[") and self.output.strip().endswith("]"):
-                    # this is the [timestamp] line
-                    CONSOLE.print("[blue]" + self.output.strip(), overflow = "ignore", crop = False)
-                    break
-
-        # error in rule line
-        while self.output:
-            self.nextline()
-            if "Error in rule" in self.output or "Error in group" in self.output:
-                if self.error_printed and not self.grouperror:
-                    break
-                CONSOLE.print("[yellow bold]" + self.output.strip(), overflow = "ignore", crop = False)
-                self.error_printed = True
-            elif self.output.strip().startswith("shell:"):
-                self.print_shellcmd()
-            elif self.output.startswith("Complete log"):
-                break
-            elif self.output.startswith("WorkflowError"):
-                break
-            else:
-                self.process_error()
+        
+        for line in self.process.stderr:
+            if not line.strip().endswith(", in <module>"):
+                self.errorlog.append(line)

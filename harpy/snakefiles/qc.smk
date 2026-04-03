@@ -1,18 +1,26 @@
 import os
 import re
 
+localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_type       = config["Workflow"]["linkedreads"]["type"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-fqlist        = config["Inputs"]
-min_len 	  = config["Parameters"]["min-len"]
-max_len 	  = config["Parameters"]["max-len"]
-extra 	      = config["Parameters"].get("extra", "") 
-trim_adapters = config["Parameters"].get("trim_adapters", None)
-dedup         = config["Parameters"]["deduplicate"]
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+lr_type       = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+skip_reports  = REPORTS.get("skip", False)
+min_len 	  = PARAMETERS.get("min-len", 30)
+max_len 	  = PARAMETERS.get("max-len", 150)
+extra 	      = PARAMETERS.get("extra", "") 
+trim_adapters = PARAMETERS.get("trim_adapters", None)
+dedup         = PARAMETERS.get("deduplicate", False)
+fqlist        = INPUTS
+
+bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 if trim_adapters:
     trim_arg = "--detect_adapter_for_pe" if trim_adapters == "auto" else f"--adapter_fasta {trim_adapters}"
@@ -54,7 +62,7 @@ rule fastp:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell: 
         "fastp {params} --thread {threads} -i {input.fw} -I {input.rv} -o {output.fw} -O {output.rv} -h {output.html} -j {output.json} 2> {log.serr}"
 
@@ -62,15 +70,17 @@ rule barcode_stats:
     input:
         "{sample}.R1.fq.gz"
     output: 
-        temp("logs/bxcount/{sample}.count.log")
+        temp("reports/data/{sample}.bxcount")
+    log:
+        "logs/bxcount/{sample}.count.log"
     params:
         lr_type
     shell:
-        "count_bx {params} {input} > {output}"
+        "harpy-utils bx-stats-fq {params} {input} > {output} 2> {log}"
 
 rule barcode_report:
     input:
-        data = collect("logs/bxcount/{sample}.count.log", sample = samplenames),
+        data = collect("reports/data/{sample}.bxcount", sample = samplenames),
         ipynb = f"workflow/qc_bx_stats.ipynb"
     output:
         tmp = temp("reports/barcode.summary.tmp.ipynb"),
@@ -78,13 +88,13 @@ rule barcode_report:
     log:
         "logs/barcode.report.log"
     params:
-        indir = "-p indir " + os.path.abspath("logs/bxcount"),
+        indir = "-p indir " + os.path.abspath("reports/data"),
         lr = lr_type
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            process_notebook {params.lr} {output.tmp}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            harpy-utils process-notebook {output.tmp} {params.lr}
         }} 2> {log} > {output.ipynb}
         """
 
@@ -104,7 +114,7 @@ rule qc_report:
     conda:
         "envs/qc.yaml"
     container:
-        "docker://pdimens/harpy:qc_3.2"
+        f"docker://pdimens/harpy:qc_{VERSION}"
     shell: 
         "multiqc {params} > {output} 2> {log}"
 

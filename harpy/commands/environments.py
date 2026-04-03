@@ -6,9 +6,10 @@ import rich_click as click
 from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
-env_list = ["all", "align", "assembly", "demultiplex", "metassembly", "phase", "qc", "report", "simulations", "stitch", "variants"]
+env_list = ['all'] + list(HarpyEnvs().environments().keys())
 
 @click.command(hidden = True)
+@click.help_option('--help', hidden = True)
 @click.argument('env', required = True, type= click.Choice(env_list))
 def containerize(env):
     """
@@ -19,7 +20,8 @@ def containerize(env):
     """
     HarpyEnvs().prepare_container(env)
 
-@click.group(options_metavar='')
+@click.group()
+@click.help_option('--help', hidden = True)
 def deps():
     """
     Locally install workflow dependencies
@@ -30,6 +32,7 @@ def deps():
     """
 
 @click.command(no_args_is_help = True)
+@click.help_option('--help', hidden = True)
 @click.argument('workflows', required = True, type= click.Choice(env_list), nargs = -1)
 def conda(workflows):
     """
@@ -45,15 +48,16 @@ def conda(workflows):
     - impute
     - metassembly
     - phase
+    - preprocess
     - qc
     - variants
     """
     workflow = Workflow("localenv", "environments.smk", "localenv/", None, False, 1)
     # if "all" was mixed with other workflows, default to just all and avoid doubling up
-    _he = HarpyEnvs()
-    _he.write_recipes(workflow.output_directory)
+    _henv = HarpyEnvs()
+    _henv.write_recipes(workflow.output_directory, ["all"])
     if "all" in workflows:
-        workflows = list(_he.environments().keys())
+        workflows = list(_henv.environments().keys())
     workflow.fetch_snakefile()
 
     config_params = "--config"
@@ -64,7 +68,8 @@ def conda(workflows):
     workflow.launch()
     shutil.rmtree(workflow.output_directory, ignore_errors = True)
 
-@click.command(context_settings={"help_option_names" : ["--help"]})
+@click.command()
+@click.help_option('--help', hidden = True)
 def container():
     """
     Install workflow dependency containers

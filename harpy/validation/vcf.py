@@ -5,28 +5,27 @@ import pysam
 import pysam.bcftools
 from shutil import which
 import subprocess
-from harpy.common.printing import CONSOLE, print_error
+from harpy.common.printing import HarpyPrint
 
 class VCF():
     '''
     A class to contain and validate a VCF input file.
     '''
-    def __init__(self, filename:str, workdir:str, quiet:bool = False):
+    def __init__(self, filename:str, workdir:str, quiet:int = 0):
         os.makedirs(workdir, exist_ok = True)
 
         self.file = filename
         self.workdir = workdir
         self.biallelic_contigs: list[str] = []
         self.biallelic_file: str = ""
-        self.quiet:bool = quiet
+        self.print = HarpyPrint(quiet)
 
     def find_biallelic_contigs(self):
         """
         Identify which contigs have at least 5 biallelic SNPs and write them to `workdir/vcf.biallelic`
         Populates `self.biallelic` file and `self.biallelic_contigs`
         """
-        if not self.quiet:
-            CONSOLE.log("Finding contigs in VCF with at least 5 biallelic SNPs")
+        self.print.log("Finding contigs with ≥ 5 biallelic SNPs", newline=False)
 
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
         with pysam.VariantFile(self.file) as _vcf:
@@ -64,26 +63,28 @@ class VCF():
                         self.biallelic_contigs.append(contig)
                         break
         if not self.biallelic_contigs:
-            print_error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")
+            self.print.validation(False)
+            self.print.error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")
+        self.print.validation(True)
 
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
-        if not self.quiet:
-            CONSOLE.log("Checking if VCF file is phased ([green]PS[/] or [green]HP[/] tags)")
+        self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "vcf not phased",
                 "The input variant file needs to be phased into haplotypes, but no [green]FORMAT/PS[/] or [green]FORMAT/HP[/] fields were found.",
                 f"Phase [bold]{bn}[/] into haplotypes using [blue bold]harpy phase[/] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/] or [green]FORMAT/HP[/] tags."
             )
+        self.print.validation(True)
 
     def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
-        if not self.quiet:
-            CONSOLE.log("Validating all samples are present between VCF and input alignments")
+        self.print.log("Alignment samples in VCF", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             vcfsamples = list(_vcf.header.samples)
         #vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
@@ -97,7 +98,8 @@ class VCF():
         missing_samples = [x for x in query if x not in search]
         # check that samples in VCF match input directory
         if len(missing_samples) > 0:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "mismatched inputs",
                 f"There are [bold]{len(missing_samples)}[/] samples found in [blue]{fromthis}[/] that are not in [blue]{inthis}[/]. Terminating Harpy to avoid downstream errors.",
                 f"[blue]{fromthis}[/] cannot contain samples that are absent in [blue]{inthis}[/]. Check the spelling or remove those samples from [blue]{fromthis}[/] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/] to aggregate the sample list from the input files or [blue]{self.file}[/].",
@@ -105,11 +107,11 @@ class VCF():
                 ", ".join(sorted(missing_samples)) + "\n"
             )
         self.samples = query
+        self.print.validation(True)
 
     def match_contigs(self, contigs: list[str]):
         """Check if the supplied contigs are present in the VCF"""
-        if not self.quiet:
-            CONSOLE.log("Validating input contigs against those in the input VCF")
+        self.print.log("Input contigs exist in VCF", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             vcf_contigs = list(_vcf.header.contigs)
         bad_names = []
@@ -118,13 +120,15 @@ class VCF():
                 bad_names.append(i)
         if bad_names:
             shortname = os.path.basename(self.file)
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "contigs absent",
                 f"Some of the provided contigs were not found in [blue]{shortname}[/]. This will definitely cause plotting errors in the workflow.",
                 "Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.",
                 f"Contigs absent in {shortname}",
                 ",".join([i for i in bad_names])
             )
+        self.print.validation(True)
 
     def get_contigs(self) -> dict:
         """reads the header of a vcf/bcf file and returns a dict of the contigs (keys) and their lengths (values)"""
@@ -140,8 +144,7 @@ class VCF():
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
-        if not self.quiet:
-            CONSOLE.log("Validating input regions to those in the input VCF")
+        self.print.log("Input regions exist in VCF", newline=False)
         startpos = 0
         endpos = 0
         buffer = 0
@@ -153,21 +156,25 @@ class VCF():
         elif len(parts) == 3:
             startpos, endpos, buffer = (int(parts[0]), int(parts[1]), int(parts[2]))
         else:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "invalid region",
                 f"Region must be contig:start-end or contig:start-end-buffer, got [yellow]{region}[/]."
             )
 
         # check if the region is in the genome
         if contig not in self.biallelic_contigs:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "missing contig",
                 f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed.",
                 f"Restrict the contig provided to [bold green]--region[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{self.biallelic_file}[/]."
             )
         if endpos > contigs[contig]:
-            print_error(
+            self.print.validation(False)
+            self.print.error(
                 "invalid region",
                 f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})"
             )
+        self.print.validation(True)
         return contig, startpos, endpos, buffer

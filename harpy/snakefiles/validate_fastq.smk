@@ -1,12 +1,14 @@
 import os
 import re
 
+localrules: all, concat_results
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
-lr_platform = config["Workflow"]["linkedreads"]["type"]
-fqlist = config["Inputs"]
-bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
+VERSION     = config.get("Workflow", {}).get('harpy-version', 'latest')
+lr_platform = config.get("Workflow", {}).get("linkedreads", {}).get("type", 'none')
+fqlist      = config["Inputs"]
+bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 
 def get_fq1(wildcards):
@@ -29,7 +31,7 @@ rule check_forward:
     params:
         lr_platform
     shell: 
-        "check_fastq {params} {input} > {output}"
+        "harpy-utils check-fastq {params} {input} > {output}"
 
 rule check_reverse:
     input:
@@ -39,7 +41,7 @@ rule check_reverse:
     params:
         lr_platform
     shell: 
-        "check_fastq {params} {input} > {output}"
+        "harpy-utils check-fastq {params} {input} > {output}"
 
 rule concat_results:
     input:
@@ -62,15 +64,15 @@ rule create_report:
         tmp = temp("validate.fastq.tmp.ipynb"),
         ipynb = "validate.fastq.ipynb"
     params:
-        lr_platform - lr_platform,
+        lr_platform = lr_platform,
         infile = "-p infile " + os.path.abspath("validate.fastq.tsv")
     log:
         "logs/report.log"
     shell:
         """
         {{
-            papermill -k python3 --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            process_notebook {params.lr_platform} {output.tmp}
+            papermill -k xpython --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            harpy-utils process-notebook {output.tmp} {params.lr_platform}
         }} 2> {log} > {output.ipynb}
         """
 

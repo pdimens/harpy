@@ -1,30 +1,37 @@
 import os
 import re
 
+localrules: all, alignment_list
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+",
     paramset = r"[^/]+",
     contig = r"[^/]+"
 
-bamlist       = config["Inputs"]["alignments"]
+WORKFLOW   = config.get('Workflow') or {}
+PARAMETERS = config.get('Parameters') or {}
+REPORTS    = WORKFLOW.get("reports") or {} 
+INPUTS     = config['Inputs']
+VERSION    = WORKFLOW.get('harpy-version', 'latest')
+
+skip_reports  = REPORTS.get("skip", False)
+region        = PARAMETERS.get("region", None)
+stitch_params = PARAMETERS["stitch"]
+stitch_extra  = PARAMETERS.get("extra", "None")
+grid_size     = PARAMETERS.get("grid-size", 1)
+variantfile   = INPUTS["vcf"]
+paramfile     = INPUTS["parameters"]
+bamlist       = INPUTS["alignments"]
+
 bamdict       = dict(zip(bamlist, bamlist))
-variantfile   = config["Inputs"]["vcf"]
-paramfile     = config["Inputs"]["parameters"]
-skip_reports  = config["Workflow"]["reports"]["skip"]
-region        = config["Parameters"].get("region", None)
-stitch_params = config["Parameters"]["stitch"]
-stitch_extra  = config["Parameters"].get("extra", "None")
-grid_size     = config["Parameters"]["grid-size"]
 if region:
-    contigs,positions = region.split(":")
+    contigs,positions      = region.split(":")
     startpos,endpos,buffer = [int(i) for i in positions.split("-")]
     # remove the buffer to make it an htslib-style region
-    region = f"{contigs}:{startpos}-{endpos}"
+    region                 = f"{contigs}:{startpos}-{endpos}"
     # make the contig a list to fit with the existing workflow design
-    contigs = [contigs]
+    contigs                = [contigs]
 else:
-    biallelic = config["Inputs"]["biallelic-contigs"]
-    with open(biallelic, "r") as f:
+    with open(INPUTS["biallelic-contigs"], "r") as f:
         contigs = [line.rstrip() for line in f]
 
 # instantiate static STITCH arguments
@@ -106,8 +113,7 @@ rule impute:
         temp("{paramset}/contigs/{contig}/{contig}.vcf.gz"),
         tmpdir = temp(directory("{paramset}/contigs/{contig}/tmp"))
     log:
-        stitch_log = "{paramset}/logs/{contig}.stitch.log",
-        rename_log = "{paramset}/logs/{contig}.mv_stitchplots.log"
+        "{paramset}/logs/{contig}.stitch.log",
     params:
         chrom   = lambda wc: f"--chr={wc.contig}",
         start   = lambda wc: f"--regionStart={startpos}" if region else "",
@@ -126,14 +132,14 @@ rule impute:
     threads:
         workflow.cores - 1
     conda:
-        "envs/stitch.yaml"
+        "envs/impute.yaml"
     container:
-        "docker://pdimens/harpy:impute_dev"        
+        f"docker://pdimens/harpy:impute_{VERSION}"        
     shell:
         """
-        mkdir -p {output.tmpdir}
-        STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params} 2> {log.stitch_log}
         {{
+            mkdir -p {output.tmpdir}
+            STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/plots
             mv alphaMat.*all*.png alphaMat.all.png
             mv alphaMat.*normalized*.png alphaMat.normalized.png
@@ -142,7 +148,7 @@ rule impute:
             mv metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.sample.jpg
             mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.sample.jpg
             mv r2*.goodonly.jpg r2.goodonly.jpg
-        }} 2> {log.rename_log}
+        }} 2> {log}
         """
 
 rule index_vcf:
@@ -150,68 +156,33 @@ rule index_vcf:
         "{paramset}/contigs/{contig}/{contig}.vcf.gz"
     output:
         "{paramset}/contigs/{contig}.vcf.gz.tbi",
-        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
-        stats = "{paramset}/reports/data/contigs/{contig}.stats"
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz"
     shell:
         """
         cp {input} {output.vcf}
         tabix {output.vcf}
-        bcftools stats -s "-" {input} > {output.stats}
         """
 
-rule concat_list:
+rule merge_vcf:
+    priority: 100
     input:
-        cntg = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
+        collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
+        vcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
     output:
-        bcf = temp("{paramset}/bcf.files")
-    run:
-        with open(output.bcf, "w") as fout:
-            _ = fout.write("\n".join(input.cntg))
-
-if len(contigs) == 1:
-    rule bcf_conversion:
-        input:
-            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
-            vcf = collect("{{paramset}}/contigs/{contig}.vcf.gz", contig = contigs)
-        output:
-            "{paramset}/{paramset}.bcf.csi",
-            bcf = "{paramset}/{paramset}.bcf"
-        log:
-            "logs/concat/{paramset}.concat.log"
-        shell:
-            "bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}"
-
-else:
-    rule merge_vcf:
-        priority: 100
-        input:
-            collect("{{paramset}}/contigs/{contig}.vcf.gz.tbi", contig = contigs),
-            files = "{paramset}/bcf.files"
-        output:
-            "{paramset}/{paramset}.bcf"
-        log:
-            "logs/concat/{paramset}.concat.log"
-        threads:
-            workflow.cores
-        shell:
-            "bcftools concat --threads {threads} -Ob -o {output} -f {input.files} 2> {log}"
-
-    rule index_merged:
-        input:
-            "{paramset}/{paramset}.bcf"
-        output:
-            "{paramset}/{paramset}.bcf.csi"
-        shell:
-            "bcftools index {input}"
-
-rule general_stats:
-    input:
         "{paramset}/{paramset}.bcf.csi",
-        bcf = "{paramset}/{paramset}.bcf"
-    output:
-        "{paramset}/reports/data/impute.stats"
-    shell:
-        "bcftools stats -s \"-\" {input.bcf} > {output}"
+        bcf = "{paramset}/{paramset}.bcf",
+        filelist = temp("{paramset}/bcf.files")
+    log:
+        "logs/concat/{paramset}.concat.log"
+    threads:
+        workflow.cores
+    run:
+        if len(contigs) == 1:
+            shell("touch {output.filelist} && bcftools view -Ob --write-index -o {output.bcf} {input.vcf} 2> {log}")
+        else:
+            with open(output.filelist, "w") as fout:
+                _ = fout.write("\n".join(input.vcf))
+            shell("bcftools concat --threads {threads} -Ob -o {output.bcf} --write-index -f {output.filelist} 2> {log}")
 
 rule extract_region:
     input:
@@ -225,21 +196,6 @@ rule extract_region:
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
 
-rule compare_stats:
-    input:
-        orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
-        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
-        impute  = "{paramset}/{paramset}.bcf",
-        idx     = "{paramset}/{paramset}.bcf.csi"
-    output:
-        compare = "{paramset}/reports/data/impute.compare.stats",
-        info_sc = temp("{paramset}/reports/data/impute.infoscore")
-    shell:
-        """
-        bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.compare}
-        bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.info_sc}
-        """
-
 rule contig_report:
     input:
         "{paramset}/contigs/{contig}/plots/alphaMat.all.png",
@@ -249,15 +205,17 @@ rule contig_report:
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQC.sample.jpg",
         "{paramset}/contigs/{contig}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
         "{paramset}/contigs/{contig}/plots/r2.goodonly.jpg",
-        statsfile = "{paramset}/reports/data/contigs/{contig}.stats",
+        "{paramset}/contigs/{contig}.vcf.gz.tbi",
+        vcf   = "{paramset}/contigs/{contig}.vcf.gz",
         ipynb = "workflow/stitch_collate.ipynb"
     output:
-        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb")
+        stats = "{paramset}/reports/data/contigs/{contig}.stats",
+        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
         ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
     params:
-        statsfile = lambda wc: "-p statsfile " + os.path.abspath("{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        stats   = lambda wc: "-p statsfile " + os.path.abspath(f"{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
         plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
         model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
         usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
@@ -265,39 +223,46 @@ rule contig_report:
         k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
         s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
         ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-P extra:{stitch_extra}"
+        extra   = f"-p extra {stitch_extra}"
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook {wildcards.contig} {wildcards.paramset} {output.tmp}
+            bcftools stats -s "-" {input.vcf} > {output.stats}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset}
         }} 2> {log} > {output.ipynb}
         """
 
 rule impute_reports:
     input:
-        comparison = "{paramset}/reports/data/impute.compare.stats",
-        infoscore = "{paramset}/reports/data/impute.infoscore",
+        orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
+        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
+        impute  = "{paramset}/{paramset}.bcf",
+        idx     = "{paramset}/{paramset}.bcf.csi",
         ipynb = "workflow/impute.ipynb"
     output:
-        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb")
+        comparison = "{paramset}/reports/data/impute.compare.stats",
+        infoscore = temp("{paramset}/reports/data/impute.infoscore"),
+        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb"),
         ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
     params:
-        basedir = lambda wc: "-p basedir " + os.path.abspath("{wc.paramset}/reports/data/"),
-        model   = lambda wc: f"-p model:{stitch_params[wc.paramset]['model']}",
-        usebx   = lambda wc: f"-p usebx:{stitch_params[wc.paramset]['usebx']}",
-        bxlimit = lambda wc: f"-p bxlimit:{stitch_params[wc.paramset]['bxlimit']}",
-        k       = lambda wc: f"-p k:{stitch_params[wc.paramset]['k']}",
-        s       = lambda wc: f"-p s:{stitch_params[wc.paramset]['s']}",
-        ngen    = lambda wc: f"-p ngen:{stitch_params[wc.paramset]['ngen']}",
-        extra   = f"-p extra:{stitch_extra}"
+        basedir = lambda wc: "-p basedir " + os.path.abspath(f"{wc.paramset}/reports/data/"),
+        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-p extra {stitch_extra}"
     shell:
         """
         {{
-            papermill -k python3 --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            process_notebook {wildcards.paramset} {output.tmp}
+            bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
+            bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} {wildcards.paramset}
         }} 2> {log} > {output.ipynb}
         """
 
