@@ -102,10 +102,10 @@ rule call_genotypes:
         "logs/call/{part}.call.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
-        annot_mp = "-a AD,INFO/FS",
+        annot_mp = "-a AD,ADF,ADR,DP,QS,SPINFO/FS",
         extra = mp_extra,
         ploidy = f"--ploidy {ploidy}",
-        annot_call = "-a AD,ADF,ADR,DP,GQ,GP,QS,SP",
+        annot_call = "-a GQ,GP",
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
     shell:
         """
