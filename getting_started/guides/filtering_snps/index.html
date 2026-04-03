@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.4.0.828549528805">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.4.0.828550191144">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.4.0">
@@ -41,12 +41,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.4.0.828549528805" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.4.0.828550191144" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.4.0.828549528805" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.4.0.828550191144" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.4.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.4.0.828549528805" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.4.0.828549528805" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.4.0.828550191144" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.4.0.828550191144" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -289,10 +289,11 @@ bcftools view -Ob -e 'QUAL &lt;= 10 || DP &gt; 35 || MQBZ &lt; -3 || RPBZ &lt; -
 bcftools filter -Ob -i 'QUAL &gt; 10 || DP &lt;= 35 || MQBZ &gt;= -3 || RPBZ &gt;= -3 || RPBZ &lt;= 3 || FORMAT/SP &lt;= 32 || SCBZ &lt;= 3' in.vcf &gt; out.bcf</code></pre>
 </doc-codeblock></div>
 </doc-panel>
-<h4 id="genotype-quality-qual">genotype quality (QUAL)</h4>
+<h2 id="filtering-basics">Filtering Basics</h2>
+<h3 id="genotype-quality-qual">genotype quality (QUAL)</h3>
 <p>You will obviously want higher quality genotype calls to remove false positives. The HTSlib guide suggests at least <code translate="no" v-pre>50</code> (e.g. <code translate="no" v-pre>-i 'QUAL&gt;=50'</code>),
 but we typically filter much higher at <code translate="no" v-pre>90</code> or more (e.g. <code translate="no" v-pre>-i 'QUAL&gt;=90'</code>).</p>
-<h4 id="read-depth-dp">read depth (DP)</h4>
+<h3 id="read-depth-dp">read depth (DP)</h3>
 <p>Variant sites with too few reads backing up the genotype might be false positives, although this may not hold true for very
 low-coverage data. Conversely, a maximum cut off is important because sites with very high read depths (relative to the distribution of read depth)
 are likely repetitive ones mapping to multiple parts of the genome. You could used fixed values for these thresholds that make sense for your data.
@@ -316,11 +317,11 @@ quantiles, but you can do it all from the command line using a combination of <c
 </ul>
 </li>
 </ul>
-<h4 id="minor-allele-frequency-maf">minor allele frequency (MAF)</h4>
+<h3 id="minor-allele-frequency-maf">minor allele frequency (MAF)</h3>
 <p>It&#x27;s usually advisable to set a minor allele frequency threshold with which to remove sites below that threshold. The reasoning
 is that if a MAF is too low, it might be because of incorrectly called genotypes in a very small handful of individuals (e.g. one or two). The MAF threshold is again dependent on your data, although it&#x27;s
 fairly common to use <code translate="no" v-pre>0.05</code> (e.g. <code translate="no" v-pre>-i 'MAF&gt;0.05'</code>) to <code translate="no" v-pre>0.10</code> (e.g. <code translate="no" v-pre>-i 'MAF&gt;0.10'</code>).</p>
-<h4 id="missing-data-f_missing">missing data (F_MISSING)</h4>
+<h3 id="missing-data-f_missing">missing data (F_MISSING)</h3>
 <p>Missing data is, frankly, not terribly useful. The amount of missing data you&#x27;re willing to tolerate will depend on your study, but
 it&#x27;s common to remove sites with &gt;20% missing data (e.g. <code translate="no" v-pre>-e 'F_MISSING&gt;0.2'</code>). This can be as strict (or lenient) as you want; it&#x27;s not uncommon to see very
 conservative filtering at 10% or 5% missing data. <strong>However</strong>, you can impute missing genotypes to recover
