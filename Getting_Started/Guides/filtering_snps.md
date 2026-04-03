@@ -45,11 +45,12 @@ bcftools filter -Ob -i 'QUAL > 10 || DP <= 35 || MQBZ >= -3 || RPBZ >= -3 || RPB
 ```
 ===
 
-#### genotype quality (QUAL)
+## Filtering Basics
+### genotype quality (QUAL)
 You will obviously want higher quality genotype calls to remove false positives. The HTSlib guide suggests at least `50` (e.g. `-i 'QUAL>=50'`),
 but we typically filter much higher at `90` or more (e.g. `-i 'QUAL>=90'`).
 
-#### read depth (DP)
+### read depth (DP)
 Variant sites with too few reads backing up the genotype might be false positives, although this may not hold true for very
 low-coverage data. Conversely, a maximum cut off is important because sites with very high read depths (relative to the distribution of read depth)
 are likely repetitive ones mapping to multiple parts of the genome. You could used fixed values for these thresholds that make sense for your data.
@@ -68,12 +69,12 @@ bcftools query -f "%DP\n" input.bcf |\
     - change the `0.95` in `NR*0.95` to whatever quantile you want
     - the `- 0.5` part rounds down and may need to be adjusted for your quantile
 
-#### minor allele frequency (MAF)
+### minor allele frequency (MAF)
 It's usually advisable to set a minor allele frequency threshold with which to remove sites below that threshold. The reasoning
 is that if a MAF is too low, it might be because of incorrectly called genotypes in a very small handful of individuals (e.g. one or two). The MAF threshold is again dependent on your data, although it's
 fairly common to use `0.05` (e.g. `-i 'MAF>0.05'`) to `0.10` (e.g. `-i 'MAF>0.10'`).
 
-#### missing data (F_MISSING)
+### missing data (F_MISSING)
 Missing data is, frankly, not terribly useful. The amount of missing data you're willing to tolerate will depend on your study, but
 it's common to remove sites with >20% missing data (e.g. `-e 'F_MISSING>0.2'`). This can be as strict (or lenient) as you want; it's not uncommon to see very
 conservative filtering at 10% or 5% missing data. **However**, you can impute missing genotypes to recover
