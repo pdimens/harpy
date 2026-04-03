@@ -22,11 +22,17 @@
   |`-R` | `--skip-reports` |
   |`-N` | `--setup` |
 
+### troubleshooting
+- harpy view now has the alias `hv`
+- when erroring, harpy will create hidden file `.harpyerror` with the name of the directory associated with the last error
+- calling hv config/log/error/profile/snakefile without arguments is allowed and will default to the directory in `.harpyerror`
+  - this now streamlines troubleshooting to: harpy workflow terminates with error -> `hv log` or `hv config` 
+- output log of checks and validations printed to console so Harpy is transparent about any observed delays before kicking off Snakemake
+  - disabled when `--quiet` > 0
+
 ### misc
 - progress bar has a new column to show a count of the active jobs!
 - time elapsed column in progress bar pauses when there are no active jobs for that rule (better reflecting the actual time elapsed)
-- output log of checks and validations printed to console so Harpy is transparent about any observed delays before kicking off Snakemake
-  - disabled when `--quiet` > 0
 - added "workflow setup complete" text when using `--setup`
 - added "all stuff is there" equivalent text when snakemake reports there is nothing to do
 

@@ -8,6 +8,17 @@ from rich.tree import Tree
 from harpy.common.file_ops import choose_logfile, parse_error, parse_file
 from harpy.common.printing import HarpyPrint
 
+def resolve_directory(ctx, param, value):
+    if value is None:
+        if not os.path.isfile(".harpyerror"):
+            click.echo(ctx.get_help())
+            ctx.exit()
+        with open(".harpyerror", 'r') as f:
+            return f.readline()
+    if not os.path.isdir(value):
+        raise click.BadParameter(f"Directory '{value}' does not exist.", param = param, param_hint="'DIRECTORY'")
+    return value
+
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
 def view():
@@ -15,20 +26,22 @@ def view():
     View a workflow's components
 
     These convenient commands let you view/edit the latest workflow log file, snakefile, snakemake parameter
-    file, workflow config file in a directory that was used for the output of a Harpy run.
+    file, workflow config file in a directory that was used for the output of a Harpy run. If a `.harpyerror`
+    file is present in the working directory (created by harpy upon error), calling all of the view commands
+    without arguments (except `env`) will use the directory listed in `.harpyerror` by default. This command
+    is also aliased as `hv`.
     """
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.argument('directory', required=False, default = None, type=click.Path(file_okay=False), callback = resolve_directory)
 @click.help_option('--help', hidden = True)
 def config(directory, edit):
     """
     Browse or edit a workflow's config file
     
     The workflow config file has all of the parameters and user inputs that went into the workflow.
-    The only required input is the output folder designated in a previous Harpy run, where you can find
-    `workflow/workflow.yaml`.
+    The only input is the output folder created by Harpy where you can find `workflow/workflow.yaml`.
     """
     hp = HarpyPrint()
     err_dir = os.path.join(directory, "workflow")
@@ -48,19 +61,11 @@ def config(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    hp.print(
-        Panel(
-            target_file,
-            title = "[bold blue] File viewed",
-            title_align = "left",
-            border_style = "dim",
-            width = 75
-        )
-    )
+    hp.print(f"[bold dim blue]── File viewed[/]\n[default]{target_file}[/]", end = "\n\n")
 
 @click.command()
-@click.help_option('--help', hidden = True)
 @click.argument('program', required=False, type=str)
+@click.help_option('--help', hidden = True)
 def envs(program):
     """
     Print the Snakemake-managed conda environments
@@ -109,16 +114,16 @@ def envs(program):
 
     hp.print(tree)
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.argument('directory', required=False, default = None, type=click.Path(file_okay=False), callback = resolve_directory)
 @click.help_option('--help', hidden = True)
 def log(directory, choose):
     """
     Browse a workflow's Snakemake log
     
     The log file contains everything Snakemake printed during runtime.
-    The only required input is an output folder created by Harpy where you can find
+    The only input is an output folder created by Harpy where you can find
     `.snakemake/log`. Use `--choose` to pick from a list of all Snakemake logfiles in
     the `directory`. Navigate with the typical `less` keyboard bindings, e.g.:
     
@@ -132,43 +137,35 @@ def log(directory, choose):
     hp = HarpyPrint()
     target_file = choose_logfile(directory, choose)
     parse_file(target_file)
-    hp.print(
-        Panel(
-            target_file,
-            title = "[bold blue] File viewed",
-            title_align = "left",
-            border_style = "dim",
-            width = 75
-        )
-    )
+    hp.print(f"[bold dim blue]── File viewed[/]\n[default]{target_file}[/]", end = "\n\n")
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.argument('directory', required=False, default = None, type=click.Path(file_okay=False), callback = resolve_directory)
 @click.help_option('--help', hidden = True)
 def error(directory, choose):
     """
     Print a workflow's error
     
     The log file contains everything Snakemake printed during runtime and this command
-    scans the file for an error and prints it to the terminal. The only required input
-    is an output folder created by Harpy where you can find `.snakemake/log`. Use 
+    scans the file for an error and prints it to the terminal. The only input
+    is the output folder created by Harpy where you can find `.snakemake/log`. Use 
     `--choose` to pick from a list of all Snakemake logfiles in the `directory`.
     """
     target_file = choose_logfile(directory, choose)
     parse_error(target_file)
 
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.help_option('--help', hidden = True)
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False))
+@click.argument('directory', required=False, default = None, type=click.Path(file_okay=False), callback = resolve_directory)
 def snakefile(directory, edit):
     """
     Browse or edit a workflow's Snakefile
     
-    The snakefile contains all the instructions for a workflow. The only required input is the output folder
-    previously created by Harpy where you can find `workflow/workflow.smk`.
+    The snakefile contains all the instructions for a workflow. The only input is the output folder
+    created by Harpy where you can find `workflow/workflow.smk`.
     """
     hp = HarpyPrint()
     workdir = os.path.join(directory, "workflow")
@@ -188,27 +185,19 @@ def snakefile(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    hp.print(
-        Panel(
-            target_file,
-            title = "[bold blue] File viewed",
-            title_align = "left",
-            border_style = "dim",
-            width = 75
-        )
-    )
+    hp.print(f"[bold dim blue]── File viewed[/]\n[default]{target_file}[/]", end = "\n\n")
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
+@click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-e", "--edit", is_flag=True, default=False, help = "Open the config file in you system's default editor")
 @click.help_option('--help', hidden = True)
-@click.argument('directory', required=True, type=click.Path(exists=True, file_okay=False), nargs=1)
+@click.argument('directory', required=False, default = None, type=click.Path(file_okay=False), callback = resolve_directory)
 def profile(directory, edit):
     """
     Browse or edit a workflow's Snakemake configurations
     
     The snakemake configuration file has the runtime parameters snakemake was invoked with (i.e.,
-    computational specifics that don't impact your results). The only required input is the output folder
-    previously created by Harpy where you can find `workflow/profile.yaml`.
+    computational specifics that don't impact your results). The only input is the output folder
+    created by Harpy where you can find `workflow/profile.yaml`.
     """
     hp = HarpyPrint()
     err_dir = os.path.join(directory, "workflow")
@@ -228,15 +217,7 @@ def profile(directory, edit):
         click.edit(filename = target_file, extension = "yaml")
     else:
         parse_file(target_file)
-    hp.print(
-        Panel(
-            target_file,
-            title = "[bold blue] File viewed",
-            title_align = "left",
-            border_style = "dim",
-            width = 75
-        )
-    )
+    hp.print(f"[bold dim blue]── File viewed[/]\n[default]{target_file}[/]", end = "\n\n")
 
 view.add_command(config)
 view.add_command(envs)

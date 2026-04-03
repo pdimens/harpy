@@ -262,7 +262,7 @@ def parse_error(infile: str):
                         break
                     result += _line
                 break
-        hp.rule(f"[default]{infile}", style = 'blue')
+        hp.rule(f"[default]{os.path.relpath(infile)}", style = 'blue')
         hp.print(Syntax(result, lexer= "yaml", background_color= 'default'), soft_wrap=True)
 
 def choose_logfile(directory: str, choose:bool) -> str:

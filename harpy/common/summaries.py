@@ -186,22 +186,21 @@ class Summary:
         self.summary.append(stitchextra)
 
     def metassembly(self):
-        BX_TAG       = self.WORKFLOW.get("linkedreads", {})["barcode_tag"]
-        max_mem      = self.PARAMETERS.get("spades", {}).get("max_memory", 10000)
+        BX_TAG       = self.WORKFLOW.get("linkedreads", {}).get("barcode-tag", "BX")
+        max_mem      = self.PARAMETERS.get("spades", {}).get("max-memory", 10000)
         k_param      = self.PARAMETERS.get("spades", {}).get("k", 'auto')
-        ignore_bx    = self.PARAMETERS.get("spades", {}).get("ignore_barcodes", False)
+        ignore_bx    = self.PARAMETERS.get("spades", {}).get("ignore-barcodes", False)
         extra        = self.PARAMETERS.get("spades", {}).get("extra", "")
         force_athena = self.PARAMETERS.get("athena", {}).get("force", False)
         force = "--force_reads" if force_athena else ""
         extra = self.PARAMETERS["spades"].get("extra", "")
         spadesdir = f"{'cloudspades' if not ignore_bx else 'spades'}_assembly"
 
-        bxsort = "FASTQ inputs were sorted by their linked-read barcodes:\n"
+        bxsort = "FASTQ inputs were sorted by their linked-read barcodes and had '-1' appended to the barcode to make them Athena-compliant:\n"
         bxsort += "\tsamtools import -T \"*\" FQ1 FQ2 |\n"
+        bxsort += f"\tsed s/{BX_TAG}:Z:[^[:space:]]*/&-1/g |\n"  
         bxsort += f"\tsamtools sort -O SAM -t {BX_TAG} |\n"  
         bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"  
-        bxappend = "Barcoded-sorted FASTQ files had \"-1\" appended to the barcode to make them Athena-compliant:\n"  
-        bxappend += f"\tsed 's/{BX_TAG}:Z:[^[:space:]]*/&-1/g' FASTQ | bgzip > FASTQ_OUT"  
         if not ignore_bx:
             spades = "Reads were assembled using cloudspades:\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {extra}"
@@ -216,7 +215,6 @@ class Summary:
         athena += f"\tathena-meta {force} --config athena.config"
         self.summary.append("The harpy metassembly workflow ran using these parameters:")
         self.summary.append(bxsort)
-        self.summary.append(bxappend)
         self.summary.append(spades)
         self.summary.append(align)
         self.summary.append(interleaved)
