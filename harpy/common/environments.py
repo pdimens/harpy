@@ -56,7 +56,8 @@ class HarpyEnvs():
             "bioconda::samtools"
         ],
         "impute" : [
-            "bioconda::r-stitch>=1.8.4"
+            "bioconda::r-stitch>=1.8.4",
+            "bioconda::tabix"
         ],
         "variants" : [
             "bioconda::bcftools=1.22",
