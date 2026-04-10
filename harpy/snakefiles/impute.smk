@@ -107,7 +107,7 @@ rule alignment_list:
         with open(output[0], "w") as fout:
             _ = [fout.write(f"{bamfile}\n") for bamfile in input.bam]
 
-rule stitch_conversion:
+rule create_stitch_input:
     input:
         bcf = "workflow/input/vcf/input.sorted.bcf",
         idx = "workflow/input/vcf/input.sorted.bcf.csi"
@@ -128,16 +128,11 @@ rule impute:
         bamlist = "workflow/input/samples.list",
         infile  = "workflow/input/stitch/{contig}.stitch"
     output:
-        temp("{paramset}/contigs/{contig}/{region}/plots/alphaMat.all.png"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/alphaMat.normalized.png"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/hapSum_log.png"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/hapSum.png"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/metricsForPostImputationQC.sample.jpg"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg"),
-        temp("{paramset}/contigs/{contig}/{region}/plots/r2.goodonly.jpg"),
         temp(directory("{paramset}/contigs/{contig}/{region}/RData")),
+        temp(directory("{paramset}/contigs/{contig}/{region}/plots")),
         temp(directory("{paramset}/contigs/{contig}/{region}/input")),
-        temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi")
+        temp(directory("{paramset}/contigs/{contig}/{region}/debug")),
+        temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi"),
         vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz"),
         tmpdir = temp(directory("{paramset}/contigs/{contig}/{region}/tmp"))
     log:
@@ -168,6 +163,7 @@ rule impute:
         {{
             mkdir -p {output.tmpdir}
             STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
+            tabix {output.vcf}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/{wildcards.region}/plots
             mv alphaMat.*all*.png alphaMat.all.png
             mv alphaMat.*normalized*.png alphaMat.normalized.png
@@ -176,36 +172,54 @@ rule impute:
             mv metricsForPostImputationQC.*sample.jpg metricsForPostImputationQC.sample.jpg
             mv metricsForPostImputationQCChromosomeWide*sample.jpg metricsForPostImputationQCChromosomeWide.sample.jpg
             mv r2*.goodonly.jpg r2.goodonly.jpg
-            tabix {output.vcf}
         }} 2> {log}
         """
 
 rule merge_regions:
     priority: 100
     input:
-        collect("{{paramset}}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz", zip,
-            contig = [name for name, c in contigs.items() for _ in c.regions],
-            region=[r for c in contigs.values() for r in c.regions]),
-        collect("{{paramset}}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi", zip,
-            contig = [name for name, c in contigs.items() for _ in c.regions],
-            region=[r for c in contigs.values() for r in c.regions]),
+        lambda wc: collect(
+            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz{{ext}}",
+            region=contigs[wc.contig].regions, ext = ["", ".tbi"]
+        )
     output:
-        "{paramset}/{paramset}.bcf.csi",
-        bcf = "{paramset}/{paramset}.bcf",
-        filelist = temp("{paramset}/bcf.files")
+        "{paramset}/contigs/{contig}/{contig}.bcf.csi" if not region else "{paramset}/{paramset}.bcf.csi",
+        bcf = "{paramset}/contigs/{contig}/{contig}.bcf" if not region else "{paramset}/{paramset}.bcf",
+        filelist = temp("{paramset}/{contig}.bcffiles")
     log:
-        "logs/concat/{paramset}.concat.log"
+        "logs/concat/{paramset}.{contig}.concat.log"
     threads:
         workflow.cores
     shell:
         """
         {{
-            find {wildcards.paramset}/contigs -name '*.vcf.gz' > {output.filelist}
+            find {wildcards.paramset}/contigs/{wildcards.contig} -name '*.vcf.gz' > {output.filelist}
             bcftools concat -a --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index
         }}  2> {log}
         """
-        # --allow-overlaps
+
+if not region:
+    rule merge_contigs:
+        input:
+            collect("{{paramset}}/contigs/{contig}/{contig}.bcf", contig = contigs.keys())
+        output:
+            "{paramset}/{paramset}.bcf.csi",
+            bcf = "{paramset}/{paramset}.bcf",
+            filelist = temp("{paramset}/bcf.files")
+        log:
+            "logs/concat/{paramset}.concat.log"
+        threads:
+            workflow.cores
+        shell:
+            """
+            {{
+                find {wildcards.paramset}/contigs -name '*.bcf' > {output.filelist}
+                bcftools concat --threads {threads} -f {output.filelist} |
+                bcftools sort -Ob -o {output.bcf} --write-index
+            }}  2> {log}
+            """
+
 
 rule extract_original_region:
     input:
@@ -219,49 +233,43 @@ rule extract_original_region:
     shell:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
 
-#rule contig_report:
-#    input:
-#        "{paramset}/contigs/{contig}.{region}/plots/alphaMat.all.png",
-#        "{paramset}/contigs/{contig}.{region}/plots/alphaMat.normalized.png",
-#        "{paramset}/contigs/{contig}.{region}/plots/hapSum_log.png",
-#        "{paramset}/contigs/{contig}.{region}/plots/hapSum.png",
-#        "{paramset}/contigs/{contig}.{region}/plots/metricsForPostImputationQC.sample.jpg",
-#        "{paramset}/contigs/{contig}.{region}/plots/metricsForPostImputationQCChromosomeWide.sample.jpg",
-#        "{paramset}/contigs/{contig}.{region}/plots/r2.goodonly.jpg",
-#        "{paramset}/contigs/{contig}.{region}.vcf.gz.tbi",
-#        vcf   = "{paramset}/contigs/{contig}.{region}.vcf.gz",
-#        ipynb = "workflow/stitch_collate.ipynb"
-#    output:
-#        stats = "{paramset}/reports/data/contigs/{contig}.stats",
-#        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
-#        ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
-#    log:
-#        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
-#    params:
-#        stats   = lambda wc: "-p statsfile " + os.path.abspath(f"{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
-#        plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}/plots"),
-#        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
-#        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
-#        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
-#        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
-#        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
-#        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
-#        extra   = f"-p extra {stitch_extra}"
-#    shell:
-#        """
-#        {{
-#            bcftools stats -s "-" {input.vcf} > {output.stats}
-#            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-#            harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset}
-#        }} 2> {log} > {output.ipynb}
-#        """
+rule contig_report:
+    input:
+        lambda wc: collect(f"{wc.paramset}/contigs/{wc.contig}/{{region}}/plots", region = contigs[wc.contig].regions),
+        "{paramset}/contigs/{contig}/{contig}.bcf.csi",
+        vcf   = "{paramset}/contigs/{contig}/{contig}.bcf",
+        ipynb = "workflow/stitch_collate.ipynb"
+    output:
+        stats = "{paramset}/reports/data/contigs/{contig}.stats",
+        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
+        ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
+    log:
+        logfile = "{paramset}/logs/reports/{contig}.stitch.log"
+    params:
+        stats   = lambda wc: "-p statsfile " + os.path.abspath(f"{wc.paramset}/reports/data/contigs/{wc.contig}.stats"),
+        plotdir = lambda wc: "-p plotdir " + os.path.abspath(f"{wc.paramset}/contigs/{wc.contig}"),
+        model   = lambda wc: f"-p model {stitch_params[wc.paramset]['model']}",
+        usebx   = lambda wc: f"-p usebx {stitch_params[wc.paramset]['usebx']}",
+        bxlimit = lambda wc: f"-p bxlimit {stitch_params[wc.paramset]['bxlimit']}",
+        k       = lambda wc: f"-p k {stitch_params[wc.paramset]['k']}",
+        s       = lambda wc: f"-p s {stitch_params[wc.paramset]['s']}",
+        ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
+        extra   = f"-p extra {stitch_extra}"
+    shell:
+        """
+        {{
+            bcftools stats -s "-" {input.vcf} > {output.stats}
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset}
+        }} 2> {log} > {output.ipynb}
+        """
 
 rule impute_reports:
     input:
+        "{paramset}/{paramset}.bcf.csi",
+        "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
         orig    = "workflow/input/vcf/input.sorted.bcf" if not region else "workflow/input/vcf/region.bcf",
-        origidx = "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",
         impute  = "{paramset}/{paramset}.bcf",
-        idx     = "{paramset}/{paramset}.bcf.csi",
         ipynb = "workflow/impute.ipynb"
     output:
         comparison = "{paramset}/reports/data/impute.compare.stats",
@@ -294,4 +302,4 @@ rule all:
     input: 
         vcf = collect("{paramset}/{paramset}.bcf", paramset = list(stitch_params.keys())),
         agg_report = collect("{paramset}/reports/{paramset}.summary.ipynb", paramset = stitch_params.keys()) if not skip_reports else [],
-        #contig_report = collect("{paramset}/reports/{contig}.{paramset}.ipynb", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []
+        contig_report = collect("{paramset}/reports/{contig}.{paramset}.ipynb", paramset = stitch_params.keys(), contig = contigs) if not skip_reports else []
