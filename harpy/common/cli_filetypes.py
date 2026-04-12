@@ -260,7 +260,7 @@ class DemuxSchema(click.ParamType):
             hp.notice("Sample names appear more than once, assuming this was intentional")
         return filepath.resolve().as_posix()
 
-class impute_strategy(click.ParamType):
+class ImputeStrategy(click.ParamType):
     name = "impute_strategy"
 
     def isInt(self, x: str) -> bool:

@@ -2,7 +2,7 @@
 
 import os
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, impute_strategy
+from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, ImputeStrategy
 from harpy.common.cli_params import SnakemakeParams, StitchParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
@@ -16,7 +16,7 @@ from harpy.validation.vcf import VCF
 @click.option('-b', '--buffer', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min=1, clamp = True), help = 'Base pairs to consider on each side of genomic `region` or `window`')
 @click.option('-g', '--grid-size', panel = "Parameters", hidden = True, show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Impute", show_default=True,  help = 'Output directory name')
-@click.option('-s', '--strategy', panel = "Parameters", type = impute_strategy(), default = "window:1000000", help = 'Imputation strategy (see above)')
+@click.option('-s', '--strategy', panel = "Parameters", type = ImputeStrategy(), default = "window:1000000", help = 'Imputation strategy (see above)')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
 @click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
@@ -65,7 +65,8 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     region = strategy.lower() != "all" and not strategy.lower().startswith("window:")
     window = None
     if region:
-        vcffile.validate_region(strategy)
+        cntg,start,end = vcffile.validate_region(strategy)
+        region = f"{cntg}:{start}-{end}"
     elif strategy.lower().startswith("window:"):
         window = int(strategy.split(":")[1])
 
@@ -77,7 +78,7 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     workflow.input(alignments.files, "alignments")
     workflow.param(grid_size, "grid-size")
     if region:
-        workflow.param(strategy, "region")
+        workflow.param(region, "region")
     elif window:
         workflow.param(window, "window-size")
     if strategy != "all":
