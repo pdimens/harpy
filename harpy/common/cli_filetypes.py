@@ -280,12 +280,17 @@ class impute_strategy(click.ParamType):
 
         if pieces[0] == "window":
             try:
-                int(pieces[1])
+                _win = int(pieces[1])
+                if _win < 100:
+                    self.fail(f"Window size must be >= 100, but got {value}", param, ctx)  
             except ValueError:
                 self.fail(f"The window strategy format is incorrect.\n  - expected window:size (e.g., window:1000000)\n  - got {value}")
         else:
             parts = pieces[1].split("-")
             if len(parts) != 2 or any([not self.isInt(i) for i in parts]):
                 self.fail(f"Region must be contig:start-end (e.g., chr1:300-80000), but got {value}")
+            start, end = map(int, parts)  
+            if start < 1 or end < start:  
+                self.fail(f"Region coordinates must satisfy start >= 1 and end >= start, but got {value}", param, ctx) 
 
         return value

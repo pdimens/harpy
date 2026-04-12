@@ -77,7 +77,7 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     workflow.input(alignments.files, "alignments")
     workflow.param(grid_size, "grid-size")
     if region:
-        workflow.param(region, "region")
+        workflow.param(strategy, "region")
     elif window:
         workflow.param(window, "window-size")
     if strategy != "all":

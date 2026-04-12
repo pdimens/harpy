@@ -1,7 +1,7 @@
 import base64
 from pathlib import Path
 from datetime import datetime
-from io import StringIO, BytesIO
+from io import BytesIO
 from IPython.display import display, HTML, Image
 from PIL import Image as PImage
 import uuid
@@ -95,22 +95,26 @@ def print_html(*args):
 def embed_image(x: str, scale: float = 0.5):
     '''Rescale an PNG image and embed it into the notebook'''
     image = PImage.open(x)
-    image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS).save(x, format = "PNG")
-    return Image(filename=x, embed = True)
+    if scale < 1:  
+        image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)  
+    buf = BytesIO()  
+    image.save(buf, format = "PNG" if "png" in x.lower() else "jpeg")  
+    return Image(data=buf.getvalue(), format="png", embed=True)
 
-def image_viewer(label: str, dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0):
+def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):  
     '''
     Create a javascript image viewer with a file picker.
     Images are embedded (thus can safely have their original files deleted) and can be down-scaled.
     '''
     imgfmt = "image/png" if "png" in pattern else "image/jpg"
     options_parts = []
-    paths = Path(dir).glob(pattern) if not recursive else Path(dir).rglob(pattern)
+    paths = Path(image_dir).glob(pattern) if not recursive else Path(image_dir).rglob(pattern)  
     paths = sorted(paths) if not sortkey else sorted(paths, key = sortkey)
     uid = uuid.uuid4().hex[:8]
     images_dict = {}
+    option_key = option_key or (lambda p: p.stem if not recursive else p.parents[1].name) 
     for p in paths:
-        pname = p.parents[1].name
+        pname = option_key(p)
         options_parts.append(f'<option value="{pname}">{pname}</option>')
         image = PImage.open(p)
         if scale < 1:
@@ -161,78 +165,6 @@ def image_viewer(label: str, dir: str, pattern: str, sortkey = None, thing_to_se
         </body>
         </html>"""
     display(HTML(html))
-
-def stitch_image_viewer(label: str, dir: str, pattern: str, scale: float = 1.0):
-    '''
-    Create a javascript image viewer with a file picker for the different chromosomal regions.
-    Images are embedded (thus can safely have their original files deleted) and can be down-scaled.
-    '''
-    imgfmt = "image/png" if "png" in pattern else "image/jpg"
-    options_parts = []
-    paths = sorted(
-        Path(dir).rglob(pattern),
-        key=lambda p: int(p.parents[1].name.split('-')[0])
-    )
-    uid = uuid.uuid4().hex[:8]
-    images_dict = {}
-    for p in paths:
-        pname = p.parents[1].name
-        options_parts.append(f'<option value="{pname}">{pname}</option>')
-        image = PImage.open(p)
-        if scale < 1:
-            image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)
-        buf = BytesIO()
-        image.save(buf, format="PNG" if "png" in pattern else "jpeg")
-        buf.seek(0)
-        encoded = base64.b64encode(buf.read()).decode()
-        images_dict[pname] = f"data:{imgfmt};base64,{encoded}"
-
-    images_js = json.dumps(images_dict)
-    options_html = "\n".join(options_parts)
-
-    html = f"""<!DOCTYPE html>
-        <html>
-        <head>
-        <style>
-        body {{ font-family: sans-serif; padding: 1rem; }}
-        #viewer-{uid} {{ margin-bottom: 1rem; }}
-        #viewer-{uid} img {{ max-width: 100%; }}
-        #selector-{uid} {{ display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }}
-        #selector-{uid} label {{ font-size: 0.9rem; font-weight: bold; }}
-        #file-select-{uid} {{
-            padding: 6px 10px;
-            font-size: 0.9rem;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            cursor: pointer;
-            min-width: 200px;
-        }}
-        </style>
-        </head>
-        <body>
-        <div id="selector-{uid}">
-        <label for="file-select-{uid}">{label} </label>
-        <select id="file-select-{uid}" onchange="showImage_{uid}(this.value)">
-            <option value="" disabled selected>Select a region</option>
-            {options_html}
-        </select>
-        </div>
-        <div id="viewer-{uid}"><img id="display-{uid}" src="" alt="Select a region" /></div>
-        <script>
-        const images_{uid} = {images_js};
-
-        function showImage_{uid}(name) {{
-            document.getElementById("display-{uid}").src = images_{uid}[name];
-        }}
-        </script>
-        </body>
-        </html>"""
-    display(HTML(html))
-
-def extract_metric(x: list[str], param: str):
-    '''Convenience function to find the relevnant sections of the bcftools.stats file and return a table'''
-    input = "".join(s for s in x if s.startswith(param))
-    return pd.read_table(StringIO(input), sep = "\t", header = None)
 
 def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
     '''

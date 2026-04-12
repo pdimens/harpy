@@ -155,6 +155,14 @@ class VCF():
         parts = positions.split("-")
         startpos, endpos = (int(parts[0]), int(parts[1]))
 
+        if startpos < 1 or endpos < startpos:
+            self.print.validation(False)
+            self.print.error(
+                "invalid region",
+                f"The region [blue]{region}[/] is not valid.",
+                "Region coordinates must satisfy start >= 1 and end >= start."
+            )
+
         # check if the region is in the biallelic contig list
         if contig not in self.contigs:
             self.print.validation(False)

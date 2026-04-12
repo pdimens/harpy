@@ -1,7 +1,13 @@
+from io import StringIO
 import numpy as np
 import pandas as pd
 import polars as pl
 from harpy.common.file_ops import safe_read
+
+def extract_metric(x: list[str], param: str):
+    '''Convenience function to find the relevnant sections of the bcftools.stats file and return a table'''
+    selectiontext = "".join(s for s in x if s.startswith(param))
+    return pd.read_table(StringIO(selectiontext), sep = "\t", header = None)
 
 def last_line(filename: str) -> str:
     '''Returns the last line of a file. Automatically handles gzip if file ends with case-insensitive `.gz`'''

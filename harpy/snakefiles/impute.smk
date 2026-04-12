@@ -52,9 +52,9 @@ def extract_contig_info():
 bamdict = dict(zip(bamlist, bamlist))
 contigs: dict[str, Contig] = {}
 if region:
-    cntg = region.split(":")[0]
-    start,end = region.split('-')
-    contigs[cntg] = Contig(cntg, int(end), start = int(start))
+    cntg, coords = region.split(":")
+    start,end = map(int, coords.split('-'))
+    contigs[cntg] = Contig(cntg, end, start = start)
 else:
     with open(INPUTS["biallelic-contigs"], "r") as f:
         for line in f:
@@ -179,12 +179,12 @@ rule merge_regions:
     priority: 100
     input:
         lambda wc: collect(
-            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz{{ext}}",
-            region=contigs[wc.contig].regions, ext = ["", ".tbi"]
+            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.{{ext}}",
+            region=contigs[wc.contig].regions, ext = ["gz", "gz.tbi"]
         )
     output:
-        "{paramset}/contigs/{contig}/{contig}.bcf.csi" if not region else "{paramset}/{paramset}.bcf.csi",
-        bcf = "{paramset}/contigs/{contig}/{contig}.bcf" if not region else "{paramset}/{paramset}.bcf",
+        "{paramset}/contigs/{contig}/{contig}.bcf.csi",
+        bcf = "{paramset}/contigs/{contig}/{contig}.bcf",
         filelist = temp("{paramset}/{contig}.bcffiles")
     log:
         "logs/concat/{paramset}.{contig}.concat.log"
@@ -199,27 +199,25 @@ rule merge_regions:
         }}  2> {log}
         """
 
-if not region:
-    rule merge_contigs:
-        input:
-            collect("{{paramset}}/contigs/{contig}/{contig}.bcf", contig = contigs.keys())
-        output:
-            "{paramset}/{paramset}.bcf.csi",
-            bcf = "{paramset}/{paramset}.bcf",
-            filelist = temp("{paramset}/bcf.files")
-        log:
-            "logs/concat/{paramset}.concat.log"
-        threads:
-            workflow.cores
-        shell:
-            """
-            {{
-                find {wildcards.paramset}/contigs -name '*.bcf' > {output.filelist}
-                bcftools concat --threads {threads} -f {output.filelist} |
-                bcftools sort -Ob -o {output.bcf} --write-index
-            }}  2> {log}
-            """
-
+rule merge_contigs:
+    input:
+        collect("{{paramset}}/contigs/{contig}/{contig}.bcf", contig = contigs.keys())
+    output:
+        "{paramset}/{paramset}.bcf.csi",
+        bcf = "{paramset}/{paramset}.bcf",
+        filelist = temp("{paramset}/bcf.files")
+    log:
+        "logs/concat/{paramset}.concat.log"
+    threads:
+        workflow.cores
+    shell:
+        """
+        {{
+            find {wildcards.paramset}/contigs -name '*.bcf' > {output.filelist}
+            bcftools concat --threads {threads} -f {output.filelist} |
+            bcftools sort -Ob -o {output.bcf} --write-index
+        }}  2> {log}
+        """
 
 rule extract_original_region:
     input:
