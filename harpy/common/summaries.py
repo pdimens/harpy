@@ -143,14 +143,18 @@ class Summary:
 
     def impute(self):
         region = self.PARAMETERS.get("region", None)
+        window = self.PARAMETERS.get("window", None)
+        buffer = self.PARAMETERS.get("buffer", None)
+        regiontext = ""
         if region:
             _,positions = region.split(":")
-            startpos,endpos,buffer = [int(i) for i in positions.split("-")]
-            regiontext = f"\t\tregionStart = {startpos},\n"
+            startpos,endpos = map(int, positions.split("-"))
+            regiontext += f"\t\tregionStart = {startpos},\n"
             regiontext += f"\t\tregionEnd = {endpos},\n"
             regiontext += f"\t\tbuffer = {buffer},\n"
-        else:
-            regiontext = ""
+        elif window:
+            regiontext += f"\t\tbuffer = {buffer}"
+
         paramfiletext = "\t".join(open(self.INPUTS["parameters"], "r").readlines())
         preproc = "Preprocessing was performed with:\n"
         preproc += "\tbcftools view -M2 -v snps --regions CONTIG INFILE |\n"
