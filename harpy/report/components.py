@@ -5,14 +5,11 @@ from io import BytesIO
 from IPython.display import display, HTML, Image
 from PIL import Image as PImage
 import uuid
-import itables
+#import itables
 import altair as alt
 import pandas as pd
 from .theme import palette
-itables.options.warn_on_undocumented_option=False
 import json
-
-
 
 class StatsBox:
     '''
@@ -99,7 +96,7 @@ def embed_image(x: str, scale: float = 0.5):
         image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)  
     buf = BytesIO()  
     image.save(buf, format = "PNG" if "png" in x.lower() else "jpeg")  
-    return Image(data=buf.getvalue(), format="png", embed=True)
+    return Image(data=buf.getvalue(), format="png" if "png" in x.lower() else "jpeg", embed=True)
 
 def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):  
     '''
@@ -166,32 +163,113 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
         </html>"""
     display(HTML(html))
 
-def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
-    '''
-    Boilerplate version of `itables.show` to reduce in-report boilerplate. Use `filename` to specify the output prefix for
-    exports, `caption` to set an optional caption, `fixcols` to freeze this-many columns on the left, and `coldefs` to
-    populate `columnDefs` with wacky JS.
-    '''
-    return itables.show(
-        data,
-        caption = caption,
-        buttons = [
-            "pageLength", "colvis",
-            {"extend": "csvHtml5", "title": filename},
-            {"extend": "excelHtml5", "title": filename}
-        ],
-        fixedColumns = {"left": fixedcols} if fixedcols else {},
-        ordering = {"indicators": False, "handler": False},
-        columnControl = [["order", "searchDropdown"]],
-        showIndex= False,
-        scrollX =  True,
-        autoWidth=True,
-        searching = False,
-        style = "width:100%",
-        classes = "display nowrap compact",
-        allow_html=html,
-        columnDefs = coldefs
-    )
+#def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
+#    '''
+#    Boilerplate version of `itables.show` to reduce in-report boilerplate. Use `filename` to specify the output prefix for
+#    exports, `caption` to set an optional caption, `fixcols` to freeze this-many columns on the left, and `coldefs` to
+#    populate `columnDefs` with wacky JS.
+#    '''
+#    return itables.show(
+#        data,
+#        caption = caption,
+#        buttons = [
+#            "pageLength", "colvis",
+#            {"extend": "csvHtml5", "title": filename},
+#            {"extend": "excelHtml5", "title": filename}
+#        ],
+#        fixedColumns = {"left": fixedcols} if fixedcols else {},
+#        ordering = {"indicators": False, "handler": False},
+#        columnControl = [["order", "searchDropdown"]],
+#        showIndex= False,
+#        scrollX =  True,
+#        autoWidth=True,
+#        searching = False,
+#        style = "width:100%",
+#        classes = "display nowrap compact",
+#        allow_html=html,
+#        columnDefs = coldefs
+#    )
+#
+
+def standard_itable(df, theme: str = "ag-theme-quartz", frozen_cols: int = 0, row_height: int = 28, header_height: int = 32) -> HTML:
+    """
+    Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
+    Works in Jupyter notebooks and static MyST/Jupyter Book pages.
+
+    Args:
+        df:            The DataFrame to display.
+        height:        Grid height in pixels.
+        theme:         AG Grid theme base name (light variant; dark applied automatically).
+        frozen_cols:   Number of columns to pin/freeze on the left.
+        row_height:    Row height in pixels (default 28).
+        header_height: Header height in pixels (default 32).
+    """
+    #col_defs = [
+    #    {"field": col, **({"pinned": "left"} if i < frozen_cols else {})}
+    #    for i, col in enumerate(df.columns)
+    #]
+    #row_data = df.to_dict(orient="records")
+    col_defs = [{"field": col, **({"pinned": "left"} if i < frozen_cols else {})} for i, col in enumerate(df.columns)]
+    row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
+    grid_id = f"grid-{id(df)}"
+    grid_ref = f"aggrid_{id(df)}"
+    html = f"""
+    <button
+        onclick="(function(){{ var g = document.{grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true}}); }})()"
+        style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
+    >
+        Export CSV
+    </button>
+
+    <div id="{grid_id}" class="{theme}" style="width: 100%; overflow-x: auto"></div>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+    <script>
+        (function() {{
+            const columnDefs = {json.dumps(col_defs)};
+            const rowData = {json.dumps(row_data, default=str)};
+
+            const gridOptions = {{
+                columnDefs: columnDefs,
+                rowData: rowData,
+                defaultColDef: {{
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                    minWidth: 120,
+                }},
+                domLayout: "autoHeight",
+                animateRows: false,
+                pagination: true,
+                paginationPageSize: 20,
+                rowHeight: {row_height},
+                headerHeight: {header_height},
+            }};
+
+            const container = document.getElementById("{grid_id}");
+
+            function syncTheme() {{
+                container.setAttribute(
+                    "data-ag-theme-mode",
+                    document.documentElement.classList.contains("dark") ? "dark" : "light"
+                );
+            }}
+    
+            function tryInit(attempts) {{
+                if (typeof agGrid !== "undefined") {{
+                    syncTheme();
+                    document.{grid_ref} = agGrid.createGrid(container, gridOptions);
+                    new MutationObserver(syncTheme).observe(document.documentElement, {{
+                        attributes: true, attributeFilter: ["class"]
+                    }});
+                }} else if (attempts > 0) {{
+                    setTimeout(() => tryInit(attempts - 1), 100);
+                }}
+            }}
+            tryInit(20);
+        }})();
+    </script>    """
+    return HTML(html)
 
 def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitle: bool = False, lgpos: str = "bottom"):
     total = df['count'].sum()
