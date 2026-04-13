@@ -181,7 +181,7 @@ rule merge_regions:
         lambda wc: collect(
             f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz.tbi",
             region=contigs[wc.contig].regions
-        )
+        ),
         vcf = lambda wc: collect(
             f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz",
             region=contigs[wc.contig].regions
@@ -196,7 +196,7 @@ rule merge_regions:
         workflow.cores
     shell:
         """
-        echo {input.vcf} > {output.filelist}
+        printf '%s\n' {input.vcf} > {output.filelist}
         {{
             bcftools concat -a --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index
@@ -216,7 +216,7 @@ rule merge_contigs:
         workflow.cores
     shell:
         """
-        echo {input} > {output.filelist}
+        printf '%\n' {input} > {output.filelist}
         {{
             bcftools concat --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index

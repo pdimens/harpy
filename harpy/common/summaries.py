@@ -143,7 +143,7 @@ class Summary:
 
     def impute(self):
         region = self.PARAMETERS.get("region", None)
-        window = self.PARAMETERS.get("window", None)
+        window = self.PARAMETERS.get("window-size", None)
         buffer = self.PARAMETERS.get("buffer", None)
         regiontext = ""
         if region:
