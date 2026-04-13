@@ -195,6 +195,11 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
 #    )
 #
 
+class JSFunction:
+    """Wraps a raw JS string so it can be injected without JSON quoting."""
+    def __init__(self, js):
+        self.js = js.strip()
+
 class ITable:
     """
     Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
@@ -206,22 +211,28 @@ class ITable:
         self.theme: str = "ag-theme-quartz"
         self.row_height: int = 28
         self.header_height: int = 32
-        self.filename = filename
-        #TODO SYNTAX FOR CONDITIONAL FORMATTING ====
-        #{
-        #field: "age",
-        #valueParser: numberParser,
-        #cellClassRules: {
-        #  "rag-green": "x < 20",
-        #  "rag-blue": "x >= 20 && x < 25",
-        #  "rag-red": "x >= 25",
-        #}
-        # =====
+        self.filename: str = filename
         self.col_defs = [{"field": col, **({"pinned": "left"} if i < fixedcols else {})} for i, col in enumerate(df.columns)]
         self.row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
         self.grid_id = f"grid-{id(df)}"
         self.grid_ref = f"aggrid_{id(df)}"
-    
+        # save autosize coldef for a rainy day?
+        ##autosize = {"autoSizeStrategy": "AutoSizeStrategy" = {"type": "fitCellContents", "defaultMaxWidth": 150, "defaultMinWidth": 80, "scaleUpToFitGridWidth": true}}
+        
+    def _serialize_col_defs(self):
+        """Serialize col_defs, injecting JSFunction values as raw JS."""
+        import re
+        parts = []
+        for col in self.col_defs:
+            field_parts = []
+            for k, v in col.items():
+                if isinstance(v, JSFunction):
+                    field_parts.append(f'"{k}": {v.js}')
+                else:
+                    field_parts.append(f'"{k}": {json.dumps(v)}')
+            parts.append("{" + ", ".join(field_parts) + "}")
+        return "[" + ", ".join(parts) + "]"
+
     def render(self):
         '''Create the AG-Grid HTML and render it'''
         html = f"""
@@ -237,7 +248,7 @@ class ITable:
 
         <script>
             (function() {{
-                const columnDefs = {json.dumps(self.col_defs)};
+                const columnDefs = {self._serialize_col_defs()};
                 const rowData = {json.dumps(self.row_data, default=str)};
 
                 const gridOptions = {{
@@ -247,7 +258,11 @@ class ITable:
                         sortable: true,
                         filter: true,
                         resizable: true,
-                        minWidth: 120,
+                    }},
+                    autoSizeStrategy: AutoSizeStrategy = {{
+                        type: "fitCellContents",
+                        defaultMaxWidth: 150,
+                        defaultMinWidth: 80,
                     }},
                     domLayout: "autoHeight",
                     animateRows: false,
@@ -262,7 +277,7 @@ class ITable:
                 function syncTheme() {{
                     container.setAttribute(
                         "data-ag-theme-mode",
-                        document.documentElement.classList.contains("dark") ? "dark" : "light"
+                        document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
                     );
                 }}
         
