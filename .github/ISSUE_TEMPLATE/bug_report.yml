@@ -29,10 +29,12 @@ body:
     id: log
     attributes:
       label: Harpy error log
-      description: Please paste your **full harpy command** and whatever error messages you are seeing that are specific to your workflow and not a generic harpy error message. Helpful information will include which snakemake rules are creating problems, if any.
+      description: |
+        Please paste your **full harpy command** and whatever error messages you are seeing that are specific to your workflow and not a generic harpy error message. Helpful information will include which snakemake rules are creating problems, if any.
+        This may include the output of `hv error`.
       render: console
       placeholder: |
-        $ harpy preflight bam test/bam test/bam_phased
+        $ harpy validate bam test/bam test/bam_phased
         ╭─ Error ─────────────────────────────────────────────────────────────────╮
         │ Identical filenames were detected, which will cause unexpected behavior │
         │ and results. Note that files with identical names but different-cased   │
@@ -44,3 +46,12 @@ body:
         test/bam/sample2.bam test/bam_phased/sample2.bam
         test/bam/sample1.bam test/bam_phased/sample1.bam
 
+  - type: checkboxes
+    id: ai-attestation
+    attributes:
+      label: AI Assistance Disclosure
+      description: It will help our understanding of this bug report if you can confirm using AI assistance for (check any that apply):
+      options:
+        - label: Code generation used here
+        - label: Code explanation or diagnosis that led to this report
+        - label: General bioinformatics regarding how/why you ran Harpy

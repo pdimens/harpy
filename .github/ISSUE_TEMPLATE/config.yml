@@ -2,7 +2,10 @@ blank_issues_enabled: false
 contact_links:
   - name: Harpy documentation
     url: https://pdimens.github.io/harpy/
-    about: Make sure to first check the documentation.
+    about: Make sure to first check the documentation
+  - name: Snakemake documentation
+    url: https://snakemake.readthedocs.io/en/stable/
+    about: Sometimes the issue is Snakemake-specific
   - name: Start a discussion
     url: https://github.com/pdimens/harpy/discussions/new/choose
     about: Things about Harpy that aren't issues
