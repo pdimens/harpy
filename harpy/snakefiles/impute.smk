@@ -179,8 +179,12 @@ rule merge_regions:
     priority: 100
     input:
         lambda wc: collect(
-            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.{{ext}}",
-            region=contigs[wc.contig].regions, ext = ["gz", "gz.tbi"]
+            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz.tbi",
+            region=contigs[wc.contig].regions
+        )
+        vcf = lambda wc: collect(
+            f"{wc.paramset}/contigs/{wc.contig}/{{region}}/{wc.contig}.{{region}}.vcf.gz",
+            region=contigs[wc.contig].regions
         )
     output:
         "{paramset}/contigs/{contig}/{contig}.bcf.csi",
@@ -192,8 +196,8 @@ rule merge_regions:
         workflow.cores
     shell:
         """
+        echo {input.vcf} > {output.filelist}
         {{
-            find {wildcards.paramset}/contigs/{wildcards.contig} -name '*.vcf.gz' > {output.filelist}
             bcftools concat -a --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index
         }}  2> {log}
@@ -212,8 +216,8 @@ rule merge_contigs:
         workflow.cores
     shell:
         """
+        echo {input} > {output.filelist}
         {{
-            find {wildcards.paramset}/contigs -name '*.bcf' > {output.filelist}
             bcftools concat --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index
         }}  2> {log}

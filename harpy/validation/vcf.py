@@ -168,8 +168,8 @@ class VCF():
             self.print.validation(False)
             self.print.error(
                 "missing contig",
-                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed.",
-                f"Restrict the contig provided to [bold green]--region[/] to those with at least 2 biallelic SNPs, which can be reviewed in [blue]{self.biallelic_file}[/]."
+                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 5 biallelic SNPs, therefore it cannot be processed.",
+                f"Restrict the contig provided to [bold green]--region[/] to those with at least 5 biallelic SNPs, which can be reviewed in [blue]{self.biallelic_file}[/]."
             )
         if endpos > self.contigs[contig]:
             self.print.print("[yellow]𐄂[/]")

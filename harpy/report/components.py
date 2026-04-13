@@ -1,4 +1,5 @@
 import base64
+import html
 from pathlib import Path
 from datetime import datetime
 from io import BytesIO
@@ -112,7 +113,10 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
     option_key = option_key or (lambda p: p.stem if not recursive else p.parents[1].name) 
     for p in paths:
         pname = option_key(p)
-        options_parts.append(f'<option value="{pname}">{pname}</option>')
+        safe_value = html.escape(pname, quote=True)  
+        safe_label = html.escape(pname)  
+        options_parts.append(f'<option value="{safe_value}">{safe_label}</option>') 
+        #options_parts.append(f'<option value="{pname}">{pname}</option>')
         image = PImage.open(p)
         if scale < 1:
             image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)
@@ -124,7 +128,7 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
     images_js = json.dumps(images_dict)
     options_html = "\n".join(options_parts)
 
-    html = f"""<!DOCTYPE html>
+    _html = f"""<!DOCTYPE html>
         <html>
         <head>
         <style>
@@ -145,9 +149,9 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
         </head>
         <body>
         <div id="selector-{uid}">
-        <label for="file-select-{uid}">{label} </label>
+        <label for="file-select-{uid}">{html.escape(label)} </label>  
         <select id="file-select-{uid}" onchange="showImage_{uid}(this.value)">
-            <option value="" disabled selected>Select a {thing_to_select}</option>
+            <option value="" disabled selected>Select a {html.escape(thing_to_select)}</option> 
             {options_html}
         </select>
         </div>
@@ -161,7 +165,7 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
         </script>
         </body>
         </html>"""
-    display(HTML(html))
+    display(HTML(_html))
 
 #def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
 #    '''
@@ -191,85 +195,103 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
 #    )
 #
 
-def standard_itable(df, theme: str = "ag-theme-quartz", frozen_cols: int = 0, row_height: int = 28, header_height: int = 32) -> HTML:
+class ITable:
     """
     Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
-    Works in Jupyter notebooks and static MyST/Jupyter Book pages.
-
-    Args:
-        df:            The DataFrame to display.
-        height:        Grid height in pixels.
-        theme:         AG Grid theme base name (light variant; dark applied automatically).
-        frozen_cols:   Number of columns to pin/freeze on the left.
-        row_height:    Row height in pixels (default 28).
-        header_height: Header height in pixels (default 32).
+    Works in Jupyter notebooks and static MyST/Jupyter Book pages. `df` is the DataFrame
+    to display, and `frozen_cols` is the number of columns to pin/freeze on the left. Includes
+    additional configurable fields `theme`, `row_height`, and `header_height`.
     """
-    #col_defs = [
-    #    {"field": col, **({"pinned": "left"} if i < frozen_cols else {})}
-    #    for i, col in enumerate(df.columns)
-    #]
-    #row_data = df.to_dict(orient="records")
-    col_defs = [{"field": col, **({"pinned": "left"} if i < frozen_cols else {})} for i, col in enumerate(df.columns)]
-    row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
-    grid_id = f"grid-{id(df)}"
-    grid_ref = f"aggrid_{id(df)}"
-    html = f"""
-    <button
-        onclick="(function(){{ var g = document.{grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true}}); }})()"
-        style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
-    >
-        Export CSV
-    </button>
-
-    <div id="{grid_id}" class="{theme}" style="width: 100%; overflow-x: auto"></div>
-    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-
-    <script>
-        (function() {{
-            const columnDefs = {json.dumps(col_defs)};
-            const rowData = {json.dumps(row_data, default=str)};
-
-            const gridOptions = {{
-                columnDefs: columnDefs,
-                rowData: rowData,
-                defaultColDef: {{
-                    sortable: true,
-                    filter: true,
-                    resizable: true,
-                    minWidth: 120,
-                }},
-                domLayout: "autoHeight",
-                animateRows: false,
-                pagination: true,
-                paginationPageSize: 20,
-                rowHeight: {row_height},
-                headerHeight: {header_height},
-            }};
-
-            const container = document.getElementById("{grid_id}");
-
-            function syncTheme() {{
-                container.setAttribute(
-                    "data-ag-theme-mode",
-                    document.documentElement.classList.contains("dark") ? "dark" : "light"
-                );
-            }}
+    def __init__(self, df, filename: str, fixedcols: int = 0):
+        self.theme: str = "ag-theme-quartz"
+        self.row_height: int = 28
+        self.header_height: int = 32
+        self.filename = filename
+        #TODO SYNTAX FOR CONDITIONAL FORMATTING ====
+        #{
+        #field: "age",
+        #valueParser: numberParser,
+        #cellClassRules: {
+        #  "rag-green": "x < 20",
+        #  "rag-blue": "x >= 20 && x < 25",
+        #  "rag-red": "x >= 25",
+        #}
+        # =====
+        self.col_defs = [{"field": col, **({"pinned": "left"} if i < fixedcols else {})} for i, col in enumerate(df.columns)]
+        self.row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
+        self.grid_id = f"grid-{id(df)}"
+        self.grid_ref = f"aggrid_{id(df)}"
     
-            function tryInit(attempts) {{
-                if (typeof agGrid !== "undefined") {{
-                    syncTheme();
-                    document.{grid_ref} = agGrid.createGrid(container, gridOptions);
-                    new MutationObserver(syncTheme).observe(document.documentElement, {{
-                        attributes: true, attributeFilter: ["class"]
-                    }});
-                }} else if (attempts > 0) {{
-                    setTimeout(() => tryInit(attempts - 1), 100);
+    def render(self):
+        '''Create the AG-Grid HTML and render it'''
+        html = f"""
+        <button
+            onclick="(function(){{ var g = document.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName : "{self.filename}"}}); }})()"
+            style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
+        >
+            Export CSV
+        </button>
+
+        <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
+        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+        <script>
+            (function() {{
+                const columnDefs = {json.dumps(self.col_defs)};
+                const rowData = {json.dumps(self.row_data, default=str)};
+
+                const gridOptions = {{
+                    columnDefs: columnDefs,
+                    rowData: rowData,
+                    defaultColDef: {{
+                        sortable: true,
+                        filter: true,
+                        resizable: true,
+                        minWidth: 120,
+                    }},
+                    domLayout: "autoHeight",
+                    animateRows: false,
+                    pagination: true,
+                    paginationPageSize: 20,
+                    rowHeight: {self.row_height},
+                    headerHeight: {self.header_height},
+                }};
+
+                const container = document.getElementById("{self.grid_id}");
+
+                function syncTheme() {{
+                    container.setAttribute(
+                        "data-ag-theme-mode",
+                        document.documentElement.classList.contains("dark") ? "dark" : "light"
+                    );
                 }}
-            }}
-            tryInit(20);
-        }})();
-    </script>    """
-    return HTML(html)
+        
+                function numberParser(params) {{
+                const newValue = params.newValue;
+                let valueAsNumber;
+                if (newValue === null || newValue === undefined || newValue === "") {{
+                    valueAsNumber = null;
+                }} else {{
+                    valueAsNumber = parseFloat(params.newValue);
+                }}
+                return valueAsNumber;
+                }}
+
+                function tryInit(attempts) {{
+                    if (typeof agGrid !== "undefined") {{
+                        syncTheme();
+                        document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+                        new MutationObserver(syncTheme).observe(document.documentElement, {{
+                            attributes: true, attributeFilter: ["class"]
+                        }});
+                    }} else if (attempts > 0) {{
+                        setTimeout(() => tryInit(attempts - 1), 100);
+                    }}
+                }}
+                tryInit(20);
+            }})();
+        </script>    """
+        return HTML(html)
 
 def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitle: bool = False, lgpos: str = "bottom"):
     total = df['count'].sum()
