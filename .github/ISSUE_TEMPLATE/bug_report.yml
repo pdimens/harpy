@@ -50,8 +50,8 @@ body:
     id: ai-attestation
     attributes:
       label: AI Assistance Disclosure
-      description: It will help our understanding of this bug report if you can confirm using AI assistance for (check any that apply):
+      description: It will help our understanding of this bug if you can confirm using AI assistance for (check any that apply):
       options:
-        - label: Code generation used here
-        - label: Code explanation or diagnosis that led to this report
+        - label: Code generation
+        - label: Code explanation or diagnosis
         - label: General bioinformatics regarding how/why you ran Harpy
