@@ -216,7 +216,7 @@ rule merge_contigs:
         workflow.cores
     shell:
         """
-        printf '%\n' {input} > {output.filelist}
+        printf '%\\n' {input} > {output.filelist}
         {{
             bcftools concat --threads {threads} -f {output.filelist} |
             bcftools sort -Ob -o {output.bcf} --write-index

@@ -140,7 +140,7 @@ rule concat_variants:
         workflow.cores - 1 
     shell:  
         """
-        printf '%\n' {input.bcf} > {output.concatlist}
+        printf '%\\n' {input.bcf} > {output.concatlist}
         {{
             bcftools concat -f {output.concatlist} --threads {params} --naive |
             bcftools sort - --write-index -Ob -o {output.bcf}
