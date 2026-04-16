@@ -18,7 +18,7 @@ class HarpyEnvs():
         "align" : [
             "bioconda::bwa-mem2",
             "bioconda::bwa",
-            "bioconda::samtools=1.22",
+            "bioconda::samtools=1.23",
             "bioconda::seqtk",
             "bioconda::strobealign",
             "bioconda::tabix"
@@ -56,14 +56,14 @@ class HarpyEnvs():
             "bioconda::samtools"
         ],
         "impute" : [
-            "bioconda::r-stitch>=1.8.4"
+            "bioconda::r-stitch>=1.8.4",
+            "bioconda::tabix"
         ],
         "variants" : [
-            "bioconda::bcftools=1.22",
+            "bioconda::bcftools=1.23",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
-            "bioconda::naibr-plus",
-            "conda-forge::setuptools<82"
+            "bioconda::naibr-plus=0.5.4"
         ]
     }
 

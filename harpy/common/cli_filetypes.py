@@ -259,3 +259,38 @@ class DemuxSchema(click.ParamType):
         if duplicates:
             hp.notice("Sample names appear more than once, assuming this was intentional")
         return filepath.resolve().as_posix()
+
+class ImputeStrategy(click.ParamType):
+    name = "impute_strategy"
+
+    def isInt(self, x: str) -> bool:
+        try:
+            int(x)
+        except ValueError:
+            return False
+        return True
+
+    def convert(self, value, param, ctx):
+        if value == "all":
+            return value
+
+        pieces = value.split(":")
+        if len(pieces) != 2:
+            self.fail(f"{value} is not in a recognized format. Expected one of:\n  - all\n  - chrom:start-end (e.g., chr1:1-50000)\n  - window:size (e.g., window:1000000)", param, ctx)
+
+        if pieces[0] == "window":
+            try:
+                _win = int(pieces[1])
+                if _win < 100:
+                    self.fail(f"Window size must be >= 100, but got {value}", param, ctx)  
+            except ValueError:
+                self.fail(f"The window strategy format is incorrect.\n  - expected window:size (e.g., window:1000000)\n  - got {value}", param, ctx)
+        else:
+            parts = pieces[1].split("-")
+            if len(parts) != 2 or any([not self.isInt(i) for i in parts]):
+                self.fail(f"Region must be contig:start-end (e.g., chr1:300-80000), but got {value}", param, ctx)
+            start, end = map(int, parts)  
+            if start < 1 or end < start:  
+                self.fail(f"Region coordinates must satisfy start >= 1 and end >= start, but got {value}", param, ctx) 
+
+        return value

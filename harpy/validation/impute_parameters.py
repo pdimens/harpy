@@ -13,7 +13,7 @@ class ImputeParams():
         self.file: str = filename
         self.print = HarpyPrint(quiet)
 
-        self.print.log("Correct impute parameters file format", newline=False)
+        self.print.log("Impute parameters file format", newline=False)
 
         with open(self.file, "r", encoding="utf-8") as paramfile:
             header = paramfile.readline().rstrip().lower()

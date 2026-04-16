@@ -296,6 +296,8 @@ class HarpyPrint():
         '''
         self.console.tab_size = 4
         self.console._highlight = False
+        #print(errtext)
+        #sys.exit()
         self.errortext = iter(errtext)
         self.missingoutput = []
 
@@ -319,8 +321,8 @@ class HarpyPrint():
                         self.print(i.rstrip(), soft_wrap = True, width = 2000, style = "red")
             return
 
-        if ("Error" in line or "Exception" in line) and not ("RuleException" in line or "CalledProcessError" in line):
-            self.rule("[bold]Source of Error", style = "black")
+        if ("Error" in line or "Exception" in line or "Missing input files" in line) and not ("RuleException" in line or "CalledProcessError" in line):
+            #self.rule("[bold]Source of Error", style = "black")
             self.print(line, highlight=False, soft_wrap = True, end = "", style = "red")
             for i in self.errortext:
                 self.print(i, highlight = False, soft_wrap = True, end = "", style="red")

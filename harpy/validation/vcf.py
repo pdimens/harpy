@@ -14,11 +14,17 @@ class VCF():
     def __init__(self, filename:str, workdir:str, quiet:int = 0):
         os.makedirs(workdir, exist_ok = True)
 
-        self.file = filename
-        self.workdir = workdir
-        self.biallelic_contigs: list[str] = []
+        self.file: str = filename
+        self.workdir: str = workdir
         self.biallelic_file: str = ""
+        self.contigs: dict[str,int] = {}
         self.print = HarpyPrint(quiet)
+
+    def get_contigs(self):
+        """reads the header of a vcf/bcf file and populate `self.contigs` with the contigs (keys) and their lengths (values)"""
+        with pysam.VariantFile(self.file) as _vcf:
+            for _contig,_info in _vcf.header.contigs.items():
+                self.contigs[_contig] = _info.length
 
     def find_biallelic_contigs(self):
         """
@@ -28,8 +34,10 @@ class VCF():
         self.print.log("Finding contigs with ≥ 5 biallelic SNPs", newline=False)
 
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
-        with pysam.VariantFile(self.file) as _vcf:
-            header_contigs = list(_vcf.header.contigs)
+        if not self.contigs:
+            self.get_contigs()
+        to_keep = []
+
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
             pysam.bcftools.index(self.file)
         if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
@@ -38,7 +46,7 @@ class VCF():
         bcftools = which("bcftools") or "bcftools"
 
         with open(self.biallelic_file, "w", encoding="utf-8") as f:
-            for contig in header_contigs:
+            for contig in list(self.contigs.keys()):
                 # Use bcftools to count the number of biallelic SNPs in the contig
                 viewcmd = subprocess.Popen(
                     [bcftools, 'view', '-H', '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file],
@@ -46,6 +54,7 @@ class VCF():
                     text = True
                 )
                 snpcount = 0
+                keep = False
                 while True:
                     # Read the next line of output
                     line = viewcmd.stdout.readline()
@@ -59,12 +68,16 @@ class VCF():
                             viewcmd.communicate(timeout=2)
                         except Exception:
                             viewcmd.kill()
-                        f.write(f"{contig}\n")
-                        self.biallelic_contigs.append(contig)
+                        f.write(f"{contig}\t{self.contigs[contig]}\n")
+                        keep = True
                         break
-        if not self.biallelic_contigs:
+                if not keep:
+                    del self.contigs[contig]
+ 
+        if not self.contigs:
             self.print.validation(False)
             self.print.error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")
+
         self.print.validation(True)
 
     def check_phase(self):
@@ -87,7 +100,6 @@ class VCF():
         self.print.log("Alignment samples in VCF", newline=False)
         with pysam.VariantFile(self.file) as _vcf:
             vcfsamples = list(_vcf.header.samples)
-        #vcfsamples = pysam.bcftools.head(self.file).split("\tINFO\tFORMAT\t")[-1].split()
         filesamples = [Path(i).stem for i in bamlist]
         if prioritize_vcf:
             fromthis, query = self.file, vcfsamples
@@ -112,11 +124,11 @@ class VCF():
     def match_contigs(self, contigs: list[str]):
         """Check if the supplied contigs are present in the VCF"""
         self.print.log("Input contigs exist in VCF", newline=False)
-        with pysam.VariantFile(self.file) as _vcf:
-            vcf_contigs = list(_vcf.header.contigs)
         bad_names = []
+        if not self.contigs:
+            self.get_contigs()
         for i in contigs:
-            if i not in vcf_contigs:
+            if i not in self.contigs:
                 bad_names.append(i)
         if bad_names:
             shortname = os.path.basename(self.file)
@@ -130,51 +142,39 @@ class VCF():
             )
         self.print.validation(True)
 
-    def get_contigs(self) -> dict:
-        """reads the header of a vcf/bcf file and returns a dict of the contigs (keys) and their lengths (values)"""
-        contigs = {}
-        with pysam.VariantFile(self.file) as _vcf:
-            for _contig,_info in _vcf.header.contigs.items():
-                contigs[_contig] = _info.length
-        return contigs
-
-    def validate_region(self, region: str) -> tuple[str,int,int,int]:
+    def validate_region(self, region: str) -> tuple[str,int,int]:
         """
         Validates the --region input of harpy impute to infer it's a properly formatted region
         Use the contigs and lengths of the vcf file to check that the region is valid. Returns
         a tuple of (contig, start, end).
         """
         self.print.log("Input regions exist in VCF", newline=False)
-        startpos = 0
-        endpos = 0
-        buffer = 0
-        contigs = self.get_contigs()
+        if not self.contigs:
+            self.get_contigs()
         contig, positions = region.split(":")
         parts = positions.split("-")
-        if len(parts) == 2:
-            startpos, endpos = (int(parts[0]), int(parts[1]))
-        elif len(parts) == 3:
-            startpos, endpos, buffer = (int(parts[0]), int(parts[1]), int(parts[2]))
-        else:
+        startpos, endpos = (int(parts[0]), int(parts[1]))
+
+        if startpos < 1 or endpos < startpos:
             self.print.validation(False)
             self.print.error(
                 "invalid region",
-                f"Region must be contig:start-end or contig:start-end-buffer, got [yellow]{region}[/]."
+                f"The region [blue]{region}[/] is not valid.",
+                "Region coordinates must satisfy start >= 1 and end >= start."
             )
 
-        # check if the region is in the genome
-        if contig not in self.biallelic_contigs:
+        # check if the region is in the biallelic contig list
+        if contig not in self.contigs:
             self.print.validation(False)
             self.print.error(
                 "missing contig",
-                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 2 biallelic SNPs, therefore it cannot be processed.",
-                f"Restrict the contig provided to [bold green]--region[/] to those with at least 2 biallelic SNPs. The contigs Harpy found with at least 2 biallelic can be reviewed in [blue]{self.biallelic_file}[/]."
+                f"The [bold yellow]{contig}[/] contig given in [blue]{region}[/] is not in the list of contigs identified to have at least 5 biallelic SNPs, therefore it cannot be processed.",
+                f"Restrict the contig provided to [bold green]--region[/] to those with at least 5 biallelic SNPs, which can be reviewed in [blue]{self.biallelic_file}[/]."
             )
-        if endpos > contigs[contig]:
-            self.print.validation(False)
-            self.print.error(
-                "invalid region",
-                f"The region end position [yellow bold]({endpos})[/] is greater than the length of contig [yellow bold]{contig}[/] ({contigs[contig]})"
-            )
-        self.print.validation(True)
-        return contig, startpos, endpos, buffer
+        if endpos > self.contigs[contig]:
+            self.print.print("[yellow]𐄂[/]")
+            self.print.notice(f"The region end position ({endpos}) is greater than the contig size ({self.contigs[contig]}), setting the end position to the end of the contig.")
+            endpos = self.contigs[contig]
+        else:
+            self.print.validation(True)
+        return contig, startpos, endpos

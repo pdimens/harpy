@@ -157,7 +157,7 @@ def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1)
     the interval size, `mode` is whether to make `0` or `1` based  intervals.
     """
     def makewindows(_c_len, index_start, windowsize):
-        """create a file of the specified windows"""
+        """create vectors of specified windows"""
         start = index_start
         end = min(_c_len, windowsize)
         starts = [start]

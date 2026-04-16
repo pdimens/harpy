@@ -1,10 +1,16 @@
+import base64
+import html
+from pathlib import Path
 from datetime import datetime
-from IPython.display import display, HTML
-import itables
+from io import BytesIO
+from IPython.display import display, HTML, Image
+from PIL import Image as PImage
+import uuid
+#import itables
 import altair as alt
 import pandas as pd
 from .theme import palette
-itables.options.warn_on_undocumented_option=False
+import json
 
 class StatsBox:
     '''
@@ -84,32 +90,223 @@ def print_html(*args):
         "<p>{}</p>".format("<br>".join(str(i) for i in [*args]))
     ))
 
-def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
+def embed_image(x: str, scale: float = 0.5):
+    '''Rescale an PNG image and embed it into the notebook'''
+    image = PImage.open(x)
+    if scale < 1:  
+        image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)  
+    buf = BytesIO()  
+    image.save(buf, format = "PNG" if "png" in x.lower() else "jpeg")  
+    return Image(data=buf.getvalue(), format="png" if "png" in x.lower() else "jpeg", embed=True)
+
+def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):  
     '''
-    Boilerplate version of `itables.show` to reduce in-report boilerplate. Use `filename` to specify the output prefix for
-    exports, `caption` to set an optional caption, `fixcols` to freeze this-many columns on the left, and `coldefs` to
-    populate `columnDefs` with wacky JS.
+    Create a javascript image viewer with a file picker.
+    Images are embedded (thus can safely have their original files deleted) and can be down-scaled.
     '''
-    return itables.show(
-        data,
-        caption = caption,
-        buttons = [
-            "pageLength", "colvis",
-            {"extend": "csvHtml5", "title": filename},
-            {"extend": "excelHtml5", "title": filename}
-        ],
-        fixedColumns = {"left": fixedcols} if fixedcols else {},
-        ordering = {"indicators": False, "handler": False},
-        columnControl = [["order", "searchDropdown"]],
-        showIndex= False,
-        scrollX =  True,
-        autoWidth=True,
-        searching = False,
-        style = "width:100%",
-        classes = "display nowrap compact",
-        allow_html=html,
-        columnDefs = coldefs
-    )
+    imgfmt = "image/png" if "png" in pattern else "image/jpg"
+    options_parts = []
+    paths = Path(image_dir).glob(pattern) if not recursive else Path(image_dir).rglob(pattern)  
+    paths = sorted(paths) if not sortkey else sorted(paths, key = sortkey)
+    uid = uuid.uuid4().hex[:8]
+    images_dict = {}
+    option_key = option_key or (lambda p: p.stem if not recursive else p.parents[1].name) 
+    for p in paths:
+        pname = option_key(p)
+        safe_value = html.escape(pname, quote=True)  
+        safe_label = html.escape(pname)  
+        options_parts.append(f'<option value="{safe_value}">{safe_label}</option>') 
+        #options_parts.append(f'<option value="{pname}">{pname}</option>')
+        image = PImage.open(p)
+        if scale < 1:
+            image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)
+        buf = BytesIO()
+        image.save(buf, format="PNG" if "png" in pattern else "jpeg")
+        buf.seek(0)
+        encoded = base64.b64encode(buf.read()).decode()
+        images_dict[pname] = f"data:{imgfmt};base64,{encoded}"
+    images_js = json.dumps(images_dict)
+    options_html = "\n".join(options_parts)
+
+    _html = f"""<!DOCTYPE html>
+        <html>
+        <head>
+        <style>
+        body {{ font-family: sans-serif; padding: 1rem; }}
+        #viewer-{uid} {{ margin-bottom: 1rem; }}
+        #viewer-{uid} img {{ max-width: 100%; }}
+        #selector-{uid} {{ display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }}
+        #selector-{uid} label {{ font-size: 0.9rem; font-weight: bold; }}
+        #file-select-{uid} {{
+            padding: 6px 10px;
+            font-size: 0.9rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            min-width: 200px;
+        }}
+        </style>
+        </head>
+        <body>
+        <div id="selector-{uid}">
+        <label for="file-select-{uid}">{html.escape(label)} </label>  
+        <select id="file-select-{uid}" onchange="showImage_{uid}(this.value)">
+            <option value="" disabled selected>Select a {html.escape(thing_to_select)}</option> 
+            {options_html}
+        </select>
+        </div>
+        <div id="viewer-{uid}"><img id="display-{uid}" src="" alt="Select a {thing_to_select}" /></div>
+        <script>
+        const images_{uid} = {images_js};
+
+        function showImage_{uid}(name) {{
+            document.getElementById("display-{uid}").src = images_{uid}[name];
+        }}
+        </script>
+        </body>
+        </html>"""
+    display(HTML(_html))
+
+#def standard_itable(data, filename:str, caption: str|None= None, fixedcols: int|None = None, coldefs = [], html: bool = False):
+#    '''
+#    Boilerplate version of `itables.show` to reduce in-report boilerplate. Use `filename` to specify the output prefix for
+#    exports, `caption` to set an optional caption, `fixcols` to freeze this-many columns on the left, and `coldefs` to
+#    populate `columnDefs` with wacky JS.
+#    '''
+#    return itables.show(
+#        data,
+#        caption = caption,
+#        buttons = [
+#            "pageLength", "colvis",
+#            {"extend": "csvHtml5", "title": filename},
+#            {"extend": "excelHtml5", "title": filename}
+#        ],
+#        fixedColumns = {"left": fixedcols} if fixedcols else {},
+#        ordering = {"indicators": False, "handler": False},
+#        columnControl = [["order", "searchDropdown"]],
+#        showIndex= False,
+#        scrollX =  True,
+#        autoWidth=True,
+#        searching = False,
+#        style = "width:100%",
+#        classes = "display nowrap compact",
+#        allow_html=html,
+#        columnDefs = coldefs
+#    )
+#
+
+class JSFunction:
+    """Wraps a raw JS string so it can be injected without JSON quoting."""
+    def __init__(self, js):
+        self.js = js.strip()
+
+class ITable:
+    """
+    Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
+    Works in Jupyter notebooks and static MyST/Jupyter Book pages. `df` is the DataFrame
+    to display, and `frozen_cols` is the number of columns to pin/freeze on the left. Includes
+    additional configurable fields `theme`, `row_height`, and `header_height`.
+    """
+    def __init__(self, df, filename: str, fixedcols: int = 0):
+        self.theme: str = "ag-theme-quartz"
+        self.row_height: int = 28
+        self.header_height: int = 32
+        self.filename: str = filename
+        self.col_defs = [{"field": col, **({"pinned": "left"} if i < fixedcols else {})} for i, col in enumerate(df.columns)]
+        self.row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
+        self.grid_id = f"grid-{id(df)}"
+        self.grid_ref = f"aggrid_{id(df)}"
+        # save autosize coldef for a rainy day?
+        ##autosize = {"autoSizeStrategy": "AutoSizeStrategy" = {"type": "fitCellContents", "defaultMaxWidth": 150, "defaultMinWidth": 80, "scaleUpToFitGridWidth": true}}
+        
+    def _serialize_col_defs(self):
+        """Serialize col_defs, injecting JSFunction values as raw JS."""
+        import re
+        parts = []
+        for col in self.col_defs:
+            field_parts = []
+            for k, v in col.items():
+                if isinstance(v, JSFunction):
+                    field_parts.append(f'"{k}": {v.js}')
+                else:
+                    field_parts.append(f'"{k}": {json.dumps(v)}')
+            parts.append("{" + ", ".join(field_parts) + "}")
+        return "[" + ", ".join(parts) + "]"
+
+    def render(self):
+        '''Create the AG-Grid HTML and render it'''
+        html = f"""
+        <button
+            onclick="(function(){{ var g = document.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName : "{self.filename}"}}); }})()"
+            style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
+        >
+            Export CSV
+        </button>
+
+        <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
+        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+
+        <script>
+            (function() {{
+                const columnDefs = {self._serialize_col_defs()};
+                const rowData = {json.dumps(self.row_data, default=str)};
+
+                const gridOptions = {{
+                    columnDefs: columnDefs,
+                    rowData: rowData,
+                    defaultColDef: {{
+                        sortable: true,
+                        filter: true,
+                        resizable: true,
+                    }},
+                    autoSizeStrategy: AutoSizeStrategy = {{
+                        type: "fitCellContents",
+                        defaultMaxWidth: 150,
+                        defaultMinWidth: 80,
+                    }},
+                    domLayout: "autoHeight",
+                    animateRows: false,
+                    pagination: true,
+                    paginationPageSize: 20,
+                    rowHeight: {self.row_height},
+                    headerHeight: {self.header_height},
+                }};
+
+                const container = document.getElementById("{self.grid_id}");
+
+                function syncTheme() {{
+                    container.setAttribute(
+                        "data-ag-theme-mode",
+                        document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
+                    );
+                }}
+        
+                function numberParser(params) {{
+                const newValue = params.newValue;
+                let valueAsNumber;
+                if (newValue === null || newValue === undefined || newValue === "") {{
+                    valueAsNumber = null;
+                }} else {{
+                    valueAsNumber = parseFloat(params.newValue);
+                }}
+                return valueAsNumber;
+                }}
+
+                function tryInit(attempts) {{
+                    if (typeof agGrid !== "undefined") {{
+                        syncTheme();
+                        document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+                        new MutationObserver(syncTheme).observe(document.documentElement, {{
+                            attributes: true, attributeFilter: ["class"]
+                        }});
+                    }} else if (attempts > 0) {{
+                        setTimeout(() => tryInit(attempts - 1), 100);
+                    }}
+                }}
+                tryInit(20);
+            }})();
+        </script>    """
+        return HTML(html)
 
 def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitle: bool = False, lgpos: str = "bottom"):
     total = df['count'].sum()
