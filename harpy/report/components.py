@@ -233,9 +233,9 @@ class ITable:
             parts.append("{" + ", ".join(field_parts) + "}")
         return "[" + ", ".join(parts) + "]"
 
-    def render(self):
+    def render(self, html: bool = False):
         '''Create the AG-Grid HTML and render it'''
-        html = f"""
+        _html = f"""
         <button
             onclick="(function(){{ var g = document.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName : "{self.filename}"}}); }})()"
             style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
@@ -306,7 +306,10 @@ class ITable:
                 tryInit(20);
             }})();
         </script>    """
-        return HTML(html)
+        if html:
+            return _html
+        return display(HTML(_html))
+
 
 def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitle: bool = False, lgpos: str = "bottom"):
     total = df['count'].sum()
