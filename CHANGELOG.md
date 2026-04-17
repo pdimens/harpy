@@ -8,7 +8,9 @@
 - `harpy view` now has the alias `hv`
   - when erroring, harpy will create hidden file `.harpyerror` with the name of the directory associated with the last error
   - calling hv config/log/error/profile/snakefile without arguments is allowed and will default to the directory in `.harpyerror`
-  - this now streamlines troubleshooting to: harpy workflow terminates with error -> `hv log` or `hv config` 
+  - this now streamlines troubleshooting to: harpy workflow terminates with error -> `hv log` or `hv config`
+- all user-accessible harpy utility scripts now live under `harpy-utils`, which has its own CLI and is a consistent access point than remembering the names of specific utilities you may want to use
+  - the new Go utilities are internal (for now) and not exposed by `harpy-utils` 
 ## new options
 - `resume` has new `--direct` option to call Snakemake directly without harpy intervention
 - hidden common option `--clean` with the options `w`, `s`, and/or `l`, to remove the `workflow/`, `.snakemake/`, and/or `logs/` directories in the output
