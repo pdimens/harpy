@@ -292,10 +292,14 @@ class ITable:
 
                 function tryInit(attempts) {{
                     if (typeof agGrid !== "undefined") {{
-                        syncTheme();
-                        document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
-                        new MutationObserver(syncTheme).observe(document.documentElement, {{
-                            attributes: true, attributeFilter: ["class"]
+                        requestAnimationFrame(() => {{
+                            requestAnimationFrame(() => {{
+                                syncTheme();
+                                document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+                                new MutationObserver(syncTheme).observe(document.documentElement, {{
+                                    attributes: true, attributeFilter: ["class"]
+                                }});
+                            }});
                         }});
                     }} else if (attempts > 0) {{
                         setTimeout(() => tryInit(attempts - 1), 100);
@@ -366,8 +370,8 @@ def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
 def convolutionbar(df: pd.DataFrame, title: str = ""):
     total = df['count'].sum()
     _names = list(df.columns)
-    _color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'turbo')
-    #_color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'lightgreyred')
+    #_color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'turbo')
+    _color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'lightgreyred')
     return (
         alt.Chart(df)
         .transform_calculate('percent', f'datum.count / {total}')

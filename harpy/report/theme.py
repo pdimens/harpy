@@ -1,4 +1,4 @@
-import altair as alt
+from altair import theme
 
 # Okabe Ito colorblindsafe palette
 # https://thenode.biologists.com/data-visualization-with-flying-colors/research/
@@ -72,8 +72,8 @@ def sv_colors(name) -> str:
     }
     return d.get(name, "#CC79A7")
 
-@alt.theme.register("harpy_theme", enable=True)
-def harpy_theme() -> alt.theme.ThemeConfig:
+@theme.register("harpy_theme", enable=True)
+def harpy_theme() -> theme.ThemeConfig:
     '''Altair theme settings for Harpy reports'''
 
     return {
