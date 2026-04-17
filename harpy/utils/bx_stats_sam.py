@@ -1,6 +1,6 @@
 import click
 import numpy as np
-from pysam import Alignmentfile, AlignedSegment
+from pysam import AlignmentFile, AlignedSegment
 import sys
 
 class ReadCloud():
