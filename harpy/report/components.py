@@ -6,7 +6,6 @@ from io import BytesIO
 from IPython.display import display, HTML, Image
 from PIL import Image as PImage
 import uuid
-#import itables
 import altair as alt
 import pandas as pd
 from .theme import palette
@@ -221,7 +220,6 @@ class ITable:
         
     def _serialize_col_defs(self):
         """Serialize col_defs, injecting JSFunction values as raw JS."""
-        import re
         parts = []
         for col in self.col_defs:
             field_parts = []
