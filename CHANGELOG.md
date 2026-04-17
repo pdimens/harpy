@@ -61,7 +61,7 @@
   - this means previous `workflow.yaml` files are incompatible with this and future versions
 - all `workflow.yaml` keys use hyphens instead of underscores to reduce keystrokes
   - e.g. `min_len` => `min-len`
-- hpc.yaml profile parameters now merged into `profile.yaml` so all the profile information exists in a single file
+- hpc.yaml profile parameters now merged into `profile.yaml` so all the profile information exists in a single file (internal change)
 - workflow yaml files now include a `VERSION` variable that syncs with the Harpy version used
   - populates the `container` version tags within snakefile rules
   - this makes container versions reliable by default, but entirely hackable to manually dissociate harpy version and container version
