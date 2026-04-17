@@ -11,7 +11,7 @@ def parse_phaseblocks(input):
     
     Writes to stdout.
     """
-    samplename = os.path.basename(input.name).replace(".blocks", "")
+    samplename = os.path.basename(input.name).removesuffix(".blocks")
 
     FIRST_LINE = True
     for line in input:

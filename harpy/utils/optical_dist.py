@@ -1,5 +1,5 @@
 import click
-import pysam
+from pysam import AlignmentFile, FastxFile
 import sys
 
 seqCodes = {
@@ -23,7 +23,7 @@ def optical_dist_sam(bam):
     Read the first record of a BAM file and print the optical duplication distance parameter (100 or 2500)
     based on the instrument code of the sequence name. INTERNAL USE ONLY.
     '''
-    with pysam.AlignmentFile(bam, require_index=False) as inBam:
+    with AlignmentFile(bam, require_index=False) as inBam:
         for record in inBam.fetch(until_eof=True):
             prefix = record.query_name.partition(":")[0]
             for i in seqCodes:
@@ -41,7 +41,7 @@ def optical_dist_fq(fastq):
     Read the first record of a FASTQ file and print the optical duplication distance parameter (100 or 2500)
     based on the instrument code of the sequence name. INTERNAL USE ONLY.
     '''
-    with pysam.FastxFile(fastq[0], persist=False) as fq:
+    with FastxFile(fastq[0], persist=False) as fq:
         for record in fq:
             _id = record.name
             for i in seqCodes:

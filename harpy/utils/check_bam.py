@@ -2,13 +2,13 @@ import re
 import sys
 import os
 import click
-import pysam
+from pysam import AlignmentFile
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['10x','haplotagging','stlfr','tellseq'], case_sensitive=False))
-@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
+@click.argument('bamfile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
-def check_bam(platform, input):
+def check_bam(platform, bamfile):
     """
     File format validation for SAM/BAM file
     
@@ -23,8 +23,7 @@ def check_bam(platform, input):
     else:
         bc_pattern = re.compile(r'^[ATCGN]+')
 
-    bam_in = input
-    filename = os.path.basename(bam_in)
+    filename = os.path.basename(bamfile)
     bam_pattern = re.compile(r"\.[bB][aA][mM]$", flags = re.IGNORECASE)
     corename = re.sub(bam_pattern, "", filename)
 
@@ -35,7 +34,7 @@ def check_bam(platform, input):
     NO_MI      = 0
     NAME_MISMATCH = 0
 
-    with pysam.AlignmentFile(bam_in, require_index=False) as alnfile:
+    with AlignmentFile(bamfile, require_index=False) as alnfile:
         if alnfile.header.get("RG")[0]['ID'] != corename:
             NAME_MISMATCH += 1
 

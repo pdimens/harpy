@@ -1,6 +1,6 @@
 import click
 import numpy as np
-import pysam
+from pysam import Alignmentfile, AlignedSegment
 import sys
 
 class ReadCloud():
@@ -17,7 +17,7 @@ class ReadCloud():
         self.barcode: str = ""
         self.suffix: int = 0
 
-    def add(self, record: pysam.AlignedSegment):
+    def add(self, record: AlignedSegment):
         '''add a pysam alignment record to the read cloud, keeping only the relevant info'''
         if self.valid:
             self.positions.append([record.reference_start, record.reference_end])
@@ -148,7 +148,7 @@ def bx_stats_sam(distance_threshold, input):
     insert length. Input file *must be coordinate sorted*.
     """
     sys.stdout.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
-    with pysam.AlignmentFile(input, require_index=False) as alnfile:
+    with AlignmentFile(input, require_index=False) as alnfile:
         d = {}
         LAST_CONTIG = None
 

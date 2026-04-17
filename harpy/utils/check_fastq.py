@@ -2,7 +2,7 @@ import re
 import os
 import sys
 import click
-import pysam
+from pysam import FastxFile
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
@@ -34,6 +34,7 @@ def check_fastq(platform, input):
         # if BX:Z: exists but isn't the last tag, count once per read  
         if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):  
             BX_NOT_LAST += 1
+
     if platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
         def check_read(fq_record):
@@ -46,7 +47,7 @@ def check_fastq(platform, input):
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 
-    if platform == "stlfr":
+    elif platform == "stlfr":
         barcode = re.compile(r'#\d+_\d+_\d+$')
         def check_read(fq_record):
             if not barcode.search(fq_record.name):
@@ -62,7 +63,7 @@ def check_fastq(platform, input):
                 BAD_BX += 1
             check_samspec(fq_record.comment)
 
-    with pysam.FastxFile(input, persist=False) as fh:
+    with FastxFile(input, persist=False) as fh:
         for entry in fh:
             N_READS += 1
             check_read(entry)

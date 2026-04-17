@@ -1,7 +1,7 @@
 import re
 import sys
 import click
-import pysam
+from pysam import FastxFile
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
@@ -55,7 +55,7 @@ def bx_stats_fq(platform, input):
     N_BX = 0
     N_VALID = 0
 
-    with pysam.FastxFile(input, persist = False) as fh:
+    with FastxFile(input, persist = False) as fh:
         for entry in fh:
             N_READS += 1
             if platform == "haplotagging":
