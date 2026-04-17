@@ -26,13 +26,12 @@ pixi global install -c conda-forge -c bioconda harpy
 pixi init -c conda-forge -c bioconda projectname && cd projectname && pixi add harpy
 ```
 
-### 📦 Containers
-#### 🐳 Docker
+### 🐳 Docker
 ```bash
 docker pull quay.io/biocontainers/harpy
 ```
 
-#### 🅰️ Apptainer
+### 🅰️ Apptainer
 Find the most recent tag [here](https://quay.io/repository/biocontainers/harpy?tab=tags) and replace `$TAG` with it or use the `TAG=$(curl ...)` part below to pull the latest version name using the repository's API.
 ```bash
 TAG=$(curl -s "https://quay.io/api/v1/repository/biocontainers/harpy/tag/" | cut -d'"' -f6)
