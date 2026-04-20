@@ -1,63 +1,52 @@
 {
     "template": {
         "transform": {
-            "token": [
-                "0:58:",
-                "1::"
-            ]
+            "token": ["0:58:", "1::"]
         }
     },
     "molecular": [
         {
-            "comment": "Stagger sequence",
+            "comment": "Stagger sequence (D)",
             "base": "stagger",
             "algorithm": "pamld",
             "PL": "ILLUMINA",
             "noise": 0.02,
             "confidence_threshold": 0.95,
             "transform": {
-                "token": [
-                    "0:0:7"
-                ]
+                "token": ["0:0:7"]
             }
         },
         {
-            "comment": "First linked-read barcode segment",
+            "comment": "First linked-read barcode segment (A)",
             "base": "segment",
             "algorithm": "pamld",
             "PL": "ILLUMINA",
             "noise": 0.02,
             "confidence_threshold": 0.95,
             "transform": {
-                "token": [
-                    "0:10:22"
-                ]
+                "token": ["0:10:22"]
             }
         },
         {
-            "comment": "Second linked-read barcode segment",
+            "comment": "Second linked-read barcode segment (B)",
             "base": "segment",
             "algorithm": "pamld",
             "PL": "ILLUMINA",
             "noise": 0.02,
             "confidence_threshold": 0.95,
             "transform": {
-                "token": [
-                    "0:25:37"
-                ]
+                "token": ["0:25:37"]
             }
         },
         {
-            "comment": "Third linked-read barcode segment",
+            "comment": "Third linked-read barcode segment (C)",
             "base": "segment",
             "algorithm": "pamld",
             "PL": "ILLUMINA",
             "noise": 0.02,
             "confidence_threshold": 0.95,
             "transform": {
-                "token": [
-                    "0:40:52"
-                ]
+                "token": ["0:40:52"]
             }
         }
     ],
