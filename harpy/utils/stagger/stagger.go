@@ -36,6 +36,7 @@ import (
 
 const R1flag int = 77
 const R2flag int = 141
+const winStart int = 44
 
 // ── stagger pads ──────────────────────────────────────────────────────────────
 
@@ -157,31 +158,25 @@ func (mc multiCloser) Close() error {
 
 // findME searches for the ME sequence using a bounded Hamming scan over
 // positions 44-65, covering the expected ME start range of 51-58 with margin.
-// 'N' in the read matches any base and does not count as a mismatch.
+// 'N' in the read matches any base and counts as 0.3 of a mismatch.
 // Returns the 0-based start position of the best match, or -1 if not found.
-func findME(seq, me *[]byte, maxMismatch *int) int {
+func findME(seq, me *[]byte, maxMismatch *float64) int {
 	meLen := len(*me)
 	readLen := len(*seq)
-	if readLen < meLen {
-		return -1
-	}
-	winStart := 44
-	winEnd := 65
-	if winEnd+meLen > readLen {
-		winEnd = readLen - meLen
-	}
-	if winStart > winEnd {
+	winEnd := min(65, readLen-meLen)
+	if readLen < meLen || winStart > winEnd {
 		return -1
 	}
 
+	bestMM := *maxMismatch + 1.0
 	bestPos := -1
-	bestMM := *maxMismatch + 1
 
 	for pos := winStart; pos <= winEnd; pos++ {
-		mm := 0
+		mm := 0.0
 		for i := range meLen {
 			r := (*seq)[pos+i]
 			if r == 'N' {
+				mm += 0.3
 				continue
 			}
 			if r != (*me)[i] {
@@ -262,7 +257,8 @@ func processBatch(
 	ws *workerState,
 	batch []readPair,
 	me []byte,
-	maxMismatch, minLen int,
+	maxMismatch float64,
+	minLen int,
 	out io.Writer,
 	mu *sync.Mutex,
 	discarded, tooShort *atomic.Int64,
@@ -338,11 +334,10 @@ func processBatch(
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
-
 func main() {
-	meSeq := flag.String("me", "CTGTCTCTTATACACATCT", "ME sequence to search for")
+	meSeq := flag.String("me", "AGATGTGTATAAGAGACAG", "ME sequence to search for")
 	statsfile := flag.String("stats", "stats.txt", "File name for stats output")
-	maxMM := flag.Int("max-mismatch", 2, "Maximum mismatches allowed in ME match (matches cutadapt -e 0.11 with 19bp ME)")
+	maxMM := flag.Float64("max-mismatch", 2, "Maximum allowable ME mismatch score")
 	minLen := flag.Int("min-len", 30, "Minimum biological sequence length after ME excision; shorter reads are discarded")
 	nThreads := flag.Int("threads", 4, "Number of worker threads")
 	flag.Usage = func() {
@@ -412,7 +407,6 @@ func main() {
 		total     atomic.Int64
 		writeErr  atomic.Value
 	)
-
 	jobs := make(chan []readPair, threads*2)
 
 	for range threads {
