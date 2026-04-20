@@ -72,7 +72,7 @@ func reconstructBarcode(nucBC, origBC string, stagger, bc *map[string]string) (s
 		valid = 0
 	}
 
-	return "A" + *A + "C" + *C + "B" + *B + "D" + *D, valid, corrected
+	return "A" + *A + "C" + *B + "B" + *C + "D" + *D, valid, corrected
 }
 
 func lookup(m *map[string]string, key *string) *string {
