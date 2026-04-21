@@ -81,7 +81,6 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
-@click.option('-l', '--min-len', panel = "Parameters", type = click.IntRange(10, 300), default = 30, show_default=True, help = "Min insert length after removing ME sequence (ignoring barcodes)")
 @click.option('-n', '--mismatch', panel = "Parameters", default = 2, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
@@ -95,11 +94,11 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output, me_seq, mismatch, min_len, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
-    
+
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
     The resulting FASTQ file pairs will have inline barcodes removed and added to the sequence headers,
@@ -118,7 +117,7 @@ def gih(inputs, output, me_seq, mismatch, min_len, threads, snakemake, skip_repo
     workflow.input(fastq.files)
     workflow.param(me_seq, "ME-sequence")
     workflow.param(mismatch, "ME-mismatch")
-    workflow.param(min_len, "min-length")
+    #workflow.param(min_len, "min-length")
     
     workflow.info = {
         "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",

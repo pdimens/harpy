@@ -36,7 +36,9 @@ import (
 
 const R1flag int = 77
 const R2flag int = 141
-const winStart int = 44
+const winStart int = 49
+const samFlags string = "\t*\t0\t255\t*\t*\t0\t0\t"
+const batchSize = 2000 // read pairs per batch
 
 // ── stagger pads ──────────────────────────────────────────────────────────────
 
@@ -72,8 +74,6 @@ func init() {
 		pads[i] = e
 	}
 }
-
-const batchSize = 2000 // read pairs per batch
 
 // ── FASTQ reader ──────────────────────────────────────────────────────────────
 
@@ -167,36 +167,22 @@ func findME(seq, me *[]byte, maxMismatch *float64) int {
 	if readLen < meLen || winStart > winEnd {
 		return -1
 	}
-
-	bestMM := *maxMismatch + 1.0
-	bestPos := -1
-
+seqscan:
 	for pos := winStart; pos <= winEnd; pos++ {
-		mm := 0.0
+		misMatch := 0.0
 		for i := range meLen {
-			r := (*seq)[pos+i]
-			if r == 'N' {
-				mm += 0.3
-				continue
+			if r := (*seq)[pos+i]; r == 'N' {
+				misMatch += 0.3
+			} else if r != (*me)[i] {
+				misMatch++
 			}
-			if r != (*me)[i] {
-				mm++
-				if mm >= bestMM {
-					break
-				}
+			if misMatch > *maxMismatch {
+				//break
+				continue seqscan
 			}
 		}
-		if mm < bestMM {
-			bestMM = mm
-			bestPos = pos
-			if mm == 0 {
-				break
-			}
-		}
-	}
-
-	if bestMM <= *maxMismatch {
-		return bestPos
+		// this code is only reached if a seqscan iteration didn't have misMatch > threshold
+		return pos
 	}
 	return -1
 }
@@ -228,7 +214,7 @@ func (ws *workerState) writeSAMRecord(name string, flag int, seq, qual []byte) {
 	// write flag as decimal
 	ws.writeInt(flag)
 	// RNAME POS MAPQ CIGAR RNEXT PNEXT TLEN — all * or 0 for uSAM
-	ws.outBuf.WriteString("\t*\t0\t255\t*\t*\t0\t0\t")
+	ws.outBuf.WriteString(samFlags)
 	ws.outBuf.Write(seq)
 	ws.outBuf.WriteByte('\t')
 	ws.outBuf.Write(qual)
@@ -258,10 +244,11 @@ func processBatch(
 	batch []readPair,
 	me []byte,
 	maxMismatch float64,
-	minLen int,
+	//minLen int,
 	out io.Writer,
 	mu *sync.Mutex,
-	discarded, tooShort *atomic.Int64,
+	discarded *atomic.Int64,
+	//tooShort *atomic.Int64,
 ) error {
 	meLen := len(me)
 	ws.outBuf.Reset()
@@ -284,13 +271,14 @@ func processBatch(
 		}
 
 		pad := &pads[plen]
-		after := fq1.seq[mePos+meLen:]
-		afterQual := fq1.qual[mePos+meLen:]
+		afterStart := mePos + meLen
+		afterSeq := fq1.seq[afterStart:]
+		afterQual := fq1.qual[afterStart:]
 
-		if len(after) < minLen {
-			tooShort.Add(1)
-			continue
-		}
+		//if len(afterSeq) < minLen {
+		//	tooShort.Add(1)
+		//	continue
+		//}
 
 		var bcSeq, bcQual []byte
 		if plen == 6 {
@@ -302,7 +290,7 @@ func processBatch(
 		}
 
 		// Assemble seq: pad bases + barcode + biological sequence
-		totalLen := pad.n + len(bcSeq) + len(after)
+		totalLen := pad.n + len(bcSeq) + len(afterSeq)
 		if cap(ws.seqBuf) < totalLen {
 			ws.seqBuf = make([]byte, totalLen)
 			ws.qualBuf = make([]byte, totalLen)
@@ -312,7 +300,7 @@ func processBatch(
 
 		n := copy(ws.seqBuf, pad.seq[:pad.n])
 		n += copy(ws.seqBuf[n:], bcSeq)
-		copy(ws.seqBuf[n:], after)
+		copy(ws.seqBuf[n:], afterSeq)
 
 		// Assemble qual in ASCII Phred+33:
 		// pad qual is stored as raw Phred (40), so add 33 back for SAM text output.
@@ -338,7 +326,7 @@ func main() {
 	meSeq := flag.String("me", "AGATGTGTATAAGAGACAG", "ME sequence to search for")
 	statsfile := flag.String("stats", "stats.txt", "File name for stats output")
 	maxMM := flag.Float64("max-mismatch", 2, "Maximum allowable ME mismatch score")
-	minLen := flag.Int("min-len", 30, "Minimum biological sequence length after ME excision; shorter reads are discarded")
+	//minLen := flag.Int("min-len", 30, "Discard reads with biological sequence shorter than this")
 	nThreads := flag.Int("threads", 4, "Number of worker threads")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: gih-stagger [options] <R1.fastq[.gz]> <R2.fastq[.gz]>\n\nOptions:\n")
@@ -403,9 +391,9 @@ func main() {
 		mu        sync.Mutex
 		wg        sync.WaitGroup
 		discarded atomic.Int64
-		tooShort  atomic.Int64
-		total     atomic.Int64
-		writeErr  atomic.Value
+		//tooShort  atomic.Int64
+		total    atomic.Int64
+		writeErr atomic.Value
 	)
 	jobs := make(chan []readPair, threads*2)
 
@@ -420,7 +408,7 @@ func main() {
 				if writeErr.Load() != nil {
 					continue
 				}
-				if err := processBatch(ws, batch, me, *maxMM, *minLen, outBuf, &mu, &discarded, &tooShort); err != nil {
+				if err := processBatch(ws, batch, me, *maxMM /* *minLen*/, outBuf, &mu, &discarded /*, &tooShort */); err != nil {
 					writeErr.Store(err)
 				}
 			}
@@ -463,5 +451,5 @@ func main() {
 
 	fmt.Fprintf(file, "Total read pairs processed:           %d\n", total.Load())
 	fmt.Fprintf(file, "Discarded (ME sequence not found):    %d\n", discarded.Load())
-	fmt.Fprintf(file, "Discarded (post-trim read too short): %d\n", tooShort.Load())
+	//fmt.Fprintf(file, "Discarded (post-trim read too short): %d\n", tooShort.Load())
 }

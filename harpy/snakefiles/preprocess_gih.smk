@@ -16,7 +16,6 @@ fqlist       = INPUTS
 skip_reports = REPORTS.get("skip", False)
 me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
 mismatch     = PARAMETERS.get("ME-mismatch", 1) 
-minlen       = PARAMETERS.get("min-length", 10) 
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -71,7 +70,6 @@ rule pad_barcodes:
     params:
         f'--me {me_seq}',
         f'--max-mismatch {mismatch}',
-        f'--min-len {minlen}'
     threads:
         3
     shell:
@@ -86,13 +84,16 @@ rule extract_barcodes:
         json = "logs/extract/{sample}.json"
     log:
         "logs/{sample}.pheniqs"
+    params:
+        "-s",
+        "--quality"
     conda:
         "envs/preprocess.yaml"
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
         """
-        pheniqs mux --output {output.bam} -s --quality -c {input.pheniqs_conf} --report {output.json} 2> {log} < {input.stagger}
+        pheniqs mux --output {output.bam} {params} -c {input.pheniqs_conf} --report {output.json} 2> {log} < {input.stagger}
         """
 
 rule format_barcodes:
