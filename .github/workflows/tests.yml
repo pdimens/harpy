@@ -59,7 +59,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -82,7 +82,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -108,7 +108,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -134,7 +134,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -155,7 +155,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -176,7 +176,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -197,7 +197,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -218,7 +218,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -243,7 +243,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -268,7 +268,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -305,7 +305,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -342,7 +342,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -368,7 +368,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -394,7 +394,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
@@ -425,7 +425,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           cache: false
           activate-environment: true
