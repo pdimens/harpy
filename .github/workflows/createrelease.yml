@@ -21,7 +21,7 @@ jobs:
         with:
           fetch-depth: 1
       - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.4
+        uses: prefix-dev/setup-pixi@v0.9.5
         with:
           pixi-version: v0.62.0
           cache: false
@@ -63,6 +63,6 @@ jobs:
           mkdir artifacts
           tar --exclude="test" --exclude="harpy.egg-info" --exclude=".pixi" --exclude=".deprecated" --exclude="resources" --exclude="artifacts" --exclude=".git*" --exclude=".environments" -zcvf artifacts/harpy.${{ github.ref_name }}.tar.gz .
       - name: Create Release with Assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ./artifacts/harpy.${{ github.ref_name }}.tar.gz
