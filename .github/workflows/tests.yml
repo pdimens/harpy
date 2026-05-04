@@ -27,7 +27,7 @@ jobs:
       preproc: ${{ steps.filter.outputs.preproc }}
       qc: ${{ steps.filter.outputs.qc }}
       align: ${{ steps.filter.outputs.align }}
-      snp: ${{ steps.filter.outputs.mpileup }}
+      snp: ${{ steps.filter.outputs.snp }}
       leviathan: ${{ steps.filter.outputs.leviathan }}
       naibr: ${{ steps.filter.outputs.naibr }}
       impute: ${{ steps.filter.outputs.impute }}
