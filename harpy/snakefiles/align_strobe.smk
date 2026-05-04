@@ -93,22 +93,23 @@ rule mark_duplicates:
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params:
-        tmprefix = lambda wc: f"samples/{wc.sample}/.{wc.sample}",
+        tmprefix = lambda wc: f"samples/{wc.sample}/tmp",
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
-        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
+        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().strip()
     resources:
         mem_mb = 2000
     threads:
         2
     shell:
         """
+        mkdir -p {params.tmprefix}
         {{
-            samtools collate -T {params.tmprefix}.collate -O -u {input.sam} - |
+            samtools collate -T {params.tmprefix}/collate -O -u {input.sam} |
             samtools fixmate -z on -m -u - - |
-            samtools view -h -u -q {params.quality} |
-            samtools sort -T {params.tmprefix}.sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {params.tmprefix}.mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
+            samtools view -h -u -q {params.quality} - |
+            samtools sort -T {params.tmprefix}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {params.tmprefix}/mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         rm -rf {params.tmprefix}*
         """
