@@ -89,11 +89,11 @@ rule mark_duplicates:
         optical ="logs/optical/{sample}.opt"
     output:
         bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "logs/markdup/{sample}.markdup.stats"
+        stats = "logs/markdup/{sample}.markdup.stats",
+        tmp = temp(directory("samples/{sample}/tmp"))
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params:
-        tmprefix = lambda wc: f"samples/{wc.sample}/tmp",
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
         opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().strip()
@@ -103,15 +103,13 @@ rule mark_duplicates:
         2
     shell:
         """
-        mkdir -p {params.tmprefix}
         {{
-            samtools collate -T {params.tmprefix}/collate -O -u {input.sam} |
+            samtools collate -T {output.tmp}/collate -O -u {input.sam} |
             samtools fixmate -z on -m -u - - |
             samtools view -h -u -q {params.quality} - |
-            samtools sort -T {params.tmprefix}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {params.tmprefix}/mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
+            samtools sort -T {output.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {output.tmp}/mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {params.tmprefix}*
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):
