@@ -184,7 +184,7 @@ class HarpyPrint():
         self.print(f"[red]Harpy:[/] v{__version__}", highlight=False)
         self.print("[red]Time:[/] " + self.time_now(), highlight=False)
         self.print(errortext + "\n")
-        self.print("[bold black]── ⚠ Error Reported by Snakemake")
+        self.print("[bold dim]── ⚠ Error Reported by Snakemake")
 
     def on_error(self, logfile: str, _time) -> None:
         """
@@ -322,7 +322,7 @@ class HarpyPrint():
             return
 
         if ("Error" in line or "Exception" in line or "Missing input files" in line) and not ("RuleException" in line or "CalledProcessError" in line):
-            #self.rule("[bold]Source of Error", style = "black")
+            #self.rule("[bold]Source of Error", style = "dim")
             self.print(line, highlight=False, soft_wrap = True, end = "", style = "red")
             for i in self.errortext:
                 self.print(i, highlight = False, soft_wrap = True, end = "", style="red")
@@ -344,7 +344,7 @@ class HarpyPrint():
             if "(100%) done" in i:
                 break
             if "Error in group" in i:
-                self.rule("[bold]Source of Error", style = "black")
+                self.rule("[bold]Source of Error", style = "dim")
                 #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
                 i = next(self.errortext).strip()
             if i.startswith("[") and i.strip().endswith("]"):
@@ -372,7 +372,7 @@ class HarpyPrint():
         if self.missingoutput:
             for i in self.missingoutput:
                 i = i.partition("Waiting at most")[0]
-                self.print("[bold black]── ⚠ Error Reported by Snakemake")
+                self.print("[bold dim]── ⚠ Error Reported by Snakemake")
                 self.print(i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
 
 
@@ -382,7 +382,7 @@ class HarpyPrint():
             if self.missingoutput:
                 _i = self.missingoutput.pop(0)
                 _i = _i.partition("Waiting at most")[0]
-                self.print("[bold black]── ⚠ Error Reported by Snakemake")
+                self.print("[bold dim]── ⚠ Error Reported by Snakemake")
                 self.print(_i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
             self.print_logfile(txt)
             return
@@ -416,7 +416,7 @@ class HarpyPrint():
                 break
             text += i
         self.print("")
-        self.print("[bold black]── ❯ Command Invoked")
+        self.print("[bold dim]── ❯ Command Invoked")
         self.shell(text.strip("\n"))
 
 
@@ -425,7 +425,7 @@ class HarpyPrint():
         merged_text = ""
         _log = errline.rstrip().split()[1]
         self.print("")
-        self.print(f"[bold black]── 🗎 {_log.rstrip(':')}")
+        self.print(f"[bold dim]── 🗎 {_log.rstrip(':')}")
         if "empty file" in errline:
             self.print(f"{_log.replace(':','')} is empty\n", style = "dim")
             _ = next(self.errortext)
