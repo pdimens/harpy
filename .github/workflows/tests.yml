@@ -26,10 +26,8 @@ jobs:
       deconvolve: ${{ steps.filter.outputs.deconvolve }}
       preproc: ${{ steps.filter.outputs.preproc }}
       qc: ${{ steps.filter.outputs.qc }}
-      bwa: ${{ steps.filter.outputs.bwa }}
-      strobealign: ${{ steps.filter.outputs.strobealign }}
-      mpileup: ${{ steps.filter.outputs.mpileup }}
-      freebayes: ${{ steps.filter.outputs.freebayes }}
+      align: ${{ steps.filter.outputs.align }}
+      snp: ${{ steps.filter.outputs.mpileup }}
       leviathan: ${{ steps.filter.outputs.leviathan }}
       naibr: ${{ steps.filter.outputs.naibr }}
       impute: ${{ steps.filter.outputs.impute }}
@@ -164,32 +162,11 @@ jobs:
         run: |
           harpy deconvolve --quiet 2 test/fastq && \
           ls -lh Deconvolve
-  
-  bwa:
-    needs: changes
-    if: ${{ needs.changes.outputs.bwa == 'true' }}
-    name: align BWA
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-      - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.5
-        with:
-          cache: false
-          activate-environment: true
-      - run: pixi run build
-      - name: test bwa
-        run: |
-          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
-          ls -lh Align/bwa
 
-  strobe:
+  align:
     needs: changes
-    if: ${{ needs.changes.outputs.strobealign == 'true' }}
-    name: align strobe
+    if: ${{ needs.changes.outputs.align == 'true' }}
+    name: align
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -206,11 +183,15 @@ jobs:
         run: |
           harpy align strobe --quiet 2 test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/strobealign
+      - name: test bwa
+        run: |
+          harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
+          ls -lh Align/bwa
 
-  mpileup:
+  snp:
     needs: changes
-    if: ${{ needs.changes.outputs.mpileup == 'true' }}
-    name: mpileup
+    if: ${{ needs.changes.outputs.snp == 'true' }}
+    name: snp
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -229,33 +210,16 @@ jobs:
           ls -lh SNP/mpileup
       - name: snp mpileup-pop
         run: |
-          harpy snp mpileup --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
-          ls -lh SNP/poptest
-
-  freebayes:
-    needs: changes
-    if: ${{ needs.changes.outputs.freebayes == 'true' }}
-    name: freebayes
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 1
-      - name: Install Harpy
-        uses: prefix-dev/setup-pixi@v0.9.5
-        with:
-          cache: false
-          activate-environment: true
-      - run: pixi run build
+          harpy snp mpileup --quiet 2 -r test/positions.bed -O SNP/mppoptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          ls -lh SNP/mppoptest
       - name: snp freebayes
         run: |
           harpy snp freebayes --quiet 2 -r test/positions.bed -x "-g 200" test/genome/genome.fasta.gz test/bam && \
           ls -lh  SNP/freebayes
       - name: snp freebayes-pop
         run: |
-          harpy snp freebayes --quiet 2 -r test/positions.bed -O SNP/poptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
-          ls -lh SNP/poptest
+          harpy snp freebayes --quiet 2 -r test/positions.bed -O SNP/fbpoptest -p test/samples.groups test/genome/genome.fasta.gz test/bam && \
+          ls -lh SNP/fbpoptest
 
   impute:
     needs: changes

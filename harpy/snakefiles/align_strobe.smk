@@ -103,6 +103,7 @@ rule mark_duplicates:
         2
     shell:
         """
+        mkdir -p {output.tmp}
         {{
             samtools collate -T {output.tmp}/collate -O -u {input.sam} |
             samtools fixmate -z on -m -u - - |
