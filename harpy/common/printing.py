@@ -358,7 +358,7 @@ class HarpyPrint():
                 sys.exit(1)
             if "Error in rule" in i or "Error in group" in i:
                 #self.print(f"[yellow bold]── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
-                self.rule(f"[yellow bold]Triggering Rule[/][default bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
+                self.rule(f"[default bold]Triggering Rule[/][yellow bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
                 #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
             elif i.strip().startswith("shell:"):
                 self.format_shell()

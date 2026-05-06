@@ -5,6 +5,7 @@ import random
 import string
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+#@click.option("--pdf", required = True, type=str)
 @click.argument("notebook", required = True, type=click.File())
 @click.argument("text", nargs = -1, type = str)
 @click.help_option('--help', hidden = True)
@@ -16,12 +17,12 @@ def process_notebook(notebook, text):
     sequentially. In other words, the first instance is replaced with the first argument, second with the
     second, etc. Also replaces the date-time placeholder with the actual date, adds the remove-cell tag to
     injected paramters, and replaces lowercase instances of placeholder with a 15 digit random alphanumeric string.
-    Writes to stdout. Example:
+    The `--pdf` option replaces `PDF_FILE` of `PDF_FILE-placeholder.pdf`.Writes to stdout. Example:
     
-    process-notebook input.ipynb arg1 arg2... > output.ipynb
+    process-notebook --pdf aloe input.ipynb arg1 arg2... > output.ipynb
     """
     _date = datetime.now().strftime('%Y-%m-%d')
-    random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
+    uid = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     text = list(text)
     for line in notebook:
         if line.startswith("Ctrl click to launch"):
@@ -37,5 +38,5 @@ def process_notebook(notebook, text):
         elif "injected-parameters" in line:
             line = line.replace('"injected-parameters"', '"injected-parameters",\n"remove-cell"')
         if "placeholder" in line:
-            line = line.replace("placeholder", random_string)
+            line = line.replace("placeholder", uid)
         sys.stdout.write(line)
