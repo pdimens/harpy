@@ -58,27 +58,6 @@ def nxx_polars(lengths: list[int] | pd.Series | pl.Series, X: int = 50) -> int:
             return i
     return max(lengths)
 
-#def binned_histogramBAK(data: pd.Series, bin_size: int|float, normalize: bool = False):
-#    '''
-#    Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`
-#    with columns ['bin','count']. If `normalize=True`, returns a DataFrame with columns ['bin', 'propportion'].
-#    '''
-#    col_max = int(data.max())
-#    # Creates bins [0-500), [500-1000), etc.
-#    bins = np.arange(0, col_max + bin_size, bin_size)
-#    if isinstance(bin_size, int):
-#        labels = [f"{i}" for i in range(0, col_max, bin_size)]
-#    else:
-#        labels = [f"{round(x * bin_size,2)}" for x in range(0, int(1 / bin_size) + 1)]
-#    binned = pd.cut(data, bins=bins, labels=labels[:len(bins)-1], include_lowest=True)
-#    colname = 'proportion' if normalize else 'count'
-#
-#    binned_counts = binned.value_counts(normalize = normalize).sort_index()
-#    return pd.DataFrame({
-#                'bin': binned_counts.index,
-#                colname: binned_counts.values
-#            })
-
 def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = False, max_val = 0, precision = 2) -> pd.DataFrame:
     '''
     Calculates a binned histogram of counts from the input `data['column']` for bins of size `bin_size`

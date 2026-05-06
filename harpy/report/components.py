@@ -1,4 +1,5 @@
 import base64
+from contextlib import contextmanager
 import gzip
 import html
 import json
@@ -11,6 +12,22 @@ import uuid
 import altair as alt
 import pandas as pd
 from .theme import palette
+
+@contextmanager
+def SafeRender(data):
+    '''
+    Given a Pandas/Polars DataFrame (or list), will temporarily set the Altair render engine to SVG
+    to avoid the 5000 max row cutoff.
+    '''
+    previous = alt.renderers.active
+    if len(data) > 5000:
+        alt.data_transformers.disable_max_rows()
+        alt.renderers.enable("svg")
+    try:
+        yield
+    finally:
+        alt.data_transformers.enable('default', max_rows=5000)
+        alt.renderers.enable(previous)
 
 class StatsBox:
     '''
@@ -171,120 +188,6 @@ class JSFunction:
     """Wraps a raw JS string so it can be injected without JSON quoting."""
     def __init__(self, js):
         self.js = js.strip()
-
-#TODO flag for removal
-class BAKITable:
-    """
-    Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
-    Works in Jupyter notebooks and static MyST/Jupyter Book pages. `df` is the DataFrame
-    to display, and `frozen_cols` is the number of columns to pin/freeze on the left. Includes
-    additional configurable fields `theme`, `row_height`, and `header_height`.
-    """
-    def __init__(self, df, filename: str, fixedcols: int = 0):
-        self.theme: str = "ag-theme-quartz"
-        self.row_height: int = 28
-        self.header_height: int = 32
-        self.filename: str = filename
-        self.col_defs = [{"field": col, **({"pinned": "left"} if i < fixedcols else {})} for i, col in enumerate(df.columns)]
-        self.row_data = df.to_dicts() if hasattr(df, "to_dicts") else df.to_dict(orient="records")
-        self.grid_id = f"grid-{id(df)}"
-        self.grid_ref = f"aggrid_{id(df)}"
-        # save autosize coldef for a rainy day?
-        ##autosize = {"autoSizeStrategy": "AutoSizeStrategy" = {"type": "fitCellContents", "defaultMaxWidth": 150, "defaultMinWidth": 80, "scaleUpToFitGridWidth": true}}
-        
-    def _serialize_col_defs(self):
-        """Serialize col_defs, injecting JSFunction values as raw JS."""
-        parts = []
-        for col in self.col_defs:
-            field_parts = []
-            for k, v in col.items():
-                if isinstance(v, JSFunction):
-                    field_parts.append(f'"{k}": {v.js}')
-                else:
-                    field_parts.append(f'"{k}": {json.dumps(v)}')
-            parts.append("{" + ", ".join(field_parts) + "}")
-        return "[" + ", ".join(parts) + "]"
-
-    def render(self, html: bool = False):
-        '''Create the AG-Grid HTML and render it'''
-        _html = f"""
-        <button
-            onclick="(function(){{ var g = document.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName : "{self.filename}"}}); }})()"
-            style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
-        >
-            Export CSV
-        </button>
-
-        <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
-        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
-
-        <script>
-            (function() {{
-                const columnDefs = {self._serialize_col_defs()};
-                const rowData = {json.dumps(self.row_data, default=str)};
-
-                const gridOptions = {{
-                    columnDefs: columnDefs,
-                    rowData: rowData,
-                    defaultColDef: {{
-                        sortable: true,
-                        filter: true,
-                        resizable: true,
-                    }},
-                    autoSizeStrategy: AutoSizeStrategy = {{
-                        type: "fitCellContents",
-                        defaultMaxWidth: 150,
-                        defaultMinWidth: 80,
-                    }},
-                    domLayout: "autoHeight",
-                    animateRows: false,
-                    pagination: true,
-                    paginationPageSize: 20,
-                    rowHeight: {self.row_height},
-                    headerHeight: {self.header_height},
-                }};
-
-                const container = document.getElementById("{self.grid_id}");
-
-                function syncTheme() {{
-                    container.setAttribute(
-                        "data-ag-theme-mode",
-                        document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
-                    );
-                }}
-        
-                function numberParser(params) {{
-                const newValue = params.newValue;
-                let valueAsNumber;
-                if (newValue === null || newValue === undefined || newValue === "") {{
-                    valueAsNumber = null;
-                }} else {{
-                    valueAsNumber = parseFloat(params.newValue);
-                }}
-                return valueAsNumber;
-                }}
-
-                function tryInit(attempts) {{
-                    if (typeof agGrid !== "undefined") {{
-                        requestAnimationFrame(() => {{
-                            requestAnimationFrame(() => {{
-                                syncTheme();
-                                document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
-                                new MutationObserver(syncTheme).observe(document.documentElement, {{
-                                    attributes: true, attributeFilter: ["class"]
-                                }});
-                            }});
-                        }});
-                    }} else if (attempts > 0) {{
-                        setTimeout(() => tryInit(attempts - 1), 100);
-                    }}
-                }}
-                tryInit(20);
-            }})();
-        </script>    """
-        if html:
-            return _html
-        return display(HTML(_html))
 
 class ITable:
     """

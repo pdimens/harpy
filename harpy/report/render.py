@@ -297,7 +297,7 @@ def myst_yaml() -> dict:
         git_url = subprocess.run("git remote get-url origin".split(), text = True, stdout = subprocess.PIPE).stdout.strip().removesuffix(".git")
     except Exception:
         git_url = ""
-    d = {
+    return {
         "version" : 1,
         "site" : {
             "template": "book-theme",
@@ -323,4 +323,3 @@ def myst_yaml() -> dict:
             "toc": [{"file" : ".report/index.md"}]
         }
     }
-    return d
