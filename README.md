@@ -12,7 +12,7 @@
 </p>
 
 ## 📥 Install
-Detailed installation instructions are described in [the documentation](https://pdimens.github.io/harpy/install/). 
+Detailed installation instructions are described in [the documentation](https://pdimens.github.io/harpy/getting_started/install/). 
 ### 🐍 Conda
 ```bash
 conda create -n harpy -c bioconda -c conda-forge harpy

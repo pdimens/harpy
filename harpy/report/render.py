@@ -318,7 +318,7 @@ def myst_yaml() -> dict:
             "id": rand_id(),
             **({"github" : git_url} if git_url else {}),
             "edit_url": 'null',
-            "title" : f"Harpy Reports (v{__version__})",
+            "title" : f"{os.path.basename(os.getcwd())}",
             "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }
