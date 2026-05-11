@@ -7,6 +7,7 @@ import subprocess
 import sys
 import glob
 import rich_click as click
+import yaml
 from harpy.commands.report import ReportRender
 from harpy.common.printing import HarpyPrint
 from harpy.common.file_ops import fetch_template
@@ -78,7 +79,8 @@ def report(update, action):
     Creates `myst.yml` at the project root and the landing page `.report/index.md` if
     they don't already exist. Use `--action` to also configure a GitHub Action
     that automatically builds and publishes the reports as a single website
-    to GitHub on a push to the remote repository. 
+    to GitHub on a push to the remote repository. If using `--action`, Harpy will attempt to
+    add a Dependabot workflow to make sure the Actions periodically get updated to prevent breaking.
     """
     git_dir = ""
     git_dir_err = ""
@@ -104,6 +106,35 @@ def report(update, action):
                     )
     if action:
         fetch_template("buildreports.yml", os.path.join(git_dir, ".github", "workflows", "buildreports.yml"))
+        hp.notice(
+            (
+                "You will need to configure your GitHub repository to deploy Pages via GitHub Actions. To do that, navigate to the repository [blue]Settings[/] on GitHub, "
+                "go to the [blue]Pages[/] section (via left sidebar) and set [blue]Build and deployment>Source[/] to [green]GitHub Actions[/]."
+            )
+        )
+        dependabot_entry = {
+            "package-ecosystem": "github-actions",
+            "directory": "/",
+            "schedule": {"interval": "monthly"},
+            "groups": {"dependencies": {"patterns": ["*"]}},
+            "cooldown": {"default-days": 7}
+        }
+
+        dependabot_path = os.path.join(git_dir, ".github", "dependabot.yml")
+        needs_update = False
+        if not os.path.isfile(dependabot_path):
+            data = {"version": 2, "updates": [dependabot_entry]}
+            needs_update = True
+        else:
+            with open(dependabot_path, "r") as f:
+                data = yaml.safe_load(f)
+            existing_ecosystems = [u.get("package-ecosystem") for u in data.get("updates", [])]
+            if "github-actions" not in existing_ecosystems:
+                data["updates"].append(dependabot_entry)
+                needs_update = True
+        if needs_update:
+            with open(dependabot_path, "w") as f:
+                yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
     _init = ReportRender(git_dir)
     if update:
         _init.scan_for_reports()
