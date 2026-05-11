@@ -1,5 +1,5 @@
 ---
-title: Welcome to My Landing Page
+title: Harpy Reports
 site:
   hide_outline: true
   hide_title_block: true
@@ -15,24 +15,18 @@ edit_url: null
 :align: center
 ```
 
-::::{{grid}} 1 1 2 3
+::::{{grid}} 1 1 2 2
 :class: col-page-right
 :::{{card}}
 :header: Harpy Reports 📝
-This is an aggregation of `.ipynb` reports produced by Harpy ([](https://doi.org/10.1093/bioadv/vbaf133)), rendered
-in HTML by [MyST](https://mystmd.org/). Use the left sidebar
-to navigate the directories and their reports.
+This is an aggregation of `.ipynb` reports produced by Harpy ([](https://doi.org/10.1093/bioadv/vbaf133)),
+rendered in HTML by [MyST](https://mystmd.org/). Use the left sidebar to navigate the directories and their reports.
+Stand-alone reports from other software (_e.g._ `MultiQC`) are not included due to software limitations.
 :::
 
 :::{{card}}
 :header: Let us know of issues 🚩
 If there are issues/errors in these reports, please [submit
 an Issue](https://github.com/pdimens/harpy/issues/new/choose) on GitHub. 
-:::
-
-:::{{card}}
-:header: What you will find 🔎
-Stand-alone HTML reports created by other software (_e.g._ `fastp` or `MultiQC`) are not inlcluded into this aggregation due to
-software limitations. 
 :::
 ::::
