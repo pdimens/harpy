@@ -37,8 +37,10 @@ class ReportRender():
                 ):
                 indexmd.write(md.read().format(__version__))
 
-        if not os.path.isfile(os.path.join(root, ".report", "favicon.png")):
-            shutil.copy(str(resources.files("harpy.report") / 'favicon.png'), os.path.join(root, ".report", "favicon.png"))
+        if not os.path.isfile(os.path.join(root, ".report", "favicon.ico")):
+            shutil.copy(str(resources.files("harpy.report") / 'favicon.ico'), os.path.join(root, ".report", "favicon.ico"))
+        if not os.path.isfile(os.path.join(root, ".report", "logo.svg")):
+            shutil.copy(str(resources.files("harpy.report") / 'logo.svg'), os.path.join(root, ".report", "logo.svg"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
             self.print.error(
@@ -302,15 +304,14 @@ def myst_yaml() -> dict:
         "site" : {
             "template": "book-theme",
             "actions" : [
-                {"title": "🗨️ Discuss", "url": "https://github.com/pdimens/harpy/discussions"},
                 {"title": "📖 Docs", "url": "https://pdimens.github.io/harpy"}
             ],
             "options" : {
-                "favicon" : ".report/favicon.png",
+                "favicon" : ".report/favicon.ico",
                 "folders": True,
                 "hide_footer_links" : True,
-                "hide_myst_branding" : True,
-                "logo" : ".report/favicon.png",
+                #"hide_myst_branding" : True,
+                "logo" : ".report/logo.svg",
                 "logo_text" : "Harpy Reports"
             },
         },
