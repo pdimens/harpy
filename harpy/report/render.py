@@ -41,6 +41,8 @@ class ReportRender():
             shutil.copy(str(resources.files("harpy.report") / 'favicon.ico'), os.path.join(root, ".report", "favicon.ico"))
         if not os.path.isfile(os.path.join(root, ".report", "logo.svg")):
             shutil.copy(str(resources.files("harpy.report") / 'logo.svg'), os.path.join(root, ".report", "logo.svg"))
+        if not os.path.isfile(os.path.join(root, ".report", "logo-dark.svg")):
+            shutil.copy(str(resources.files("harpy.report") / 'logo-dark.svg'), os.path.join(root, ".report", "logo-dark.svg"))
 
         if not isinstance(_yml, dict) or "project" not in _yml or "site" not in _yml:
             self.print.error(
@@ -312,6 +314,7 @@ def myst_yaml() -> dict:
                 "hide_footer_links" : True,
                 #"hide_myst_branding" : True,
                 "logo" : ".report/logo.svg",
+                "logo_dark" : ".report/logo-dark.svg",
                 "logo_text" : "Harpy Reports"
             },
         },
