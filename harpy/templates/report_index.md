@@ -6,27 +6,16 @@ site:
 edit_url: null
 ---
 
-{{button}}`Harpy Version {0} <https://github.com/pdimens/harpy>`
++++ {"kind": "justified", "class": "col-page-right"}
 
-```{{image}} https://github.com/pdimens/harpy/blob/docs/static/logo_trans.png?raw=true
-:class: col-page-right
-:alt: The Harpy software logo
-:width: 100%
-:align: center
-```
+Harpy Version 4.0
 
-::::{{grid}} 1 1 2 2
-:class: col-page-right
-:::{{card}}
-:header: Harpy Reports 📝
-This is an aggregation of `.ipynb` reports produced by Harpy ([](https://doi.org/10.1093/bioadv/vbaf133)),
-rendered in HTML by [MyST](https://mystmd.org/). Use the left sidebar to navigate the directories and their reports.
+### Harpy Reports 📝
+
+This is an aggregation of `.ipynb` reports produced by Harpy,
+rendered in HTML by [MyST](https://mystmd.org). Use the left sidebar to navigate the directories and their reports.
 Stand-alone reports from other software (_e.g._ `MultiQC`) are not included due to software limitations.
-:::
-
-:::{{card}}
-:header: Let us know of issues 🚩
 If there are issues/errors in these reports, please [submit
-an Issue](https://github.com/pdimens/harpy/issues/new/choose) on GitHub. 
-:::
-::::
+an Issue](https://github.com/pdimens/harpy/issues/new/choose). 
+
+{button}`See the publication <https://doi.org/10.1093/bioadv/vbaf133>`
