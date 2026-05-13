@@ -303,7 +303,7 @@ class ITable:
         # DecompressionStream when the compressed path is active.
         _html = f"""
         <button
-            onclick="(function(){{ var g = document.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: "{self.filename}"}}); }})()"
+            onclick="(function(){{ var g = window.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: '{self.filename}'}}); }})()"
             style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
         >
             Export CSV
@@ -354,7 +354,7 @@ class ITable:
                         requestAnimationFrame(() => {{
                             requestAnimationFrame(() => {{
                                 syncTheme();
-                                document.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+                                window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
                                 new MutationObserver(syncTheme).observe(
                                     document.documentElement,
                                     {{ attributes: true, attributeFilter: ["class"] }}
