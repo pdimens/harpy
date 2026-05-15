@@ -302,6 +302,12 @@ class ITable:
         # Wrap everything in an async IIFE so we can use `await` for
         # DecompressionStream when the compressed path is active.
         _html = f"""
+        <style>
+            .ag-theme-quartz, .ag-theme-quartz-dark {{
+                --ag-font-family: sans-serif;
+            }}
+        </style>
+
         <button
             onclick="(function(){{ var g = window.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: '{self.filename}'}}); }})()"
             style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
@@ -329,8 +335,8 @@ class ITable:
                     }},
                     autoSizeStrategy: {{
                         type: "fitCellContents",
-                        defaultMaxWidth: 150,
-                        defaultMinWidth: 80,
+                        defaultMaxWidth: 170,
+                        defaultMinWidth: 90,
                     }},
                     domLayout: "autoHeight",
                     animateRows: false,
