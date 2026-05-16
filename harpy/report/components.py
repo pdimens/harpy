@@ -53,37 +53,53 @@ class StatsBox:
             '</div>'
         )
 
-    def add(self, value, label, plus_minus: str|int|float = '', textcol=None):
+    def add(self, value, label, plus_minus: str|int|float = '', textcol=None, units=None):
         '''
-        Return the html of a colored box object with `value` and `label`. 
+        Return the html of a colored box object with `value` and `label`. Units get added to the plusminus text if they are present,
+        otherwise added to the main value.
         
         Args:
             value: Main metric to display
             label: Title of the metric
             plus_minus: smaller text to add if there is a plus-minus value
             textcol: color to make the value text
+            units: add units to the end without spaces (e.g. 'bp')
         '''
         _val = value if isinstance(value, str) else f"{value:,.2f}".rstrip('0').rstrip('.')
         _col = textcol or 'var(--tw-prose-body, #666666)'
         pm_str = f'±{plus_minus}' if plus_minus else ''
+        pm_str = pm_str + units if units else pm_str
         self.boxes.append(
             self.html.format(label = label, value = _val, color = _col, plus_minus=pm_str)
         )
         return self
 
-    def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, plus_minus: str|int|float = ''):
-      '''
-      Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
-      the value by 100 for printing purposes.
-      The `color` is either yellow or green depending on what is determined better or worse than the `cutoff`:
-      - `lower_bad=True`: `color` = yellow when value < cutoff (default)
-      - `lower_bad=False`: `color` = yellow when value >= cutoff 
-      '''
-      if lower_bad:
-        color = "#f6ab3c" if value < cutoff else None
-      else:
-        color = "#f6ab3c" if value >= cutoff else None
-      return self.add(value if not as_percent else f"{value * 100}%", label, plus_minus=plus_minus, textcol = color)
+    def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, plus_minus: str|int|float = '', add_percent:bool = False, digits = None):
+        '''
+        Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
+        the value by 100 for printing purposes. Use `digits` as a stand-in for rounding. Using `add_percent` to add `%`
+        the end without multiplying by 100.
+        The `color` is either yellow or green depending on what is determined better or worse than the `cutoff`:
+        - `lower_bad=True`: `color` = yellow when value < cutoff (default)
+        - `lower_bad=False`: `color` = yellow when value >= cutoff
+        '''
+        if lower_bad:
+            color = "#f6ab3c" if value < cutoff else None
+        else:
+            color = "#f6ab3c" if value >= cutoff else None
+
+        if as_percent:
+            _v = value * 100
+            _v = round(_v, digits) if digits else _v
+            value = f"{_v}%"
+        elif add_percent:
+            _v = round(value) if digits else value
+            value = f"{_v}%"
+        if not isinstance(plus_minus, str):
+            pm = round(plus_minus, digits) if digits else plus_minus
+        else:
+            pm = plus_minus
+        return self.add(value, label, plus_minus=pm, textcol = color)
 
     def render(self, gap: int = 5):
         '''Display all boxes in a horizontal row

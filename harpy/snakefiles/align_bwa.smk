@@ -185,7 +185,7 @@ rule molecule_stats:
         bam = "{sample}.bam",
         fai = f"{workflow_geno}.fai"
     output: 
-        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        stats = "reports/data/lrstats/{sample}.lrstats.gz",
         molcov = "reports/data/coverage/{sample}.molcov.gz"
     log:
         stats = "logs/molcov/{sample}.molcov.log",
@@ -198,25 +198,6 @@ rule molecule_stats:
         harpy-utils bx-stats-sam -d {params.dist} {input.bam} 2> {log.stats} | gzip > {output.stats}
         harpy-utils molecule-coverage -w {params.window} {input.fai} {output.stats} 2> {log.molcov} | gzip > {output.molcov}
         """
-
-#rule xxsamtools_report:
-#    input: 
-#        collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
-#    output: 
-#        "reports/bwa.stats.html"
-#    log:
-#        "logs/multiqc.log"
-#    params:
-#        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
-#        title = "--title \"Basic Alignment Statistics\"",
-#        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\"",
-#        outdir = "reports/data/samtools_stats reports/data/samtools_flagstat"
-#    conda:
-#        "envs/qc.yaml"
-#    container:
-#        f"docker://pdimens/harpy:qc_{VERSION}"
-#    shell:
-#        "multiqc {params} > {output} 2> {log}"
 
 rule samtools_report:
     input:
@@ -240,7 +221,7 @@ rule samtools_report:
 
 rule sample_reports:
     input:
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        lrstats = "reports/data/lrstats/{sample}.lrstats.gz",
         coverage = "reports/data/coverage/{sample}.regions.bed.gz",
         molcov = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
@@ -265,16 +246,16 @@ rule sample_reports:
 
 rule linked_read_report:
     input:
-        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
+        collect("reports/data/lrstats/{sample}.lrstats.gz", sample = samplenames),
         ipynb = f"workflow/align_lrstats.ipynb"
     output:
         tmp = temp("reports/linkedreads.summary.tmp.ipynb"),
         ipynb = "reports/linkedreads.summary.ipynb"
     params:
         lr_type = lr_type,
-        indir = "-p indir " + os.path.abspath("reports/data/bxstats")
+        indir = "-p indir " + os.path.abspath("reports/data/lrstats")
     log:
-        f"logs/reports/bxstats.report.log"
+        f"logs/reports/lrstats.report.log"
     shell:
         """
         {{

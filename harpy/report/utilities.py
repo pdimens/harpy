@@ -4,6 +4,11 @@ import pandas as pd
 import polars as pl
 from harpy.common.file_ops import safe_read
 
+class StopExecution(Exception):
+    '''An exception type to prematurely end a notebook without it being considered an error'''
+    def _render_traceback_(self):
+        return []
+
 def extract_metric(x: list[str], param: str):
     '''Convenience function to find the relevnant sections of the bcftools.stats file and return a table'''
     selectiontext = "".join(s for s in x if s.startswith(f"{param}\t"))
