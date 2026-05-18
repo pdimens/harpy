@@ -4,7 +4,6 @@ from datetime import datetime
 import re
 import sys
 import subprocess
-import time
 from harpy.common.file_ops import purge_empty_logs
 from harpy.common.printing import HarpyPrint
 
@@ -275,7 +274,7 @@ class LaunchSnakemake():
         if self.exitcode <= 0:
             self.exitcode = max(self.exitcode, 0)
             return
-        
-        for line in self.process.stderr:
+        stderr_output = self.process.stderr.read()
+        for line in stderr_output.splitlines(keepends=True):
             if not line.strip().endswith(", in <module>"):
                 self.errorlog.append(line)

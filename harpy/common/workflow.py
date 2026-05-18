@@ -315,8 +315,6 @@ class Workflow():
         """Launch Snakemake as a monitored subprocess"""
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
         sm = LaunchSnakemake(cmd, self.output_directory, self.quiet, self.print)
-        #print(sm.exitcode)
-        #return
         if self.clean:
             self.print.rule("[dim]Cleaning Output", style = "dim")
             for i,j in zip(["w", "s", "l"], ["workflow", ".snakemake", "logs"]):
