@@ -111,12 +111,13 @@ def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: boo
     with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
     '''
     col_max = max_val if max_val else int(data.max())
-    bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
+    bins = np.arange(0, col_max + bin_size, bin_size).round(precision)
+    #bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
     
     labels = [f"{round(i, precision)}-{round(i + bin_size, precision)}" for i in bins]
 
     # Cut into bins using searchsorted
-    bin_indices = np.searchsorted(bins, data.to_numpy(), side='right') - 1
+    bin_indices = np.searchsorted(bins, data.to_numpy(), side='left') - 1
     bin_indices = np.clip(bin_indices, 0, len(bins) - 2)
 
     colname = 'proportion' if normalize else 'count'
