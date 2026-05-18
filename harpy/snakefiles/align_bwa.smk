@@ -210,7 +210,6 @@ rule samtools_report:
         tmp = temp("reports/bwa.summary.tmp.ipynb"),
         ipynb = "reports/bwa.summary.ipynb"
     params:
-        lr_type = lr_type,
         indir = "-p indir " + os.path.abspath("reports/data")
     log:
         f"logs/reports/bwa.report.log"
@@ -218,7 +217,7 @@ rule samtools_report:
         """
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr_type}
+            harpy-utils process-notebook {output.tmp}
         }} 2> {log} > {output.ipynb}
         """
 
