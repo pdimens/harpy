@@ -27,6 +27,28 @@ def last_line(filename: str) -> str:
             last_line = line
         return last_line.strip()
 
+
+# this isn't a real thing, just an idea
+#def mxx(reads, X: int = 50) -> int:
+#    '''
+#    Calculate and return the MX value of a list of numbers, where `X` is the kind of MX
+#    value you want. MX is the number of molecules containing X percent of all your reads.
+#    Sort of like an NX, but specific to linked reads to get an idea of data partitioning.
+#    '''
+#    threshold = sum(reads) * (X / 100)
+#    if isinstance(reads, (pd.Series, pl.Series)):
+#        _l = reads.to_list()
+#    else:
+#        _l = list(reads)
+#    _l.sort(reverse=True)
+#    cum_sum = 0
+#    for j,i in enumerate(_l,1):
+#        cum_sum += i
+#        if cum_sum >= threshold:
+#            return j
+#    return len(reads)
+
+
 def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
     '''
     Calculte and return the NX value of a list of numbers, where `X` is
