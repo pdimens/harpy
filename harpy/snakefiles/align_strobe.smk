@@ -65,7 +65,8 @@ rule align:
         fastq = get_fq,
         genome = workflow_geno
     output:  
-        pipe("samples/{sample}/{sample}.strobe.sam")
+        sam = pipe("samples/{sample}/{sample}.strobe.sam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats"
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -81,7 +82,10 @@ rule align:
     container:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        "strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} > {output}"
+        """
+        strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} |
+        tee >(samtools stats -x - > {output.stats}) > {output.sam}
+        """
 
 rule mark_duplicates:
     input:
@@ -131,7 +135,7 @@ rule sample_stats:
         "{sample}.bam"
     output: 
         temp("{sample}.bam.bai"),
-        stats = "reports/data/samtools_stats/{sample}.stats",
+        stats = "reports/data/samtools_stats/{sample}.filtered.stats",
         depth = "reports/data/coverage/{sample}.regions.bed.gz"
     params:
         f"-b {windowsize}",
@@ -175,7 +179,7 @@ rule molecule_stats:
 
 rule samtools_report:
     input:
-        collect("reports/data/samtools_stats/{sample}.stats", sample = samplenames),
+        collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw","filtered"]),
         collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
         ipynb = f"workflow/samtools_stats.ipynb"
     output:

@@ -87,7 +87,8 @@ rule align:
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        pipe("samples/{sample}/{sample}.sam")
+        sam = pipe("samples/{sample}/{sample}.sam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats"
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -105,8 +106,9 @@ rule align:
         """
         {{
             bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
+            tee >(samtools stats -x - > {output.stats}) |
             samtools view -h -u {params.unmapped}
-        }} 2> {log} > {output}
+        }} 2> {log} > {output.sam}
         """     
 
 rule mark_duplicates:
@@ -114,7 +116,7 @@ rule mark_duplicates:
         sam    = "samples/{sample}/{sample}.sam",
         optical ="logs/optical/{sample}.opt"
     output:
-        bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam") ,
+        bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup",
         tmp = temp(directory("samples/{sample}/tmp"))
     log:
@@ -157,8 +159,8 @@ rule sample_stats:
         "{sample}.bam"
     output: 
         temp("{sample}.bam.bai"),
-        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
-        depth    = "reports/data/coverage/{sample}.regions.bed.gz"
+        stats = "reports/data/samtools_stats/{sample}.filtered.stats",
+        depth = "reports/data/coverage/{sample}.regions.bed.gz"
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
@@ -174,7 +176,7 @@ rule sample_stats:
         """
         {{
             samtools index {input}
-            samtools stats -d {input} > {output.stats}
+            samtools stats -x -d {input} > {output.stats}
             mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input}
         }} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
@@ -202,6 +204,7 @@ rule molecule_stats:
 rule samtools_report:
     input:
         collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
+        collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw", "filtered"]),
         ipynb = f"workflow/samtools_stats.ipynb"
     output:
         tmp = temp("reports/bwa.summary.tmp.ipynb"),
