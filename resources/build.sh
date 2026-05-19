@@ -11,20 +11,8 @@
 }
 
 ## CLI completions
-mkdir -p "$PREFIX/etc/conda/activate.d"
-mkdir -p "$PREFIX/share/harpy"
+mkdir -p $PREFIX/etc/conda/activate.d
+mkdir -p $PREFIX/etc/conda/deactivate.d
 
-# Pre-generate completion scripts
-_HARPY_COMPLETE=bash_source harpy > "$PREFIX/share/harpy/complete.bash"
-_HARPY_COMPLETE=zsh_source harpy  > "$PREFIX/share/harpy/complete.zsh"
-_HARPY_COMPLETE=fish_source harpy > "$PREFIX/share/harpy/complete.fish"
-
-# Write the activate hook
-cat > "$PREFIX/etc/conda/activate.d/harpy-completion.sh" << 'EOF'
-_shell=$(ps -p $$ -o comm= 2>/dev/null || basename "$SHELL")
-case "$_shell" in
-  bash) source "$CONDA_PREFIX/share/harpy/complete.bash" ;;
-  zsh)  source "$CONDA_PREFIX/share/harpy/complete.zsh"  ;;
-  fish) source "$CONDA_PREFIX/share/harpy/complete.fish" ;;
-esac
-EOF
+echo "export JUPYTER_NOTARY_DB=':memory:'" > ${PREFIX}/etc/conda/activate.d/my-package-activate.sh
+echo "unset JUPYTER_NOTARY_DB" > ${PREFIX}/etc/conda/deactivate.d/my-package-deactivate.sh
