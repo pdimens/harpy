@@ -118,8 +118,6 @@ class ITable:
     def render(self, html: bool = False):
         """Create the AG-Grid HTML and render it (or return the HTML string)."""
 
-        # Wrap everything in an async IIFE so we can use `await` for
-        # DecompressionStream when the compressed path is active.
         _html = f"""
         <style>
             .ag-theme-quartz, .ag-theme-quartz-dark {{
@@ -135,65 +133,66 @@ class ITable:
         </button>
 
         <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
-        <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
 
         <script>
-            (async function () {{
+        (async function () {{
 
-                {self._row_data_js()}
+                    /* ── dynamic loader: awaitable, idempotent ── */
+            await new Promise((resolve, reject) => {{
+                if (typeof agGrid !== "undefined") {{ resolve(); return; }}
+                const s = document.createElement("script");
+                s.src = "https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js";
+                s.onload = resolve;
+                s.onerror = reject;
+                document.head.appendChild(s);
+            }});
 
-                const columnDefs = {self._serialize_col_defs()};
+            {self._row_data_js()}
 
-                const gridOptions = {{
-                    columnDefs: columnDefs,
-                    rowData: rowData,
-                    defaultColDef: {{
-                        sortable: true,
-                        filter: true,
-                        resizable: true,
-                    }},
-                    autoSizeStrategy: {{
-                        type: "fitCellContents",
-                        defaultMaxWidth: 170,
-                        defaultMinWidth: 90,
-                    }},
-                    domLayout: "autoHeight",
-                    animateRows: false,
-                    pagination: true,
-                    paginationPageSize: 20,
-                    rowHeight: {self.row_height},
-                    headerHeight: {self.header_height},
-                }};
+            const columnDefs = {self._serialize_col_defs()};
 
-                const container = document.getElementById("{self.grid_id}");
+            const gridOptions = {{
+                columnDefs: columnDefs,
+                rowData: rowData,
+                defaultColDef: {{
+                    sortable: true,
+                    filter: true,
+                    resizable: true,
+                }},
+                autoSizeStrategy: {{
+                    type: "fitCellContents",
+                    defaultMaxWidth: 170,
+                    defaultMinWidth: 90,
+                }},
+                domLayout: "autoHeight",
+                animateRows: false,
+                pagination: true,
+                paginationPageSize: 20,
+                rowHeight: {self.row_height},
+                headerHeight: {self.header_height},
+            }};
 
-                function syncTheme() {{
-                    container.setAttribute(
-                        "data-ag-theme-mode",
-                        document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
+            const container = document.getElementById("{self.grid_id}");
+
+            function syncTheme() {{
+                container.setAttribute(
+                    "data-ag-theme-mode",
+                    document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
+                );
+            }}
+
+            requestAnimationFrame(() => {{
+                requestAnimationFrame(() => {{
+                    syncTheme();
+                    window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+                    new MutationObserver(syncTheme).observe(
+                        document.documentElement,
+                        {{ attributes: true, attributeFilter: ["class"] }}
                     );
-                }}
+                }});
+            }});
 
-                function tryInit(attempts) {{
-                    if (typeof agGrid !== "undefined") {{
-                        requestAnimationFrame(() => {{
-                            requestAnimationFrame(() => {{
-                                syncTheme();
-                                window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
-                                new MutationObserver(syncTheme).observe(
-                                    document.documentElement,
-                                    {{ attributes: true, attributeFilter: ["class"] }}
-                                );
-                            }});
-                        }});
-                    }} else if (attempts > 0) {{
-                        setTimeout(() => tryInit(attempts - 1), 100);
-                    }}
-                }}
-
-                tryInit(20);
-
-            }})();
+        }})();
         </script>
         """
 
