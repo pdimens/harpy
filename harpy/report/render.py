@@ -14,12 +14,13 @@ from harpy.common.printing import HarpyPrint
 from harpy import __version__
 
 class ReportRender():
-    def __init__(self, root: str = ""):
+    def __init__(self, root: str = "", markdown: bool = False):
         self.root = root
         self.configfile = os.path.join(root, "myst.yml")
         self.filetree: dict = {}
         self.filechanges: bool = False
         self.print = HarpyPrint()
+        self.markdown = markdown
         if not os.path.exists(self.configfile):
             _yml = myst_yaml()
             self.scan_for_reports()
@@ -72,10 +73,15 @@ class ReportRender():
     def scan_for_reports(self):
         """
         Recursively search `self.root` for files ending in `.ipynb`, filtering out those found in the _build/ directory
-        and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`. 
+        and converts that list of file paths into a nested dictionary tree structure stored as `self.filetree`.
         """
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/" not in i)
-        _dirs = set(os.path.dirname(i) for i in _ipynb)
+        if self.markdown:
+            _md = set(i for i in glob.iglob("**/*.md", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/" not in i)
+            _ipynb = _ipynb.union(_md)
+        #_dirs = set(os.path.dirname(i) for i in _ipynb)
+        # ← filter out ""
+        _dirs = set(d for d in (os.path.dirname(i) for i in _ipynb) if d)
         for path in _dirs:
             parts = Path(path).parts
             current = self.filetree           
@@ -128,7 +134,7 @@ class ReportRender():
                         # Check if directory contains any .ipynb files
                         has_ipynb = False
                         for root, dirs, files in os.walk(full_path):
-                            if any(f.endswith('.ipynb') for f in files):
+                            if any(f.lower().endswith('.ipynb') or f.lower().endswith('.md') for f in files):
                                 has_ipynb = True
                                 break
 
@@ -136,6 +142,7 @@ class ReportRender():
                             should_remove = True
 
                     if should_remove:
+                        self.print.print(f"[removed - no md/ipynb files] " + os.path.relpath(full_path), style = "dim", markup = False, soft_wrap = True)
                         items_to_remove.add(item)
 
                 # Remove invalid items
@@ -200,6 +207,8 @@ class ReportRender():
                         for i in value:
                             if "reports" in i:
                                 result.append({'pattern': f"{os.path.join(origpath, i, '**.ipynb')}"})
+                                if self.markdown:
+                                    result.append({'pattern': f"{os.path.join(origpath, i, '**.md')}"})
                             else:
                                 result.append({
                                     'title': i,
@@ -209,6 +218,8 @@ class ReportRender():
             else:
                 # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}
                 wildcard = os.path.join(origpath, "**.ipynb")
+                if self.markdown:
+                    return [{'pattern': wildcard}, {'pattern': os.path.join(origpath, "**.md")}]
                 return [{'pattern': wildcard}]
 
         return recursive_transform(self.filetree)

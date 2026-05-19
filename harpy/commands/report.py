@@ -13,13 +13,14 @@ from harpy.report.render import ReportRender
 @click.command(epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
+@click.option('-m', '--md', is_flag = True, help = 'Also scan for markdown files (.md)')
 @click.option('-c', '--clear-cache', is_flag = True, default = False, help = 'Remove `_build` directory prior to server launch')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 0, help = 'Refresh interval, in seconds (disabled with `0`)')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
 @click.help_option('--help', hidden = True)
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
-def report(directory, debug, headless, clear_cache, port, server_port, refresh):
+def report(directory, debug, md, headless, clear_cache, port, server_port, refresh):
     """
     Render ipynb reports as a local website
 
@@ -44,7 +45,7 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     if os.path.isdir("_build") and clear_cache:
         rmtree("_build", ignore_errors=True)
 
-    tracker = ReportRender(directory if directory else "")
+    tracker = ReportRender(directory if directory else "", md)
     tracker.scan_for_reports()
     tracker.update_yaml()
     URL = ""
