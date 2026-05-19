@@ -1,13 +1,14 @@
 """Harpy module to create a sample grouping file"""
 
-import copy
 import glob
+import hashlib
 from importlib import resources
+import json
 import os
 from pathlib import Path
 import shutil
-import uuid
 import subprocess
+import uuid
 import yaml
 from harpy.common.printing import HarpyPrint
 from harpy import __version__
@@ -52,19 +53,21 @@ class ReportRender():
             )
         if "toc" in _yml["project"]:
             self.toc_to_filetree(_yml["project"].pop("toc"))
+        else:
+            self.checksum = checksum(self.filetree)
         self.config: dict = _yml
 
     def update_yaml(self):
         """
         Convert self.filelist to a MyST-formatted table of contents and overwrite `self.configfile` with the updated table of contents
         """
-        if not self.filechanges:
+        if self.checksum == checksum(self.filetree):
             return
         self.config["project"]["toc"] = self.filetree_to_toc()
         with open(self.configfile, "w") as yml:
             yaml.dump(self.config, yml, default_flow_style= False, sort_keys=False, width=float('inf'))
         del self.config["project"]["toc"]
-        self.filechanges = False
+        self.checksum = checksum(self.filetree)
 
     def scan_for_reports(self):
         """
@@ -73,8 +76,6 @@ class ReportRender():
         """
         _ipynb = set(i for i in glob.iglob("**/*.ipynb", root_dir = self.root, recursive = True) if "_build" not in i and "workflow/" not in i)
         _dirs = set(os.path.dirname(i) for i in _ipynb)
-        orig = copy.copy(self.filetree)
-
         for path in _dirs:
             parts = Path(path).parts
             current = self.filetree           
@@ -89,8 +90,6 @@ class ReportRender():
             if '_items' not in current:
                 current['_items'] = set()
             current['_items'].add(final_dir)
-        
-        self.filechanges = orig != self.filetree
 
     def clean_filetree(self):
         """
@@ -137,7 +136,6 @@ class ReportRender():
                             should_remove = True
 
                     if should_remove:
-                        self.filechanges = True
                         items_to_remove.add(item)
 
                 # Remove invalid items
@@ -168,7 +166,6 @@ class ReportRender():
                     del nested_dict[key]
                 # Keep this node if it has any remaining children
                 return len(nested_dict) > 0
-
         clean_paths(self.filetree)
 
     def filetree_to_toc(self):
@@ -203,23 +200,11 @@ class ReportRender():
                         for i in value:
                             if "reports" in i:
                                 result.append({'pattern': f"{os.path.join(origpath, i, '**.ipynb')}"})
-                                #                                               ↑ was hardcoded "reports", now uses actual subdir name
                             else:
                                 result.append({
                                     'title': i,
                                     'children': recursive_transform(value, os.path.join(origpath, i))
                                 })
-
-                    #elif isinstance(value, set):
-                    #    # Value is a terminal directory
-                    #    for i in value:
-                    #        if "reports" in i:
-                    #            result.append({'pattern' : f"{os.path.join(origpath, "reports", "**.ipynb")}"})
-                    #        else:
-                    #            result.append({
-                    #                'title': i,
-                    #                'children': recursive_transform(value, os.path.join(origpath, i))
-                    #            })
                 return result
             else:
                 # Value is a list (leaf node) - convert directory name to {'pattern': '*.ipynb}
@@ -233,7 +218,6 @@ class ReportRender():
         Recursively parses a `toc` (as interpreted in myst.yml) to format it as a nested `dict` stored in `self.filetree`.
         Removes path trees that don't exist.
         """
-
         def parse_toc(toc_list):
             result = {}
             
@@ -282,7 +266,23 @@ class ReportRender():
             return result
 
         self.filetree = parse_toc(toc)
+        self.checksum = checksum(self.filetree)
         self.clean_filetree()        
+
+class StableEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, set):
+            return {"__set__": sorted(o)}  # sorted() ensures stable ordering
+        return super().default(o)
+
+# Source - https://stackoverflow.com/a/66583613
+# Posted by Chris Maes, modified to serialize sets
+# Retrieved 2026-05-19, License - CC BY-SA 4.0
+def checksum(d):
+    '''Return the checksum of a dict. The keys will be sorted to ensure order.'''
+    return hashlib.md5(
+        json.dumps(d, cls=StableEncoder, sort_keys=True, ensure_ascii=True).encode('utf-8')
+    ).hexdigest()
 
 def rand_id() -> str:
     """
@@ -323,7 +323,7 @@ def myst_yaml() -> dict:
             **({"github" : git_url} if git_url else {}),
             "edit_url": 'null',
             "title" : f"{os.path.basename(os.getcwd())}",
-            "description" : "The reports produced by Harpy, aggregated into a navigable website using MyST.",
+            "description" : "Harpy reports, powered by Jupyter and MyST.",
             "toc": [{"file" : ".report/index.md"}]
         }
     }

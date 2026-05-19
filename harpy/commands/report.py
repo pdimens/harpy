@@ -6,6 +6,7 @@ import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
 import subprocess
+import sys
 from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 
@@ -49,7 +50,7 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     URL = ""
     myst_error = ""
     if debug:
-        os.system(" ".join(cmd))
+        subprocess.run(cmd, stdout = sys.stdout, stderr = sys.stderr)
         return
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"
@@ -67,7 +68,7 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
                     panel.renderable = "Installing web libraries for site[dim]…[/]"
                     live.refresh()
                 if "Installed web libraries" in _myst_output:
-                    panel.renderable = "Starting the MyST live-server[dim]…[/]"
+                    panel.renderable = "Starting the report live-server[dim]…[/]"
                     live.refresh()
                 _url = re.findall(r'http://\S+\s', _myst_output)
                 if _url:
@@ -92,5 +93,5 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     except ValueError:
         hp.error(
             "MyST server error",
-            f"The [blue]myst start[/] command exited and reported this error:\n[yellow]{myst_error.strip()}[/]"
+            f"The [blue]jupyter book start[/] command exited and reported this error:\n[yellow]{myst_error.strip()}[/]"
         )
