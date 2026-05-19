@@ -214,7 +214,7 @@ rule sample_reports:
         window_size = f"-p windowsize {windowsize}",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
-        "logs/{sample}.report.log"
+        "logs/reports/{sample}.report.log"
     shell:
         """
         {{
