@@ -24,3 +24,4 @@ templates/
 .report/
 myst.yml
 _build/
+*test.sh
