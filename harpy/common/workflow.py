@@ -331,5 +331,6 @@ class Workflow():
             elif sm.exitcode == 3:
                 self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
             self.print.process_sm_errors(sm.errorlog)
-            with open(".harpyerror", 'w') as f: f.write(self.output_directory)
+            with open(".harpyerror", 'w') as f:
+                f.write(self.output_directory)
             sys.exit(1)
