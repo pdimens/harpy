@@ -4,6 +4,11 @@ import pandas as pd
 import polars as pl
 from harpy.common.file_ops import safe_read
 
+class StopExecution(Exception):
+    '''An exception type to prematurely end a notebook without it being considered an error'''
+    def _render_traceback_(self):
+        return []
+
 def extract_metric(x: list[str], param: str):
     '''Convenience function to find the relevnant sections of the bcftools.stats file and return a table'''
     selectiontext = "".join(s for s in x if s.startswith(f"{param}\t"))
@@ -21,6 +26,28 @@ def last_line(filename: str) -> str:
         for line in f:
             last_line = line
         return last_line.strip()
+
+
+# this isn't a real thing, just an idea
+#def mxx(reads, X: int = 50) -> int:
+#    '''
+#    Calculate and return the MX value of a list of numbers, where `X` is the kind of MX
+#    value you want. MX is the number of molecules containing X percent of all your reads.
+#    Sort of like an NX, but specific to linked reads to get an idea of data partitioning.
+#    '''
+#    threshold = sum(reads) * (X / 100)
+#    if isinstance(reads, (pd.Series, pl.Series)):
+#        _l = reads.to_list()
+#    else:
+#        _l = list(reads)
+#    _l.sort(reverse=True)
+#    cum_sum = 0
+#    for j,i in enumerate(_l,1):
+#        cum_sum += i
+#        if cum_sum >= threshold:
+#            return j
+#    return len(reads)
+
 
 def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
     '''
@@ -84,12 +111,13 @@ def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: boo
     with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
     '''
     col_max = max_val if max_val else int(data.max())
-    bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
+    bins = np.arange(0, col_max + bin_size, bin_size).round(precision)
+    #bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
     
     labels = [f"{round(i, precision)}-{round(i + bin_size, precision)}" for i in bins]
 
     # Cut into bins using searchsorted
-    bin_indices = np.searchsorted(bins, data.to_numpy(), side='right') - 1
+    bin_indices = np.searchsorted(bins, data.to_numpy(), side='left') - 1
     bin_indices = np.clip(bin_indices, 0, len(bins) - 2)
 
     colname = 'proportion' if normalize else 'count'

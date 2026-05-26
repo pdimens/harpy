@@ -65,7 +65,8 @@ rule align:
         fastq = get_fq,
         genome = workflow_geno
     output:  
-        pipe("samples/{sample}/{sample}.strobe.sam")
+        sam = pipe("samples/{sample}/{sample}.strobe.sam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats"
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -81,7 +82,10 @@ rule align:
     container:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        "strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} > {output}"
+        """
+        strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} |
+        tee >(samtools stats -x - > {output.stats}) > {output.sam}
+        """
 
 rule mark_duplicates:
     input:
@@ -89,7 +93,7 @@ rule mark_duplicates:
         optical ="logs/optical/{sample}.opt"
     output:
         bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "logs/markdup/{sample}.markdup.stats",
+        stats = "reports/data/markdup/{sample}.markdup",
         tmp = temp(directory("samples/{sample}/tmp"))
     log:
         debug = "logs/markdup/{sample}.markdup.log",
@@ -131,9 +135,8 @@ rule sample_stats:
         "{sample}.bam"
     output: 
         temp("{sample}.bam.bai"),
-        stats    = temp("reports/data/samtools_stats/{sample}.stats"),
-        flagstat = temp("reports/data/samtools_flagstat/{sample}.flagstat"),
-        depth    = "reports/data/coverage/{sample}.regions.bed.gz"
+        stats = "reports/data/samtools_stats/{sample}.filtered.stats",
+        depth = "reports/data/coverage/{sample}.regions.bed.gz"
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
@@ -150,7 +153,6 @@ rule sample_stats:
         {{
             samtools index {input} 
             samtools stats -d {input} > {output.stats}
-            samtools flagstat {input} > {output.flagstat}
             mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input}
         }} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
@@ -161,7 +163,7 @@ rule molecule_stats:
         bam = "{sample}.bam",
         fai = f"{workflow_geno}.fai"
     output: 
-        stats = "reports/data/bxstats/{sample}.bxstats.gz",
+        stats = "reports/data/lrstats/{sample}.lrstats.gz",
         molcov = "reports/data/coverage/{sample}.molcov.gz"
     log:
         stats = "logs/molcov/{sample}.molcov.log",
@@ -176,27 +178,29 @@ rule molecule_stats:
         """
 
 rule samtools_report:
-    input: 
-        collect("reports/data/samtools_{ext}/{sample}.{ext}", sample = samplenames, ext = ["stats", "flagstat"])
-    output: 
-        "reports/strobealign.stats.html"
-    log:
-        "logs/multiqc.log"
+    input:
+        collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw","filtered"]),
+        collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
+        ipynb = f"workflow/samtools_stats.ipynb"
+    output:
+        tmp = temp("reports/strobealign.summary.tmp.ipynb"),
+        ipynb = "reports/strobealign.summary.ipynb"
     params:
-        options = "-n stdout --no-ai  --no-version-check --force --quiet --no-data-dir",
-        title = "--title \"Basic Alignment Statistics\"",
-        comment = "--comment \"This report aggregates samtools stats and samtools flagstats results for all alignments. Samtools stats ignores alignments marked as duplicates.\"",
-        outdir = "reports/data/samtools_stats reports/data/samtools_flagstat"
-    conda:
-        "envs/qc.yaml"
-    container:
-        f"docker://pdimens/harpy:qc_{VERSION}"
+        lr_type = lr_type,
+        indir = "-p indir " + os.path.abspath("reports/data")
+    log:
+        f"logs/reports/strobealign.report.log"
     shell:
-        "multiqc {params} > {output} 2> {log}"
+        """
+        {{
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            harpy-utils process-notebook {output.tmp} {params.lr_type}
+        }} 2> {log} > {output.ipynb}
+        """
 
 rule sample_reports:
     input:
-        bxstats = "reports/data/bxstats/{sample}.bxstats.gz",
+        lrstats = "reports/data/lrstats/{sample}.lrstats.gz",
         coverage = "reports/data/coverage/{sample}.regions.bed.gz",
         molecule_coverage = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
@@ -210,7 +214,7 @@ rule sample_reports:
         window_size = f"-p windowsize {windowsize}",
         samplename = lambda wc: "-p samplename " + wc.get("sample"),
     log:
-        "logs/{sample}.report.log"
+        "logs/reports/{sample}.report.log"
     shell:
         """
         {{
@@ -219,18 +223,18 @@ rule sample_reports:
         }} 2> {log} > {output.ipynb}
         """
 
-rule barcode_report:
+rule linked_read_report:
     input:
-        collect("reports/data/bxstats/{sample}.bxstats.gz", sample = samplenames),
-        ipynb = f"workflow/align_bxstats.ipynb"
+        collect("reports/data/lrstats/{sample}.lrstats.gz", sample = samplenames),
+        ipynb = f"workflow/align_lrstats.ipynb"
     output:
-        tmp = temp("reports/barcode.summary.tmp.ipynb"),
-        ipynb = "reports/barcode.summary.ipynb"
+        tmp = temp("reports/linkedreads.summary.tmp.ipynb"),
+        ipynb = "reports/linkedreads.summary.ipynb"
     params:
         lr_type = lr_type,
-        indir = "-p indir " + os.path.abspath("reports/data/bxstats")
+        indir = "-p indir " + os.path.abspath("reports/data/lrstats")
     log:
-        f"logs/reports/bxstats.report.log"
+        f"logs/reports/lrstats.report.log"
     shell:
         """
         {{
@@ -243,6 +247,6 @@ rule all:
     default_target: True
     input: 
         bams = collect("{sample}.bam", sample = samplenames),
-        samtools =  "reports/strobealign.stats.html" if not skip_reports else [] ,
         reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
-        bx_report = "reports/barcode.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+        align_report = "reports/strobealign.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
+        bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []

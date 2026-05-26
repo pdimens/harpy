@@ -18,4 +18,4 @@ Stand-alone reports from other software (_e.g._ `MultiQC`) are not included due 
 If there are issues/errors in these reports, please [submit
 an Issue](https://github.com/pdimens/harpy/issues/new/choose). 
 
-{button}`See the publication <https://doi.org/10.1093/bioadv/vbaf133>`
+{button}`Harpy publication <https://doi.org/10.1093/bioadv/vbaf133>`

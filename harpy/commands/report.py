@@ -6,19 +6,21 @@ import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
 import subprocess
+import sys
 from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 
 @click.command(epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
+@click.option('-m', '--md', is_flag = True, help = 'Also scan for markdown files (.md)')
 @click.option('-c', '--clear-cache', is_flag = True, default = False, help = 'Remove `_build` directory prior to server launch')
 @click.option('-p', '--port', type = int, help = 'Run the application server from the specified port number')
 @click.option('-r', '--refresh', type = click.IntRange(min = 0, max_open=True), show_default = True, default = 0, help = 'Refresh interval, in seconds (disabled with `0`)')
 @click.option('-s', '--server-port', type = int, help = 'Run the content server from the specified port number')
 @click.help_option('--help', hidden = True)
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
-def report(directory, debug, headless, clear_cache, port, server_port, refresh):
+def report(directory, debug, md, headless, clear_cache, port, server_port, refresh):
     """
     Render ipynb reports as a local website
 
@@ -43,13 +45,13 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     if os.path.isdir("_build") and clear_cache:
         rmtree("_build", ignore_errors=True)
 
-    tracker = ReportRender(directory if directory else "")
-    tracker.scan_for_reports()
+    tracker = ReportRender(directory if directory else "", md)
+    tracker.scan()
     tracker.update_yaml()
     URL = ""
     myst_error = ""
     if debug:
-        os.system(" ".join(cmd))
+        subprocess.run(cmd, cwd = directory, stdout = sys.stdout, stderr = sys.stderr)
         return
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"
@@ -67,7 +69,7 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
                     panel.renderable = "Installing web libraries for site[dim]…[/]"
                     live.refresh()
                 if "Installed web libraries" in _myst_output:
-                    panel.renderable = "Starting the MyST live-server[dim]…[/]"
+                    panel.renderable = "Starting the report live-server[dim]…[/]"
                     live.refresh()
                 _url = re.findall(r'http://\S+\s', _myst_output)
                 if _url:
@@ -78,7 +80,7 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
                 if serve.poll():
                     raise ValueError
                 if refresh > 0:
-                    tracker.scan_for_reports()
+                    tracker.scan()
                     tracker.update_yaml()
                     sleep(refresh)
                 else:
@@ -92,5 +94,5 @@ def report(directory, debug, headless, clear_cache, port, server_port, refresh):
     except ValueError:
         hp.error(
             "MyST server error",
-            f"The [blue]myst start[/] command exited and reported this error:\n[yellow]{myst_error.strip()}[/]"
+            f"The [blue]jupyter book start[/] command exited and reported this error:\n[yellow]{myst_error.strip()}[/]"
         )

@@ -30,6 +30,9 @@ pillow = ">=12.2.0,<13"
 [pypi-dependencies]
 harpy = { path = ".", editable = true}
 
+[activation]
+env = { JUPYTER_NOTARY_DB = ":memory:" }
+
 [tasks]
 build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}
 build-convert     = {cmd = "go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go", inputs = ["harpy/utils/convert/convert.go"], outputs = ["harpy/utils/gih-convert"]}

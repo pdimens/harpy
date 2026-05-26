@@ -148,6 +148,8 @@ def harpy_theme() -> theme.ThemeConfig:
            },
            "point": {
                "filled": True,
+               "fillOpacity": 1.0,
+               "size": 95
            },
            "text": {
                "color": textColor,

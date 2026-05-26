@@ -19,8 +19,8 @@ validate: &validate
   - 'test/bam/**'
   - 'harpy/scripts/check_bam.py'
   - 'harpy/scripts/check_fastq.py'
-  - 'harpy/notebooks/validate_fastq.ipynb'
-  - 'harpy/notebooks/validate_bam.ipynb'
+  - 'harpy/report/notebooks/validate_fastq.ipynb'
+  - 'harpy/report/notebooks/validate_bam.ipynb'
 deconvolve: &deconvolve
   - *common
   - *environments
@@ -46,8 +46,9 @@ align: &align
   - 'harpy/commands/align.py'
   - 'harpy/snakefiles/align_bwa.smk'
   - 'harpy/snakefiles/align_strobe.smk'
-  - 'harpy/notebooks/align_stats.ipynb'
-  - 'harpy/notebooks/align_bxstats.ipynb'
+  - 'harpy/report/notebooks/align_stats.ipynb'
+  - 'harpy/report/notebooks/align_lrstats.ipynb'
+  - 'harpy/report/notebooks/samtools_stats.ipynb'
   - 'harpy/scripts/bx_stats.py'
   - 'harpy/scripts/molecule_coverage.py'
   - 'test/fastq/**'
@@ -57,7 +58,7 @@ snp: &snp
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
   - 'harpy/snakefiles/snp_freebayes.smk'
-  - 'harpy/notebooks/bcftools_stats.ipynb'
+  - 'harpy/report/notebooks/bcftools_stats.ipynb'
   - 'test/bam/**'
 impute: &impute
   - *common
@@ -66,21 +67,21 @@ impute: &impute
   - 'harpy/snakefiles/impute.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/notebooks/impute.ipynb'
-  - 'harpy/notebooks/stitch_collate.ipynb'
+  - 'harpy/report/notebooks/impute.ipynb'
+  - 'harpy/report/notebooks/stitch_collate.ipynb'
 leviathan: &leviathan
   - *common
   - *environments
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_leviathan.smk'
-  - 'harpy/notebooks/leviathan**.ipynb'
+  - 'harpy/report/notebooks/leviathan**.ipynb'
   - 'test/bam/**'
 naibr: &naibr
   - *common
   - *environments
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_naibr.smk'
-  - 'harpy/notebooks/naibr.ipynb'
+  - 'harpy/report/notebooks/naibr.ipynb'
   - 'harpy/scripts/infer-sv.py'
   - 'test/bam_phased/**'
 phase: &phase
@@ -91,7 +92,7 @@ phase: &phase
   - 'harpy/snakefiles/phase_bam.smk'
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
-  - 'harpy/notebooks/hapcut.ipynb'
+  - 'harpy/report/notebooks/hapcut.ipynb'
   - 'harpy/scripts/parse_phaseblocks.py'
 assembly: &assembly
   - *common
