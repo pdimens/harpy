@@ -66,3 +66,5 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: ./artifacts/harpy.${{ github.ref_name }}.tar.gz
+          body_path: CHANGELOG.md
+          generate_release_notes: true
