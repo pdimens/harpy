@@ -2,16 +2,19 @@
 
 import glob
 import hashlib
-from importlib import resources
 import json
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import uuid
+from importlib import resources
+from pathlib import Path
+
 import yaml
-from harpy.common.printing import HarpyPrint
+
 from harpy import __version__
+from harpy.common.printing import HarpyPrint
+
 
 class ReportRender():
     def __init__(self, root: str = "", markdown: bool = False):
@@ -88,7 +91,7 @@ class ReportRender():
         _dirs = set(d for d in (os.path.dirname(i) for i in _ipynb) if d)
         for path in _dirs:
             parts = Path(path).parts
-            current = self.filetree           
+            current = self.filetree
             # Navigate/create nested structure
             for part in parts[:-1]:
                 if part not in current:
@@ -108,7 +111,7 @@ class ReportRender():
         """
         def clean_paths(nested_dict, base_path=''):
             """
-            Traverse nested dict, build complete paths, and remove entries for 
+            Traverse nested dict, build complete paths, and remove entries for
             non-existent paths or directories with no .ipynb files.
 
             Returns True if the current dict should be kept, False if it should be removed.
@@ -184,10 +187,10 @@ class ReportRender():
         """
         def recursive_transform(tree, origpath = ""):
             """
-            Transform a nested dict into a format where dict values become 
+            Transform a nested dict into a format where dict values become
             {'title': key, 'children': transformed_value}.
             Terminal lists of filenames become lists of {'file': filename} dicts.
-            
+
             Returns a transformed structure with title/children format
             """
             build_path = origpath
@@ -234,24 +237,24 @@ class ReportRender():
         """
         def parse_toc(toc_list):
             result = {}
-            
+
             def add_path_to_dict(path, target_dict):
                 """Add a file path to the nested dictionary structure"""
                 parts = path.split('/')
                 current = target_dict
-                
+
                 # Navigate/create nested structure for all but the last part
                 for part in parts[:-1]:
                     if part not in current:
                         current[part] = {}
                     current = current[part]
-                
+
                 # Add the final directory to _items set
                 final_part = parts[-1]
                 if '_items' not in current:
                     current['_items'] = set()
                 current['_items'].add(final_part)
-            
+
             def process_item(item):
                 # If it's a top-level file, add to root
                 if 'file' in item:
@@ -259,7 +262,7 @@ class ReportRender():
                         result['root'] = {'_items': set()}
                     result['root']['_items'].add(item['file'])
                     return
-                
+
                 # If it has children, process them recursively
                 if 'children' in item:
                     for child in item['children']:
@@ -272,7 +275,7 @@ class ReportRender():
                         else:
                             # Continue processing nested items
                             process_item(child)
-            
+
             # Process each top-level item
             for item in toc_list:
                 process_item(item)
@@ -281,7 +284,7 @@ class ReportRender():
 
         self.filetree = parse_toc(toc)
         self.checksum = checksum(self.filetree)
-        self.clean_filetree()        
+        self.clean_filetree()
 
 class StableEncoder(json.JSONEncoder):
     def default(self, o):

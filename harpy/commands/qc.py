@@ -1,13 +1,15 @@
 """Harpy sequence adapter trimming and quality control"""
 
 import os
+
 import rich_click as click
-from harpy.validation.fastq import FASTQ
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_params import FastpParams, SnakemakeParams, MultiInt
+
+from harpy.common.cli_filetypes import FASTQfile, HPCProfile
+from harpy.common.cli_params import FastpParams, MultiInt, SnakemakeParams
 from harpy.common.file_ops import filepath
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
+from harpy.validation.fastq import FASTQ
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/qc")
 @click.option('-d', '--deduplicate', panel = "Parameters", is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
@@ -35,12 +37,12 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     Linked-read presence and type is auto-detected, but you may use `-U` to disable the parts
     of the workflow specific to linked-read data.
-    
+
     **Mandatory QC**
     - low-quality sliding window trim from front to tail
     - poly-G tail removal
     - remove reads < min `--length`
-    - trim reads down to max `--length` 
+    - trim reads down to max `--length`
 
     **Optional quality checks**
     - `-a` remove adapters

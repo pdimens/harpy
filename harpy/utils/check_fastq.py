@@ -1,8 +1,10 @@
-import re
 import os
+import re
 import sys
+
 import click
 from pysam import FastxFile
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
@@ -31,8 +33,8 @@ def check_fastq(platform, input):
             # if comments dont start with TAG:TYPE:, invalid SAM spec
             if not samspec.match(i):
                 BAD_SAM_SPEC += 1
-        # if BX:Z: exists but isn't the last tag, count once per read  
-        if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):  
+        # if BX:Z: exists but isn't the last tag, count once per read
+        if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):
             BX_NOT_LAST += 1
 
     if platform == "haplotagging":

@@ -1,7 +1,9 @@
 import re
 import sys
+
 import click
 from pysam import FastxFile
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
@@ -62,7 +64,7 @@ def bx_stats_fq(platform, input):
                 search_string = entry.comment
             else:
                 search_string = entry.name
-            
+
             query = reBARCODE.search(search_string)
             if query:
                 N_BX += 1

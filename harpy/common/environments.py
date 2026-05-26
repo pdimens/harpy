@@ -5,11 +5,15 @@ import os
 import shutil
 import subprocess
 import sys
+
 import yaml
 from rich import box
 from rich.table import Table
-from .printing import HarpyPrint
+
 from harpy import __version__
+
+from .printing import HarpyPrint
+
 
 class HarpyEnvs():
     '''The class that holds conda and pixi environments and means to create container dockerfiles'''
@@ -159,7 +163,7 @@ ENTRYPOINT ["/app/entrypoint.sh"]
             else:
                 subprocess.run(
                     f"pixi init container/{env} -c conda-forge -c bioconda".split(),
-                    check = True    
+                    check = True
                 )
 
             with open(f"container/{env}/pixi.toml", "r") as toml:

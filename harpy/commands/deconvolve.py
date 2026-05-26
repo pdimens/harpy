@@ -1,12 +1,14 @@
 """Separate barcodes by unique molecule"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile
+
+from harpy.common.cli_filetypes import FASTQfile, HPCProfile
 from harpy.common.cli_params import SnakemakeParams
-from harpy.validation.fastq import FASTQ
 from harpy.common.system_ops import container_ok, is_arm
 from harpy.common.workflow import Workflow
+from harpy.validation.fastq import FASTQ
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/deconvolve")
 @click.option('-k', '--kmer-length', panel = "Parameters", default = 21, show_default = True, type=click.IntRange(min = 1), help = 'Size of kmers')
@@ -30,7 +32,7 @@ def deconvolve(inputs, output, kmer_length, window_size, density, dropout, threa
 
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
-    
+
     The term "cloud" refers to the collection of all sequences that feature the same barcode. By default,
     `dropout` is set to `0`, meaning it will consider all barcodes, even clouds with singleton.
     """
@@ -44,7 +46,7 @@ def deconvolve(inputs, output, kmer_length, window_size, density, dropout, threa
     fastq.has_bx_tag()
 
     workflow.input(fastq.files)
-    workflow.param(kmer_length, "kmer-length")       
+    workflow.param(kmer_length, "kmer-length")
     workflow.param(window_size, "window-size")
     workflow.param(density, "density")
     workflow.param(dropout, "dropout")
@@ -53,5 +55,5 @@ def deconvolve(inputs, output, kmer_length, window_size, density, dropout, threa
         "Samples:" : fastq.count,
         "Output Folder:" : os.path.relpath(output) + "/"
     }
-    
+
     workflow.initialize(setup)

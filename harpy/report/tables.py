@@ -1,8 +1,10 @@
 import base64
 import gzip
 import json
-from IPython.display import display, HTML
 import uuid
+
+from IPython.display import HTML, display
+
 
 class JSFunction:
     """Wraps a raw JS string so it can be injected without JSON quoting."""
@@ -200,4 +202,3 @@ class ITable:
         if html:
             return _html
         return display(HTML(_html))
-

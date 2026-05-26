@@ -5,9 +5,12 @@ Various system-level checks such as whether packages exist, architecture, etc.
 import os
 import platform
 import shutil
-from harpy.common.printing import HarpyPrint
+
 import rich_click as click
 from rich.markdown import Markdown
+
+from harpy.common.printing import HarpyPrint
+
 
 def is_conda_package_installed(package_name) -> int:
     """
@@ -19,8 +22,8 @@ def is_conda_package_installed(package_name) -> int:
     """
     if "CONDA_PREFIX" in os.environ:
         try:
-            from conda.core.prefix_data import PrefixData
             from conda.base.context import context
+            from conda.core.prefix_data import PrefixData
         except ModuleNotFoundError:
             # CONDA_PREFIX is there but conda itself isnt: likely mamba
             return 1
@@ -42,8 +45,8 @@ def is_conda_package_installed(package_name) -> int:
         return 4
 
 def is_pip_package_installed(package_name) -> bool:
-    from importlib.metadata import PackageNotFoundError
     import importlib.metadata
+    from importlib.metadata import PackageNotFoundError
     try:
         importlib.metadata.version(package_name)
         return True
@@ -96,11 +99,11 @@ def package_absent(pkg: str, executor: bool = True) -> bool:
         else:
             HarpyPrint().error("missing required package", Markdown(out_text))
         return True
-    
+
     return False
 
 def container_ok(ctx, param, value) -> bool:
-    """ 
+    """
     Check if the system is linux or has apptainer installed
     """
     if value:
@@ -119,7 +122,7 @@ def container_ok(ctx, param, value) -> bool:
 
 def is_arm(allowed: bool) -> None:
     """
-    Check if the system uses ARM architecture, for which some workflows or their deps might not work. 
+    Check if the system uses ARM architecture, for which some workflows or their deps might not work.
     """
     arch = platform.machine().lower()
     # Common ARM identifiers across Linux/macOS: armv7l, armv8l, arm64, aarch64

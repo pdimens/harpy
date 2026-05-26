@@ -1,8 +1,10 @@
+import gzip
 import re
 import sys
-import gzip
+
 import click
-from pysam import FastxFile, AlignmentFile
+from pysam import AlignmentFile, FastxFile
+
 
 def format_bam(record):
     tags = record.get_tags()
@@ -40,7 +42,7 @@ def format_fastq(record):
 def bx_to_end(infile):
     """
     Move BX:Z tag to the end of records
-    
+
     Input can be FASTQ or SAM/BAM. Writes to stdout
     """
     # VALIDATIONS

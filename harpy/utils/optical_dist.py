@@ -1,10 +1,11 @@
+import sys
+
 import click
 from pysam import AlignmentFile, FastxFile
-import sys
 
 seqCodes = {
     "HW": 100,
-    "M" : 100, 
+    "M" : 100,
     "K" : 100,
     "N" : 100,
     "E" : 100,

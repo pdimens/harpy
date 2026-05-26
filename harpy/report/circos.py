@@ -1,7 +1,9 @@
 import altair as alt
 import numpy as np
 import pandas as pd
+
 from harpy.report.theme import sv_colors
+
 
 def radian_positions(chr_lens: dict[str,int]) -> pd.DataFrame:
     '''
@@ -18,7 +20,7 @@ def radian_positions(chr_lens: dict[str,int]) -> pd.DataFrame:
     # Total genome length
     total_length = chrom_df['length'].sum()
 
-    # Convert to radians, 
+    # Convert to radians,
     #scale_factor = 0.95 # leaving a 5% gap for visual separation
     chrom_df['theta_start'] = (chrom_df['cum_start'] / total_length) * 2 * np.pi
     chrom_df['theta_end'] = (chrom_df['cum_end'] / total_length) * 2 * np.pi

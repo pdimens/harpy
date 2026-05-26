@@ -1,25 +1,34 @@
 """Module of pretty-printing for errors and prompts"""
 
-from contextlib import nullcontext
 import os
 import re
 import sys
 import time
+from contextlib import nullcontext
+
 from rich import box
 from rich.console import Console, RenderableType
 from rich.live import Live
 from rich.markup import escape
 from rich.panel import Panel
-from rich.progress import Progress, BarColumn, TextColumn, TimeElapsedColumn, TaskProgressColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+)
 from rich.syntax import Syntax
 from rich.table import Table
 from rich.text import Text
 from rich.theme import Theme
+
 from harpy import __version__
+
 
 class PausableTimeElapsedColumn(TimeElapsedColumn):
     """Custom time elapsed column that supports pausing and resuming."""
-    
+
     def __init__(self):
         super().__init__()
         self.pause_adjustments = {}  # task_id -> total paused time
@@ -28,14 +37,14 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
     def pause(self, task_id):
         """Start pausing the timer for a task."""
         self.pause_start_times[task_id] = time.monotonic()
-    
+
     def resume(self, task_id):
         """Resume the timer for a task."""
         if task_id in self.pause_start_times:
             pause_duration = time.monotonic() - self.pause_start_times[task_id]
             self.pause_adjustments[task_id] = self.pause_adjustments.get(task_id, 0) + pause_duration
             del self.pause_start_times[task_id]
-    
+
     def render(self, task):
         """Render the elapsed time, accounting for pauses."""
         elapsed = task.elapsed
@@ -52,7 +61,7 @@ class PausableTimeElapsedColumn(TimeElapsedColumn):
 
         # don't go negative
         elapsed = max(0, elapsed)
-        
+
         # Format the time
         minutes, seconds = divmod(int(elapsed), 60)
         hours, minutes = divmod(minutes, 60)
@@ -111,7 +120,7 @@ class HarpyPrint():
         """
         Print a yellow panel with error text to stderr, exits with error code 1 by default, but exit
         can be disabled with _exit = False. Prints a blue-panel solution if `solutiontext` is provided,
-        prints `offenders` after solution if proivded.    
+        prints `offenders` after solution if proivded.
         """
         self.print(
             Panel(
@@ -211,7 +220,7 @@ class HarpyPrint():
 
     def shell(self, text, rules: bool = False, style = None) -> None:
         """
-        Prints the input text string as syntax-highlighted SHELL code to stderr 
+        Prints the input text string as syntax-highlighted SHELL code to stderr
         """
         if rules:
             self.console.rule("Shell Code", style = 'dim')
@@ -440,7 +449,7 @@ class HarpyPrint():
                 break
             if "====" in i:
                 lines += 1
-                continue          
+                continue
             merged_text += i
         logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
         # purge out all unnecessary papermill error text

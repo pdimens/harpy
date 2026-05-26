@@ -1,17 +1,20 @@
 """Contains the WorkFlow class"""
 
-from datetime import datetime
 import importlib.resources as resources
 import os
 import shutil
 import sys
+from datetime import datetime
+
 import yaml
+
+from harpy import __version__
 from harpy.common.environments import HarpyEnvs
 from harpy.common.file_ops import filepath, last_sm_log, purge_empty_logs
-from harpy.common.printing import HarpyPrint 
 from harpy.common.launch import LaunchSnakemake
+from harpy.common.printing import HarpyPrint
 from harpy.common.summaries import Summary
-from harpy import __version__
+
 
 class Workflow():
     '''
@@ -140,7 +143,7 @@ class Workflow():
         if sm_extra:
             _command.append(sm_extra)
             _command_rel.append(sm_extra)
-        
+
         self.profile = self.profile | self.hpc
         self.snakemake_cmd_absolute = " ".join(_command)
         self.snakemake_cmd_relative = " ".join(_command_rel)
@@ -150,7 +153,7 @@ class Workflow():
         Copy any files in self.notebook_files into workdir/report
         """
         os.makedirs(self.workflow_directory, exist_ok= True)
-        
+
         for target in self.notebook_files:
             dest_file = os.path.join(self.workflow_directory, target)
             source_file = resources.files("harpy.report.notebooks") / target
@@ -258,7 +261,7 @@ class Workflow():
             [days,hours,minutes,seconds]
         ):
             if j:
-                _i = f"{i}s" if j > 1 else i             
+                _i = f"{i}s" if j > 1 else i
                 report_times.append(f"{j} {_i}")
         return ", ".join(report_times)
 
@@ -322,7 +325,7 @@ class Workflow():
                     self.print.log(f"Removing: [blue]{j}/[/]")
                     shutil.rmtree(os.path.join(self.output_directory, j), ignore_errors=True)
         if sm.exitcode == 0:
-            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out: 
+            with open(os.path.join(self.output_directory, "workflow", f"{self.name.replace('_','.')}.summary"), "w") as f_out:
                 f_out.write(Summary(self.version, self.config).get())
             self.onsuccess()
         else:

@@ -1,12 +1,14 @@
 import os
+import re
+import subprocess
+import sys
 from shutil import rmtree
 from time import sleep
-import re
+
 import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
-import subprocess
-import sys
+
 from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 
@@ -29,7 +31,7 @@ def report(directory, debug, md, headless, clear_cache, port, server_port, refre
     website for you to review them from a single access point. This command
     is expected to be executed within a git version-controlled directory, where
     Harpy can identify the root directory of the project, otherwise provide the
-    path to a directory for Harpy to recursively scan the `.ipynb` reports. 
+    path to a directory for Harpy to recursively scan the `.ipynb` reports.
     """
     cmd = ["jupyter", "book", "start"]
     if headless:

@@ -1,8 +1,10 @@
 
-from itertools import chain
 import os
 import re
+from itertools import chain
+
 import pysam
+
 from harpy.common.printing import HarpyPrint
 
 HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
@@ -79,7 +81,7 @@ class FASTQ():
                 dupe_out
             )
         self.print.validation(True)
-        
+
         self.count = len({re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in uniqs})
         self.detect_illumina_format()
         if detect_bc:

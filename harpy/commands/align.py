@@ -1,9 +1,11 @@
 """Harpy align workflows"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile, FASTAfile
-from harpy.common.cli_params import BwaParams, StrobeAlignParams, SnakemakeParams
+
+from harpy.common.cli_filetypes import FASTAfile, FASTQfile, HPCProfile
+from harpy.common.cli_params import BwaParams, SnakemakeParams, StrobeAlignParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -44,10 +46,10 @@ def align():
 def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using BWA MEM2
-    
+
     Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
-    
+
     BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
@@ -106,11 +108,11 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
 def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using strobealign
- 
+
     Provide the reference fasta followed by the input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
-    
-    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
+
+    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does
     not use barcodes when mapping. Presence and type of linked-read data is auto-detected,
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.

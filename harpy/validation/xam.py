@@ -1,8 +1,10 @@
 
-from itertools import chain
 import os
-import pysam
 import re
+from itertools import chain
+
+import pysam
+
 from harpy.common.printing import HarpyPrint
 
 HAPLOTAGGING_RX = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
@@ -87,7 +89,7 @@ class XAM():
                     "Files Scanned",
                     "\n".join(scanned)
                 )
-    
+
         scanned: list[str] = []
         _phased: list[bool] = []
         for i,samfile in enumerate(self.files):
@@ -121,7 +123,7 @@ class XAM():
                 "\n".join(scanned)
             )
         self.print.validation(True)
-    
+
     def is_phased(self, file_path: str) -> bool:
         ''' Scan the `file_path` to determine if the file has `PS` or `HP` tags'''
         with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
@@ -131,7 +133,7 @@ class XAM():
                 if (record.has_tag("PS") or record.has_tag("HP")):
                     return True
         return False
-    
+
     def which_linkedread(self, file_path: str) -> str:
         """
         Scans the first `self.max_records` records of a SAM/BAM file and tries to determine the barcode technology

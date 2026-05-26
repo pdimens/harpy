@@ -1,7 +1,10 @@
 from contextlib import contextmanager
+
 import altair as alt
 import pandas as pd
+
 from harpy.report.theme import sv_colors
+
 
 @contextmanager
 def SafeRender(data):
@@ -217,7 +220,7 @@ def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
         .otherwise(alt.value("transparent"))
     )
     return (
-        alt.Chart(records)        
+        alt.Chart(records)
         .mark_bar(strokeWidth=2)
         .encode(
             x=alt.X('position:Q')

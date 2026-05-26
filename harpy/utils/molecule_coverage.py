@@ -1,7 +1,10 @@
 import sys
-import click
 from collections import Counter
+
+import click
+
 from harpy.common.file_ops import safe_read
+
 
 def new_intervals(contig_len, windowsize) -> list:
     starts = list(range(0, contig_len + 1, windowsize))

@@ -1,7 +1,9 @@
-import click
 import os
 import sys
 import warnings
+
+import click
+
 warnings.filterwarnings('ignore', category=UserWarning, module='altair')
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
@@ -13,7 +15,7 @@ warnings.filterwarnings('ignore', category=UserWarning, module='altair')
 def plot_depth(contigs, prefix, molcov, coverage):
     """
     Plot histograms of alignment and/or molecule depths
-    
+
     Outputs one html file of {prefix}.{contig}.depth.html per contig.
     - contigs: name(s) of contigs to plot, space-separated (default = 30 largest)
     """
@@ -21,9 +23,10 @@ def plot_depth(contigs, prefix, molcov, coverage):
         sys.stderr.write(f"At least one of `-c` or `-m` need to be provided\n")
         sys.exit(1)
     # moved here to reduce import lag when using CLI
-    from harpy.report.theme import palette
-    from harpy.report.components import depthplot
     import pandas as pd
+
+    from harpy.report.plots import depthplot
+    from harpy.report.theme import palette
 
     _contigs = None
     if coverage:

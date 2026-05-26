@@ -1,8 +1,10 @@
+import os
 import re
 import sys
-import os
+
 import click
 from pysam import AlignmentFile
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('platform', required = True, type=click.Choice(['10x','haplotagging','stlfr','tellseq'], case_sensitive=False))
@@ -11,7 +13,7 @@ from pysam import AlignmentFile
 def check_bam(platform, bamfile):
     """
     File format validation for SAM/BAM file
-    
+
     Specific to linked-read data. Checks if the sample name matches the RG tag,
     whether BX:Z: is the last tag in the record, and the counts of: total alignments,
     alignments with an MI:i: tag, alignments without BX:Z: tag, incorrect BX:Z: tag. Writes to stdout.

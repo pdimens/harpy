@@ -1,8 +1,10 @@
-import click
-from datetime import datetime
-import sys
 import random
 import string
+import sys
+from datetime import datetime
+
+import click
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 #@click.option("--pdf", required = True, type=str)
@@ -18,7 +20,7 @@ def process_notebook(notebook, text):
     second, etc. Also replaces the date-time placeholder with the actual date, adds the remove-cell tag to
     injected paramters, and replaces lowercase instances of placeholder with a 15 digit random alphanumeric string.
     The `--pdf` option replaces `PDF_FILE` of `PDF_FILE-placeholder.pdf`.Writes to stdout. Example:
-    
+
     process-notebook --pdf aloe input.ipynb arg1 arg2... > output.ipynb
     """
     _date = datetime.now().strftime('%Y-%m-%d')

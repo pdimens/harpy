@@ -1,8 +1,11 @@
 
 import re
-from rich.table import Table
+
 from rich import box
+from rich.table import Table
+
 from harpy.common.printing import HarpyPrint
+
 
 class ImputeParams():
     '''
@@ -63,7 +66,7 @@ class ImputeParams():
                     continue
                 # split the line by whitespace and reorder to match expected colname order
                 row_values = [line.rstrip().split()[i] for i in col_order]
-                if len(row_values) == n_cols: 
+                if len(row_values) == n_cols:
                     self.parameters[row_values[0]] = dict(zip(colnames[1:], row_values[1:]))
                     self.count += 1
                 else:
@@ -81,7 +84,7 @@ class ImputeParams():
                     "Rows causing this error and their column count",
                     _outrows
                 )
-            
+
             # validate each row
             row_error = False
             errtable = Table(show_footer=True, box=box.SIMPLE)
@@ -98,7 +101,7 @@ class ImputeParams():
                 if v["usebx"].lower() not in ["true", "false", "yes", "y", "no", "n"]:
                     badcols.append("usebx")
                 else:
-                    if v["usebx"].lower() in ["true", "yes", "y"]:                
+                    if v["usebx"].lower() in ["true", "yes", "y"]:
                         v["usebx"] = True
                     else:
                         v["usebx"] = False

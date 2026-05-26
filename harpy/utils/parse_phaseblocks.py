@@ -1,6 +1,8 @@
 import os
 import sys
+
 import click
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('input', required = True, type=click.File())
@@ -8,7 +10,7 @@ import click
 def parse_phaseblocks(input):
     """
     Summarize a HapCut2 phase block file
-    
+
     Writes to stdout.
     """
     samplename = os.path.basename(input.name).removesuffix(".blocks")

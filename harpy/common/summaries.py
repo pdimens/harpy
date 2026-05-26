@@ -1,6 +1,8 @@
 """Basic functions to write the workflow summaries"""
 import os
+
 from harpy.common.file_ops import naibr_extra
+
 
 class Summary:
     def __init__(self, version, config: dict):
@@ -21,7 +23,7 @@ class Summary:
 
         is_standardized = bx_tag and vx_tag
         keep_unmapped = self.PARAMETERS.get("keep-unmapped", False)
-        extra 		= self.PARAMETERS.get("extra", "") 
+        extra 		= self.PARAMETERS.get("extra", "")
         genomefile 	= self.INPUTS["reference"]
         quality = self.PARAMETERS.get("min-map-quality", 30)
 
@@ -54,7 +56,7 @@ class Summary:
 
         is_standardized = bx_tag and vx_tag
         keep_unmapped = self.PARAMETERS.get("keep-unmapped", False)
-        extra 		= self.PARAMETERS.get("extra", "") 
+        extra 		= self.PARAMETERS.get("extra", "")
         genomefile 	= self.INPUTS["reference"]
         quality = self.PARAMETERS.get("min-map-quality", 30)
 
@@ -62,7 +64,7 @@ class Summary:
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
         static = "-C" if is_standardized else ""
-        extra = self.PARAMETERS.get("extra", "") 
+        extra = self.PARAMETERS.get("extra", "")
 
         align = "Sequences were aligned with strobealign using:\n"
         align += f"\tstrobealign {unmapped_strobe} {static} --rg-id=SAMPLE --rg=SM:SAMPLE {extra} genome reads.F.fq reads.R.fq |\n"
@@ -126,7 +128,7 @@ class Summary:
     def deconvolve(self):
         kmer_length = self.PARAMETERS.get("kmer-length", 21)
         window_size = self.PARAMETERS.get("window-size", 40)
-        density 	= self.PARAMETERS.get("density", 3) 
+        density 	= self.PARAMETERS.get("density", 3)
         dropout     = self.PARAMETERS.get("dropout", 0)
 
         interleave = "fastq files were interleaved with seqtk:\n"
@@ -202,9 +204,9 @@ class Summary:
 
         bxsort = "FASTQ inputs were sorted by their linked-read barcodes and had '-1' appended to the barcode to make them Athena-compliant:\n"
         bxsort += "\tsamtools import -T \"*\" FQ1 FQ2 |\n"
-        bxsort += f"\tsed s/{BX_TAG}:Z:[^[:space:]]*/&-1/g |\n"  
-        bxsort += f"\tsamtools sort -O SAM -t {BX_TAG} |\n"  
-        bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"  
+        bxsort += f"\tsed s/{BX_TAG}:Z:[^[:space:]]*/&-1/g |\n"
+        bxsort += f"\tsamtools sort -O SAM -t {BX_TAG} |\n"
+        bxsort += "\tsamtools fastq -T \"*\" -1 FQ_out1 -2 FQ_out2"
         if not ignore_bx:
             spades = "Reads were assembled using cloudspades:\n"
             spades += f"\tspades.py -t THREADS -m {max_mem} --gemcode1-1 FQ1 --gemcode1-2 FQ2 --meta -k {k_param} {extra}"
@@ -231,7 +233,7 @@ class Summary:
         base_qual         = self.PARAMETERS.get("min-base-quality", 13)
         molecule_distance = self.PARAMETERS.get("distance-threshold", 100000)
 
-        extra             = self.PARAMETERS.get("extra", "") 
+        extra             = self.PARAMETERS.get("extra", "")
         variantfile       = self.INPUTS["vcf"]
         invalid_regex = {
             "haplotagging" : "'$4 !~ /[ABCD]00/'",
@@ -264,8 +266,8 @@ class Summary:
 
     def phase_bam(self):
         mol_dist    = self.PARAMETERS.get("distance-threshold", 100000)
-        extra       = self.PARAMETERS.get("extra", "") 
-        ploidy      = self.PARAMETERS.get("ploidy", 2) 
+        extra       = self.PARAMETERS.get("extra", "")
+        ploidy      = self.PARAMETERS.get("ploidy", 2)
         variantfile = self.INPUTS["vcf"]
         params = [
             f"--ploidy {ploidy}",
@@ -323,8 +325,8 @@ class Summary:
 
     def preprocess_gih(self):
         me_seq   = self.PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
-        mismatch = self.PARAMETERS.get("ME-mismatch", 1) 
-        minlen   = self.PARAMETERS.get("min-length", 10) 
+        mismatch = self.PARAMETERS.get("ME-mismatch", 1)
+        minlen   = self.PARAMETERS.get("min-length", 10)
 
         stagger = "Input FASTQs had the ME sequence identified and removed, then provided a nucleotide padding sequence (if necessary):\n"
         stagger += f"\tgih-stagger --me {me_seq} --max-mismatch {mismatch} --min-len {minlen} --stats output.stats FQ1 FQ2 > output.sam"
@@ -344,7 +346,7 @@ class Summary:
     def qc(self):
         min_len 	  = self.PARAMETERS.get("min-len", 30)
         max_len 	  = self.PARAMETERS.get("max-len", 150)
-        extra 	      = self.PARAMETERS.get("extra", "") 
+        extra 	      = self.PARAMETERS.get("extra", "")
         trim_adapters = self.PARAMETERS.get("trim_adapters", None)
         dedup         = self.PARAMETERS.get("deduplicate", False)
 
@@ -367,10 +369,10 @@ class Summary:
         fastp += "\tfastp  " + " ".join(params)
         self.summary.append("The harpy qc workflow ran using these parameters:")
         self.summary.append(fastp)
-    
+
     def snp_freebayes(self):
         ploidy 		  = self.PARAMETERS.get("ploidy", 2)
-        extra 	      = self.PARAMETERS.get("extra", "") 
+        extra 	      = self.PARAMETERS.get("extra", "")
         genomefile 	  = self.INPUTS["reference"]
         regions_input = self.INPUTS["regions"]
         groupings 	  = self.INPUTS.get("groupings", [])
@@ -392,7 +394,7 @@ class Summary:
         self.summary.append(varcall)
         self.summary.append(merged)
         self.summary.append(normalize)
-    
+
     def snp_mpileup(self):
         ploidy 		 = self.PARAMETERS.get("ploidy", 2)
         mp_extra 	 = self.PARAMETERS.get("extra", "")
@@ -459,7 +461,7 @@ class Summary:
     def sv_naibr(self):
         genomefile   = os.path.basename(self.INPUTS["reference"])
         groupfile    = self.INPUTS.get("groupings", None)
-        extra        = self.PARAMETERS.get("extra", None) 
+        extra        = self.PARAMETERS.get("extra", None)
         min_size     = self.PARAMETERS.get("min-size", 1000)
         min_barcodes = self.PARAMETERS.get("min-barcodes", 2)
         min_quality  = self.PARAMETERS.get("min-map-quality", 30)

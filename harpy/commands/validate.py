@@ -1,13 +1,16 @@
 """Harpy validation checks of FASTQ and BAM files for workflows"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile, SAMfile
+
+from harpy.common.cli_filetypes import FASTQfile, HPCProfile, SAMfile
 from harpy.common.cli_params import SnakemakeParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
-from harpy.validation.xam import XAM
 from harpy.validation.fastq import FASTQ
+from harpy.validation.xam import XAM
+
 
 @click.group()
 @click.help_option('--help', hidden = True)
@@ -15,7 +18,7 @@ def validate():
     """
     File format checks for linked-read data
 
-    This is useful to make sure your input files are formatted correctly for the processing pipeline 
+    This is useful to make sure your input files are formatted correctly for the processing pipeline
     before you are surprised by errors hours into an analysis. Provide an additional command `fastq`
     or `bam` to see more information and options.
     """
@@ -38,11 +41,11 @@ def bam(inputs, output, threads, snakemake, quiet, hpc, clean, container, setup,
 
     Provide the input alignment (`.bam`) files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/betula*.bam`), or both.
-    
+
     Validation checks if alignments have BX:Z: tags, that the barcodes are properly formatted for the
     auto-detected linked-read type, and that the filename matches the `@RG ID` tag. This **will not**
     fix your data, but it will report the number of records that feature errors to help you diagnose
-    if file formatting will cause downstream issues. 
+    if file formatting will cause downstream issues.
     """
     workflow = Workflow("validate_bam", "validate_bam.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
@@ -78,13 +81,13 @@ def fastq(inputs, output, threads, snakemake, quiet, hpc, clean, container, setu
     """
     Validate linked-read FASTQ file format
 
-    Provide the input fastq files and/or directories at the end of the command as 
+    Provide the input fastq files and/or directories at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/wombat*.fastq.gz`), or both.
-    
+
     Validation checks if records in fastq files have properly formatted barcodes for the auto-detected
     linked-read type, and that any comments in the read headers conform to the SAM specification
     of `TAG:TYPE:VALUE`. This **will not** fix your data, but it will report the number of reads
-    that feature errors to help you diagnose if file formatting will cause downstream issues. 
+    that feature errors to help you diagnose if file formatting will cause downstream issues.
     """
     workflow = Workflow("validate_fastq", "validate_fastq.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)

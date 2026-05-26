@@ -1,13 +1,16 @@
 """Harpy demultiplex workflows"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile, DemuxSchema
+
+from harpy.common.cli_filetypes import DemuxSchema, FASTQfile, HPCProfile
 from harpy.common.cli_params import SnakemakeParams
 from harpy.common.file_ops import fetch_template
 from harpy.common.system_ops import container_ok
-from harpy.validation.fastq import FASTQ
 from harpy.common.workflow import Workflow
+from harpy.validation.fastq import FASTQ
+
 
 #TODO update docs link to dedicated pages
 @click.group(options_metavar='')
@@ -48,16 +51,16 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     """
     Preprocess FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
-    Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs after the options and schema (4 files, in that exact order). 
+    Use the R1, R2, I2, and I2 FASTQ files provided by the sequencing facility as inputs after the options and schema (4 files, in that exact order).
     The `SCHEMA` must have **no header** (i.e. no column names) and be in the format of `sample`\\<TAB\\>`barcode`,
-    where `barcode` is the barcode segment associated with the sample ID (.e.g. `C01`, `C02`, etc.). Use `--qx-rx` to add the 
+    where `barcode` is the barcode segment associated with the sample ID (.e.g. `C01`, `C02`, etc.). Use `--qx-rx` to add the
     `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode) tags in the sequence headers. These tags aren't used by any
-    subsequent analyses, but may be useful for your own diagnostics. 
+    subsequent analyses, but may be useful for your own diagnostics.
     """
-    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output, container, clean, quiet, no_validation=True) 
+    workflow = Workflow("preprocess_meier2021", "preprocess_meier2021.smk", output, container, clean, quiet, no_validation=True)
     workflow.setup_snakemake(threads, hpc, snakemake)
     workflow.conda = ["qc", "preprocess"]
-    
+
     workflow.inputs = {
         "schema" : schema,
         "R1": r12_fq[0][0],
@@ -69,7 +72,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     workflow.param(keep_unknown_barcodes, "barcodes")
     workflow.param(keep_unknown_samples, "samples")
     workflow.notebooks["skip"] = skip_reports
-    
+
     workflow.info = {
         "Barcode Design": "Meier [italic]et al.[/] 2021",
         "Demultiplex Schema": os.path.basename(schema),
@@ -102,9 +105,9 @@ def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, quie
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/poccidentalis*.fq`), or both.
     The resulting FASTQ file pairs will have inline barcodes removed and added to the sequence headers,
-    but will still need QC to remove adapters and low-quality reads/regions. 
+    but will still need QC to remove adapters and low-quality reads/regions.
     """
-    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output, container, clean, quiet, no_validation=True) 
+    workflow = Workflow("preprocess_gih", "preprocess_gih.smk", output, container, clean, quiet, no_validation=True)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["preproc_stats.ipynb"]
     workflow.conda = ["qc", "preprocess"]
@@ -118,7 +121,7 @@ def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, quie
     workflow.param(me_seq, "ME-sequence")
     workflow.param(mismatch, "ME-mismatch")
     #workflow.param(min_len, "min-length")
-    
+
     workflow.info = {
         "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
         "Output Folder": os.path.relpath(output) + "/"

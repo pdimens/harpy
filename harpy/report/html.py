@@ -1,12 +1,14 @@
 import base64
 import html
 import json
-from pathlib import Path
+import uuid
 from datetime import datetime
 from io import BytesIO
-from IPython.display import display, HTML, Image
+from pathlib import Path
+
+from IPython.display import HTML, Image, display
 from PIL import Image as PImage
-import uuid
+
 
 class StatsBox:
     '''
@@ -24,7 +26,7 @@ class StatsBox:
             f'height: {self.height}px; display: inline-flex; flex-direction: column; white-space: nowrap; '
             'align-items: flex-end; justify-content: center; border-radius: 5px; color: #000000; '
             'padding: 15px; box-sizing: border-box; text-align: right;">'
-            f'<div style="font-size: {self.label_fontsize}px; font-weight: 400;' 
+            f'<div style="font-size: {self.label_fontsize}px; font-weight: 400;'
             f'margin-bottom: {self.text_gap}px; color: var(--tw-prose-body, #666666);">{{label}}</div>'
             f'<div style="font-size: {self.value_fontsize}px; font-weight: 400; color: {{color}};">{{value}}'
             f'<span style="font-size: {self.value_fontsize // 2}px; color: {{color}};">{{plus_minus}}</span>'
@@ -36,7 +38,7 @@ class StatsBox:
         '''
         Return the html of a colored box object with `value` and `label`. Units get added to the plusminus text if they are present,
         otherwise added to the main value.
-        
+
         Args:
             value: Main metric to display
             label: Title of the metric
@@ -48,11 +50,11 @@ class StatsBox:
         _val = f"{_val}{units}" if units else _val
         _col = textcol or 'var(--tw-prose-body, #666666)'
         pm_str = f'±{plus_minus}' if plus_minus else ''
-        safe_label = html.escape(str(label))  
-        safe_value = html.escape(str(_val))  
-        safe_pm = html.escape(str(pm_str))  
-        self.boxes.append(  
-            self.html.format(label=safe_label, value=safe_value, color=_col, plus_minus=safe_pm)  
+        safe_label = html.escape(str(label))
+        safe_value = html.escape(str(_val))
+        safe_pm = html.escape(str(pm_str))
+        self.boxes.append(
+            self.html.format(label=safe_label, value=safe_value, color=_col, plus_minus=safe_pm)
         )
         #self.boxes.append(
         #    self.html.format(label = label, value = _val, color = _col, plus_minus=pm_str)
@@ -88,11 +90,11 @@ class StatsBox:
 
     def render(self, gap: int = 5):
         '''Display all boxes in a horizontal row
-        
+
         Args:
             gap: Space between boxes in pixels (default: 5)
         '''
-        container_html = f'''<div style="display: flex; gap: {gap}px; 
+        container_html = f'''<div style="display: flex; gap: {gap}px;
             flex-wrap: wrap;">{" ".join(self.boxes)}</div>'''
         display(HTML(container_html))
 
@@ -111,29 +113,29 @@ def print_html(*args):
 def embed_image(x: str, scale: float = 0.5):
     '''Rescale an PNG image and embed it into the notebook'''
     image = PImage.open(x)
-    if scale < 1:  
-        image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)  
-    buf = BytesIO()  
-    image.save(buf, format = "PNG" if "png" in x.lower() else "jpeg")  
+    if scale < 1:
+        image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)
+    buf = BytesIO()
+    image.save(buf, format = "PNG" if "png" in x.lower() else "jpeg")
     return Image(data=buf.getvalue(), format="png" if "png" in x.lower() else "jpeg", embed=True)
 
-def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):  
+def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):
     '''
     Create a javascript image viewer with a file picker.
     Images are embedded (thus can safely have their original files deleted) and can be down-scaled.
     '''
     imgfmt = "image/png" if "png" in pattern else "image/jpg"
     options_parts = []
-    paths = Path(image_dir).glob(pattern) if not recursive else Path(image_dir).rglob(pattern)  
+    paths = Path(image_dir).glob(pattern) if not recursive else Path(image_dir).rglob(pattern)
     paths = sorted(paths) if not sortkey else sorted(paths, key = sortkey)
     uid = uuid.uuid4().hex[:8]
     images_dict = {}
-    option_key = option_key or (lambda p: p.stem if not recursive else p.parents[1].name) 
+    option_key = option_key or (lambda p: p.stem if not recursive else p.parents[1].name)
     for p in paths:
         pname = option_key(p)
-        safe_value = html.escape(pname, quote=True)  
-        safe_label = html.escape(pname)  
-        options_parts.append(f'<option value="{safe_value}">{safe_label}</option>') 
+        safe_value = html.escape(pname, quote=True)
+        safe_label = html.escape(pname)
+        options_parts.append(f'<option value="{safe_value}">{safe_label}</option>')
         #options_parts.append(f'<option value="{pname}">{pname}</option>')
         image = PImage.open(p)
         if scale < 1:
@@ -167,9 +169,9 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
         </head>
         <body>
         <div id="selector-{uid}">
-        <label for="file-select-{uid}">{html.escape(label)} </label>  
+        <label for="file-select-{uid}">{html.escape(label)} </label>
         <select id="file-select-{uid}" onchange="showImage_{uid}(this.value)">
-            <option value="" disabled selected>Select a {html.escape(thing_to_select)}</option> 
+            <option value="" disabled selected>Select a {html.escape(thing_to_select)}</option>
             {options_html}
         </select>
         </div>

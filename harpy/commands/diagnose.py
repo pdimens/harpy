@@ -1,11 +1,13 @@
 import glob
 import os
-import sys
-import yaml
 import subprocess
+import sys
+
 import rich_click as click
-from harpy.common.printing import HarpyPrint
+import yaml
+
 from harpy.common.file_ops import safe_read
+from harpy.common.printing import HarpyPrint
 
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
@@ -36,7 +38,7 @@ def stall(directory):
 
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
-    
+
     command = harpy_config["snakemake"]["absolute"]
     # prefix the new arguments, in case a positional argument was added at the end by user
     command = command.replace("snakemake -", "snakemake --sdm env-modules --dry-run --debug-dag -")
@@ -89,7 +91,7 @@ def rule(directory):
     Directly run the first rule that caused the workflow failure
 
     The rule is identified in the most recent Snakemake log file in
-    `DIRECTORY/logs/snakemake` as the first one with the text `Error in rule ____`. 
+    `DIRECTORY/logs/snakemake` as the first one with the text `Error in rule ____`.
     If the failing rule is missing inputs (e.g. they were temporary), Harpy will run Snakemake first to generate
     those files, then execute the failing rule directly (i.e. without Snakemake).
     """

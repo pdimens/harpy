@@ -1,6 +1,8 @@
 import os
 import sys
+
 import click
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.help_option('--help', hidden = True)
@@ -10,7 +12,7 @@ import click
 def rename_bam(name, input, delete):
     """
     Rename a SAM/BAM file and modify the @RG tag
-    
+
     This is the proper way to rename a SAM/BAM file to reflect the change for both ID and SM.
     This process creates a new file \'newname.bam\' and you may use -d to delete the original file. Requires samtools.
     """
@@ -20,7 +22,7 @@ def rename_bam(name, input, delete):
         )
 
     if JOB_STATUS != 0:
-        sys.stderr.write("samtools addreplacerg failed with an error\n")  
+        sys.stderr.write("samtools addreplacerg failed with an error\n")
         sys.exit(JOB_STATUS)
     else:
         if delete:

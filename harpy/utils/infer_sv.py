@@ -1,4 +1,5 @@
 import sys
+
 import click
 
 conversions = {
@@ -40,4 +41,3 @@ def infer_sv(bedfile, fail):
             sys.stdout.write(NEWROW)
         elif fail:
             fail.write(NEWROW)
-

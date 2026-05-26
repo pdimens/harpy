@@ -1,8 +1,11 @@
 
 import os
+
 import pysam
+
 from harpy.common.file_ops import safe_read
 from harpy.common.printing import HarpyPrint
+
 
 class FASTA():
     '''

@@ -3,8 +3,10 @@ Processes and validations relating to identifying barcodes and/or linked-read ty
 """
 
 import subprocess
+
 from harpy.common.file_ops import is_gzip, safe_read
 from harpy.common.printing import HarpyPrint
+
 
 def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, limit: int = 60, gzip_ok: bool = True, haplotag_only: bool = False, check_dups: bool = True) -> None | int:
     """Does validations to make sure it's one length, within a length limit, one per line, and nucleotides"""
@@ -52,7 +54,3 @@ def validate_barcodefile(infile: str, return_len: bool = False, quiet: int = 0, 
         hp.error("no barcodes detected", f"No barcodes were found in [blue]{infile}[/]. Please check the input file.")
     if return_len:
         return lengths.pop()
-
-
-
-

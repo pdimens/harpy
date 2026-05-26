@@ -1,11 +1,14 @@
 
 import os
+import subprocess
 from pathlib import Path
+from shutil import which
+
 import pysam
 import pysam.bcftools
-from shutil import which
-import subprocess
+
 from harpy.common.printing import HarpyPrint
+
 
 class VCF():
     '''
@@ -73,7 +76,7 @@ class VCF():
                         break
                 if not keep:
                     del self.contigs[contig]
- 
+
         if not self.contigs:
             self.print.validation(False)
             self.print.error("insufficient data", "No contigs with at least 5 biallelic SNPs identified. Cannot continue with imputation.")

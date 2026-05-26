@@ -1,9 +1,17 @@
 """Harpy workflows to detect structural variants"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTAfile, SAMfile
-from harpy.common.cli_params import LeviathanParams, NaibrParams, ContigList, MultiInt, SnakemakeParams
+
+from harpy.common.cli_filetypes import FASTAfile, HPCProfile, SAMfile
+from harpy.common.cli_params import (
+    ContigList,
+    LeviathanParams,
+    MultiInt,
+    NaibrParams,
+    SnakemakeParams,
+)
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -15,7 +23,7 @@ from harpy.validation.xam import XAM
 def sv():
     """
     Call inversions, deletions, and duplications from alignments
- 
+
     |   caller  | inversions | duplications | deletions | breakends |
     |:----------|:----------:|:------------:|:---------:|:---------:|
     | leviathan |      ✔     |     ✔        |     ✔     |      ✔    |
@@ -50,8 +58,8 @@ def sv():
 def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, duplicates, sharing_thresholds, threads, populations, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup, no_temp):
     """
     Call structural variants using LEVIATHAN
-    
-    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
+
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
     Optionally specify `--populations` for population-pooled variant calling
@@ -68,7 +76,7 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
     alignments = XAM(inputs, detect_bc = True, nonlinked_ok = False, quiet = quiet)
     fasta = FASTA(reference, quiet)
     if contigs:
-        fasta.match_contigs(contigs)     
+        fasta.match_contigs(contigs)
 
     workflow.input(fasta.file, "reference")
     if populations:
@@ -123,8 +131,8 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
 def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, threads, populations, molecule_distance, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, contigs, setup, no_temp):
     """
     Call structural variants using NAIBR
-    
-    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
+
+    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
 
     NAIBR requires **phased** bam files as input. This appears as the `HP` or `PS` tags
@@ -165,7 +173,7 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
         "Reference" : os.path.basename(reference),
         "Sample Pooling" : os.path.basename(populations) if populations else "no",
         "Output Folder" : os.path.relpath(output) + "/"
-    }    
+    }
 
     workflow.initialize(setup)
 

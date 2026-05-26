@@ -3,15 +3,23 @@
 import os
 import shutil
 from pathlib import Path
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, FASTAfile, PopulationFile, SAMfile
-from harpy.common.cli_params import MpileupParams, FreebayesParams, SnakemakeParams, SNPRegion
-from harpy.common.system_ops import container_ok
+
+from harpy.common.cli_filetypes import FASTAfile, HPCProfile, PopulationFile, SAMfile
+from harpy.common.cli_params import (
+    FreebayesParams,
+    MpileupParams,
+    SnakemakeParams,
+    SNPRegion,
+)
 from harpy.common.file_ops import genomic_windows
+from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
 from harpy.validation.populations import Populations
 from harpy.validation.xam import XAM
+
 
 @click.group(options_metavar='')
 @click.command_panel("Commands", panel_styles={"border_style": "blue"})
@@ -19,7 +27,7 @@ from harpy.validation.xam import XAM
 def snp():
     """
     Call SNPs and small indels from alignments
-    
+
     Provide an additional subcommand `mpileup` or `freebayes` to get more information on using
     those variant callers. They are both robust variant callers, but `freebayes` is recommended when ploidy
     is greater than **2**.
@@ -46,11 +54,11 @@ def snp():
 def freebayes(reference, inputs, output, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Call variants using freebayes
-    
+
     Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/jellyfish*.bam`), or both.
-    
+
     The `--regions` option specifies what genomic regions to call variants
     with. If a 1-indexed BED file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only
@@ -120,11 +128,11 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 def mpileup(reference, inputs, output, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Call variants from using bcftools mpileup
-    
+
     Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/scarab*.bam`), or both.
-    
+
     The `--regions` option specifies what genomic regions to call variants
     with. If a 1-indexed BED file is provided, variant calling will be parallelized
     over those regions. If a single region is provided in the format `chrom:start-end`, only

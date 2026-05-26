@@ -1,10 +1,12 @@
 """Module with python-click types for command-line level validations of inputs"""
 
-import click
 import os
-from pathlib import Path
 import re
+from pathlib import Path
+
+import click
 import yaml
+
 from harpy.common.file_ops import is_gzip
 from harpy.common.printing import HarpyPrint
 
@@ -70,7 +72,7 @@ class FASTAfile(click.ParamType):
             self.fail(f"File {value} does not have any of the recognized [case insensitive] FASTA file extensions (.fa, .fas, .fasta, .fna, .ffn, .frn). Gzipping (.gz) is also permitted.", param, ctx)
 
         return filepath.resolve().as_posix()
-        
+
 class FASTQfile(click.ParamType):
     """
     A CLI class to validate a FASTQ file as input. Checks for presence, format, and returns the absolute path.
@@ -236,7 +238,7 @@ class DemuxSchema(click.ParamType):
                     if segment_id in segment_ids:
                         hp.error(
                             "ambiguous segment ID",
-                            "An ID segment must only be associated with a single sample.",                        
+                            "An ID segment must only be associated with a single sample.",
                             "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/] cannot identify both [green]sample_01[/] and [green]sample_2[/]. In other words, a segment can only appear once.",
                             "The segment triggering this error is",
                             segment_id
@@ -282,15 +284,15 @@ class ImputeStrategy(click.ParamType):
             try:
                 _win = int(pieces[1])
                 if _win < 100:
-                    self.fail(f"Window size must be >= 100, but got {value}", param, ctx)  
+                    self.fail(f"Window size must be >= 100, but got {value}", param, ctx)
             except ValueError:
                 self.fail(f"The window strategy format is incorrect.\n  - expected window:size (e.g., window:1000000)\n  - got {value}", param, ctx)
         else:
             parts = pieces[1].split("-")
             if len(parts) != 2 or any([not self.isInt(i) for i in parts]):
                 self.fail(f"Region must be contig:start-end (e.g., chr1:300-80000), but got {value}", param, ctx)
-            start, end = map(int, parts)  
-            if start < 1 or end < start:  
-                self.fail(f"Region coordinates must satisfy start >= 1 and end >= start, but got {value}", param, ctx) 
+            start, end = map(int, parts)
+            if start < 1 or end < start:
+                self.fail(f"Region coordinates must satisfy start >= 1 and end >= start, but got {value}", param, ctx)
 
         return value

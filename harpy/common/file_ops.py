@@ -1,24 +1,27 @@
 """Module with helper function to set up Harpy workflows"""
 
+import curses
 import glob
 import gzip
 import importlib.resources as resources
 import os
-from pathlib import Path
-import pysam
 import re
 import shutil
 import sys
-import curses
 from datetime import datetime
-from pygments import highlight
-from pygments.lexers import get_lexer_by_name
-from pygments.formatters import get_formatter_by_name
+from pathlib import Path
+
+import pysam
 from click import echo_via_pager
+from pygments import highlight
+from pygments.formatters import get_formatter_by_name
+from pygments.lexers import get_lexer_by_name
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.syntax import Syntax
+
 from harpy.common.printing import HarpyPrint
+
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
@@ -70,7 +73,7 @@ def last_sm_log(directory) -> str:
     err_dir = os.path.join(directory, ".snakemake", "log")
     if not os.path.exists(err_dir) or not os.path.exists(directory):
         return ""
-    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]
     return os.path.basename(sorted(files, key = os.path.getmtime)[-1])
 
 def purge_empty_logs(output_directory):
@@ -271,13 +274,13 @@ def choose_logfile(directory: str, choose:bool) -> str:
     err_file = "There are no log files"
     if not os.path.exists(err_dir):
         hp.error(
-            "directory not found", 
+            "directory not found",
             f"The file you are trying to view is expected to be in [blue]{err_dir}[/], but that directory was not found. Please check that this is the correct folder."
         )
-    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]        
+    files = [i for i in glob.iglob(f"{err_dir}/*.log*")]
     if not files:
         hp.error(
-            "files not found", 
+            "files not found",
             f"{err_file} in [blue]{err_dir}[/]. Please check that this is the correct folder."
         )
 
@@ -301,7 +304,7 @@ def choose_logfile(directory: str, choose:bool) -> str:
             choices=list(str(i) for i in range(1,len(files) + 1)),
             show_choices=False
         )
-        
+
         selected_idx = int(selection) - 1
         target_file = files[selected_idx]
     else:

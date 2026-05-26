@@ -2,8 +2,10 @@
 
 import os
 import sys
-import yaml
+
 import rich_click as click
+import yaml
+
 from harpy.common.environments import check_environments
 from harpy.common.printing import HarpyPrint
 from harpy.common.workflow import Workflow
@@ -77,7 +79,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         hp.error("missing snakemake config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/profile.yaml[/]")
     if not os.path.exists(CONFIG_FILE):
         hp.error("missing workflow config", f"Target directory [yellow]{directory}[/] does not contain the file [blue]workflow/workflow.yaml[/]")
-    
+
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config: dict = yaml.full_load(f)
     with open(PROFILE_FILE, 'r', encoding="utf-8") as f:
@@ -94,7 +96,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         workflow.input(_inputs)
     else:
         for i,j in _inputs.items():
-            workflow.input(j, i)    
+            workflow.input(j, i)
 
     workflow.parameters = config_extract(harpy_config, "Parameters", allow_missing=_allow_noparams)
 

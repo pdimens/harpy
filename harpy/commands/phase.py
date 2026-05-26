@@ -1,14 +1,16 @@
 """Harpy haplotype phasing workflow"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, FASTAfile
-from harpy.validation.fasta import FASTA
-from harpy.validation.xam import XAM
-from harpy.validation.vcf import VCF
-from harpy.common.cli_params import HapCutParams, ContigList, SnakemakeParams
+
+from harpy.common.cli_filetypes import FASTAfile, HPCProfile, SAMfile, VCFfile
+from harpy.common.cli_params import ContigList, HapCutParams, SnakemakeParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
+from harpy.validation.fasta import FASTA
+from harpy.validation.vcf import VCF
+from harpy.validation.xam import XAM
 
 @click.group()
 @click.help_option('--help', hidden = True)
@@ -42,9 +44,9 @@ def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, 
     """
     Phase alignments using phased SNPs
 
-    Provide the reference fasta, then a **phased** vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the reference fasta, then a **phased** vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
-    
+
     Presence and type of linked-read data is auto-detected, but you may choose to omit barcode
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.
@@ -108,9 +110,9 @@ def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_qualit
     """
     Phase SNPs into haplotypes
 
-    Provide the vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as 
+    Provide the vcf file followed by the input alignment (`.bam`) files and/or directories at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/myotis*.bam`), or both.
-    
+
     Presence and type of linked-read data is auto-detected, but you may choose to omit barcode
     information with `-U`. Use `--vcf-samples` to phase only the samples present in your input
     `VCF` file rather than all the samples present in the `INPUTS` alignments.

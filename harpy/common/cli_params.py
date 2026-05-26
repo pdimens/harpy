@@ -1,10 +1,12 @@
 """Module with python-click types for command-line level validations of program-specific extra-params inputs"""
 
 import os
-import click
 from pathlib import Path
-from shlex import split as shellsplit
 from shlex import join as shelljoin
+from shlex import split as shellsplit
+
+import click
+
 
 def sanitize_shell(sh):
     return shelljoin(shellsplit(sh))
@@ -13,7 +15,7 @@ class FastpParams(click.ParamType):
     """A class for a click type that validates fastp extra-params."""
     name = "fastp_params"
     def convert(self, value, param, ctx):
-        harpy_options = "--length_required -l --trim_poly_g --max_len1 -b --detect_adapter_for_pe --disable_adapter_trimming -A --dedup -D".split() 
+        harpy_options = "--length_required -l --trim_poly_g --max_len1 -b --detect_adapter_for_pe --disable_adapter_trimming -A --dedup -D".split()
         valid_options = "--failed_out -6 --phred64 --reads_to_process --fix_mgi_id -a --adapter_sequence --adapter_sequence_r2 --adapter_fasta -f --trim_front1 -t --trim_tail1 -b --max_len1 -F --trim_front2 -T --trim_tail2 -B --max_len2 --dup_calc_accuracy --dont_eval_duplication --poly_g_min_len -x --trim_poly_x --poly_x_min_len -5 --cut_front -3 --cut_tail -W --cut_window_size -M --cut_mean_quality --cut_front_window_size --cut_front_mean_quality --cut_tail_window_size --cut_tail_mean_quality --cut_right_window_size --cut_right_mean_quality -Q --disable_quality_filtering -q --qualified_quality_phred -u --unqualified_percent_limit -n --n_base_limit -e --average_qual -L --disable_length_filtering -l --length_required --length_limit -y --low_complexity_filter -Y --complexity_threshold --filter_by_index1 --filter_by_index2 --filter_by_index_threshold -c --correction --overlap_len_require --overlap_diff_limit --overlap_diff_percent_limit -U --umi --umi_loc --umi_len --umi_prefix --umi_skip -p --overrepresentation_analysis -P --overrepresentation_sampling -s --split -S --split_by_lines -d --split_prefix_digits".split()
         opts = 0
         docs = "https://github.com/OpenGene/fastp?tab=readme-ov-file#all-options"
@@ -32,7 +34,7 @@ class BwaParams(click.ParamType):
     """A class for a click type that validates bwa extra-params."""
     name = "bwa_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-C -v -t -R".split() 
+        harpy_options = "-C -v -t -R".split()
         valid_options = "-k -w -d -r -c -P -A -B -O -E -L -U -p -T -a -H -M ".split()
         opts = 0
         docs = "https://bio-bwa.sourceforge.net/bwa.shtml"
@@ -51,7 +53,7 @@ class EmaParams(click.ParamType):
     """A class for a click type that validates ema extra-params."""
     name = "ema_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-t -p -d -r -R -x".split() 
+        harpy_options = "-t -p -d -r -R -x".split()
         valid_options = "-i".split()
         opts = 0
         docs = "https://github.com/arshajii/ema"
@@ -70,7 +72,7 @@ class StrobeAlignParams(click.ParamType):
     """A class for a click type that validates strobealign extra-params."""
     name = "strobealign_params"
     def convert(self, value, param, ctx):
-        harpy_options = "--use-index -i --create-index -r -N -t -U -C --rg-id --rg".split() 
+        harpy_options = "--use-index -i --create-index -r -N -t -U -C --rg-id --rg".split()
         valid_options = "-x -A -B -O -E -L -f -S -M -R -m -k -l -u -c -s -b --aux-len --aemb --eqx --no-PG --details".split()
         opts = 0
         docs = "https://github.com/ksahlin/strobealign?tab=readme-ov-file#command-line-options"
@@ -89,7 +91,7 @@ class SpadesParams(click.ParamType):
     """A class for a click type that validates spades extra-params."""
     name = "spades_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-t -m -k --gemcode1-1 --gemcode1-2 -o --isolate --pe1-1 --pe1-2".split() 
+        harpy_options = "-t -m -k --gemcode1-1 --gemcode1-2 -o --isolate --pe1-1 --pe1-2".split()
         valid_options = "--dataset --pacbio --nanopore --sanger --trusted-contigs --untrusted-contigs --assembly-graph --cov-cutoff --phred-offset --custom-hmms --gfa11".split()
         valid_options += [f"--mp{x}-{orient}" for x in range(1,10) for orient in ["1","2","12", "fr", "rf", "ff"]]
         valid_options += [f"--hqmp{x}-{orient}" for x in range(1,10) for orient in ["1","2","12", "s", "fr", "rf", "ff"]]
@@ -110,7 +112,7 @@ class ArcsParams(click.ParamType):
     """A class for a click type that validates ARCS extra-params."""
     name = "arcs_params"
     def convert(self, value, param, ctx):
-        harpy_options = "draft reads t mapq nm dist minsize span c z s l base_name".split() 
+        harpy_options = "draft reads t mapq nm dist minsize span c z s l base_name".split()
         valid_options = "G cut longmap window as trim ac u multfile g graph gap tsv barcodecounts m index_multiplicity d max_degree e end_length r error_percent k k_value j j_index B bin_sizeN D dist_est no_dist_est dist_median dist_upper dist_tsv samples_tsv P pair f d k o e a b r p x".split()
         opts = 0
         docs = "\nTigmint: https://github.com/bcgsc/tigmint\nARCS: https://github.com/bcgsc/arcs\nLINKS: https://github.com/bcgsc/links"
@@ -135,7 +137,7 @@ class StitchParams(click.ParamType):
     """A class for a click type that validates stitch extra-params. Sanitizes and corrects different input styles to work with STITCH cli"""
     name = "stitch_params"
     def convert(self, value, param, ctx):
-        harpy_options = "--method --posfile --bamlist --nCores --nGen --chr --buffer --regionStart --regionEnd --K --S --use_bx_tag --bxTagUpperLimit --outputdir --output_filename --tempdir".split() 
+        harpy_options = "--method --posfile --bamlist --nCores --nGen --chr --buffer --regionStart --regionEnd --K --S --use_bx_tag --bxTagUpperLimit --outputdir --output_filename --tempdir".split()
         valid_options = "--nStarts --genfile --B_bit_prob --outputInputInVCFFormat --downsampleToCov --downsampleFraction --readAware --chrStart --chrEnd --maxDifferenceBetweenReads --maxEmissionMatrixDifference --alphaMatThreshold --emissionThreshold --iSizeUpperLimit --bqFilter --niterations --shuffleHaplotypeIterations --splitReadIterations --expRate --maxRate --minRate --Jmax --regenerateInput --originalRegionName --keepInterimFiles --keepTempDir --switchModelIteration --generateInputOnly --restartIterations --refillIterations --downsampleSamples --downsampleSamplesKeepList --subsetSNPsfile --useSoftClippedBases --outputBlockSize --outputSNPBlockSize --inputBundleBlockSize --genetic_map_file --reference_haplotype_file --reference_legend_file --reference_sample_file --reference_populations --reference_phred --reference_iterations --reference_shuffleHaplotypeIterations --initial_min_hapProb --initial_max_hapProb --regenerateInputWithDefaultValues --plot_shuffle_haplotype_attempts --save_sampleReadsInfo --gridWindowSize --shuffle_bin_nSNPs --shuffle_bin_radius --keepSampleReadsInRAM --useTempdirWhileWriting --output_haplotype_dosages".split()
         opts = 0
         docs = "https://github.com/rwdavies/STITCH/blob/master/Options.md"
@@ -164,7 +166,7 @@ class HapCutParams(click.ParamType):
     """A class for a click type that validates hapcut2 extra-params."""
     name = "hapcut2_params"
     def convert(self, value, param, ctx):
-        harpy_options = "--fragments --vcf --out --nf --error_analysis_mode --call_homozygous --outvcf --threshold --no_prune".split() 
+        harpy_options = "--fragments --vcf --out --nf --error_analysis_mode --call_homozygous --outvcf --threshold --no_prune".split()
         valid_options = "--skip_prune --sp --discrete_pruning --dp --max_iter --mi --maxcut_iter --mc".split()
         opts = 0
         docs = "https://github.com/vibansal/HapCUT2"
@@ -183,7 +185,7 @@ class LeviathanParams(click.ParamType):
     """A class for a click type that validates leviathan extra-params."""
     name = "leviathan_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-b -i -g -o -v --minVariantSize -c --minBarcodes -B --nbBins -t --threads -C --candidates -s --smallRate -m --mediumRate -l --largeRate -d --duplicates".split() 
+        harpy_options = "-b -i -g -o -v --minVariantSize -c --minBarcodes -B --nbBins -t --threads -C --candidates -s --smallRate -m --mediumRate -l --largeRate -d --duplicates".split()
         valid_options = "-r --regionSize -n --maxLinks -M --mediumSize -L --largeSize -s --skipTranslocations -p --poolSize".split()
         opts = 0
         docs = "https://github.com/morispi/LEVIATHAN?tab=readme-ov-file#options"
@@ -202,7 +204,7 @@ class NaibrParams(click.ParamType):
     """A class for a click type that validates naibr extra-params."""
     name = "naibr_params"
     def convert(self, value, param, ctx):
-        harpy_options = "bam_file prefix outdir threads min_mapq d min_sv k".split() 
+        harpy_options = "bam_file prefix outdir threads min_mapq d min_sv k".split()
         valid_options = "blacklist candidates min_discs min_reads sd_mult".split()
         opts = 0
         docs = "https://github.com/pontushojer/NAIBR?tab=readme-ov-file#running-naibr"
@@ -219,12 +221,12 @@ class NaibrParams(click.ParamType):
         if opts < 1:
             self.fail(f"No valid options recognized. Available naibr options begin without dashes in the form of ARG<space>VAL (e.g. blacklist inversions.txt). See the naibr documentation for a list of available options: {docs}.", param, ctx)
         return sanitize_shell(" ".join(clean_args))
-    
+
 class MpileupParams(click.ParamType):
     """A class for a click type that validates mpileup extra-params."""
     name = "mpileup_params"
     def convert(self, value, param, ctx):
-        harpy_options = "--fasta-ref -f --bam-list -b --annotate -a --output-type -O -r --regions".split() 
+        harpy_options = "--fasta-ref -f --bam-list -b --annotate -a --output-type -O -r --regions".split()
         valid_options = "-6 --illumina1.3+ -A --count-orphans -B --no-BAQ -C --adjust-MQ -D --full-BAQ -d --max-depth -E --redo-BAQ -G --read-groups -q --min-MQ -Q --min-BQ --max-BQ INT --delta-BQ INT --ignore-RG --ls --skip-all-set --ns --skip-any-set --lu --skip-all-unset --nu --skip-any-unset -s --samples -S --samples-file -t --targets -T --targets-file -x --ignore-overlaps -g --gvcf -o -X --config -e --ext-prob -F --gap-frac -h --tandem-qual -I --skip-indels -L --max-idepth -m --min-ireads -M --max-read-len -o --open-prob -p --per-sample-mF -P --platforms --ar --ambig-reads --indel-bias --del-bias --score-vs-ref --indel-size --indels-2.0 --indels-cns --seqq-offset --no-indels-cns --poly-mqual".split()
         opts = 0
         docs = "https://samtools.github.io/bcftools/bcftools.html#mpileup"
@@ -238,12 +240,12 @@ class MpileupParams(click.ParamType):
         if opts < 1:
             self.fail(f"No valid options recognized. Available mpileup options begin one or with two dashes (e.g. -d or --max-depth). See the mpileup documentation for a list of available options: {docs}.", param, ctx)
         return sanitize_shell(value)
-    
+
 class FreebayesParams(click.ParamType):
     """A class for a click type that validates freebayes extra-params."""
     name = "freebayes_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-r --region -p --ploidy -f --fasta-reference -L --bam-list --populations".split() 
+        harpy_options = "-r --region -p --ploidy -f --fasta-reference -L --bam-list --populations".split()
         valid_options = "-t --targets -s --samples -A --cnv-map -v --vcf --gvcf --gvcf-chunkUM -& --gvcf-dont-use-chunk -@ --variant-input -l --only-use-input-alleles --haplotype-basis-alleles --report-all-haplotype-alleles --report-monomorphic -P --pvar --strict-vcf -T --theta -J --pooled-discrete -K --pooled-continuous -Z --use-reference-allele --reference-quality -n --use-best-n-alleles -E --max-complex-gap --haplotype-length --min-repeat-size --min-repeat-entropy --no-partial-observations -O --dont-left-align-indels -4 --use-duplicate-reads -m --min-mapping-quality -q --min-base-quality -R --min-supporting-allele-qsum -Y --min-supporting-mapping-qsum -Q --mismatch-base-quality-threshold -U --read-mismatch-limit -z --read-max-mismatch-fraction -$ --read-snp-limit -e --read-indel-limit -0 --standard-filters -F --min-alternate-fraction -C --min-alternate-count -3 --min-alternate-qsum -G --min-alternate-total --min-coverage --limit-coverage -g --skip-coverage --trim-complex-tail -k --no-population-priors -w --hwe-priors-off -V --binomial-obs-priors-off -a --allele-balance-priors-off --observation-bias --base-quality-cap --prob-contamination --legacy-gls --contamination-estimates --report-genotype-likelihood-max -B --genotyping-max-iterations --genotyping-max-banddepth -W --posterior-integration-limits,M -N --exclude-unobserved-genotypes -S --genotype-variant-threshold -j --use-mapping-quality -H --harmonic-indel-quality -D --read-dependence-factor -= --genotype-qualities -d --debug".split()
         opts = 0
         docs = "https://github.com/freebayes/freebayes"
@@ -360,7 +362,7 @@ class SnakemakeParams(click.ParamType):
     """A class for a click type which accepts snakemake parameters. Does validations to make sure there isn't doubling up."""
     name = "snakemake_params"
     def convert(self, value, param, ctx):
-        forbidden = "--rerun-incomplete --ri --show-failed-logs --rerun-triggers --nolock --software-deployment-method --smd --deployment --deployment-method --conda-prefix --cores -c --directory -d --snakefile -s --configfile --configfiles --conda-cleanup-pkgs --apptainer-prefix --singularity-prefix --notemp --nt --no-temp".split() 
+        forbidden = "--rerun-incomplete --ri --show-failed-logs --rerun-triggers --nolock --software-deployment-method --smd --deployment --deployment-method --conda-prefix --cores -c --directory -d --snakefile -s --configfile --configfiles --conda-cleanup-pkgs --apptainer-prefix --singularity-prefix --notemp --nt --no-temp".split()
         available = "--profile --cache --jobs -j --local-cores --resources --res --set-threads --max-threads --set-resources --set-scatter --set-resource-scopes --default-resources --default-res --preemptible-rules --preemptible-retries --envvars --touch -t --keep-going -k --force -f --executor -e --forceall -F --forcerun -R --prioritize -P --batch --until -U --omit-from -O --shadow-prefixDIR --scheduler --wms-monitor --wms-monitor-arg --scheduler-ilp-solver --conda-base-path --no-subworkflows --nosw --precommand --groups --group-components --report --report-stylesheet --reporterPLUGIN --draft-notebook --edit-notebook --notebook-listen --lint --generate-unit-tests --containerize --export-cwl --list-rules --list -l --list-target-rules --lt --dag --rulegraph --filegraph --d3dag --summary -S --detailed-summary -D --archive --cleanup-metadata --cmFILE --cleanup-shadow --skip-script-cleanup --unlock --list-changes --lc --list-input-changes --li --list-params-changes --lp --list-untracked --lu --delete-all-output --delete-temp-output --keep-incomplete --drop-metadata --version -v --printshellcmds -p --nocolor --print-compilation --force-use-threads --allow-ambiguity -a --ignore-incomplete --ii --max-inventory-time --latency-wait --output-wait -w --wait-for-files --wait-for-files-file --queue-input-wait-time --all-temp --unneeded-temp-files --keep-storage-local-copies --target-files-omit-workdir-adjustment --allowed-rules --max-jobs-per-timespan --max-jobs-per-second --max-status-checks-per-second --seconds-between-status-checks --retries --restart-times -T --default-storage-provider --default-storage-prefix --local-storage-prefix --remote-job-local-storage-prefix --shared-fs-usage --scheduler-greediness --greediness --runtime-profile --local-groupid --attempt --log-handler-script --log-service --job-deploy-sources --benchmark-extended --container-image --immediate-submit --is --jobscript --js --jobname --jn --flux --container-cleanup-images --conda-not-block-search-path-envvars --conda-frontend --apptainer-args --singularity-args --use-envmodules --scheduler-solver-path --deploy-sources --target-jobs --mode --report-html-path --report-html-stylesheet-path".split()
         for i in value.split():
             if i.startswith("-"):

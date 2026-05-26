@@ -1,14 +1,17 @@
 """Harpy imputation workflow"""
 
 import os
+
 import rich_click as click
-from harpy.common.cli_filetypes import HPCProfile, SAMfile, VCFfile, ImputeStrategy
+
+from harpy.common.cli_filetypes import HPCProfile, ImputeStrategy, SAMfile, VCFfile
 from harpy.common.cli_params import SnakemakeParams, StitchParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.impute_parameters import ImputeParams
-from harpy.validation.xam import XAM
 from harpy.validation.vcf import VCF
+from harpy.validation.xam import XAM
+
 ##@click.option('-r', '--region', panel = "Parameters", type = str, help = 'Specific region to impute')
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
@@ -34,13 +37,13 @@ from harpy.validation.vcf import VCF
 def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads, vcf_samples, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Impute variant genotypes from alignments
-    
-    Provide the parameter file followed by the input VCF and the input alignment files/directories (`.bam`) at the end of the command as 
+
+    Provide the parameter file followed by the input VCF and the input alignment files/directories (`.bam`) at the end of the command as
     individual files/folders, using shell wildcards (e.g. `data/drosophila*.bam`), or both.
-    
+
     Use `harpy template impute` to generate a parameter file. Enclose any additional STITCH arguments
     in quotes and with the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
-    
+
     # Imputation Strategies (--strategy)
     ## Buffered genomic windows (default)
     Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer

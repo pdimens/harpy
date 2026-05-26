@@ -1,9 +1,11 @@
 """Perform a linked-read aware metassembly"""
 
-import rich_click as click
 import os
-from harpy.common.cli_filetypes import HPCProfile, FASTQfile
-from harpy.common.cli_params import SpadesParams, ArcsParams, KParam, SnakemakeParams
+
+import rich_click as click
+
+from harpy.common.cli_filetypes import FASTQfile, HPCProfile
+from harpy.common.cli_params import ArcsParams, KParam, SnakemakeParams, SpadesParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
@@ -22,7 +24,7 @@ from harpy.validation.fastq import FASTQ
 @click.option("-m", "--mismatch", panel = "Scaffolding Parameters", type = click.IntRange(min = 1), default = 5, show_default = True, help = "Maximum number of mismatches")
 @click.option("-d", "--molecule-distance", panel = "Scaffolding Parameters", type = click.IntRange(min = 500), default = 50000, show_default = True, help = "Distance cutoff to split molecules (bp)")
 @click.option("-l", "--molecule-length", panel = "Scaffolding Parameters", type = click.IntRange(min = 100), default = 2000, show_default = True, help = "Minimum molecule length (bp)")
-@click.option("-i", "--seq-identity", panel = "Scaffolding Parameters", type = click.IntRange(0,100, clamp = True), default = 98, show_default = True, help = "Minimum sequence identity") 
+@click.option("-i", "--seq-identity", panel = "Scaffolding Parameters", type = click.IntRange(0,100, clamp = True), default = 98, show_default = True, help = "Minimum sequence identity")
 @click.option("-s", "--span", panel = "Scaffolding Parameters", type = click.IntRange(min = 1), default = 20, show_default = True, help = "Minimum number of spanning molecules to be considered assembled")
 # Other Options
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Assembly", show_default=True,  help = 'Output directory name')

@@ -1,8 +1,11 @@
 from io import StringIO
+
 import numpy as np
 import pandas as pd
 import polars as pl
+
 from harpy.common.file_ops import safe_read
+
 
 class StopExecution(Exception):
     '''An exception type to prematurely end a notebook without it being considered an error'''
@@ -60,7 +63,7 @@ def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
     else:
         _l = lengths
     _l.sort(reverse = True)
-    cum_sum = 0 
+    cum_sum = 0
     for i in _l:
         cum_sum += i
         if cum_sum >= threshold:
@@ -113,7 +116,7 @@ def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: boo
     col_max = max_val if max_val else int(data.max())
     bins = np.arange(0, col_max + bin_size, bin_size).round(precision)
     #bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
-    
+
     labels = [f"{round(i, precision)}-{round(i + bin_size, precision)}" for i in bins]
 
     # Cut into bins using searchsorted

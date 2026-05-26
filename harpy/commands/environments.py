@@ -2,7 +2,9 @@
 
 import os
 import shutil
+
 import rich_click as click
+
 from harpy.common.environments import HarpyEnvs
 from harpy.common.workflow import Workflow
 
@@ -40,8 +42,8 @@ def conda(workflows):
 
     Create the conda environments required by Harpy's workflows (e.g. `phase`).
     ONLY use this for specific HPC configurations where worker nodes
-    do not have internet access to let snakemake install conda packages. 
-    Provide any combination of: 
+    do not have internet access to let snakemake install conda packages.
+    Provide any combination of:
     - all
     - align
     - assembly

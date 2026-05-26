@@ -1,16 +1,18 @@
 """Harpy module to create a sample grouping file"""
 
+import glob
 import os
 import re
 import shutil
 import subprocess
 import sys
-import glob
+
 import rich_click as click
 import yaml
+
 from harpy.commands.report import ReportRender
-from harpy.common.printing import HarpyPrint
 from harpy.common.file_ops import fetch_template
+from harpy.common.printing import HarpyPrint
 from harpy.common.system_ops import package_absent
 
 hp = HarpyPrint()
@@ -75,7 +77,7 @@ def groupings(inputdir):
 def report(update, action):
     """
     Repository configuration to build report website
-    
+
     Creates `myst.yml` at the project root and the landing page `.report/index.md` if
     they don't already exist. Use `--action` to also configure a GitHub Action
     that automatically builds and publishes the reports as a single website
@@ -145,7 +147,7 @@ def report(update, action):
 def hpc_generic():
     """
     Create a template config for a generic scheduler
-    
+
     This command creates a configuration for a generic HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-cluster-generic` for the HPC job submission to work.
     """
@@ -189,7 +191,7 @@ def hpc_generic():
 def hpc_lsf():
     """
     Create a template config for LSF
-    
+
     This command creates a configuration for the LSF HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-lsf` for the HPC job submission to work.
     """
@@ -201,7 +203,7 @@ def hpc_lsf():
 def hpc_slurm():
     """
     Create a template config for SLURM
-    
+
     This command creates a configuration for the SLURM HPC scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-slurm` for the HPC job submission to work.
     """
@@ -213,7 +215,7 @@ def hpc_slurm():
 def hpc_googlebatch():
     """
     Create a template config for Google Batch
-    
+
     This command creates a configuration for the Google Batch scheduler. Writes to `stdout`.
     You will also need to install `snakemake-executor-plugin-googlebatch` for the HPC job submission to work.
     """

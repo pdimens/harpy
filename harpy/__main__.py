@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
 
 import rich_click as click
-from harpy.commands import align
-from harpy.commands import assembly
-from harpy.commands import diagnose, resume, view
-from harpy.commands import deconvolve
-from harpy.commands import preprocess
-from harpy.commands import environments
-from harpy.commands import impute
-from harpy.commands import qc
-from harpy.commands import phase
-from harpy.commands import report
-from harpy.commands import snp, sv
-from harpy.commands import template
-from harpy.commands import validate
+
 from harpy import __version__
+from harpy.commands import (
+    align,
+    assembly,
+    deconvolve,
+    diagnose,
+    environments,
+    impute,
+    phase,
+    preprocess,
+    qc,
+    report,
+    resume,
+    snp,
+    sv,
+    template,
+    validate,
+    view,
+)
 
 config = click.RichHelpConfiguration(
     max_width=80,
@@ -55,9 +61,9 @@ def cli():
     Automated workflows for linked-read data
     to go from raw data to genotypes (or phased haplotypes).
     Batteries included.
-    
+
     **preprocess >> qc >> align >> snp >> impute >> phase >> sv**
-    
+
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
 

@@ -1,12 +1,14 @@
 import os
+
 import click
+
 
 @click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
 @click.argument('output_directory', default = '.', type=click.Path(exists = False, resolve_path = True))
 @click.help_option('--help', hidden = True)
 def haplotag_acbd(output_directory):
     "Generates the BC_{ABCD}.txt files necessary to demultiplex Gen I haplotagging barcodes"
-    
+
     outdir = output_directory.rstrip("/")
     os.makedirs(outdir, exist_ok = True)
 

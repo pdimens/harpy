@@ -1,11 +1,12 @@
 """launch snakemake"""
 
-from datetime import datetime
 import os
 import re
 import signal
-import sys
 import subprocess
+import sys
+from datetime import datetime
+
 from harpy.common.file_ops import purge_empty_logs
 from harpy.common.printing import HarpyPrint
 
@@ -25,7 +26,7 @@ class Rule:
         self.ids: set = set()
 
     def active(self) -> int:
-        return len(self.ids) 
+        return len(self.ids)
 
 class LaunchSnakemake():
     """launch snakemake with the given commands and monitor its progress"""

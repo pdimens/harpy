@@ -1,7 +1,9 @@
+import sys
+
 import click
 import numpy as np
-from pysam import AlignmentFile, AlignedSegment
-import sys
+from pysam import AlignedSegment, AlignmentFile
+
 
 class ReadCloud():
     '''
@@ -141,7 +143,7 @@ def bx_stats_sam(distance_threshold, input):
 
     The alignment file is expected to be in "standard" linked-read format, that is,
     the barcode is contained in the BX:Z tag and the barcode validation is stored
-    in the VX:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule): 
+    in the VX:i tag as 0 (invalid) or 1 (valid). Metrics include (per molecule):
     number of reads, position start, position end, length of molecule inferred from
     alignments, total aligned basepairs, total, length of inferred inserts, molecule
     coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
@@ -178,7 +180,7 @@ def bx_stats_sam(distance_threshold, input):
             except KeyError:
                 # There is either no BX or no/invalid VX tag
                 if "invalid" not in d:
-                    d["invalid"] = ReadCloud(valid = False) 
+                    d["invalid"] = ReadCloud(valid = False)
                 d["invalid"].add(read)
                 LAST_CONTIG = chrom
                 continue
