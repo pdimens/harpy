@@ -19,7 +19,7 @@ mkdir -p $PREFIX/etc/conda/deactivate.d
 cat > ${PREFIX}/etc/conda/activate.d/harpy-activate.sh <<'EOF'  
 export _HARPY_OLD_JUPYTER_NOTARY_DB="${JUPYTER_NOTARY_DB-__UNSET__}"  
 export JUPYTER_NOTARY_DB=':memory:'  
-EOF  
+EOF
   
 cat > ${PREFIX}/etc/conda/deactivate.d/harpy-deactivate.sh <<'EOF'  
 if [ "${_HARPY_OLD_JUPYTER_NOTARY_DB-__UNSET__}" = "__UNSET__" ]; then  
@@ -28,4 +28,4 @@ else
   export JUPYTER_NOTARY_DB="${_HARPY_OLD_JUPYTER_NOTARY_DB}"  
 fi  
 unset _HARPY_OLD_JUPYTER_NOTARY_DB  
-EOF  
+EOF

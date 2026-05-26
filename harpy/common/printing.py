@@ -184,7 +184,7 @@ class HarpyPrint():
         self.print(f"[red]Harpy:[/] v{__version__}", highlight=False)
         self.print("[red]Time:[/] " + self.time_now(), highlight=False)
         self.print(errortext + "\n")
-        self.print("[bold dim]── ⚠ Error Reported by Snakemake")
+        self.print("[bold dim]──── ⚠ Error Reported by Snakemake")
 
     def on_error(self, logfile: str, _time) -> None:
         """
@@ -357,7 +357,7 @@ class HarpyPrint():
             if "RuleException" in i:
                 sys.exit(1)
             if "Error in rule" in i or "Error in group" in i:
-                #self.print(f"[yellow bold]── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
+                #self.print(f"[yellow bold]──── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
                 self.rule(f"[default bold]Triggering Rule[/][yellow bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
                 #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
             elif i.strip().startswith("shell:"):
@@ -372,7 +372,7 @@ class HarpyPrint():
         if self.missingoutput:
             for i in self.missingoutput:
                 i = i.partition("Waiting at most")[0]
-                self.print("[bold dim]── ⚠ Error Reported by Snakemake")
+                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
                 self.print(i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
 
 
@@ -382,7 +382,7 @@ class HarpyPrint():
             if self.missingoutput:
                 _i = self.missingoutput.pop(0)
                 _i = _i.partition("Waiting at most")[0]
-                self.print("[bold dim]── ⚠ Error Reported by Snakemake")
+                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
                 self.print(_i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
             self.print_logfile(txt)
             return
@@ -416,7 +416,7 @@ class HarpyPrint():
                 break
             text += i
         self.print("")
-        self.print("[bold dim]── ❯ Command Invoked")
+        self.print("[bold dim]──── ❯ Command Invoked")
         self.shell(text.strip("\n"))
 
 
@@ -425,7 +425,7 @@ class HarpyPrint():
         merged_text = ""
         _log = errline.rstrip().split()[1]
         self.print("")
-        self.print(f"[bold dim]── 🗎 {_log.rstrip(':')}")
+        self.print(f"[bold dim]──── 🗎 {_log.rstrip(':')}")
         if "empty file" in errline:
             self.print(f"{_log.replace(':','')} is empty\n", style = "dim")
             _ = next(self.errortext)
