@@ -51,7 +51,7 @@ def report(directory, debug, md, headless, clear_cache, port, server_port, refre
     URL = ""
     myst_error = ""
     if debug:
-        subprocess.run(cmd, stdout = sys.stdout, stderr = sys.stderr)
+        subprocess.run(cmd, cwd = directory, stdout = sys.stdout, stderr = sys.stderr)
         return
     try:
         start_text = "Starting the MyST live-server[dim]…[/]" if not clear_cache else "Fetching site template[dim]…[/]"

@@ -66,7 +66,6 @@ class LaunchSnakemake():
         finally:
             self.progress.stop()
             self._teardown_bg_signal_handlers()
-            self.return_or_collect()
             if self.process.poll() is None:
                 self.process.terminate()
                 try:
@@ -74,6 +73,7 @@ class LaunchSnakemake():
                 except subprocess.TimeoutExpired:
                     self.process.kill()
                     self.process.communicate()
+            self.return_or_collect()
             purge_empty_logs(outdir)
 
     def _is_foreground(self) -> bool:
@@ -99,12 +99,16 @@ class LaunchSnakemake():
             self.print.console.print("")  # force cursor to a fresh line
 
     def _setup_bg_signal_handlers(self):
-        signal.signal(signal.SIGTSTP, self._handle_sigtstp)
-        signal.signal(signal.SIGCONT, self._handle_sigcont)
+        self._prev_sigtstp = signal.getsignal(signal.SIGTSTP)  
+        self._prev_sigcont = signal.getsignal(signal.SIGCONT)
+        #signal.signal(signal.SIGTSTP, self._handle_sigtstp)
+        #signal.signal(signal.SIGCONT, self._handle_sigcont)
 
     def _teardown_bg_signal_handlers(self):
-        signal.signal(signal.SIGTSTP, signal.SIG_DFL)
-        signal.signal(signal.SIGCONT, signal.SIG_DFL)
+        signal.signal(signal.SIGTSTP, self._prev_sigtstp)  
+        signal.signal(signal.SIGCONT, self._prev_sigcont)
+        #signal.signal(signal.SIGTSTP, signal.SIG_DFL)
+        #signal.signal(signal.SIGCONT, signal.SIG_DFL)
 
     def is_done(self) -> bool:
         '''check if self.exitcode > -1 or a value exists for self.process.poll()'''

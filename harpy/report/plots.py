@@ -148,6 +148,7 @@ def depthplot(df, title):
     else:
         _param = 'Read Depth' if coverage else 'Molecule Depth'
         res = _makepanel(df, _param, title = f"{title} ({_param})")
+    alt.data_transformers.enable('default')
     return res.interactive(bind_y = False)
 
 def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):

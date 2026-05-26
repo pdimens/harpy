@@ -48,9 +48,15 @@ class StatsBox:
         _val = f"{_val}{units}" if units else _val
         _col = textcol or 'var(--tw-prose-body, #666666)'
         pm_str = f'±{plus_minus}' if plus_minus else ''
-        self.boxes.append(
-            self.html.format(label = label, value = _val, color = _col, plus_minus=pm_str)
+        safe_label = html.escape(str(label))  
+        safe_value = html.escape(str(_val))  
+        safe_pm = html.escape(str(pm_str))  
+        self.boxes.append(  
+            self.html.format(label=safe_label, value=safe_value, color=_col, plus_minus=safe_pm)  
         )
+        #self.boxes.append(
+        #    self.html.format(label = label, value = _val, color = _col, plus_minus=pm_str)
+        #)
         return self
 
     def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, plus_minus: str|int|float = '', add_percent:bool = False, digits = None):
@@ -93,7 +99,7 @@ class StatsBox:
 def print_time(*args):
     '''HTML-print the time and all arguments with line breaks between them'''
     _now = datetime.now().strftime("🗓️ %d %B, %Y 🕔 %H:%M")
-    _html = "<p>{}<p>".format("<br>".join([_now] + [str(i) for i in [*args]]))
+    _html = "<p>{}</p>".format("<br>".join([_now] + [str(i) for i in [*args]]))
     return display(HTML(_html))
 
 def print_html(*args):

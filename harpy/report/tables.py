@@ -2,6 +2,7 @@ import base64
 import gzip
 import json
 from IPython.display import display, HTML
+import uuid
 
 class JSFunction:
     """Wraps a raw JS string so it can be injected without JSON quoting."""
@@ -40,9 +41,9 @@ class ITable:
             if hasattr(df, "to_dicts")
             else df.to_dict(orient="records")
         )
-
-        self.grid_id = f"grid-{id(df)}"
-        self.grid_ref = f"aggrid_{id(df)}"
+        _uid = uuid.uuid4().hex[:8]
+        self.grid_id = f"grid-{_uid}"
+        self.grid_ref = f"aggrid_{_uid}"
 
         if compress and raw:
             self._compressed_payload = self._build_compressed_payload(raw)
