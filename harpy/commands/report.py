@@ -80,7 +80,7 @@ def report(directory, debug, md, headless, clear_cache, port, server_port, refre
                 if serve.poll():
                     raise ValueError
                 if refresh > 0:
-                    tracker.scan_for_reports()
+                    tracker.scan()
                     tracker.update_yaml()
                     sleep(refresh)
                 else:
