@@ -22,14 +22,17 @@ from harpy.report.render import ReportRender
 @click.argument('directory', required=False, type = click.Path(exists = True, file_okay = False, readable = True), nargs = 1)
 def report(directory, debug, md, headless, clear_cache, port, server_port, refresh):
     """
-    Render ipynb reports as a local website
-
-    Using MyST, all the `.ipynb` reports within Harpy-generated
-    directories will be aggregated and rendered into a locally-served
-    website for you to review them from a single access point. This command
-    is expected to be executed within a git version-controlled directory, where
-    Harpy can identify the root directory of the project, otherwise provide the
-    path to a directory for Harpy to recursively scan the `.ipynb` reports. 
+    Start a local Jupyter Book site from Harpy-collected reports.
+    
+    Parameters:
+    	directory (str): Path to the directory to scan for reports; empty string uses the current project root.
+    	debug (bool): If true, run the server command with stdout/stderr attached to the terminal and exit.
+    	md (bool): If true, also scan for Markdown files (.md) in addition to notebooks.
+    	headless (bool): Pass the `--headless` flag to `jupyter book start`.
+    	clear_cache (bool): If true, remove an existing `_build` directory before preparing the site.
+    	port (int | None): Port number for the live server; omitted if None or falsy.
+    	server_port (int | None): Port number for the backend server; omitted if None or falsy.
+    	refresh (int): Seconds between automatic rescans of reports; `0` disables periodic refresh (effectively sleeps indefinitely).
     """
     cmd = ["jupyter", "book", "start"]
     if headless:

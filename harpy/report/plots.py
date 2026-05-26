@@ -5,10 +5,14 @@ from harpy.report.theme import sv_colors
 
 @contextmanager
 def SafeRender(data):
-    '''
-    Given a Pandas/Polars DataFrame (or list), will temporarily set the Altair render engine to SVG
-    to avoid the 5000 max row cutoff.
-    '''
+    """
+    Context manager that temporarily switches Altair to SVG rendering and disables the 5000-row cutoff when given large data.
+    
+    When entered, saves Altair's current renderer. If len(data) > 5000, disables Altair's max-rows transformer and enables the "svg" renderer. On exit, restores the default data transformer with max_rows=5000 and re-enables the previously active renderer.
+    
+    Parameters:
+        data (Sequence | pandas.DataFrame | polars.DataFrame): Object with a defined length used to decide whether to switch renderers; if its length is greater than 5000 the renderer and transformer are adjusted.
+    """
     previous = alt.renderers.active
     if len(data) > 5000:
         alt.data_transformers.disable_max_rows()
@@ -20,6 +24,19 @@ def SafeRender(data):
         alt.renderers.enable(previous)
 
 def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitle: bool = False, lgpos: str = "bottom"):
+    """
+    Create a small Altair pie chart from a dataframe whose first column is the categorical field and which contains a 'count' column.
+    
+    Parameters:
+        df (pd.DataFrame): DataFrame where the first column is the categorical field and 'count' holds numeric counts.
+        title (str): Chart title shown centered above the chart.
+        goodval (str | None): If provided, that category is colored green and the first other category is colored gray; otherwise colors are assigned automatically.
+        lgtitle (bool): If True the legend displays a title (the categorical field name); if False the legend title is removed.
+        lgpos (str): Legend orientation (e.g., 'bottom', 'right').
+    
+    Returns:
+        alt.Chart: An Altair pie chart encoding category color, arc theta by 'count', and tooltips for category, percent (formatted as `.2%`), and count; sized to 150×100 with a centered title.
+    """
     total = df['count'].sum()
     _names = list(df.columns)
     _n = set(df[_names[0]])
@@ -50,6 +67,17 @@ def piechart(df: pd.DataFrame, title: str = "", goodval: str|None = None, lgtitl
 )
 
 def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
+    """
+    Builds a small donut-style pie chart showing category proportions from a count DataFrame.
+    
+    Parameters:
+        df (pd.DataFrame): Input table containing a categorical column (first column) and a numeric 'count' column; proportions are computed from 'count'.
+        title (str): Chart title; shown centered.
+        lgpos (str): Legend orientation (e.g., 'bottom', 'right').
+    
+    Returns:
+        alt.Chart: An Altair arc chart (innerRadius=20) encoding slice size by `count`, color by the first DataFrame column, and tooltips for category, percent, and count.
+    """
     total = df['count'].sum()
     _names = list(df.columns)
     _n = set(df[_names[0]])
@@ -74,6 +102,16 @@ def convolutionpie(df: pd.DataFrame, title: str = "", lgpos: str = 'bottom'):
 )
 
 def convolutionbar(df: pd.DataFrame, title: str = ""):
+    """
+    Builds a compact horizontal bar chart of categorical counts with percent and count tooltips.
+    
+    Parameters:
+        df (pandas.DataFrame): DataFrame that must contain a 'count' column; the first DataFrame column is used as the categorical field.
+        title (str): Chart title displayed centered; defaults to an empty string.
+    
+    Returns:
+        alt.Chart: An Altair bar chart sized 150x100 that encodes categories on the y-axis, count on the x-axis, colors bars by category (lightgreyred scheme), and provides tooltips for category, percent (as `.2%`), and count.
+    """
     total = df['count'].sum()
     _names = list(df.columns)
     #_color = alt.Color(f'{_names[0]}:N', legend=None).scale(scheme = 'turbo')
@@ -99,7 +137,17 @@ def convolutionbar(df: pd.DataFrame, title: str = ""):
 )
 
 def _makepanel(df, metric, title=None):
-    '''Create an altair chart of read depth. Used internally by `depthplot()`'''
+    """
+    Create an interactive Altair panel showing depth for a single metric.
+    
+    Parameters:
+        df (pandas.DataFrame): Source dataframe containing at least 'Position', 'Read Depth', and 'Molecule Depth' columns.
+        metric (str): Name of the metric to display; expected values include 'Read Depth' or 'Molecule Depth'.
+        title (str | None): Optional chart title; if omitted the metric name is used.
+    
+    Returns:
+        alt.Chart: A layered Altair chart combining a line, hoverable points, and a hover rule, sized to 900×300.
+    """
     nearest = alt.selection_point(
         nearest=True,
         on='mouseover',
@@ -137,6 +185,18 @@ def _makepanel(df, metric, title=None):
     )
 
 def depthplot(df, title):
+    """
+    Builds an interactive depth chart showing read depth and/or molecule depth.
+    
+    If the dataframe contains both "Read Depth" and "Molecule Depth" columns, the chart vertically stacks two panels (one per metric) with independent x and y scales; otherwise it renders a single panel for the available metric. The resulting chart is interactive with vertical (y) panning/zooming disabled.
+    
+    Parameters:
+        df (pandas.DataFrame): Input dataframe that must contain one or both of the columns "Read Depth" and "Molecule Depth".
+        title (str): Base title used for the chart and panel subtitles.
+    
+    Returns:
+        alt.Chart: An interactive Altair chart displaying depth information; if both metrics are present, a vertically concatenated chart of two panels is returned, otherwise a single-panel chart is returned.
+    """
     alt.data_transformers.disable_max_rows()
     coverage = "Read Depth" in df.columns
     molcov = "Molecule Depth" in df.columns
@@ -151,10 +211,18 @@ def depthplot(df, title):
     return res.interactive(bind_y = False)
 
 def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
-    '''
-    Return an Altair chart of SVs and their positions in a chromosome. This includes
-    a dropdown selection to display a specific chromosome.
-    '''
+    """
+    Render an interactive Altair chart of structural variants filtered by chromosome.
+    
+    Parameters:
+        variants (pd.DataFrame): DataFrame of structural variants. Must contain columns
+            'Contig', 'Start', 'End', 'Type', and optionally 'N Samples' and 'Samples'.
+        title (str): Chart title prefix; if empty the chart uses a dynamic title based on the selected contig.
+    
+    Returns:
+        alt.Chart: An Altair chart that displays variant spans across genomic positions with a contig dropdown,
+            hover highlighting, zoomable x-axis, and tooltips for type, contig, start, end, length, and sample counts.
+    """
     _sv  = ["Inversion", "Deletion", "Duplication", "Breakend"]
     _col = [sv_colors(i) for i in ['INV', 'DEL', 'DUP', 'BND']]
 
@@ -200,11 +268,18 @@ def sv_by_chromosome(variants: pd.DataFrame, title:str = ""):
     )
 
 def depth_by_chromosome(records: pd.DataFrame, title:str = ""):
-    '''
-    Return an Altair chart of alignment depth in `window` bp intervals with a
-    chromosome dropdown option that dynamically changes which chromosome's
-    depths you see in the plot view.
-    '''
+    """
+    Create an interactive Altair chart showing alignment depth by position with a contig dropdown filter.
+    
+    The chart is faceted by the `key` column, uses a dropdown bound to the distinct values of `records['contig']` to select which contig to display, and scales the x-axis domain to the maximum `position_end` found in the plotted data. Bars are colored by `type` and receive a green stroke on pointerover.
+    
+    Parameters:
+        records (pd.DataFrame): DataFrame containing at minimum the columns `contig`, `position`, `position_end`, `type`, and `key`.
+        title (str): Optional chart title.
+    
+    Returns:
+        alt.Chart: An Altair chart faceted by `key` with a contig dropdown, hover highlighting, and x-axis labeled in megabases.
+    """
     labels = records['contig'].unique()
     input_dropdown = alt.binding_select(options=labels, name='Contig: ')
     selection = alt.selection_point(name = "chrom_choice", fields=['contig'], value=labels[0], bind=input_dropdown)

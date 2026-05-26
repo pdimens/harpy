@@ -7,10 +7,27 @@ from harpy.common.file_ops import safe_read
 class StopExecution(Exception):
     '''An exception type to prematurely end a notebook without it being considered an error'''
     def _render_traceback_(self):
+        """
+        Suppress rendering of the traceback in interactive notebook environments.
+        
+        This IPython/Jupyter hook returns no traceback frames so that the exception appears to terminate execution without displaying a traceback.
+        
+        Returns:
+            list: An empty list indicating no traceback frames should be shown.
+        """
         return []
 
 def extract_metric(x: list[str], param: str):
-    '''Convenience function to find the relevnant sections of the bcftools.stats file and return a table'''
+    """
+    Extracts contiguous lines that begin with a given parameter prefix from a list of lines and parses them as a tab-separated table.
+    
+    Parameters:
+        x (list[str]): Lines from a bcftools-style stats file or similar tab-delimited text.
+        param (str): Parameter prefix to match at line start (matched as f"{param}\\t").
+    
+    Returns:
+        pandas.DataFrame: Parsed table of matching lines; an empty DataFrame if no matching lines are found or parsing yields no data.
+    """
     selectiontext = "".join(s for s in x if s.startswith(f"{param}\t"))
     if not selectiontext:
         return pd.DataFrame()
@@ -20,7 +37,15 @@ def extract_metric(x: list[str], param: str):
         return pd.DataFrame()
 
 def last_line(filename: str) -> str:
-    '''Returns the last line of a file. Automatically handles gzip if file ends with case-insensitive `.gz`'''
+    """
+    Return the last line of a text file, handling gzipped files when the filename ends with `.gz` (case-insensitive).
+    
+    Parameters:
+        filename (str): Path to the file to read. If the filename ends with `.gz` (any case), the file will be read as gzip-compressed.
+    
+    Returns:
+        str: The final line of the file with leading and trailing whitespace removed.
+    """
     with safe_read(filename) as f:
         last_line = None
         for line in f:
@@ -50,10 +75,16 @@ def last_line(filename: str) -> str:
 
 
 def nxx(lengths: list[int]|pd.Series, X:int = 50) -> int:
-    '''
-    Calculte and return the NX value of a list of numbers, where `X` is
-    the kind of NX value you want. For example, `X=50` would return the `N50`.
-    '''
+    """
+    Compute the NX statistic (e.g., N50) from a collection of lengths.
+    
+    Parameters:
+        lengths (sequence or pd.Series): Length values to evaluate; a pandas Series is accepted.
+        X (int): Percentile for the NX calculation (e.g., 50 for N50).
+    
+    Returns:
+        int: The length value at which the cumulative sum of lengths reaches at least X% of the total; if the threshold is not reached, returns the maximum length.
+    """
     threshold = sum(lengths) * (X/100)
     if isinstance(lengths, pd.Series):
         _l = list(lengths)
@@ -106,10 +137,22 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
             })
 
 def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: bool = False, max_val = 0, precision = 2) -> pl.DataFrame:
-    '''
-    Calculates a binned histogram of counts from the input `data` for bins of size `bin_size`
-    with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
-    '''
+    """
+    Create a binned histogram from a Polars Series using fixed-size numeric bins.
+    
+    Parameters:
+        data (pl.Series): Numeric values to bin.
+        bin_size (int | float): Width of each bin.
+        normalize (bool): If True, return proportions instead of raw counts.
+        max_val (int | float): Optional upper bound for bins; if zero or falsy, uses the series maximum.
+        precision (int): Decimal places to round bin edges and interval labels.
+    
+    Returns:
+        pl.DataFrame: DataFrame with columns:
+          - `bin` (str): Left-edge values of bins as strings.
+          - `interval` (str): Human-readable interval labels "left-right".
+          - `count` or `proportion` (float): Counts per bin or normalized proportions when `normalize=True`.
+    """
     col_max = max_val if max_val else int(data.max())
     bins = np.arange(0, col_max + bin_size, bin_size).round(precision)
     #bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)

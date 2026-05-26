@@ -30,6 +30,17 @@ class Rule:
 class LaunchSnakemake():
     """launch snakemake with the given commands and monitor its progress"""
     def __init__(self, sm_args, outdir, quiet, printer: HarpyPrint):
+        """
+        Initialize the launcher, start Snakemake, and run setup, startup checks, and job monitoring.
+        
+        This constructor starts the Snakemake subprocess with the provided arguments, initializes internal tracking state (timing, exit codes, job inventory, progress UI, and error collection), installs foreground/background signal handlers, and drives the launch sequence by calling workflow_setup(), check_startup(), and monitor_jobs() in order. It handles user interrupt (prints a termination message and exits with status 1), and on completion or error it stops the progress UI, removes signal handlers, collects remaining stderr into the error log, ensures the subprocess is terminated, and purges empty log files in the output directory.
+        
+        Parameters:
+            sm_args (str): Command-line arguments to launch Snakemake (space-separated).
+            outdir (str): Path to the output directory where logs may be created.
+            quiet (int): Verbosity level (higher values suppress more interactive output).
+            printer (HarpyPrint): Console/printer instance used for progress and messages.
+        """
         self.exitcode = -1
         self.start_time = datetime.now()
         self.deps: bool = False
@@ -77,14 +88,27 @@ class LaunchSnakemake():
             purge_empty_logs(outdir)
 
     def _is_foreground(self) -> bool:
-        """Check if this process is in the terminal's foreground process group."""
+        """
+        Determine whether the current process is in the terminal's foreground process group.
+        
+        Returns:
+            bool: `True` if the current process group equals the terminal's foreground process group, `False` otherwise (returns `False` if the foreground group cannot be queried).
+        """
         try:
             return os.getpgrp() == os.tcgetpgrp(sys.stdin.fileno())
         except OSError:
             return False
 
     def _handle_sigtstp(self, signum, frame):
-        """Suppress Live output when backgrounded via Ctrl+Z."""
+        """
+        Handle SIGTSTP (Ctrl+Z) by silencing live console output and then suspending the process.
+        
+        Flushes any pending file output and sets the console into quiet mode so live progress output stops. Restores the SIGTSTP handler to the default and re-raises SIGTSTP so the operating system actually suspends the process.
+        
+        Parameters:
+            signum (int): Signal number (SIGTSTP).
+            frame (types.FrameType): Current stack frame at the time the signal was received.
+        """
         self.print.file.flush()
         self.print.console.quiet = True
         # reset to default so the process actually suspends
@@ -92,22 +116,46 @@ class LaunchSnakemake():
         signal.raise_signal(signal.SIGTSTP)
 
     def _handle_sigcont(self, signum, frame):
-        """Restore Live output when foregrounded again, but only if in foreground."""
+        """
+        Restore live console output when the process resumes in the terminal foreground.
+        
+        Re-enables the console (clears quiet mode) and emits a blank line to reset the cursor if the current
+        process group is the terminal foreground. Also reinstates the SIGTSTP handler.
+        
+        Parameters:
+            signum (int): Signal number received.
+            frame (frame): Current stack frame at signal delivery.
+        """
         signal.signal(signal.SIGTSTP, self._handle_sigtstp)
         if self._is_foreground():
             self.print.console.quiet = False
             self.print.console.print("")  # force cursor to a fresh line
 
     def _setup_bg_signal_handlers(self):
+        """
+        Install background/foreground signal handlers to manage terminal suspend/resume behavior.
+        
+        Sets handlers for SIGTSTP and SIGCONT so the launcher can quiet console output when suspended and restore it when resumed.
+        """
         signal.signal(signal.SIGTSTP, self._handle_sigtstp)
         signal.signal(signal.SIGCONT, self._handle_sigcont)
 
     def _teardown_bg_signal_handlers(self):
+        """
+        Restore the default handling for terminal stop (SIGTSTP) and continue (SIGCONT) signals.
+        
+        This returns the process's SIGTSTP and SIGCONT handlers to the system defaults, undoing any custom handlers previously installed.
+        """
         signal.signal(signal.SIGTSTP, signal.SIG_DFL)
         signal.signal(signal.SIGCONT, signal.SIG_DFL)
 
     def is_done(self) -> bool:
-        '''check if self.exitcode > -1 or a value exists for self.process.poll()'''
+        """
+        Determine whether the Snakemake subprocess has finished or an exit code has been recorded.
+        
+        Returns:
+            true if an exit code has been set (exitcode > -1) or the subprocess has terminated, false otherwise.
+        """
         if self.exitcode > -1 or self.process.poll():
             return True
         return False
@@ -117,13 +165,26 @@ class LaunchSnakemake():
         self.total_active = sum(self.job_inventory[rule].active() for rule in self.job_inventory if rule != "total")
 
     def nothing_to_do(self):
-        '''check if self.output has the "Nothing to be" triggering text and exit with return code 0 if true'''
+        """
+        Terminate the launcher early when Snakemake reports there is no work to perform.
+        
+        If the current captured stderr line contains the substring "Nothing to be", prints
+        "All outputs already present" in green and exits the process with status 0.
+        
+        Raises:
+            SystemExit: exits with status code 0 when no work is detected.
+        """
         if "Nothing to be" in self.output:
             self.print.rule("[bold]All outputs already present", style="green")
             sys.exit(0)
 
     def iserror(self) -> bool:
-        '''logical check for erroring trigger words in snakemake output'''
+        """
+        Determine if the current captured stderr line contains Snakemake error-trigger words.
+        
+        Returns:
+            `True` if the current output contains any of the strings "Exception", "Error", or "MissingOutputException", `False` otherwise.
+        """
         return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
 
     def nextline(self, strip: bool = False):
@@ -135,15 +196,29 @@ class LaunchSnakemake():
             self.output = _.strip() if strip else _
 
     def pause_progress(self, rulename):
-        '''pause the time elapsed col for a rule's progress bar'''
+        """
+        Pause the elapsed-time column for a rule's progress task.
+        
+        Parameters:
+            rulename (str): The rule name whose progress task's elapsed-time column will be paused.
+        """
         self.progress.columns[4].pause(self.task_ids[rulename])
 
     def resume_progress(self, rulename):
-        '''resume the time elapsed col for a rule's progress bar'''
+        """
+        Resume the elapsed-time column for a rule's progress task.
+        
+        Parameters:
+            rulename (str): The rule identifier whose progress timer should be resumed.
+        """
         self.progress.columns[4].resume(self.task_ids[rulename])
 
     def update_finished_progress(self):
-        '''Process the stderr output and update the progressbars accordingly'''
+        """
+        Update progress tasks when a job completion line appears in stderr.
+        
+        Extract the completed job id from self.output, remove that id from the corresponding rule's tracked ids, recalculate total active jobs, advance the per-rule and aggregate progress tasks, pause the rule's elapsed-time column when it has no remaining active jobs, and mark tasks as finished or clear the total-active label when their totals complete.
+        """
         completed = int(re.search(r"\d+", self.output).group())
         for job, details in self.job_inventory.items():
             if completed in details.ids:
@@ -164,7 +239,11 @@ class LaunchSnakemake():
             self.progress.update(self.task_ids["total_progress"], refresh=True, active=" ")
 
     def check_startup(self):
-        '''monitors the process for startup errors or things already being done'''
+        """
+        Check Snakemake startup stderr for early termination or error conditions and update the launch exit state.
+        
+        Reads the next stderr line; if the subprocess has already exited or the line indicates an error, set self.exitcode to success when the process exited cleanly or to the snakefile error code otherwise. If the output contains "Conda", override the exit code to the conda-related error. After setting the code, drain and print any remaining stderr lines to the console in red.
+        """
         self.nextline()
         if self.process.poll() or self.iserror():
             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_SNAKEFILE_ERROR
@@ -174,7 +253,16 @@ class LaunchSnakemake():
                 self.nextline()
 
     def workflow_setup(self):
-        '''processes the workflow setup text snakemake prints to the console up to the end of the job summary table'''
+        """
+        Process Snakemake's startup stderr until the job summary table is reached and prepare launcher state for runtime monitoring.
+        
+        This consumes stderr lines produced during workflow setup, detects early terminal conditions (e.g., "Nothing to be", missing inputs, errors, or dependency installation steps), and updates launcher state accordingly. Side effects include:
+        - setting self.exitcode for startup or snakemake errors,
+        - calling sys.exit(0) when no work is needed,
+        - appending startup error lines to self.errorlog,
+        - setting self.deps and augmenting self.deploy_text when dependency/build steps are detected,
+        - populating self.job_inventory with Rule entries parsed from the "Job stats:" table and adjusting the aggregate total.
+        """
         while self.exitcode < 0:
             if self.quiet < 2:
                 with self.print.status("[dim]Preparing workflow", spinner="point", spinner_style="yellow"):
@@ -241,7 +329,11 @@ class LaunchSnakemake():
                     return
 
     def monitor_jobs(self):
-        '''monitors the Snakemake stderr output while jobs are running'''
+        """
+        Monitor Snakemake stderr and update progress UI and internal state during workflow execution.
+        
+        Reads Snakemake stderr lines until completion or error, detecting rule start lines to create or update per-rule progress tasks, recording job IDs in self.job_inventory[rule].ids, and detecting finished job lines to advance progress. Sets self.exitcode on runtime errors or when execution finishes, and updates the aggregate total progress task in self.task_ids.
+        """
         if self.is_done():
             return
         with self.print.progresspanel(self.progress):
@@ -280,10 +372,11 @@ class LaunchSnakemake():
                     self.update_finished_progress()
 
     def return_or_collect(self):
-        '''
-        return if the error code is 0, otherwise print the corresponding error and drain the buffer to
-        get all the error text for processing after
-        '''
+        """
+        Normalize a non-negative exit code or collect remaining stderr lines into the instance error log.
+        
+        If self.exitcode is less than or equal to 0, set it to 0 and return. Otherwise, read the remainder of the subprocess stderr stream and append each line to self.errorlog except lines that end with ", in <module>".
+        """
         if self.exitcode <= 0:
             self.exitcode = max(self.exitcode, 0)
             return

@@ -43,14 +43,9 @@ def align():
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
-    Align sequences to reference genome using BWA MEM2
+    Run the BWA-MEM2 alignment workflow on a reference and one or more FASTQ inputs.
     
-    Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
-    
-    BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
-    Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
-    Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
+    Constructs and configures the `align_bwa` workflow, validates the reference and FASTQ inputs, attaches linked-read metadata, sets workflow parameters and notebooks, and initializes or sets up the workflow. Linked-read presence and type are auto-detected; set `unlinked` to disable detection. Setting `molecule_distance` greater than 0 enables alignment-distance–based barcode deconvolution for reporting only (barcodes are not modified). Input paths may be individual files or directories and can use shell wildcards.
     """
     workflow = Workflow("align_bwa", "align_bwa.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
@@ -105,15 +100,29 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, threads, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
-    Align sequences to reference genome using strobealign
- 
-    Provide the reference fasta followed by the input fastq files and/or directories at the end of the command as individual
-    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+    Run the Snakemake-based strobealign workflow to align input reads to a reference using strobealign.
     
-    strobealign is an ultra-fast aligner comparable to bwa for sequences >100bp and does 
-    not use barcodes when mapping. Presence and type of linked-read data is auto-detected,
-    but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
-    alignment-distance based barcode deconvolution.
+    Detects linked-read metadata from inputs by default (can be disabled with `unlinked`) and accepts one or more FASTQ files or directories. If `molecule_distance` is greater than 0, alignment-distance based barcode deconvolution is enabled. Notebook generation, container, cleanup, and Snakemake execution are controlled via the corresponding arguments.
+    
+    Parameters:
+        reference (str): Path to the reference FASTA file.
+        inputs (list[str] | str): One or more input FASTQ files or directories (wildcards allowed).
+        output (str): Output directory for workflow results.
+        unlinked (bool): If True, ignore barcode detection and treat inputs as unlinked reads.
+        keep_unmapped (bool): If True, retain unmapped reads in workflow outputs.
+        depth_window (int): Window size used for depth calculations in reporting.
+        threads (int): Number of threads to allocate for Snakemake.
+        extra_params (dict | None): Additional workflow-specific parameters to pass through.
+        min_quality (int): Minimum mapping quality threshold to record.
+        molecule_distance (int): Distance threshold for molecule-based barcode deconvolution (0 disables).
+        snakemake (str | None): Additional Snakemake options or configuration.
+        skip_reports (bool): If True, skip generating notebook reports.
+        quiet (bool): If True, reduce CLI verbosity.
+        hpc (bool): If True, configure workflow for HPC execution.
+        clean (bool): If True, remove intermediate files after run.
+        container (str | None): Container image to use for workflow execution.
+        no_temp (bool): If True, disable use of temporary directories by Snakemake.
+        setup (bool): If True, perform workflow setup and exit without executing rules.
     """
     workflow = Workflow("align_strobe", "align_strobe.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)

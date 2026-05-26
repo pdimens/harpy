@@ -13,6 +13,20 @@ class StatsBox:
     The boxes class that draws boxes at the top of the reports.
     '''
     def __init__(self, height: int = 85, label_fontsize=14, value_fontsize=36, text_gap: int = 1):
+        """
+        Initialize a StatsBox builder with sizing and style defaults and prepare an HTML template.
+        
+        Parameters:
+            height (int): Pixel height for each stat box (used in the template).
+            label_fontsize (int): Font size in pixels for the label text.
+            value_fontsize (int): Font size in pixels for the main value text.
+            text_gap (int): Vertical gap in pixels between the label and value.
+        
+        Notes:
+            - Creates an empty list `self.boxes` to accumulate rendered box HTML snippets.
+            - Computes `self.pm_fontsize` as one third of `value_fontsize`.
+            - Builds `self.html`, a reusable HTML template with placeholders `{label}`, `{value}`, `{plus_minus}`, and `{color}`.
+        """
         self.boxes: list[str] = []
         self.height = height
         self.label_fontsize = label_fontsize
@@ -33,17 +47,19 @@ class StatsBox:
         )
 
     def add(self, value, label, plus_minus: str|int|float = '', textcol=None, units=None):
-        '''
-        Return the html of a colored box object with `value` and `label`. Units get added to the plusminus text if they are present,
-        otherwise added to the main value.
+        """
+        Add a stat box entry with a label, formatted value, optional plus/minus text, and optional text color.
         
-        Args:
-            value: Main metric to display
-            label: Title of the metric
-            plus_minus: smaller text to add if there is a plus-minus value
-            textcol: color to make the value text
-            units: add units to the end without spaces (e.g. 'bp')
-        '''
+        Parameters:
+            value (str|int|float): Main metric to display. Non-string numeric values are formatted with two decimals and trailing zeros/decimal point removed.
+            label (str): Title for the metric shown above the value.
+            plus_minus (str|int|float, optional): Supplemental smaller text displayed prefixed with '±' when provided.
+            textcol (str, optional): CSS color value to use for the value text; defaults to the module's prose color when omitted.
+            units (str, optional): Unit suffix appended directly to the formatted value when provided (no added space).
+        
+        Returns:
+            self: The same StatsBox instance to allow method chaining.
+        """
         _val = value if isinstance(value, str) else f"{value:,.2f}".rstrip('0').rstrip('.')
         _val = f"{_val}{units}" if units else _val
         _col = textcol or 'var(--tw-prose-body, #666666)'
@@ -54,14 +70,28 @@ class StatsBox:
         return self
 
     def conditional(self, value, label, cutoff: int|float, lower_bad: bool = True, as_percent:bool = False, plus_minus: str|int|float = '', add_percent:bool = False, digits = None):
-        '''
-        Return the html of a colored box object with `value` and `label`. Use `as_percent` to multiply
-        the value by 100 for printing purposes. Use `digits` as a stand-in for rounding. Using `add_percent` to add `%`
-        the end without multiplying by 100.
-        The `color` is either yellow or green depending on what is determined better or worse than the `cutoff`:
-        - `lower_bad=True`: `color` = yellow when value < cutoff (default)
-        - `lower_bad=False`: `color` = yellow when value >= cutoff
-        '''
+        """
+        Add a stat box for the given value and label, applying a conditional text color based on a cutoff.
+        
+        Parameters:
+            value: The numeric or string value to display. If numeric and formatted as percent (see below), it will be converted to a string with a trailing '%' as appropriate.
+            label: The label text for the stat box.
+            cutoff: Threshold used to decide conditional coloring.
+            lower_bad (bool): If True, a value lower than `cutoff` is considered bad; if False, a value greater than or equal to `cutoff` is considered bad.
+            as_percent (bool): If True, multiply a numeric `value` by 100, optionally round using `digits`, and append '%'.
+            plus_minus (str|int|float): Optional secondary value displayed alongside `value`. If numeric and `digits` is provided, it will be rounded.
+            add_percent (bool): If True and `as_percent` is False, append '%' to the (optionally rounded) numeric `value` without multiplying by 100.
+            digits (int|None): Number of decimal places to round numeric `value` and `plus_minus` before formatting; if None, no rounding is applied.
+        
+        Returns:
+            self: The same StatsBox instance (allows method chaining).
+        
+        Behavior:
+            Sets the text color to yellow (#f6ab3c) when the value is considered bad according to `lower_bad` and `cutoff`:
+            - If `lower_bad` is True: yellow when value < cutoff.
+            - If `lower_bad` is False: yellow when value >= cutoff.
+            When not yellow, the default text color is used.
+        """
         if lower_bad:
             color = "#f6ab3c" if value < cutoff else None
         else:
@@ -81,29 +111,52 @@ class StatsBox:
         return self.add(value, label, plus_minus=pm, textcol = color)
 
     def render(self, gap: int = 5):
-        '''Display all boxes in a horizontal row
+        """
+        Render accumulated stat boxes as a horizontal flex row and display them in the notebook.
         
-        Args:
-            gap: Space between boxes in pixels (default: 5)
-        '''
+        Parameters:
+            gap (int): Pixel gap between boxes; boxes will wrap to multiple rows if they exceed the container width (default: 5).
+        """
         container_html = f'''<div style="display: flex; gap: {gap}px; 
             flex-wrap: wrap;">{" ".join(self.boxes)}</div>'''
         display(HTML(container_html))
 
 def print_time(*args):
-    '''HTML-print the time and all arguments with line breaks between them'''
+    """
+    Display the current date and time followed by provided arguments as an HTML paragraph with line breaks.
+    
+    Parameters:
+        *args: Any values to display after the timestamp; each value is converted to a string and separated by an HTML line break (`<br>`).
+    
+    Notes:
+        The timestamp is formatted as "🗓️ DD Month, YYYY 🕔 HH:MM".
+    """
     _now = datetime.now().strftime("🗓️ %d %B, %Y 🕔 %H:%M")
     _html = "<p>{}<p>".format("<br>".join([_now] + [str(i) for i in [*args]]))
     return display(HTML(_html))
 
 def print_html(*args):
-    '''HTML-print all arguments with line breaks between them'''
+    """
+    Display provided values as a single HTML paragraph, with each value converted to a string and separated by HTML line breaks.
+    
+    Parameters:
+        *args: Values to render; each value is stringified and joined with `<br>` between items.
+    """
     display(HTML(
         "<p>{}</p>".format("<br>".join(str(i) for i in [*args]))
     ))
 
 def embed_image(x: str, scale: float = 0.5):
-    '''Rescale an PNG image and embed it into the notebook'''
+    """
+    Load an image file, optionally downscale it, and return an IPython.display.Image with the image embedded.
+    
+    Parameters:
+        x (str): Path to the image file.
+        scale (float): Scaling multiplier; values less than 1 will downscale the image, values >= 1 leave the image size unchanged.
+    
+    Returns:
+        IPython.display.Image: An Image object containing the encoded image data. The image is encoded as PNG if the filename contains "png" (case-insensitive), otherwise as JPEG.
+    """
     image = PImage.open(x)
     if scale < 1:  
         image = image.resize((int(image.size[0] * scale), int(image.size[1] * scale)), PImage.LANCZOS)  
@@ -112,10 +165,20 @@ def embed_image(x: str, scale: float = 0.5):
     return Image(data=buf.getvalue(), format="png" if "png" in x.lower() else "jpeg", embed=True)
 
 def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing_to_select: str = "sample", recursive: bool = False, scale: float = 1.0, option_key = None):  
-    '''
-    Create a javascript image viewer with a file picker.
-    Images are embedded (thus can safely have their original files deleted) and can be down-scaled.
-    '''
+    """
+    Display an HTML/JavaScript image viewer in a Jupyter notebook that embeds matching image files as base64 data URIs and provides a dropdown to select which image to show.
+    
+    Parameters:
+        label (str): Text label shown next to the dropdown selector.
+        image_dir (str): Directory to search for image files.
+        pattern (str): Glob pattern to match image filenames (e.g., "*.png" or "**/*.jpg").
+        sortkey (callable | None): Optional key function passed to sorted() to control option order.
+        thing_to_select (str): Noun used in the selector placeholder (e.g., "sample"); purely for display.
+        recursive (bool): If True, search files recursively (rglob); otherwise use non-recursive glob.
+        scale (float): If less than 1.0, downscale images by this factor before embedding.
+        option_key (callable | None): Function mapping a Path to the option name shown and used as the selector value.
+            Defaults to p.stem for non-recursive mode or p.parents[1].name for recursive mode.
+    """
     imgfmt = "image/png" if "png" in pattern else "image/jpg"
     options_parts = []
     paths = Path(image_dir).glob(pattern) if not recursive else Path(image_dir).rglob(pattern)  

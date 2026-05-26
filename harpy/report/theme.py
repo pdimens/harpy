@@ -74,7 +74,14 @@ def sv_colors(name) -> str:
 
 @theme.register("harpy_theme", enable=True)
 def harpy_theme() -> theme.ThemeConfig:
-    '''Altair theme settings for Harpy reports'''
+    """
+    Provide the Altair theme configuration used by Harpy reports.
+    
+    The returned mapping defines layout (container width, default height), color palettes and mark defaults (area, line, trail, point, bar, text), axis/header/legend styling, and view dimensions used across Harpy visualizations.
+    
+    Returns:
+        theme.ThemeConfig: A dictionary-compatible Altair theme configuration.
+    """
 
     return {
         "width": "container",

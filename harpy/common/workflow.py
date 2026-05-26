@@ -312,7 +312,17 @@ class Workflow():
             self.print.rule("[dim bold]Setup Complete", style="dim")
 
     def launch(self, absolute:bool = False):
-        """Launch Snakemake as a monitored subprocess"""
+        """
+        Execute the configured Snakemake command, optionally clean output subdirectories, and handle success or failure outcomes.
+        
+        Chooses the absolute or relative Snakemake command based on `absolute`, launches Snakemake via LaunchSnakemake, and then:
+        - If `self.clean` is set, removes selected subdirectories ("workflow", ".snakemake", "logs") when their corresponding letters ("w", "s", "l") appear in `self.clean`.
+        - On successful completion (exit code 0), writes a workflow summary file and calls `self.onsuccess()`.
+        - On failure, dispatches error handling based on the exit code (`1` or `2` trigger setup error handling; `3` triggers runtime error handling referencing the last Snakemake log and elapsed time), processes Snakemake error logs, writes the output directory path to `.harpyerror`, and exits the process with status 1.
+        
+        Parameters:
+            absolute (bool): If True, run the absolute Snakemake command; otherwise run the relative command.
+        """
         cmd = self.snakemake_cmd_absolute if absolute else self.snakemake_cmd_relative
         sm = LaunchSnakemake(cmd, self.output_directory, self.quiet, self.print)
         if self.clean:
