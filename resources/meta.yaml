@@ -18,6 +18,7 @@ build:
   entry_points:
     - harpy = harpy.__main__:cli
     - harpy-utils = harpy.utils:cli
+    - hv = harpy.commands.view:view
 
   run_exports:
     - {{ pin_subpackage('harpy', max_pin="x") }}
