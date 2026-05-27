@@ -1,13 +1,13 @@
 ---
-label: Demultiplex
-description: Demultiplex raw sequences into haplotag barcoded samples
+label: Preprocess
+description: Preprocess raw sequences into haplotag barcoded samples
 category: [linked-read]
 tags: [linked-read]
 icon: versions
 order: 9
 ---
 
-# :icon-versions: Demultiplex Raw Sequences
+# :icon-versions: Preprocess Raw Sequences
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
@@ -21,13 +21,13 @@ should have been added during the sample DNA preparation in a laboratory. The de
 haplotagging technology you are using (read [Haplotagging Types](#haplotagging-types)).
 
 ```bash usage
-harpy demultiplex METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
+harpy preprocess METHOD OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
 ```
 ```bash example | using wildcards instead of manually writing each file name
-harpy demultiplex meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
+harpy preprocess meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
 ```
 ## :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="demultiplex meier2021"] module is configured using these command-line arguments:
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="preprocess meier2021"] module is configured using these command-line arguments:
 
 {.compact}
 | argument                       | description                                                                                              |
@@ -108,7 +108,7 @@ Sample03    C03
 
 
 ---
-## :icon-git-pull-request: Meier2021 Demultiplex Workflow
+## :icon-git-pull-request: Meier2021 preprocess Workflow
 +++ :icon-git-merge: details
 
 ```mermaid
@@ -145,15 +145,9 @@ Demultiplex/
 | `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
 | `reports/demultiplex.QC.html` | phased vcf annotated with phased blocks                                                   |
 
-+++ :icon-graph: reports
-||| FASTQC metrics
-This is the summary report Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-![reports/demultiplex.QC.html](/static/report_demux.png)
-|||
 +++
 
-## Now using dmox!
+## The power of dmox!
 Harpy v2 introduced a new demultiplexer under the hood called [dmox](https://gitlab.mbb.cnrs.fr/ibonnici/dmox), which is singificantly faster,
 lighter on memory, and has better maintenance than the previous solution. [Iago Bonnici](https://isem-evolution.fr/en/membre/bonnici/) of 
 [Montpellier Bioinformatics Biodiversity](https://isem-evolution.fr/en/plateau/montpellier-bioinformatics-biodiversity-facility/) 

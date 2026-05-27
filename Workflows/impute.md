@@ -272,16 +272,5 @@ STITCH(
     splitReadIterations  = NA
 )
 ```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-
-||| STITCH Reports
-Aggregates the various outputs of a STITCH run into a single report along with `bcftools stats`.
-![model*/contigs/\*/*.impute.html](/static/report_stitchimpute.png)
-||| Imputation Metrics
-Reports how effective STITCH was at genotype imputation.
-![model*/variants.imputed.html](/static/report_impute.png)
-|||
 
 +++
