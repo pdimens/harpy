@@ -1,9 +1,9 @@
 ---
 label: Reports
-icon: git-merge
+icon: graph
 ---
 
-# :icon-git-merge: Harpy Reports
+# :icon-graph: Harpy Reports
 
 Harpy has always maintained a robust reporting system for most workflows. These reports detail the common
 characteristics of data after a given workflow (e.g. alignment or phasing), including values, tables, and
@@ -12,16 +12,17 @@ were reached, Harpy 4.0 introduced a complete overhaul of the reporting system u
 Jupyter comes several benefits:
 - Code and output are stored in the notebook
 - GitHub, JupyterLab, and VScode (and derivatives) natively render notebooks nicely
-- Harpy can leverage MySTmd (via Jupyter Book) to render everything into a _cohesive_ report webiste
+- Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ report webiste
 
 !!!
 Complete overhaul is not an overstatement-- all the R code was ported into Python and reformatted for Jupyter format.
-That meant 100% new code **everywhere**, all new plots, etc.
+That meant 100% new code **everywhere**, all new plots, completely new machinery for local rendering, an entirely
+new `harpy.report` module with custom HTML plots, native [AG-Grid](https://www.ag-grid.com/) implementation, stat boxes, etc. 
 !!!
 
 ## Using Harpy reports
 Harpy workflows still create reports during workflows, as they did before, but they aren't rendered as HTML documents
-as they were before. You could open the `.ipynb` files in Jupyter/VScode/etc., but to really get the benefits of the
+like they were before. You could open the `.ipynb` files in Jupyter/VScode/etc., but to really get the benefits of the
 reports, you need to lean on `jupyter-book` to compile/render everything into a single website. That can be done with
 `harpy report`, which, when run in the project root directory, will create the necessary MyST configurations and download the website
 templates/assets if necessary, then start a local liveserver to view the reports.
@@ -44,7 +45,7 @@ harpy report <options> DIRECTORY
 
 
 ## Automate a report website
-The report setup and system lends itself well to easily build a persistent report website via GitHub Pages.
+The report setup and system lends itself well to easily build [a persistent report website](https://pdimens.github.io/RS-degradation/) via GitHub Pages.
 This requires one additional file: a GitHub Actions workflow that is triggered on push events (or whatever
 you configure it to). This can be added using:
 ```bash

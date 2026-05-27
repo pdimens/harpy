@@ -64,13 +64,19 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
 | `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
 | `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
-| `--region` `-r`       |             | Specific region to impute, in the format `contig:start-end-buffer`                                                            |
 | `--vcf-samples`       |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--strategy` `-s`     | window:1000000 |Imputation strategy ([see below](#imputation-strategies)) |
+| `--buffer` `-b`       | 100000       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`)'                             |
 
-### Impute a specific region
-Use `--region` to only impute a specific genomic region, given as `contig:start-end-buffer`,
-otherwise all contigs will be imputed. The `buffer` is an integer for how much before and after
-your region STITCH will also look at for imputation (but will not attempt to impute).
+### Imputation strategies
+#### Buffered genomic windows (default)
+Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
+(100kb before and after window). This takes the format `window:size`, e.g., `window:1000000`
+#### A specifc chromosomal region
+Use the format: `contig:start-end` to impute only a single genomic region, e.g., `ch1:1-500000`.
+#### All chromosomes in their entirety
+The default approach in previous harpy versions and is triggered by the word `all` and ignores the `--buffer` value.
+This can be very memory intensive and is **no longer recommended**.
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 

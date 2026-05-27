@@ -23,6 +23,4 @@ preprocessing work to get it up and running, so it's a great place to start.
 While our testing shows that NAIBR tends to find known inversions that LEVIATHAN misses, the program requires haplotype 
 **phased** bam files as input. That means the alignments have a `PS` or `HP` tag that indicate
 which haplotype the read/alignment belongs to. If your alignments don't have phasing tags (none of the current aligners in Harpy do this),
-then you will need to use the [!badge corners="pill" text="phase"](../phase.md) module to phase your SNPs into haplotypes so
-the [!badge corners="pill" text="sv naibr"](naibr.md) module can use that to phase your input alignments and proceed as planned.
-
+then you will need to use [!badge corners="pill" text="phase snp"](../phase_snp.md) and [!badge corners="pill" text="phase bam"](../phase_alignment.md).
