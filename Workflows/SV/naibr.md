@@ -47,10 +47,10 @@ That means the alignments have a `PS` or `HP` tag that indicate which haplotype 
 If your alignments don't have phasing tags (none of the current aligners in Harpy do this),
 then you will need to do a little extra work for NAIBR to work best with your data:
 >>> Phase SNPs into haplotypes
-Use the [!badge corners="pill" text="phase snp"](../phase_snp.md) workflow to phase your SNPs into haplotypes first
+Use the [!badge corners="pill" text="phase snp"](../Phase/phase_snp.md) workflow to phase your SNPs into haplotypes first
 
 >>> Phase alignments from haplotypes
-Use the resulting phased variants as input into [!badge corners="pill" text="phase bam"](../phase_snp.md), where
+Use the resulting phased variants as input into [!badge corners="pill" text="phase bam"](../Phase/phase_snp.md), where
 it will phase your alignments, adding the phase tag necessary for NAIBR.
 >>>
 

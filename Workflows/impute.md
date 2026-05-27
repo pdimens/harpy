@@ -71,19 +71,30 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 ### Imputation strategies
 #### Buffered genomic windows (default)
 Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
-(100kb before and after window). This takes the format `window:size`, e.g., `window:1000000`
+(100kb before and after window). This takes the format `window:size`:
+```bash buffered windows
+harpy impute -s window:1000000 -b 100000 <options> <inputs>
+```
+
 #### A specifc chromosomal region
-Use the format: `contig:start-end` to impute only a single genomic region, e.g., `ch1:1-500000`.
+Use the format: `contig:start-end` to impute only a single genomic region.
+```bash buffered genomic region
+harpy impute -s ch1:1-500000 -b 100000 <options> <inputs>
+```
+
 #### All chromosomes in their entirety
 The default approach in previous harpy versions and is triggered by the word `all` and ignores the `--buffer` value.
 This can be very memory intensive and is **no longer recommended**.
+```bash entire chromosomes
+harpy impute -s all <options> <inputs>
+```
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
 `--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
 without spaces. Example:
 ```bash
-harpy impute -t 15 -x "--regionStart=20 --regionEnd=500" stitch.params file.vcf Align/strobe
+harpy impute -t 15 -x "--arg=value --arg2=value2" stitch.params file.vcf Align/strobe
 ```
 
 ### Prioritize the vcf file
@@ -93,53 +104,6 @@ present in the `INPUTS` and will inform you of errors when there is a mismatch b
 present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
 around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
 are missing from the provided `INPUTS`.   
-
-## :icon-file: Parameter file
-Typically, one runs STITCH multiple times, exploring how results vary with
-different model parameters (explained in next section). The solution Harpy uses for this is to have the user
-provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
-parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with [!badge corners="pill" text="harpy template impute"](template.md/#impute).
-If created using harpy, the resulting file includes largely meaningless values 
-that you will need to adjust for your study. The parameter must follow a particular format:
-- tab or comma delimited
-- column order doesn't matter, but all 7 column names must be present
-- header row present with the specific column names below
-
-+++example file
-This file is tab-delimited, note the column names:
-``` paramaters.txt
-name    model   usebx   bxlimit   k       s       nGen
-model1    diploid   TRUE    50000    10      5       50
-model2    diploid   TRUE    50000   15      10      100
-waffles    pseudoHaploid   TRUE    50000   10      1       50
-```
-+++example file (as a table)
-This is the table view of the tab-delimited file, shown here for clarity.
-
-{.compact}
-| name    | model         | useBX | bxlimit | k   | s   | nGen |
-| :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
-| model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
-| model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
-| waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |
-
-+++parameter file columns
-See the section below for detailed information on each parameter. This
-table serves as an overview of the parameters.
-
-{.compact}
-| column name |               accepted values                | description                                                                                     |
-| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
-| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
-| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
-| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
-| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
-| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
-| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
-| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
-
-+++
 
 ## STITCH Parameters
 +++model
@@ -192,6 +156,53 @@ It's probably fine to set it to $ \frac {4 \times Ne} {k} $ given some estimate 
 If you think your population can be reasonably approximated as having been founded some number of generations 
 ago or reduced to $2 \times k$ that many generations ago, use that generation time estimate. STITCH should be fairly 
 robust to misspecifications of this parameter.
++++
+
+## :icon-file: Parameter file
+Typically, one runs STITCH multiple times, exploring how results vary with
+different model parameters (explained in next section). The solution Harpy uses for this is to have the user
+provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
+parameters and the rows are the values for those parameters. The parameter file 
+is required and can be created manually or with [!badge corners="pill" text="harpy template impute"](template.md/#impute).
+If created using harpy, the resulting file includes largely meaningless values 
+that you will need to adjust for your study. The parameter must follow a particular format:
+- tab or comma delimited
+- column order doesn't matter, but all 7 column names must be present
+- header row present with the specific column names below
+
++++example file
+This file is tab-delimited, note the column names:
+``` paramaters.txt
+name    model   usebx   bxlimit   k       s       nGen
+model1    diploid   TRUE    50000    10      5       50
+model2    diploid   TRUE    50000   15      10      100
+waffles    pseudoHaploid   TRUE    50000   10      1       50
+```
++++example file (as a table)
+This is the table view of the tab-delimited file, shown here for clarity.
+
+{.compact}
+| name    | model         | useBX | bxlimit | k   | s   | nGen |
+| :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
+| model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
+| model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
+| waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |
+
++++parameter file columns
+See the section below for detailed information on each parameter. This
+table serves as an overview of the parameters.
+
+{.compact}
+| column name |               accepted values                | description                                                                                     |
+| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
+| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
+| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
+| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
+| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
+| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
+| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
+| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
+
 +++
 
 ----

@@ -9,33 +9,17 @@ hidden: true
 
 ![](static/logo_trans.png)
 
-Harpy is a [haplotagging data](Getting_Started/inputformat.md) processing pipeline for Linux-based systems-- at least it
-was prior to the release of version 2. Now, it can process linked-read data from haplotagging, TELLseq, stLFR, and
-even regular non-linked WGS data. It uses all the magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+Harpy is a [linked-read](Getting_Started/inputformat.md) and non-linked WGS data processing pipeline for Linux-based systems.
+It uses all the magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/)
 under the hood to handle the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
 program. Harpy employs both well known and niche programs to take raw linked-read sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
 Feel free to open an [Issue](https://github.com/pdimens/harpy/issues/new/choose) or begin a [Discussion](https://github.com/pdimens/harpy/discussions) on GitHub.
 
-##### Harpy is ...
-==- friendly
-Drawing on the lessons of its predecessors and contemporaries, one of the top priorities for Harpy as a software is user-friendliness.
-Bioinformatics is _hard_, and we recognize that users may span a wide range of expertise and seniority, so we strive to minimize the
-commonplace **struggle** of bioinformatics, inasmuch as we can.
-==- hackable
-All this engineering and focus on user accessibility need not come at the cost of usability and utility. Harpy's commands
-expose the most common and consequential arguments of the key software it will be running, but you need not stop there. Harpy workflow
-commands set up everything necessary to initiate Snakemake, whether it's harpy doing it or not (i.e. using `--setup`) You _should_ hack it
-if you need a workflow to address the nuance of your data-- we do it all the time 🙂. But, be aware that addressing Issues opened up regarding
-custom modified workflows and configs will not be a priority. 
-==- deliberately modular
-There's many different critical parameters between raw FASTQ files and called genotypes. We believe in the "stop and assess" approach between
-data processing steps, which should hopefully be evident by harpy's reporting system.
-==- not analysis software
-Genetics/Genomics isn't one specific thing. Harpy exists to leverage linked-read data to get you as far as genotypes or assemblies, without
-making assumptions about how you plan on analyzing those data (popgen, biomed, etc.). We are excited to learn how you apply these data and
-your resulting discoveries!
-===
+[!card icon= ":heart:" title="Harpy is friendly" text="Drawing on the lessons of its predecessors and contemporaries, we strive to minimize the commonplace **struggle** of bioinformatics, inasmuch as we can." layout="compact"]("")
+[!card icon= ":keyboard:" title="Harpy is hackable" text="Harpy's commands expose the most common and consequential arguments of the key software it will be running, but the workflows also 100% hackable." layout="compact"]("")
+[!card icon= ":bento:" title="Harpy is modular" text="We believe in the 'pause and assess' approach between data processing steps, which is why there is such a robust report system." layout="compact"]("")
+[!card icon= ":computer:" title="Harpy is not for analysis" text="Harpy leverages linked-read data to get you as far as genotypes or assemblies, without making assumptions about whether it will be used for popgen, biomed, etc." layout="compact"]("")
 
 
 ## Commands

@@ -6,7 +6,7 @@ order: 5
 
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/phase.md)) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/Phase/phase_snp.md)) follows the format of
 ```bash
 harpy command options arguments
 ```
