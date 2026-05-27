@@ -8,7 +8,7 @@ edit_url: null
 
 +++ {"kind": "justified", "class": "col-page-right"}
 
-Harpy Version 4.0
+Harpy Version VERSION
 
 ### Harpy Reports 📝
 
