@@ -16,8 +16,12 @@ theme:
     nav-item-text-active-weight: 700
     image-rounded: 0.75rem
     nav-item-text-stack: "#1e66f5"
+lastUpdated:
+  date:
+    enabled: true
+    source: committer
 branding:
-  label: v3.2
+  label: v4.0
   logo: static/logo_trans.png
   logoDark: static/logo_trans.png
   logoAlign: left
@@ -30,8 +34,8 @@ edit:
   branch: "docs"
 links:
 - text: Therkildsen Lab
-  link: https://www.therkildsenlab.org/
-  icon: https://www.therkildsenlab.org/uploads/1/4/5/5/145548022/published/new-logo-smaller.png
+  link: https://therkildsen-lab.github.io/
+  icon: https://therkildsen-lab.github.io/images/TherkildsenLogo.png
   target: blank
 - text: Cornell GIH
   link: https://www.genomicsinnovation.cornell.edu/
