@@ -16,7 +16,7 @@ from harpy.validation.xam import XAM
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', panel = "Parameters", type = StitchParams(), help = 'Additional STITCH parameters, in quotes')
-@click.option('-b', '--buffer', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min=1, clamp = True), help = 'Base pairs to consider on each side of genomic `region` or `window`')
+@click.option('-b', '--buffer', panel = "Parameters", default =0.1, type = click.FloatRange(min = 0, clamp = True), show_default = True, help = 'Buffer length to consider on each side of genomic `region` or `window`')
 @click.option('-g', '--grid-size', panel = "Parameters", hidden = True, show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Impute", show_default=True,  help = 'Output directory name')
 @click.option('-s', '--strategy', panel = "Parameters", type = ImputeStrategy(), default = "window:1000000", help = 'Imputation strategy (see above)')
@@ -45,8 +45,10 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     in quotes and with the `--option=value` format, without spaces (e.g. `"--switchModelIteration=39"`).
 
     # Imputation Strategies (--strategy)
+    A `--buffer` >1 will be interpreted as an absolute base pair length (e.g. 100 = 100bp), whereas when `--buffer` is ≤1,
+    the buffer size will be fractionally scaled to the window/region length (e.g. 0.5 = region * 0.5)
     ## Buffered genomic windows (default)
-    Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
+    Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with `--buffer 0.1`
     (100kb before and after window). This takes the format `window:size`, e.g., `window:1000000`
     ## A specifc chromosomal region
     Use the format: `contig:start-end` to impute only a single genomic region, e.g., `ch1:1-500000`.
@@ -70,8 +72,12 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     if region:
         cntg,start,end = vcffile.validate_region(strategy)
         region = f"{cntg}:{start}-{end}"
+        if buffer <= 1:
+            buffer = round(buffer * (end - (start-1)))
     elif strategy.lower().startswith("window:"):
         window = int(strategy.split(":")[1])
+        if buffer <= 1:
+            buffer = round(window * buffer)
 
     workflow.notebooks["skip"] = skip_reports
     workflow.input(params.file, "parameters")
@@ -85,7 +91,7 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     elif window:
         workflow.param(window, "window-size")
     if strategy != "all":
-        workflow.param(buffer, "buffer")
+        workflow.param(int(buffer), "buffer")
     if extra_params:
         workflow.param(extra_params, "extra")
     workflow.param(params.parameters, "stitch")
@@ -96,7 +102,7 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
         "Parameter File" : os.path.basename(parameters),
         **({'Contigs': f"{len(vcffile.contigs)} [dim](with ≥ 5 biallelic SNPs)"} if not region else {"Target Region" : region}),
         **({'Window Size': window} if window else {}),
-        **({'Buffer Size': buffer} if strategy != "all" else {}),
+        **({'Buffer Size': int(buffer)} if strategy != "all" else {}),
         'Output Folder' : os.path.relpath(output) + "/"
     }
 
