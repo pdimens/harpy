@@ -148,14 +148,11 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
     images_js = json.dumps(images_dict)
     options_html = "\n".join(options_parts)
 
-    _html = f"""<!DOCTYPE html>
-        <html>
-        <head>
+    _html = f"""
         <style>
-        body {{ font-family: sans-serif; padding: 1rem; }}
         #viewer-{uid} {{ margin-bottom: 1rem; }}
         #viewer-{uid} img {{ max-width: 100%; }}
-        #selector-{uid} {{ display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }}
+        #selector-{uid} {{ display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; font-family: sans-serif; }}
         #selector-{uid} label {{ font-size: 0.9rem; font-weight: bold; }}
         #file-select-{uid} {{
             padding: 6px 10px;
@@ -166,8 +163,6 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
             min-width: 200px;
         }}
         </style>
-        </head>
-        <body>
         <div id="selector-{uid}">
         <label for="file-select-{uid}">{html.escape(label)} </label>
         <select id="file-select-{uid}" onchange="showImage_{uid}(this.value)">
@@ -178,11 +173,8 @@ def image_viewer(label: str, image_dir: str, pattern: str, sortkey = None, thing
         <div id="viewer-{uid}"><img id="display-{uid}" src="" alt="Select a {thing_to_select}" /></div>
         <script>
         const images_{uid} = {images_js};
-
         function showImage_{uid}(name) {{
             document.getElementById("display-{uid}").src = images_{uid}[name];
         }}
-        </script>
-        </body>
-        </html>"""
+        </script>"""
     display(HTML(_html))
