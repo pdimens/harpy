@@ -132,7 +132,7 @@ class ITable:
             onclick="(function(){{ var g = window.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: '{self.filename}'}}); }})()"
             style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
         >
-            Export CSV
+            ⤓ Download CSV
         </button>
 
         <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
