@@ -1,5 +1,7 @@
 # Fixes
 - `harpy report` error when not used in a git-enable repository
+- embedded image viewer has cleaned up HTML
+- no more double-printing worklow name when using `harpy resume`
 
 # Features
 ## Impute
@@ -8,5 +10,9 @@
   - e.g. `--strategy contig1:1-100000 -b 0.1` equivalent to `--strategy contig1:1-100000 -b 10000`
   - only applies to window and region strategies
 
-## Misc
-- report tables have "Export CSV" replaced with "⤓ Download CSV" to be more obvious
+# Changes
+## Reports
+- tables have "Export CSV" replaced with "⤓ Download CSV" to be more obvious
+
+# Breaking
+None

@@ -265,8 +265,8 @@ class Workflow():
                 report_times.append(f"{j} {_i}")
         return ", ".join(report_times)
 
-    def onstart(self):
-        """Print a panel of info on workflow run. """
+    def onstart(self, rule: bool = True):
+        """Print a panel of info on workflow run. Set `rule = False` to disable the top workflow name rule"""
         if self.quiet == 2:
             return
         table = self.print.table()
@@ -276,7 +276,8 @@ class Workflow():
         for k,v in self.info.items():
                 table.add_row(f"{k}:", f"{v}")
         self.print.print("")
-        self.print.rule("[bold]" + self.name.replace("_", " "), style = "light_steel_blue")
+        if rule:
+            self.print.rule("[bold]" + self.name.replace("_", " "), style = "light_steel_blue")
         self.print.print(table)
 
     def onsuccess(self):

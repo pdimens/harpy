@@ -132,7 +132,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         workflow.write_snakemake_profile()
 
     workflow.info = {
-        "Workflow" : workflow.name.replace("_", " "),
+        "Workflow" : "harpy " + workflow.name.replace("_", " "),
         "Output Folder" : directory + "/"
     }
 
@@ -144,5 +144,5 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         if _ > 0:
             sys.exit(1)
     else:
-        workflow.onstart()
+        workflow.onstart(rule = False)
         workflow.launch(absolute)
