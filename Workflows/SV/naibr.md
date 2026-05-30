@@ -163,8 +163,7 @@ SV/naibr
 │   ├── sample1.log
 │   └── sample2.log
 ├── reports
-│   ├── sample1.naibr.html
-│   └── sample2.naibr.html
+│   └── naibr.summary.ipynb
 └── vcf
     ├── sample1.vcf
     └── sample2.vcf
@@ -181,7 +180,7 @@ SV/naibr
 | `filtered/`          | the variants that failed NAIBR's internal filters          |
 | `IGV/`               | same as the output `.bedpe` files but in IGV format        |
 | `logs/*.log`         | what NAIBR writes to `stderr` during operation             |
-| `reports/`           | summary reports with interactive plots of detected SV      |
+| `reports/`           | summary report with interactive plots of detected SV       |
 | `vcf/`               | the resulting variants, but in `.VCF` format               |
 
 +++ :icon-code-square: naibr parameters
@@ -204,15 +203,5 @@ harpy sv naibr -x "candidates duplications.bedpe" data/alignments/*
 -blacklist: BED-file with regions to be excluded from analysis
 -candidates: BEDPE-file with novel adjacencies to be scored by NAIBR. This will override automatic detection of candidate novel adjacencies
 ```
-
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-
-||| Variant stats
-Summarizes the count and type of structural variants and visualizes their locations on
-the chromosomes. Calling variants on population-pooled samples will instead report on populations.
-![reports/*.html](/static/report_sv_naibr.png)
-|||
 
 +++

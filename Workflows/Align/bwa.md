@@ -154,11 +154,11 @@ Align/bwa
 | `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
 | `logs/*sort.log`                    | output of `samtools sort`                                                        |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
-| `reports/barcodes.summary.html`     | interactive html report summarizing barcode-specific metrics across all samples                                            |
-| `reports/bwa.stats.html`            | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
-| `reports/Sample1.html`              | interactive html report summarizing BX tag metrics and alignment coverage        | 
-| `reports/data/coverage/*.cov.gz`    | output from samtools cov, used for plots                                         |
-| `reports/data/bxstats`              | tabular data containing the information used to generate the BX stats in reports |
+| `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
+| `reports/bwa.summary.ipynb`         | report summarizing `samtools stats` of raw alignments across all samples         |
+| `reports/Sample1.ipynb`             | report summarizing BX tag metrics and alignment coverage                         | 
+| `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
+| `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |
 
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
@@ -185,18 +185,5 @@ These are taken directly from the [BWA documentation](https://bio-bwa.sourceforg
 -a 	Output all found alignments for single-end or unpaired paired-end reads. These alignments will be flagged as secondary alignments.
 -H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
 ```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-||| Alignment BX Information
-An aggregate report of barcode-specific alignment information for all samples.
-![reports/coverage/*.html](/static/report_align_coverage.png)
-||| Molecule size and Coverage
-Reports the inferred molecule sized based on barcodes in the alignments.
-![reports/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
-||| Samtools Alignment stats
-Reports the general statistics computed by samtools `stats` and `flagstat`
-![reports/samtools_*stat/*html](/static/report_align_flagstat.png)
-|||
 
 +++

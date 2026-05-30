@@ -16,145 +16,6 @@ sequence. Below describes the workflows for the original haplotagging
 protocol published by Meier et _al._ (2021), along with the one we're
 developed at Cornell University (Iqbal et _al._, in prep).
 
-## meier2021
-==- Meier et _al._ (2021)
-!!!warning
-This was formerly known as `gen1`, which is deprecated!
-!!!
-
-- Barcode configuration: `13 + 13` in each index read
-- sequencing mask: `151+13+13+151`
-- Sample identifier: `Cxx` barcode
-- Facility should **not** demultiplex
-
-These are the original 13 + 13 barcodes described in Meier et al. 2021. You should request that the sequencing facility you used
-do **not** demultiplex the sequences. Requires the use of [bcl2fastq](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) without `sample-sheet` and with the settings
-`--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
-meaning a single sample should have the same `C` barcode for all of its sequences.
-
-===  :icon-checklist: You will need
-- at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
-===
-
-```bash usage
-harpy preprocess meier2021 OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
-```
-
-```bash example | using wildcards instead of manually writing each file name
-harpy preprocess meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
-```
-### :icon-terminal: Running Options
-In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="preprocess meier2021"] module is configured using these command-line arguments:
-
-{.compact}
-| argument                       | description                                                                                              |
-|:-------------------------------|:---------------------------------------------------------------------------------------------------------|
-| `R1_FQ`                        | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
-| `R2_FQ`                        | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
-| `I1_FQ`                        | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
-| `I2_FQ`                        | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
-| `--keep-unknown-samples` `-u`  | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
-| `--keep-unknown-barcodes` `-b` | Keep a separate file of reads with unrecognized barcodes                                                 |
-| `--qxrx` `-q`                  | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
-| `--schema` `-s`                | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
-
-### Keeping Unknown Samples
-It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown-samples`/`-u` to
-have Harpy still separate those reads from the original multiplex. Those reads will be labelled `_unknown_sample.R*.fq.gz` 
-
-### Keeping Unknown Barcodes
-It's likewise not uncommon that sequencing errors make it so that the sequences don't match the list of known barcode segments. Use
-`--keep-unknown-barcodes`/`-b` to have Harpy separate those reads out from the original multiplex as `_unknown_barcodes.R*.fq.gz`.
-
-### Keep QX and RX Tags
-Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode)
-tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
-
-### Demultiplexing Schema
-Generation I haplotags typically use a unique `Cxx` barcode per sample-- that's the barcode segment
-that will be used to identify sequences by sample. However, any of the 4 segments (`A`,`B`,`C`,`D`) are valid, so long as the schema only features a single segment.
-You will need to provide a simple text file to `--schema` (`-s`) with two columns, the first being the sample name, the second being
-the identifying segment barcode (e.g., `C19`). This file is to be `tab` or `space` delimited and must have **no column names**.
-``` example sample sheet
-Sample01    C01
-Sample02    C02
-Sample03    C03
-Sample04    C04
-```
-This will result in splitting the multiplexed reads into individual file pairs `Sample01.F.fq.gz`, `Sample01.R.fq.gz`, `Sample02.F.fq.gz`, etc.
-A sample can have multiple barcodes, but a barcode **cannot** have multiple samples:
-
-+++ duplicate samples [!badge variant="success" text="valid"]
-```
-Sample01    D01
-Sample02    D02
-Sample03    D03
-Sample03    D21
-```
-
-+++ duplicate barcodes [!badge variant="danger" text="invalid"]
-```
-Sample01    C01
-Sample02    C02
-Sample03    C02
-```
-+++  multiple segments [!badge variant="danger" text="invalid"]
-```
-Sample01    C01
-Sample02    D02
-Sample03    C03
-```
-+++
-
----
-### :icon-git-pull-request: Workflow
-+++ :icon-git-merge: details
-
-```mermaid
-graph LR
-    subgraph Inputs
-        direction TB
-        A[multiplexed FASTQ]:::clean---BX
-        BX[index reads FASTQ]:::clean---SCH
-        SCH[Sample Schema]:::clean
-    end
-    Inputs-->B([demultiplex samples]):::clean
-    B-->D([quality metrics]):::clean
-    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-
-+++ :icon-file-directory: preprocessing output
-The default output directory is `Preprocess` with the folder structure below. `Sample1` and `Sample2` are
-generic sample names for demonstration purposes. The resulting folder also includes a `workflow` directory
-(not shown) with workflow-relevant runtime files and information.
-```
-Preprocess/
-├── Sample1.F.fq.gz
-├── Sample1.R.fq.gz
-├── Sample2.F.fq.gz
-├── Sample2.R.fq.gz
-└── reports
-    └── preprocess.QC.html
-```
-{.compact}
-| item                          | description                                                                               |
-| :---------------------------- | :---------------------------------------------------------------------------------------- |
-| `*.F.fq.gz`                   | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
-
-+++
-
-### The power of dmox!
-Harpy v2 introduced a new demultiplexer under the hood called dmox, which is singificantly faster,
-lighter on memory, and has better maintenance than the previous solution. [Iago Bonnici](https://isem-evolution.fr/en/membre/bonnici/) of 
-[Montpellier Bioinformatics Biodiversity](https://isem-evolution.fr/en/plateau/montpellier-bioinformatics-biodiversity-facility/) 
-(MBB) saw the need for better demultiplexing performance and took it upon themselves to donate their time to write a brand-new
-purpose-built demultiplexer for the Meier/Chan haplotagging bead design. Beyond just being way more performant, this new
-demultiplexer has more features, has more output options, and is flexible for haplotagging bead designs where the sample
-ID is not the C-segment. If you're happy with the performance of the new demultiplexing workflow, please let Iago/MBB know!
 
 ## gih
 ==- Iqbal et _al._ 
@@ -253,6 +114,7 @@ Preprocess/
 ├── Sample2.F.fq.gz
 ├── Sample2.R.fq.gz
 └── reports
+    ├── performance.QC.ipynb
     └── preprocess.QC.html
 ```
 {.compact}
@@ -263,3 +125,143 @@ Preprocess/
 | `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
 | `reports/performance.ipynb`   | Preprocessing-specific report for all samples                                             |
 +++
+
+## meier2021
+==- Meier et _al._ (2021)
+!!!warning
+This was formerly known as `gen1`, which is deprecated!
+!!!
+
+- Barcode configuration: `13 + 13` in each index read
+- sequencing mask: `151+13+13+151`
+- Sample identifier: `Cxx` barcode
+- Facility should **not** demultiplex
+
+These are the original 13 + 13 barcodes described in Meier et al. 2021. You should request that the sequencing facility you used
+do **not** demultiplex the sequences. Requires the use of [bcl2fastq](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) without `sample-sheet` and with the settings
+`--use-bases-mask=Y151,I13,I13,Y151` and `--create-fastq-for-index-reads`. With Generation I beadtags, the `C` barcode is sample-specific,
+meaning a single sample should have the same `C` barcode for all of its sequences.
+
+===  :icon-checklist: You will need
+- at least 2 cores/threads available
+- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
+===
+
+```bash usage
+harpy preprocess meier2021 OPTIONS... R1_FQ R2_FQ I1_FQ I2_FQ
+```
+
+```bash example | using wildcards instead of manually writing each file name
+harpy preprocess meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fastq.gz Plate_1_S001_I*.fastq.gz
+```
+### :icon-terminal: Running Options
+In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="preprocess meier2021"] module is configured using these command-line arguments:
+
+{.compact}
+| argument                       | description                                                                                              |
+|:-------------------------------|:---------------------------------------------------------------------------------------------------------|
+| `R1_FQ`                        | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
+| `R2_FQ`                        | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
+| `I1_FQ`                        | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
+| `I2_FQ`                        | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
+| `--keep-unknown-samples` `-u`  | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
+| `--keep-unknown-barcodes` `-b` | Keep a separate file of reads with unrecognized barcodes                                                 |
+| `--qxrx` `-q`                  | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
+| `--schema` `-s`                | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
+
+#### Keeping Unknown Samples
+It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown-samples`/`-u` to
+have Harpy still separate those reads from the original multiplex. Those reads will be labelled `_unknown_sample.R*.fq.gz` 
+
+#### Keeping Unknown Barcodes
+It's likewise not uncommon that sequencing errors make it so that the sequences don't match the list of known barcode segments. Use
+`--keep-unknown-barcodes`/`-b` to have Harpy separate those reads out from the original multiplex as `_unknown_barcodes.R*.fq.gz`.
+
+#### Keep QX and RX Tags
+Using `--qx-rx`, you can opt-in to retain the `QX:Z` (barcode PHRED scores) and `RX:Z` (nucleotide barcode)
+tags in the sequence headers. These tags aren't used by any subsequent analyses, but may be useful for your own diagnostics. 
+
+### Demultiplexing Schema
+Generation I haplotags typically use a unique `Cxx` barcode per sample-- that's the barcode segment
+that will be used to identify sequences by sample. However, any of the 4 segments (`A`,`B`,`C`,`D`) are valid, so long as the schema only features a single segment.
+You will need to provide a simple text file to `--schema` (`-s`) with two columns, the first being the sample name, the second being
+the identifying segment barcode (e.g., `C19`). This file is to be `tab` or `space` delimited and must have **no column names**.
+``` example sample sheet
+Sample01    C01
+Sample02    C02
+Sample03    C03
+Sample04    C04
+```
+This will result in splitting the multiplexed reads into individual file pairs `Sample01.F.fq.gz`, `Sample01.R.fq.gz`, `Sample02.F.fq.gz`, etc.
+A sample can have multiple barcodes, but a barcode **cannot** have multiple samples:
+
++++ duplicate samples [!badge variant="success" text="valid"]
+```
+Sample01    D01
+Sample02    D02
+Sample03    D03
+Sample03    D21
+```
+
++++ duplicate barcodes [!badge variant="danger" text="invalid"]
+```
+Sample01    C01
+Sample02    C02
+Sample03    C02
+```
++++  multiple segments [!badge variant="danger" text="invalid"]
+```
+Sample01    C01
+Sample02    D02
+Sample03    C03
+```
++++
+
+---
+### :icon-git-pull-request: Workflow
++++ :icon-git-merge: details
+
+```mermaid
+graph LR
+    subgraph Inputs
+        direction TB
+        A[multiplexed FASTQ]:::clean---BX
+        BX[index reads FASTQ]:::clean---SCH
+        SCH[Sample Schema]:::clean
+    end
+    Inputs-->B([demultiplex samples]):::clean
+    B-->D([quality metrics]):::clean
+    style Inputs fill:#f0f0f0,stroke:#e8e8e8,stroke-width:2px,rx:10px,ry:10px
+    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
+```
+
++++ :icon-file-directory: preprocessing output
+The default output directory is `Preprocess` with the folder structure below. `Sample1` and `Sample2` are
+generic sample names for demonstration purposes. The resulting folder also includes a `workflow` directory
+(not shown) with workflow-relevant runtime files and information.
+```
+Preprocess/
+├── Sample1.F.fq.gz
+├── Sample1.R.fq.gz
+├── Sample2.F.fq.gz
+├── Sample2.R.fq.gz
+└── reports
+    └── preprocess.QC.html
+```
+{.compact}
+| item                          | description                                                                               |
+| :---------------------------- | :---------------------------------------------------------------------------------------- |
+| `*.F.fq.gz`                   | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
+
++++
+
+### The power of dmox!
+Harpy v2 introduced a new demultiplexer under the hood called dmox, which is singificantly faster,
+lighter on memory, and has better maintenance than the previous solution. [Iago Bonnici](https://isem-evolution.fr/en/membre/bonnici/) of 
+[Montpellier Bioinformatics Biodiversity](https://isem-evolution.fr/en/plateau/montpellier-bioinformatics-biodiversity-facility/) 
+(MBB) saw the need for better demultiplexing performance and took it upon themselves to donate their time to write a brand-new
+purpose-built demultiplexer for the Meier/Chan haplotagging bead design. Beyond just being way more performant, this new
+demultiplexer has more features, has more output options, and is flexible for haplotagging bead designs where the sample
+ID is not the C-segment. If you're happy with the performance of the new demultiplexing workflow, please let Iago/MBB know!

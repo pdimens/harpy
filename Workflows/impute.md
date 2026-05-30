@@ -64,7 +64,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
 | `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
 | `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
-| `--vcf-samples`       |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
 | `--strategy` `-s`     | window:1000000 |Imputation strategy ([see below](#imputation-strategies)) |
 | `--buffer` `-b`       | 100000       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`)'                             |
 
@@ -98,8 +98,7 @@ harpy impute -t 15 -x "--arg=value --arg2=value2" stitch.params file.vcf Align/s
 ```
 
 ### Prioritize the vcf file
-Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
-to only impute the samples present in the `VCF` file. By default, Harpy assumes you want to use all the samples
+By default, Harpy assumes you want to use all the samples
 present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
 present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
 around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
@@ -256,9 +255,9 @@ Impute/
     ├── logs
     └── reports
         ├── data
-        ├── contig1.modelname.html
-        ├── contig2.modelname.html
-        └── modelname.summary.html
+        ├── contig1.modelname.ipynb
+        ├── contig2.modelname.ipynb
+        └── modelname.summary.ipynb
 
 ```
 {.compact}
@@ -266,8 +265,8 @@ Impute/
 | :----------------------------------- | :------------------------------------------- |
 | `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
 | `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
-| `modelname/reports/modelname.summary.html`   | report summarizing the results of imputation across contigs|
-| `modelname/reports/*.modelname.html` | summary of STITCH imputation (per contig)    |
+| `modelname/reports/modelname.summary.ipynb`   | report summarizing the results of imputation across contigs|
+| `modelname/reports/*.modelname.ipynb` | summary of STITCH imputation (per contig)    |
 | `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
 | `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |
 

@@ -179,10 +179,10 @@ SNP/method
 │   ├── samples.files
 │   └── samples.names
 └── reports
-    ├── contig1.stats
-    ├── contig2.stats
-    ├── variants.raw.html
-    └── variants.raw.stats
+    ├── variants.raw.ipynb
+    ├── variants.normalized.ipynb
+    └── variants.raw.ipynb
+
 ```
 {.compact}
 | item                      | description                                                                                    |
@@ -195,8 +195,7 @@ SNP/method
 | `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
 | `logs/samples.files`      | list of alignment files used for variant calling                                               |
 | `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
-| `reports/*.stats`         | output of `bcftools stats`                                                                     |
-| `reports/variants.*.html` | report summarizing variants                                                                    |
+| `reports/variants.*.ipynb` | report summarizing variants                                                                    |
 
 +++ :icon-code-square: mpileup parameters
 By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):
