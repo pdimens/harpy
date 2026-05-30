@@ -335,13 +335,14 @@ class Summary:
         recode = "Finally, the nucleotides were converted into standardized haplotagging ACBD format and FASTQ format:\n"
         recode += "\tgih-convert input.sam fq1 fq2 > output.stats"
         qc = "QC checks were performed on demultiplexed FASTQ files using:\n"
-        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz"
+        qc += "\tfalco -skip-report -skip-summary -data-filename output input.fq.gz\n"
         self.summary.append("The harpy preprocess workflow ran using these parameters:")
         self.summary.append("Linked Read Barcode Design: Iqbal et al. 2026")
         self.summary.append(stagger)
         self.summary.append(pheniqs)
         self.summary.append(recode)
         self.summary.append(qc)
+        self.summary.append("Use the output 'adapters.fasta' file as input into harpy qc")
 
     def qc(self):
         min_len 	  = self.PARAMETERS.get("min-len", 30)

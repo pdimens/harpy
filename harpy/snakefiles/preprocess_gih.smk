@@ -53,10 +53,21 @@ onstart:
 rule all:
     default_target: True
     input: 
+        'adapters.fasta',
         collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         collect("reports/data/{sample}.bxcount", sample = samplenames),
         "reports/preprocess.QA.html" if not skip_reports else [],
         "reports/performance.ipynb" if not skip_reports else []
+
+rule write_adapters:
+    output:
+        'adapters.fasta'
+    run:
+        with open(output[0], 'w') as f:
+            f.write(
+                ">Adapter Read 1\nCTGTCTCTTATACACATCT\n"
+                ">Adapter Read 2\nAGATCGGAAGAGC\n"
+            )
 
 rule pad_barcodes:
     input:
