@@ -2,6 +2,7 @@
 - `harpy report` error when not used in a git-enable repository
 - embedded image viewer has cleaned up HTML
 - no more double-printing worklow name when using `harpy resume`
+- `--unlinked` works correctly in `phase bam`
 
 # Features
 ## Impute
