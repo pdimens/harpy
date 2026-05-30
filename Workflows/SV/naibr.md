@@ -69,7 +69,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 {.compact}
 | argument                   | default  | description                                                                                                                   |
 |:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [phased BAM files](/Getting_Started/common_options.md#input-arguments) |
 | `REFERENCE`                |          | [!badge variant="info" text="required"] Reference genome used to generate input alignments                                    |
 | `--contigs`                |          | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                 |
 | `--extra-params` `-x`      |          | Additional naibr arguments, in quotes                                                                                         |
@@ -78,6 +78,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--min-size` `-m`          |  `1000`  | Minimum size of SV to detect                                                                                                  |
 | `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
 | `--populations` `-p`       |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
+
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
@@ -97,27 +98,13 @@ population and call variants on these alignment pools. Preliminary work shows th
 positives. **However**, individual-level information gets lost using this approach, so you will only be able to assess 
 group-level variants, if that's what your primary interest is.
 
-```mermaid
----
-title: Getting phased alignments
----
-graph LR
-    aln[alignments]:::clean-->|harpy snp|snps([SNPs]):::clean
-    snps-->|bcftools filter ...|filt([filtered SNPs]):::clean
-    filt-->|harpy phase snp|phase([phased haplotypes]):::phase
-    phase:::phase-->|harpy phase bam|aln2([phased alignments]):::clean
-    aln-->aln2
-    classDef phase fill:#b7c9ef,stroke:#dfe3ee,stroke-width:2px
-    classDef clean fill:#f5f6f9,stroke:#b7c9ef,stroke-width:2px
-```
-
 ----
 
 ## :icon-git-pull-request: NAIBR workflow
 +++ :icon-git-merge: details
 [Naibr](https://github.com/raphael-group/NAIBR) is a variant caller that uses linked read barcode information 
 to call structural variants (indels, inversions, etc.) exclusively, meaning it does not call SNPs. The original 
-authors of Naibr have not been updating or improving it, so Harpy uses [an active fork](https://github.com/pontushojer/NAIBR)
+Naibr repository has not been updated in a while, so Harpy uses [an active fork](https://github.com/pontushojer/NAIBR)
 of it that is available on [Bioconda](https://anaconda.org/bioconda/naibr-plus) under the name `naibr-plus`.
 This fork includes improved accuracy as well as quality-of-life updates.
 
