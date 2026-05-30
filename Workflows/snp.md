@@ -179,10 +179,10 @@ SNP/method
 │   ├── samples.files
 │   └── samples.names
 └── reports
-    ├── contig1.stats
-    ├── contig2.stats
-    ├── variants.raw.html
-    └── variants.raw.stats
+    ├── variants.raw.ipynb
+    ├── variants.normalized.ipynb
+    └── variants.raw.ipynb
+
 ```
 {.compact}
 | item                      | description                                                                                    |
@@ -195,8 +195,7 @@ SNP/method
 | `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
 | `logs/samples.files`      | list of alignment files used for variant calling                                               |
 | `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
-| `reports/*.stats`         | output of `bcftools stats`                                                                     |
-| `reports/variants.*.html` | report summarizing variants                                                                    |
+| `reports/variants.*.ipynb` | report summarizing variants                                                                    |
 
 +++ :icon-code-square: mpileup parameters
 By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):
@@ -215,15 +214,5 @@ freebayes -f genome.fasta -r contigname:START-END -L bam.list -p ploidy
 
 Freebayes has *a lot* of command line options. Listing them all here would be difficult to read, therefore please
 refer to the [freebayes documentation](https://github.com/freebayes/freebayes#usage) to explore ways to configure your freebayes run.
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-
-||| Variant stats
-
-Summarizes information provided by `bcftools stats` on the called SNPs and indels.
-![reports/variants.*.html](/static/report_variants.png)
-
-|||
 
 +++

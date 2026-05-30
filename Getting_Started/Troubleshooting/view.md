@@ -6,34 +6,45 @@ icon: eye
 # :icon-eye: View
 
 This convenience command lets you view relevant details within a Harpy workflow directory
-without having to fish around for the right files.
+without having to fish around for the right files. Since version 4.0, a harpy installation
+also aliases `harpy view` as `hv` for convenience.
 
 ```bash usage
 harpy view MODE DIRECTORY
+# or #
+hv MODE DIRECTORY
 ```
 
 ```bash example | view the workflow configuration of an existing harpy-generated folder
 harpy view config Align/bwa
 ```
 
+#### The `.harpyerror` file
+A feature introduced in v4 is the automatic creation of a `.harpyerror` file in the work
+directory. This file contains a string path to the last output directory that caused an error.
+When any of the `view` commands are run without the `DIRECTORY` argument (except `envs`),
+harpy will look for the `.harpyerror` 
+
+
 ### arguments
 {.compact}
 | argument      |  description                                                                           |
 | :------------ | :------------------------------------------------------------------------------------- |
-| `DIRECTORY`   | [!badge variant="info" text="required"] Output directory of an existing harpy workflow |
+| `DIRECTORY`   | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |
 
 ### modes
 {.compact}
 | MODE            | description                                                       |
 |:----------------|:------------------------------------------------------------------|
 | `config`        | View a workflow's config file                                     |
-| `environments`* | View the conda environments and their software in `.environments` |
+| `error`         | View the exact failture of a snakemake run                        |
+| `envs`* | View the conda environments and their software in `.environments` |
 | `log`           | View a workflow's last log file                                   |
 | `snakefile`     | View a workflow's snakefile                                       |
-| `snakeparams`   | View a workflow's snakemake parameter file                        |
+| `profile`       | View a workflow's snakemake parameter file                        |
 
 #### environments
-`view environments` is an exception in that it does not require a `DIRECTORY` argument.
+`view envs` is an exception in that it does not require a `DIRECTORY` argument.
 To use `environments`, you can run it without arguments or give it a `SOFTWARE` argument
 to only print environments where `SOFTWARE` is found (it also works with partial matches).
 

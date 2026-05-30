@@ -148,15 +148,15 @@ Align/strobealign
 |:---------|:------------------------------------------------------------------------------------------------------------|
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/*bwa.log`                     | output of strobealign during run                                                         |
+| `logs/*bwa.log`                     | output of strobealign during run                                                 |
 | `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
 | `logs/*sort.log`                    | output of `samtools sort`                                                        |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
-| `reports/barcodes.summary.html`                | interactive html report summarizing barcode-specific metrics across all samples                                            |
-| `reports/strobealign.stats.html`        | report summarizing `samtools flagstat and stats` results across all samples from `multiqc` |
-| `reports/Sample1.html`              | interactive html report summarizing BX tag metrics and alignment coverage        | 
-| `reports/data/coverage/*.cov.gz`    | output from samtools cov, used for plots                                         |
-| `reports/data/bxstats`              | tabular data containing the information used to generate the BX stats in reports |
+| `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
+| `reports/strobealign.summary.ipynb` | report summarizing `samtools stats` of raw alignments across all samples         |
+| `reports/Sample1.ipynb`             | html report summarizing BX tag metrics and alignment coverage                    | 
+| `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
+| `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |
 
 +++ :icon-code-square: strobealign parameters
 By default, Harpy runs `strobealign` with these parameters (excluding inputs and outputs):

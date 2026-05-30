@@ -73,7 +73,7 @@ harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam
 ```
 
 ## Phase Genotypes
-Like most of the other workflows, use `--unlinked` with [!badge corners="pill" text="harpy phase"](/Workflows/phase.md) to perform phasing without incorporating linked-read barcode
+Like most of the other workflows, use `--unlinked` with [!badge corners="pill" text="harpy phase"](/Workflows/Phase/phase_snp.md) to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for `-d`/`--molecule-distance` will be ignored:
 ```bash phase example
 harpy phase -t 10 --unlinked variants.bcf data/*.bam 
