@@ -268,6 +268,7 @@ class Summary:
         mol_dist    = self.PARAMETERS.get("distance-threshold", 100000)
         extra       = self.PARAMETERS.get("extra", "")
         ploidy      = self.PARAMETERS.get("ploidy", 2)
+        linked      = self.PARAMETERS.get("use-linked-info", True)
         variantfile = self.INPUTS["vcf"]
         params = [
             f"--ploidy {ploidy}",
@@ -287,10 +288,13 @@ class Summary:
         concataln += "\tsamtools merge sample.phased.bam sample.invalid.bam | samtools sort -"
         self.summary.append("The harpy phase snp workflow ran using these parameters:")
         self.summary.append(f"The provided variant file: {variantfile}")
-        self.summary.append(validsplit)
+        if linked:
+            self.summary.append(validsplit)
         self.summary.append(phase)
-        self.summary.append(concataln)
-
+        if linked:
+            self.summary.append(concataln)
+        else:
+            self.summary.append("Alignments were sorted using:\n\tsamtools sort sample.phased.bam")
 
     def preprocess_meier2021(self):
         schemafile = self.INPUTS["schema"]

@@ -17,7 +17,8 @@ vcffile     = INPUTS["vcf"]
 samplenames = {Path(i).stem for i in bamlist}
 mol_dist    = PARAMETERS.get("distance-threshold", 100000)
 extra       = PARAMETERS.get("extra", None) 
-ploidy       = PARAMETERS.get("ploidy", 2) 
+ploidy      = PARAMETERS.get("ploidy", 2)
+linked      = PARAMETERS.get("use-linked-info", True)
 
 bn            = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn[:-3]}" if bn.lower().endswith(".gz") else f"workflow/reference/{bn}"
@@ -45,24 +46,43 @@ rule process_reference:
         }} > {log}
         """
 
-rule filter_invalid:
-    input:
-        get_alignments
-    output:
-        temp("filtered/{sample}.bam.bai"),
-        invalid = temp("filtered/{sample}.invalid.bam"),    
-        valid = temp("filtered/{sample}.bam")
-    log:
-        "logs/{sample}.filter_invalid.log"
-    threads:
-        4
-    shell:
-        """
-        {{
-            djinn sam filter-invalid -t {threads} --invalid {output.invalid} {input} > {output.valid}
-            samtools index {output.valid}  
-        }} 2> {log}
-        """
+if linked:
+    rule filter_invalid:
+        input:
+            get_alignments
+        output:
+            temp("filtered/{sample}.bam.bai"),
+            invalid = temp("filtered/{sample}.invalid.bam"),    
+            valid = temp("filtered/{sample}.bam")
+        log:
+            "logs/{sample}.filter_invalid.log"
+        threads:
+            4
+        shell:
+            """
+            {{
+                djinn sam filter-invalid -t {threads} --invalid {output.invalid} {input} > {output.valid}
+                samtools index {output.valid}  
+            }} 2> {log}
+            """
+else:
+    rule index_alignments:
+        input:
+            get_alignments
+        output:
+            temp("filtered/{sample}.bam.bai"),
+            invalid = temp("filtered/{sample}.invalid.bam"),    
+            valid = temp("filtered/{sample}.bam")
+        log:
+            "logs/{sample}.index.log"
+        shell:
+            """
+            {{
+                ln -sr {input} {output.valid}
+                samtools index {output.valid}
+                touch {output.invalid}
+            }} 2> {log}
+            """
 
 rule index_vcf:
     input:
@@ -101,6 +121,7 @@ rule phase_alignments:
         f"--supplementary-distance {3 * mol_dist}",
         "--ignore-read-groups",
         "--skip-missing-contigs",
+        "--ignore-linked-read" if not linked else "",
         extra
     conda:
         "envs/phase.yaml"
@@ -133,20 +154,21 @@ rule log_phasing:
         }} > {output}
         """
 
-rule restore_invalid:
-    input:
-        "phased/{sample}.phased.bam",
-        "filtered/{sample}.invalid.bam"
-    output:
-        pipe("{sample}.phased.unsort.sam")
-    log:
-        "logs/{sample}.restore_invalid.log"
-    shell:
-        "samtools merge -O SAM {output} {input} 2> {log}"
+if linked:
+    rule restore_invalid:
+        input:
+            "phased/{sample}.phased.bam",
+            "filtered/{sample}.invalid.bam"
+        output:
+            pipe("{sample}.phased.unsort.sam")
+        log:
+            "logs/{sample}.restore_invalid.log"
+        shell:
+            "samtools merge -O SAM {output} {input} 2> {log}"
         
 rule sort_phased_bam:
     input:
-        "{sample}.phased.unsort.sam"
+        "{sample}.phased.unsort.sam" if linked else "phased/{sample}.phased.bam"
     output:
         "{sample}.phased.bam"
     log:

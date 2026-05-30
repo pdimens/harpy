@@ -181,6 +181,25 @@ class HapCutParams(click.ParamType):
             self.fail(f"No valid options recognized. Available hapcut2 options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: {docs}.", param, ctx)
         return sanitize_shell(value)
 
+class WhatshapParams(click.ParamType):
+    """A class for a click type that validates whathap haplotag extra-params."""
+    name = "whatshap_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "--no-reference --sample --output-threads --out-threads --reference -r --ploidy --linked-read-distance-cutoff -d --tag-supplementary --no-supplementary-strand-match --supplementary-distance --ignore-read-groups --skip-missing-contigs --ignore-linked-read".split()
+        valid_options = "--regions --output-haplotag-list".split()
+        opts = 0
+        docs = "https://whatshap.readthedocs.io/en/latest/guide.html#whatshap-haplotag"
+        for i in shellsplit(value):
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling whatshap haplotag.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid whatshap haplotag option. See the whatshap documentation for a list of available options: {docs}.", param, ctx)
+        if opts < 1:
+            self.fail(f"No valid options recognized. Available whatshap options begin with two dashes (e.g. --dp). See the hapcut2 documentation for a list of available options: {docs}.", param, ctx)
+        return sanitize_shell(value)
+
 class LeviathanParams(click.ParamType):
     """A class for a click type that validates leviathan extra-params."""
     name = "leviathan_params"

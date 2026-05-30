@@ -5,7 +5,7 @@ import os
 import rich_click as click
 
 from harpy.common.cli_filetypes import FASTAfile, HPCProfile, SAMfile, VCFfile
-from harpy.common.cli_params import ContigList, HapCutParams, SnakemakeParams
+from harpy.common.cli_params import ContigList, HapCutParams, WhatshapParams, SnakemakeParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -22,7 +22,7 @@ def phase():
     """
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/phase")
-@click.option('-x', '--extra-params', panel = "Parameters", type = HapCutParams(), help = 'Additional whatshap haplotag parameters, in quotes')
+@click.option('-x', '--extra-params', panel = "Parameters", type = WhatshapParams(), help = 'Additional whatshap haplotag parameters, in quotes')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 100000, show_default = True, type = click.IntRange(min = 100), help = 'Distance cutoff to split molecules (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Phase/bam", show_default=True,  help = 'Output directory name')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
