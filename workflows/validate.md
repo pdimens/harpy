@@ -81,8 +81,8 @@ criteria of what type of format checking occurred, the context, relevance, and s
 file (or sample).
 
 ||| FASTQ file report
-![Validate/validate.fastq.html](/static/report_preflightfastq.png)
+![Validate/validate.fastq.ipynb](/static/report_preflightfastq.png)
 ||| BAM file report
-![Validate/validate.bam.html](/static/report_preflightbam.png)
+![Validate/validate.bam.ipynb](/static/report_preflightbam.png)
 |||
 +++

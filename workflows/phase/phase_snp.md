@@ -11,11 +11,11 @@
 
 You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
-genotypes into haplotypes requires alignment files, such as those produced by [!badge corners="pill" text="align bwa"](Align/bwa.md)
-and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](snp.md)
-or [!badge corners="pill" text="impute"](impute.md). **Phasing only works on SNP data**, and will not
-work for structural variants produced by [!badge corners="pill" text="sv leviathan"](SV/leviathan.md)
-or [!badge corners="pill" text="sv naibr"](SV/naibr.md), preferably [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md). You can phase genotypes into haplotypes with
+genotypes into haplotypes requires alignment files, such as those produced by [!badge corners="pill" text="align bwa"](../Align/bwa.md)
+and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](../snp.md)
+or [!badge corners="pill" text="impute"](../impute.md). **Phasing only works on SNP data**, and will not
+work for structural variants produced by [!badge corners="pill" text="sv leviathan"](../SV/leviathan.md)
+or [!badge corners="pill" text="sv naibr"](../SV/naibr.md), preferably [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md). You can phase genotypes into haplotypes with
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
@@ -40,15 +40,13 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                                                                      |
 | `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                                                                                |
 | `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                                                                         |
-| `--vcf-samples`            |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for imputation rather than those found the directory                                                                                  |
+| `--vcf-samples`, `-V`      |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                                                                  |
 
 ### Prioritize the vcf file
-Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
-to only impute the samples present in the `--vcf` file. By default, Harpy assumes you want to use all the samples
+By default, Harpy assumes you want to use all the samples
 present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
-present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
-around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
-are missing from the provided `INPUTS`.  
+present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the 
+`VCF` file are missing from the provided `INPUTS`.  
 
 The molecule distance and pruning thresholds are considered the most impactful parameters
 for running HapCut2.
@@ -124,7 +122,7 @@ Phase/
 │       └── Sample1.linked.log
 ├── reports
 │   ├── blocks.summary.gz
-│   └── phase.html
+│   └── phase.ipynb
 └── phaseBlocks
     ├── Sample1.blocks
     ├── Sample1.blocks.phased.VCF
@@ -146,7 +144,7 @@ Phase/
 | `linkFragments/`            | results from HapCut2's `linkFragments`                                                   |
 | `linkFragments/logs`        | everything `linkFragments` prints to `stderr`                                            |
 | `reports/blocks.summary.gz` | summary information of all the samples' block files                                      |
-| `reports/phase.html`        | report of haplotype phasing results                                                      |
+| `reports/phase.ipynb`       | report of haplotype phasing results                                                      |
 | `phaseBlocks/*.blocks*`     | output from HapCut2                                                                      |
 | `phaseBlocks/logs`          | everything HapCut2 prints to `stderr`                                                    |
 
@@ -167,13 +165,4 @@ Advanced Options:
 --max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
 --maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
 ```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-
-||| Phasing Performance
-Aggregates phasing metrics overall and across all samples.
-![reports/phase.html](/static/report_phase.png)
-|||
-
 +++

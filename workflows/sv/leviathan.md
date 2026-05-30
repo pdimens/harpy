@@ -131,13 +131,9 @@ SV/leviathan
 │   ├── sample2.leviathan.log
 │   └── sample2.candidates
 ├── reports
-│   ├── sample1.SV.html
-│   ├── sample2.SV.html
-│   └── data
-│       ├── sample1.sv.stats
-│       └── sample2.sv.stats
+│   └── leviathan.SV.ipynb
 └── vcf
-    ├── sample1.bvf
+    ├── sample1.bcf
     └── sample2.bcf
 ```
 {.compact}
@@ -150,8 +146,7 @@ SV/leviathan
 | `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                      |
 | `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed |
 | `logs/*candidates`        | candidate structural variants LEVIATHAN identified                                       |
-| `reports/`                | summary reports with interactive plots of detected SV                                    |
-| `stats/`                  | results of `bcftools stats` on the vcf LEVIATHAN creates                                 |
+| `reports/`                | summary report  with interactive plots of detected SV                                    |
 | `vcf/`                    | structural variants identified by LEVIATHAN                                              |
 
 +++ :icon-code-square: leviathan parameters
@@ -165,14 +160,5 @@ These are taken directly from the [LEVIATHAN documentation](https://github.com/m
   -s, --skipTranslocations: Skip SVs that are translocations (default: false)
   -p, --poolSize:           Size of the thread pool (default: 100000)
 ```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-
-||| Variant stats
-Summarizes the count and type of structural variants and visualizes their locations on
-the chromosomes. Calling variants on population-pooled samples will instead report on populations.
-![reports/*.html](/static/report_sv_leviathan.png)
-|||
 
 +++

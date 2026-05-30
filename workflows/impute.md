@@ -55,76 +55,45 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
 | `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
 | `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
-| `--region` `-r`       |             | Specific region to impute, in the format `contig:start-end-buffer`                                                            |
-| `--vcf-samples`       |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--strategy` `-s`     | window:1000000 |Imputation strategy ([see below](#imputation-strategies)) |
+| `--buffer` `-b`       | 100000       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`)'                             |
 
-### Impute a specific region
-Use `--region` to only impute a specific genomic region, given as `contig:start-end-buffer`,
-otherwise all contigs will be imputed. The `buffer` is an integer for how much before and after
-your region STITCH will also look at for imputation (but will not attempt to impute).
+### Imputation strategies
+#### Buffered genomic windows (default)
+Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
+(100kb before and after window). This takes the format `window:size`:
+```bash buffered windows
+harpy impute -s window:1000000 -b 100000 <options> <inputs>
+```
+
+#### A specifc chromosomal region
+Use the format: `contig:start-end` to impute only a single genomic region.
+```bash buffered genomic region
+harpy impute -s ch1:1-500000 -b 100000 <options> <inputs>
+```
+
+#### All chromosomes in their entirety
+The default approach in previous harpy versions and is triggered by the word `all` and ignores the `--buffer` value.
+This can be very memory intensive and is **no longer recommended**.
+```bash entire chromosomes
+harpy impute -s all <options> <inputs>
+```
 
 ### Extra STITCH parameters
 You may add [additional parameters](https://github.com/rwdavies/STITCH/blob/master/Options.md) to STITCH by way of the 
 `--extra-params` (or `-x`) option. Harpy uses the `STITCH.R` command-line tool, which requires arguments to be in the form `--argument=value`,
 without spaces. Example:
 ```bash
-harpy impute -t 15 -x "--regionStart=20 --regionEnd=500" stitch.params file.vcf Align/strobe
+harpy impute -t 15 -x "--arg=value --arg2=value2" stitch.params file.vcf Align/strobe
 ```
 
 ### Prioritize the vcf file
-Sometimes you want to run imputation on all the samples present in the `INPUTS`, but other times you may want
-to only impute the samples present in the `VCF` file. By default, Harpy assumes you want to use all the samples
+By default, Harpy assumes you want to use all the samples
 present in the `INPUTS` and will inform you of errors when there is a mismatch between the sample files
 present and those listed in the `VCF` file. You can instead use the `--vcf-samples` flag if you want Harpy to build a workflow
 around the samples present in the `VCF` file. When using this toggle, Harpy will inform you when samples in the `VCF` file
 are missing from the provided `INPUTS`.   
-
-## :icon-file: Parameter file
-Typically, one runs STITCH multiple times, exploring how results vary with
-different model parameters (explained in next section). The solution Harpy uses for this is to have the user
-provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
-parameters and the rows are the values for those parameters. The parameter file 
-is required and can be created manually or with [!badge corners="pill" text="harpy template impute"](template.md/#impute).
-If created using harpy, the resulting file includes largely meaningless values 
-that you will need to adjust for your study. The parameter must follow a particular format:
-- tab or comma delimited
-- column order doesn't matter, but all 7 column names must be present
-- header row present with the specific column names below
-
-+++example file
-This file is tab-delimited, note the column names:
-``` paramaters.txt
-name    model   usebx   bxlimit   k       s       nGen
-model1    diploid   TRUE    50000    10      5       50
-model2    diploid   TRUE    50000   15      10      100
-waffles    pseudoHaploid   TRUE    50000   10      1       50
-```
-+++example file (as a table)
-This is the table view of the tab-delimited file, shown here for clarity.
-
-{.compact}
-| name    | model         | useBX | bxlimit | k   | s   | nGen |
-| :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
-| model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
-| model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
-| waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |
-
-+++parameter file columns
-See the section below for detailed information on each parameter. This
-table serves as an overview of the parameters.
-
-{.compact}
-| column name |               accepted values                | description                                                                                     |
-| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
-| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
-| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
-| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
-| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
-| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
-| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
-| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
-
-+++
 
 ## STITCH Parameters
 +++model
@@ -179,6 +148,53 @@ ago or reduced to $2 \times k$ that many generations ago, use that generation ti
 robust to misspecifications of this parameter.
 +++
 
+## :icon-file: Parameter file
+Typically, one runs STITCH multiple times, exploring how results vary with
+different model parameters (explained in next section). The solution Harpy uses for this is to have the user
+provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
+parameters and the rows are the values for those parameters. The parameter file 
+is required and can be created manually or with [!badge corners="pill" text="harpy template impute"](template.md/#impute).
+If created using harpy, the resulting file includes largely meaningless values 
+that you will need to adjust for your study. The parameter must follow a particular format:
+- tab or comma delimited
+- column order doesn't matter, but all 7 column names must be present
+- header row present with the specific column names below
+
++++example file
+This file is tab-delimited, note the column names:
+``` paramaters.txt
+name    model   usebx   bxlimit   k       s       nGen
+model1    diploid   TRUE    50000    10      5       50
+model2    diploid   TRUE    50000   15      10      100
+waffles    pseudoHaploid   TRUE    50000   10      1       50
+```
++++example file (as a table)
+This is the table view of the tab-delimited file, shown here for clarity.
+
+{.compact}
+| name    | model         | useBX | bxlimit | k   | s   | nGen |
+| :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
+| model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
+| model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
+| waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |
+
++++parameter file columns
+See the section below for detailed information on each parameter. This
+table serves as an overview of the parameters.
+
+{.compact}
+| column name |               accepted values                | description                                                                                     |
+| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
+| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
+| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
+| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
+| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
+| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
+| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
+| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
+
++++
+
 ----
 ## :icon-git-pull-request: Imputation Workflow
 +++ :icon-git-merge: details
@@ -230,9 +246,9 @@ Impute/
     ├── logs
     └── reports
         ├── data
-        ├── contig1.modelname.html
-        ├── contig2.modelname.html
-        └── modelname.summary.html
+        ├── contig1.modelname.ipynb
+        ├── contig2.modelname.ipynb
+        └── modelname.summary.ipynb
 
 ```
 {.compact}
@@ -240,8 +256,8 @@ Impute/
 | :----------------------------------- | :------------------------------------------- |
 | `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
 | `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
-| `modelname/reports/modelname.summary.html`   | report summarizing the results of imputation across contigs|
-| `modelname/reports/*.modelname.html` | summary of STITCH imputation (per contig)    |
+| `modelname/reports/modelname.summary.ipynb`   | report summarizing the results of imputation across contigs|
+| `modelname/reports/*.modelname.ipynb` | summary of STITCH imputation (per contig)    |
 | `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
 | `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |
 
@@ -257,16 +273,5 @@ STITCH(
     splitReadIterations  = NA
 )
 ```
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-
-||| STITCH Reports
-Aggregates the various outputs of a STITCH run into a single report along with `bcftools stats`.
-![model*/contigs/\*/*.impute.html](/static/report_stitchimpute.png)
-||| Imputation Metrics
-Reports how effective STITCH was at genotype imputation.
-![model*/variants.imputed.html](/static/report_impute.png)
-|||
 
 +++

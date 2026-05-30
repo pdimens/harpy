@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.5.3.833055112780">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833428354615">
 
     <!-- See retype.com -->
-    <meta name="generator" content="Retype 4.5.3">
+    <meta name="generator" content="Retype 4.6.0">
 
     <!-- Primary Meta Tags -->
     <title> View | Harpy</title>
     <meta name="title" content=" View | Harpy">
-    <meta name="description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files.">
+    <meta name="description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://pdimens.github.io/harpy/getting_started/troubleshooting/view/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pdimens.github.io/harpy/getting_started/troubleshooting/view/">
     <meta property="og:title" content=" View | Harpy">
-    <meta property="og:description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files.">
+    <meta property="og:description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.">
     <meta property="og:site_name" content="">
     <meta property="og:locale" content="en_US">
 
@@ -31,7 +31,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://pdimens.github.io/harpy/getting_started/troubleshooting/view/">
     <meta name="twitter:title" content=" View | Harpy">
-    <meta name="twitter:description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files.">
+    <meta name="twitter:description" content="This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://pdimens.github.io/harpy/getting_started/troubleshooting/view.md">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.5.3.833055112780" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.833428354615" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.5.3.833055112780" data-turbo-eval="false" defer></script>
-    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.5.3" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.5.3.833055112780" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.5.3.833055112780" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.833428354615" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.833428354615" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.833428354615" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -64,7 +64,7 @@
                             <img class="max-h-10 dark:hidden md:inline-block" src="../../../static/logo_trans.png" alt="" width="180" height="36">
                             <img class="max-h-10 hidden dark:inline-block" src="../../../static/logo_trans.png" alt="" width="180" height="36">
                         </span>
-                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v3.2</span>
+                    </a><span id="retype-branding-label" class="inline-flex mt-1 px-2 py-1 ml-4 text-xs font-medium leading-none items-center rounded-md bg-branding-label-bg text-branding-label-text ring-1 ring-branding-label-border ring-inset md:inline-block">v4.1</span>
                 </div>
     
                 <span class="hidden h-8 border-r md:inline-block border-base-border"></span>
@@ -75,15 +75,15 @@
                 <nav id="retype-header-nav" class="hidden md:flex">
                     <ul class="flex flex-col mb-4 md:pl-16 md:mb-0 md:flex-row md:items-center">
                         <li class="mr-6">
-                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://www.therkildsenlab.org/" target="_blank">
-                                <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="https://www.therkildsenlab.org/uploads/1/4/5/5/145548022/published/new-logo-smaller.png">
+                            <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://therkildsen-lab.github.io/" target="_blank">
+                                <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="https://therkildsen-lab.github.io/images/TherkildsenLogo.png">
                                 <span>Therkildsen Lab</span>
                             </a>
                         </li>
                         <li class="mr-6">
                             <a class="py-2 md:mb-0 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://www.genomicsinnovation.cornell.edu/" target="_blank">
                                 <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="../../../static/biotech.png">
-                                <span>Cornell GIH</span>
+                                <span>Innovation Lab</span>
                             </a>
                         </li>
                         <li class="mr-6">
@@ -149,15 +149,15 @@
                         <nav>
                             <ul class="flex flex-wrap justify-center items-center">
                                 <li class="mr-6">
-                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://www.therkildsenlab.org/" target="_blank">
-                                        <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="https://www.therkildsenlab.org/uploads/1/4/5/5/145548022/published/new-logo-smaller.png">
+                                    <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://therkildsen-lab.github.io/" target="_blank">
+                                        <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="https://therkildsen-lab.github.io/images/TherkildsenLogo.png">
                                         <span>Therkildsen Lab</span>
                                     </a>
                                 </li>
                                 <li class="mr-6">
                                     <a class="block py-1 inline-flex items-center text-sm whitespace-nowrap transition-colors duration-200 ease-linear md:text-header-text font-header-text hover:text-header-text-hover" href="https://www.genomicsinnovation.cornell.edu/" target="_blank">
                                         <img class="block shrink-0 mr-1.5" width="18" height="18" alt="" aria-hidden="true" src="../../../static/biotech.png">
-                                        <span>Cornell GIH</span>
+                                        <span>Innovation Lab</span>
                                     </a>
                                 </li>
                                 <li class="mr-6">
@@ -236,16 +236,27 @@
                 <!-- Page content  -->
 <h1 id="view"><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M15.5 12a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Z"/><path d="M12 3.5c3.432 0 6.124 1.534 8.054 3.241 1.926 1.703 3.132 3.61 3.616 4.46a1.6 1.6 0 0 1 0 1.598c-.484.85-1.69 2.757-3.616 4.461-1.929 1.706-4.622 3.24-8.054 3.24-3.432 0-6.124-1.534-8.054-3.24C2.02 15.558.814 13.65.33 12.8a1.6 1.6 0 0 1 0-1.598c.484-.85 1.69-2.757 3.616-4.462C5.875 5.034 8.568 3.5 12 3.5ZM1.633 11.945a.115.115 0 0 0-.017.055c.001.02.006.039.017.056.441.774 1.551 2.527 3.307 4.08C6.691 17.685 9.045 19 12 19c2.955 0 5.31-1.315 7.06-2.864 1.756-1.553 2.866-3.306 3.307-4.08a.111.111 0 0 0 .017-.056.111.111 0 0 0-.017-.056c-.441-.773-1.551-2.527-3.307-4.08C17.309 6.315 14.955 5 12 5 9.045 5 6.69 6.314 4.94 7.865c-1.756 1.552-2.866 3.306-3.307 4.08Z"/></g></g></svg> View</h1>
 <p>This convenience command lets you view relevant details within a Harpy workflow directory
-without having to fish around for the right files.</p>
+without having to fish around for the right files. Since version 4.0, a harpy installation
+also aliases <code translate="no" v-pre>harpy view</code> as <code translate="no" v-pre>hv</code> for convenience.</p>
 <div id="view-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view MODE DIRECTORY</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view MODE DIRECTORY
+# or #
+hv MODE DIRECTORY</code></pre>
 </doc-codeblock></div>
 <div id="view-example--view-the-workflow-configuration-of-an-existing-harpy-generated-folder" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">example | view the workflow configuration of an existing harpy-generated folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy view config Align/bwa</code></pre>
 </doc-codeblock></div>
+<h4 id="the-harpyerror-file">The <code translate="no" v-pre>.harpyerror</code> file</h4>
+<p>A feature introduced in v4 is the automatic creation of a <code translate="no" v-pre>.harpyerror</code> file in the work
+directory. This file contains a string path to the last output directory that caused an error.
+When any of the <code translate="no" v-pre>view</code> commands are run without the <code translate="no" v-pre>DIRECTORY</code> argument (except <code translate="no" v-pre>envs</code>),
+harpy will look for the <code translate="no" v-pre>.harpyerror</code></p>
 <h3 id="arguments">arguments</h3>
+<retype-table copy-text="| argument      |  description                                                                           |
+| :------------ | :------------------------------------------------------------------------------------- |
+| `DIRECTORY`   | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
@@ -257,14 +268,21 @@ without having to fish around for the right files.</p>
 <tbody>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>DIRECTORY</code></td>
-<td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
-    <span>required</span>
-</span> Output directory of an existing harpy workflow</td>
+<td style="text-align: left;">Output directory of an existing harpy workflow. Defaults to path in <code translate="no" v-pre>.harpyerror</code> if present and omitted</td>
 </tr>
 </tbody>
 </table>
 </div>
+</retype-table>
 <h3 id="modes">modes</h3>
+<retype-table copy-text="| MODE            | description                                                       |
+|:----------------|:------------------------------------------------------------------|
+| `config`        | View a workflow's config file                                     |
+| `error`         | View the exact failture of a snakemake run                        |
+| `envs`* | View the conda environments and their software in `.environments` |
+| `log`           | View a workflow's last log file                                   |
+| `snakefile`     | View a workflow's snakefile                                       |
+| `profile`       | View a workflow's snakemake parameter file                        |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
@@ -279,7 +297,11 @@ without having to fish around for the right files.</p>
 <td style="text-align: left;">View a workflow&#x27;s config file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>environments</code>*</td>
+<td style="text-align: left;"><code translate="no" v-pre>error</code></td>
+<td style="text-align: left;">View the exact failture of a snakemake run</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code translate="no" v-pre>envs</code>*</td>
 <td style="text-align: left;">View the conda environments and their software in <code translate="no" v-pre>.environments</code></td>
 </tr>
 <tr>
@@ -291,14 +313,15 @@ without having to fish around for the right files.</p>
 <td style="text-align: left;">View a workflow&#x27;s snakefile</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>snakeparams</code></td>
+<td style="text-align: left;"><code translate="no" v-pre>profile</code></td>
 <td style="text-align: left;">View a workflow&#x27;s snakemake parameter file</td>
 </tr>
 </tbody>
 </table>
 </div>
+</retype-table>
 <h4 id="environments">environments</h4>
-<p><code translate="no" v-pre>view environments</code> is an exception in that it does not require a <code translate="no" v-pre>DIRECTORY</code> argument.
+<p><code translate="no" v-pre>view envs</code> is an exception in that it does not require a <code translate="no" v-pre>DIRECTORY</code> argument.
 To use <code translate="no" v-pre>environments</code>, you can run it without arguments or give it a <code translate="no" v-pre>SOFTWARE</code> argument
 to only print environments where <code translate="no" v-pre>SOFTWARE</code> is found (it also works with partial matches).</p>
 <div id="environments-all-environments" class="codeblock-wrapper"><doc-codeblock>

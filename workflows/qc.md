@@ -127,20 +127,4 @@ fastp --trim_poly_g --cut_right
 The list of all `fastp` command line options is quite extensive and would
 be cumbersome to print here. See the list of options in the [fastp documentation](https://github.com/OpenGene/fastp).
 
-+++ :icon-graph: reports
-
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-
-||| fastp reports
-Reports of all QC activities performed by fastp (fastp creates this)
-![reports/trim.report.html](/static/report_trim_fastp.png)
-||| Trimming and QC
-Aggregates the metrics FASTP generates for every sample during QC.
-![reports/trim.report.html](/static/report_trim_aggregate.png)
-||| BX validation
-Reports the number of valid/invalid barcodes in the sequences and the segments contributing to invalidation.
-![reports/summary.bx.valid.html](/static/report_qc_bx.png)
-|||
-
 +++

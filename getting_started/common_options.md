@@ -1,6 +1,6 @@
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/phase.md)) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/Phase/phase_snp.md)) follows the format of
 ```bash
 harpy command options arguments
 ```
@@ -40,23 +40,25 @@ Every Harpy module has a series of configuration parameters. These are arguments
 to configure the module to run on your data, such as the directory with the reads/alignments,
 the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md)) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
-of calling the module. These runtime parameters are listed in the modules' help strings and can be 
-configured using these arguments:
+of calling the module. These runtime parameters **always have upper-cased short names** and are listed
+in the modules' help strings and can be configured using these arguments:
 
 {.compact}
 | argument            | type              | default | description                                                                                                                                            |
 |:--------------------|:------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--container`       | toggle            |         | Use preconfigured Apptainer container instead of local conda environments                                                                            |
+| `--container` `-C`  | toggle            |         | Use preconfigured Apptainer container instead of local conda environments                                                                              |
 | `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                       |
-| `--help` `-h`       |                   |         | Show the module docstring                                                                                                                              |
-| `--hpc`             |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
-| `--output-dir` `-o` | string            | varies  | Name of output directory                                                                                                                               |
-| `--quiet`           | integer [0,1,2]   |    0    | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                                 |
-| `--setup-only`      | toggle            |         | [!badge variant="secondary" corners="pill" text="hidden"](/Workflows/qc.md) Perform validations and setup workflow environment, but don't run anything |
-| `--skip-reports`    | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                       |
-| `--snakemake`       | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
-| `--threads` `-t`    | integer           |    4    | Number of threads to use                                                                                                                               |
+| `--help`            |                   |         | Show the module docstring                                                                                                                              |
+| `--hpc` `-H`        |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
+| `--output-dir` `-O` | string            | varies  | Name of output directory                                                                                                                               |
+| `--quiet` `-Q`      | [0,1,2]   |    0    | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                                 |
+| `--setup` `-N`      | toggle [!badge variant="secondary" corners="pill" text="hidden"]           |         | Perform validations and setup workflow environment, but don't run anything |
+| `--skip-reports` `-R` | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                     |
+| `--snakemake` `-S`  | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
+| `--threads` `-@`    | integer           |    4    | Number of threads to use                                                                                                                               |
 | `--unlinked` `-U`   | toggle            |         | Treat the input as non linked-read data                                                                                                                |
+| `--no-temp` `-T`    | toggle            |         | Do no delete temporary files during or after a workflow (shortcut for snakemake's `--no-temp`)                                                         |
+| `--clean`           | [w,s,l] [!badge variant="secondary" corners="pill" text="hidden"]           |         | Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done. Letters should be provided sequentially (e.g. `--clean sw`)           |
 
 ### --unlinked
 As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: `haplotagging`, `stlfr`, `tellseq`, or `none`.

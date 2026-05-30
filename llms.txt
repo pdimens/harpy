@@ -33,7 +33,7 @@
 - [ harpy diagnose](https://pdimens.github.io/harpy/getting_started/troubleshooting/diagnose.md): Harpy includes a series of commands to faciliate troubleshooting
 - [ Install / Conda](https://pdimens.github.io/harpy/getting_started/troubleshooting/conda.md): Conda is an awesome package manager, but was slow and used a ton of memory as dependencies increased. Recent (23.10+) versions of Conda now use the libmamba solver, the super-fast and super-lightweight solver from Mamba.
 - [ Resume](https://pdimens.github.io/harpy/getting_started/troubleshooting/resume.md): When calling a workflow (e.g. ), Harpy performs various file checks and validations, sets up the Snakemake command, output folder(s), etc. In the event you want to continue a failed or manually terminated workflow without overwriting the workflow files (e.g.
-- [ View](https://pdimens.github.io/harpy/getting_started/troubleshooting/view.md): This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files.
+- [ View](https://pdimens.github.io/harpy/getting_started/troubleshooting/view.md): This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.
 
 ## Workflows
 
@@ -43,22 +43,18 @@
 - [ Map Reads onto a genome with BWA MEM](https://pdimens.github.io/harpy/workflows/align/bwa.md): Align haplotagged sequences with BWA MEM
 - [ Map Reads onto a genome with strobealign](https://pdimens.github.io/harpy/workflows/align/strobe.md): Align haplotagged sequences with strobealign
 - [ Create a Genome Assembly](https://pdimens.github.io/harpy/workflows/assembly.md): Create a genome assembly from linked reads
-- [ Convert between data formats ](https://pdimens.github.io/harpy/workflows/convert.md): Convert between linked-read data formats
 - [ Resolve barcodes shared by different molecules](https://pdimens.github.io/harpy/workflows/deconvolve.md): Resolve barcodes shared by different molecules
-- [ Downsample data by barcode ](https://pdimens.github.io/harpy/workflows/downsample.md): Downsample data by barcode
-- [ Demultiplex Raw Sequences](https://pdimens.github.io/harpy/workflows/demultiplex.md): Demultiplex raw sequences into haplotag barcoded samples
+- [ Preprocess Raw Sequences](https://pdimens.github.io/harpy/workflows/preprocess.md): Preprocess raw sequences into haplotag barcoded samples
 - [ Impute Genotypes using Sequences](https://pdimens.github.io/harpy/workflows/impute.md): Impute genotypes for haplotagged data with Harpy
 - [ Create a Metagenome Assembly](https://pdimens.github.io/harpy/workflows/metassembly.md): Create a metagenome assembly from linked reads
 - [Template](https://pdimens.github.io/harpy/workflows/template.md): Generate extra files for analysis with Harpy
-- [ Phase SNPs into Haplotypes](https://pdimens.github.io/harpy/workflows/phase.md): Phase haplotypes for haplotagged data with Harpy
+
+### Phase
+
+- [ Phase Alignments from Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_alignment.md): Phase alignments with Harpy
+- [ Phase SNPs into Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_snp.md): Phase haplotypes with Harpy
 - [ Validation checks for input files](https://pdimens.github.io/harpy/workflows/validate.md): Run file format checks on haplotagged FASTQ/BAM files
 - [ Quality Trim Sequences](https://pdimens.github.io/harpy/workflows/qc.md): Quality trim haplotagged sequences with Harpy
-
-### Simulate
-
-- [ Simulate Genomic Data](https://pdimens.github.io/harpy/workflows/simulate/simulate.md): Simulate genomic data
-- [ Simulate Linked Reads ](https://pdimens.github.io/harpy/workflows/simulate/simulate-linkedreads.md): Simulate linked reads from a genome
-- [ Simulate Genomic Variants](https://pdimens.github.io/harpy/workflows/simulate/simulate-variants.md): Simulate snps, indels, inversions, cnv, translocations
 - [ Call SNPs and small indels](https://pdimens.github.io/harpy/workflows/snp.md): Call SNPs and small indels
 
 ### SV
