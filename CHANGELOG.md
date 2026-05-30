@@ -10,6 +10,9 @@
   - e.g. `--strategy contig1:1-100000 -b 0.1` equivalent to `--strategy contig1:1-100000 -b 10000`
   - only applies to window and region strategies
 
+## Preprocess GIH
+- adds `adapters.fasta` output to be used as input into `harpy qc`
+
 # Changes
 ## Reports
 - tables have "Export CSV" replaced with "⤓ Download CSV" to be more obvious
