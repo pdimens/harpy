@@ -54,23 +54,27 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `VCF`                 |             | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                  |
 | `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
 | `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
-| `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
+| `--grid-size` `-g`    | `1` (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
 | `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
-| `--strategy` `-s`     | window:1000000 |Imputation strategy ([see below](#imputation-strategies)) |
-| `--buffer` `-b`       | 100000       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`)'                             |
+| `--strategy` `-s`     | `window:1000000` |Imputation strategy ([see below](#imputation-strategies)) |
+| `--buffer` `-b`       | `0.1`       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                       |
 
 ### Imputation strategies
+When employing the window or region strategies, the `--buffer` can either be an absolute base-pair value (e.g. 10kb = `-b 10000`)
+or a proportion of the window/region length (e.g. `-b 0.1` = 10% of window/region length). This is controlled by whether
+the value provided for `--buffer` is <=1 (proportional) or >1 (absolute bp).
+
 #### Buffered genomic windows (default)
-Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
+Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 10% (100kb) buffer
 (100kb before and after window). This takes the format `window:size`:
 ```bash buffered windows
-harpy impute -s window:1000000 -b 100000 <options> <inputs>
+harpy impute -s window:1000000 -b 0,1 <options> <inputs>
 ```
 
 #### A specifc chromosomal region
-Use the format: `contig:start-end` to impute only a single genomic region.
+Use the format: `contig:start-end` to impute only a single genomic region, with a 10% buffer.
 ```bash buffered genomic region
-harpy impute -s ch1:1-500000 -b 100000 <options> <inputs>
+harpy impute -s ch1:1-500000 -b 0.1 <options> <inputs>
 ```
 
 #### All chromosomes in their entirety

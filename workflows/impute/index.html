@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833429198266">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833647999392">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.833429198266" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.833647999392" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833429198266" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833647999392" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833429198266" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833429198266" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833647999392" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833647999392" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -355,10 +355,10 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 | `VCF`                 |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Path to VCF/BCF file                                                                  |
 | `INPUTS`              |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
 | `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
-| `--grid-size` `-g`    | 1 (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
+| `--grid-size` `-g`    | `1` (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
 | `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
-| `--strategy` `-s`     | window:1000000 |Imputation strategy ([see below](#imputation-strategies)) |
-| `--buffer` `-b`       | 100000       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`)'                             |">
+| `--strategy` `-s`     | `window:1000000` |Imputation strategy ([see below](#imputation-strategies)) |
+| `--buffer` `-b`       | `0.1`       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                       |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
@@ -397,7 +397,7 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--grid-size</code> <code translate="no" v-pre>-g</code></td>
-<td style="text-align: center;">1 (per-snp)</td>
+<td style="text-align: center;"><code translate="no" v-pre>1</code> (per-snp)</td>
 <td style="text-align: left;">Perform imputation in windows of a specific size, instead of per-SNP</td>
 </tr>
 <tr>
@@ -407,31 +407,34 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--strategy</code> <code translate="no" v-pre>-s</code></td>
-<td style="text-align: center;">window:1000000</td>
+<td style="text-align: center;"><code translate="no" v-pre>window:1000000</code></td>
 <td style="text-align: left;">Imputation strategy (<doc-anchor-trigger to="#imputation-strategies">see below</doc-anchor-trigger>)</td>
 </tr>
 <tr>
 <td style="text-align: left;"><code translate="no" v-pre>--buffer</code> <code translate="no" v-pre>-b</code></td>
-<td style="text-align: center;">100000</td>
-<td style="text-align: left;">Base pairs to consider on each side of genomic region or window (depending on <code translate="no" v-pre>--strategy</code>)&#x27;</td>
+<td style="text-align: center;"><code translate="no" v-pre>0.1</code></td>
+<td style="text-align: left;">Base pairs to consider on each side of genomic region or window (depending on <code translate="no" v-pre>--strategy</code>).</td>
 </tr>
 </tbody>
 </table>
 </div>
 </retype-table>
 <h3 id="imputation-strategies">Imputation strategies</h3>
+<p>When employing the window or region strategies, the <code translate="no" v-pre>--buffer</code> can either be an absolute base-pair value (e.g. 10kb = <code translate="no" v-pre>-b 10000</code>)
+or a proportion of the window/region length (e.g. <code translate="no" v-pre>-b 0.1</code> = 10% of window/region length). This is controlled by whether
+the value provided for <code translate="no" v-pre>--buffer</code> is &lt;=1 (proportional) or &gt;1 (absolute bp).</p>
 <h4 id="buffered-genomic-windows-default">Buffered genomic windows (default)</h4>
-<p>Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 100kb buffer
+<p>Imputation can be very memory-intensive, so the default strategy is imputation in 1Mb windows with a 10% (100kb) buffer
 (100kb before and after window). This takes the format <code translate="no" v-pre>window:size</code>:</p>
 <div id="buffered-genomic-windows-default-buffered-windows" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">buffered windows</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s window:1000000 -b 100000 &lt;options&gt; &lt;inputs&gt;</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s window:1000000 -b 0,1 &lt;options&gt; &lt;inputs&gt;</code></pre>
 </doc-codeblock></div>
 <h4 id="a-specifc-chromosomal-region">A specifc chromosomal region</h4>
-<p>Use the format: <code translate="no" v-pre>contig:start-end</code> to impute only a single genomic region.</p>
+<p>Use the format: <code translate="no" v-pre>contig:start-end</code> to impute only a single genomic region, with a 10% buffer.</p>
 <div id="a-specifc-chromosomal-region-buffered-genomic-region" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">buffered genomic region</div>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s ch1:1-500000 -b 100000 &lt;options&gt; &lt;inputs&gt;</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s ch1:1-500000 -b 0.1 &lt;options&gt; &lt;inputs&gt;</code></pre>
 </doc-codeblock></div>
 <h4 id="all-chromosomes-in-their-entirety">All chromosomes in their entirety</h4>
 <p>The default approach in previous harpy versions and is triggered by the word <code translate="no" v-pre>all</code> and ignores the <code translate="no" v-pre>--buffer</code> value.
