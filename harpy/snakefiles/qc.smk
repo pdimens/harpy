@@ -16,14 +16,16 @@ skip_reports  = REPORTS.get("skip", False)
 min_len 	  = PARAMETERS.get("min-len", 30)
 max_len 	  = PARAMETERS.get("max-len", 150)
 extra 	      = PARAMETERS.get("extra", "") 
-trim_adapters = PARAMETERS.get("trim_adapters", None)
+trim_adapters = PARAMETERS.get("trim-adapters", None)
 dedup         = PARAMETERS.get("deduplicate", False)
 fqlist        = INPUTS
 
 bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-if trim_adapters:
-    trim_arg = "--detect_adapter_for_pe" if trim_adapters == "auto" else f"--adapter_fasta {trim_adapters}"
+if trim_adapters == "auto":
+    trim_arg = "--detect_adapter_for_pe"
+elif os.path.isfile(trim_adapters):
+    trim_arg = f"--adapter_fasta {trim_adapters}"
 else:
     trim_arg = "--disable_adapter_trimming"
 
