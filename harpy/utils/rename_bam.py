@@ -4,7 +4,7 @@ import sys
 import click
 
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.help_option('--help', hidden = True)
 @click.option("-d", "--delete", is_flag = True, default = False, help="delete the original file")
 @click.argument("name", required = True, type=str)

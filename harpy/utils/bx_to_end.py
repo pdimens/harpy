@@ -36,7 +36,7 @@ def format_fastq(record):
     ]
     return "\n".join(fastq_req) + "\n"
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.argument('infile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
 def bx_to_end(infile):

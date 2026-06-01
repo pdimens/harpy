@@ -4,7 +4,7 @@ import sys
 import click
 
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.argument('input', required = True, type=click.File())
 @click.help_option('--help', hidden = True)
 def parse_phaseblocks(input):

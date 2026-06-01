@@ -6,7 +6,7 @@ from datetime import datetime
 import click
 
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 #@click.option("--pdf", required = True, type=str)
 @click.argument("notebook", required = True, type=click.File())
 @click.argument("text", nargs = -1, type = str)

@@ -6,7 +6,7 @@ import click
 from pysam import AlignmentFile
 
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.argument('platform', required = True, type=click.Choice(['10x','haplotagging','stlfr','tellseq'], case_sensitive=False))
 @click.argument('bamfile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)

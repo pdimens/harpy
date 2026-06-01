@@ -16,7 +16,7 @@ seqCodes = {
     "LH" : 2500
 }
 
-@click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(hidden = True, no_args_is_help = True)
 @click.argument("bam", required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
 def optical_dist_sam(bam):
@@ -34,7 +34,7 @@ def optical_dist_sam(bam):
             sys.stdout.write(f"{seqCodes[i]}\n")
             sys.exit(0)
 
-@click.command(hidden = True, no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(hidden = True, no_args_is_help = True)
 @click.argument("fastq", nargs = -1, required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
 def optical_dist_fq(fastq):

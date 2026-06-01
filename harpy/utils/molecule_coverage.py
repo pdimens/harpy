@@ -44,7 +44,7 @@ def print_depth_counts(contig, counter_obj, intervals):
         except ZeroDivisionError:
             continue
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.option('-w', '--window', default = 10000, show_default = True, type = click.IntRange(min = 100, max_open=True), help = "Window size (in bp) to sum depths over")
 @click.argument('fai', required = True, type=click.File())
 @click.argument('statsfile', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))

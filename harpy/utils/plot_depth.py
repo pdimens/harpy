@@ -6,7 +6,7 @@ import click
 
 warnings.filterwarnings('ignore', category=UserWarning, module='altair')
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.option("-m", "--molcov", type=click.Path(exists = True, dir_okay=False, resolve_path=True), help = "molecule coverage file, such as that produced by harpy align or the molecule-coverage script")
 @click.option("-c", "--coverage", type=click.Path(exists = True, dir_okay=False, resolve_path=True), help = "alignment coverage file, such as that produced by harpy align or mosdepth")
 @click.option("-p", "--prefix", default = "sample", type=str, help="Output filename prefix")

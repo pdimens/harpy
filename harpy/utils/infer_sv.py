@@ -9,7 +9,7 @@ conversions = {
     "-+": "duplication"
 }
 
-@click.command(no_args_is_help = True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/preprocess/")
+@click.command(no_args_is_help = True)
 @click.option('-f', '--fail', type=click.File(mode='w', lazy = True))
 @click.argument('bedfile', required = True, type=click.File())
 @click.help_option('--help', hidden = True)
