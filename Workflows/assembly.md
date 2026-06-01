@@ -130,15 +130,4 @@ spades.py -t threads -m mem -k k --gemcode1-1 FQ_R1 --gemcode1-2 FQ_R2
 ```
 See the [SPADES documentation](http://ablab.github.io/spades/running.html) for a list of all available command line options.
 
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the image and open it in a new tab if you wish to see the example in better detail.
-
-|||Aggregated Report
-Aggregates QUAST and BUSCO analyses.
-![reports/assembly.metrics.html](/static/assembly_multiqc.png)
-||| QUAST Report
-This is the report produced by QUAST
-![reports/assembly.metrics.html](/static/assembly_quast.png)
-|||
 +++

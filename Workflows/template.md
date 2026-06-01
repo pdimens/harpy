@@ -81,3 +81,30 @@ k1_ng30 diploid	TRUE	50000	3	1	5
 high_ngen   diploid TRUE    50000   15  1   100
 ```
 
+## report
+This command creates the necessary files to configure a repository to build a report website for
+a project repository ([see example](https://github.com/pdimens/RS-degradation)).
+It creates `myst.yml` at the project root and the landing page `.report/index.md` if
+they don't already exist. 
+
+```bash usage
+harpy template report <options>
+```
+
+```bash example | setup a GitHub Action and update myst.yml by scanning for new reports
+harpy template report --action
+```
+
+### arguments
+{.compact}
+| argument   | description                                                                                   |
+| :--------- | :-------------------------------------------------------- |
+| `--action`   |  Add a report-building GitHub Action to the repository  |
+| `--update`   |  Scan the git project for reports and update `myst.yml` |
+
+### Setting up an auto-building website
+Use `--action` to also configure a GitHub Action
+that automatically builds and publishes the reports as a single website
+to GitHub on a push to the remote repository. If using `--action`, Harpy will attempt to
+add a [Dependabot](https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart-guide)
+workflow to make sure the Actions periodically get updated to prevent future breaking.
