@@ -72,7 +72,7 @@ harpy impute -s window:1000000 -b 0,1 <options> <inputs>
 ```
 
 #### A specifc chromosomal region
-Use the format: `contig:start-end` to impute only a single genomic region, with a 10% buffer.
+Use the format: `contig:start-end` to impute only a single genomic region, with a specified `--buffer` (default = 10%).
 ```bash buffered genomic region
 harpy impute -s ch1:1-500000 -b 0.1 <options> <inputs>
 ```
@@ -206,14 +206,13 @@ table serves as an overview of the parameters.
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
 focuses on a small handful that have the largest impact on the quality of the results. Imputation is
 performed on a per-contig (or chromosome) level, so Harpy automatically iterates over the contigs
-present in the input variant call file. Using the magic of Snakemake, Harpy will automatically
-iterate over these model parameters.
+present in the input variant call file and the models in the parameter file.
 
 !!! Filtering for biallelic contigs
 Since STITCH creates haplotype blocks from which it imputes genotypes, it will not work for
-contigs with no biallelic SNPs (obvious reasons), or contigs with a single biallelic SNP
-(need 2+ SNPs to create haplotype). Therefore, Harpy first identifies which
-contigs have at least 2 biallelic SNPs, then performs imputation on only those contigs.  
+contigs with no biallelic SNPs (obvious reasons) and will struggle with contigs containing fewer
+than 5 biallelic SNPs. Therefore, the workflow first identifies which
+contigs have at least 5 biallelic SNPs, then performs imputation on only those contigs.  
 !!!
 
 ```mermaid

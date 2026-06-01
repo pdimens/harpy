@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833647999392">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833653139640">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.833647999392" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.833653139640" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833647999392" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833647999392" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833647999392" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833653139640" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -431,7 +431,7 @@ the value provided for <code translate="no" v-pre>--buffer</code> is &lt;=1 (pro
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s window:1000000 -b 0,1 &lt;options&gt; &lt;inputs&gt;</code></pre>
 </doc-codeblock></div>
 <h4 id="a-specifc-chromosomal-region">A specifc chromosomal region</h4>
-<p>Use the format: <code translate="no" v-pre>contig:start-end</code> to impute only a single genomic region, with a 10% buffer.</p>
+<p>Use the format: <code translate="no" v-pre>contig:start-end</code> to impute only a single genomic region, with a specified <code translate="no" v-pre>--buffer</code> (default = 10%).</p>
 <div id="a-specifc-chromosomal-region-buffered-genomic-region" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">buffered genomic region</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy impute -s ch1:1-500000 -b 0.1 &lt;options&gt; &lt;inputs&gt;</code></pre>
@@ -697,8 +697,7 @@ table serves as an overview of the parameters.</p>
 the R programming language. It has quite a few model parameters that can be tweaked, but HARPY only
 focuses on a small handful that have the largest impact on the quality of the results. Imputation is
 performed on a per-contig (or chromosome) level, so Harpy automatically iterates over the contigs
-present in the input variant call file. Using the magic of Snakemake, Harpy will automatically
-iterate over these model parameters.</p>
+present in the input variant call file and the models in the parameter file.</p>
 <div class="flex mb-6">
     <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-primary"></div>
     <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
@@ -714,9 +713,9 @@ iterate over these model parameters.</p>
         <div class="pr-5 ml-3 w-full">
             <h5>Filtering for biallelic contigs</h5>
 <p>Since STITCH creates haplotype blocks from which it imputes genotypes, it will not work for
-contigs with no biallelic SNPs (obvious reasons), or contigs with a single biallelic SNP
-(need 2+ SNPs to create haplotype). Therefore, Harpy first identifies which
-contigs have at least 2 biallelic SNPs, then performs imputation on only those contigs.</p>
+contigs with no biallelic SNPs (obvious reasons) and will struggle with contigs containing fewer
+than 5 biallelic SNPs. Therefore, the workflow first identifies which
+contigs have at least 5 biallelic SNPs, then performs imputation on only those contigs.</p>
         </div>
     </div>
 </div>
