@@ -60,7 +60,7 @@ rule fastp:
         title = lambda wc: f"-R \"{wc.sample} QC Report\"",
         extra = extra
     threads:
-        workflow.cores
+        4
     conda:
         "envs/qc.yaml"
     container:
