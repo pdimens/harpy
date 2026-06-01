@@ -8,6 +8,7 @@ from .check_bam import check_bam
 from .check_fastq import check_fastq
 from .haplotag_acbd import haplotag_acbd
 from .infer_sv import infer_sv
+from .known_adapters import known_adapters
 from .molecule_coverage import molecule_coverage
 from .parse_phaseblocks import parse_phaseblocks
 from .plot_depth import plot_depth
@@ -28,6 +29,7 @@ cli.add_command(check_fastq)
 cli.add_command(bx_stats_fq)
 cli.add_command(haplotag_acbd)
 cli.add_command(infer_sv)
+cli.add_command(known_adapters)
 cli.add_command(molecule_coverage)
 cli.add_command(optical_dist_sam)
 cli.add_command(optical_dist_fq)

@@ -62,12 +62,12 @@ rule all:
 rule write_adapters:
     output:
         'adapters.fasta'
-    run:
-        with open(output[0], 'w') as f:
-            f.write(
-                ">Adapter Read 1\nCTGTCTCTTATACACATCT\n"
-                ">Adapter Read 2\nAGATCGGAAGAGC\n"
-            )
+    params:
+        me_seq
+    shell:
+        """
+        harpy-utils known-adapters -m {params} > {output}
+        """
 
 rule pad_barcodes:
     input:
