@@ -18,8 +18,6 @@ CTGTCTCTTATACACATCT
 AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
 >Illumina TruSeq Adapter Read 2
 AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
->Illumina DpnII expression PCR Primer 2 | >Illumina NlaIII expression PCR Primer 2 | >Illumina Small RNA PCR Primer 2 | >Illumina DpnII Gex PCR Primer 2 | >Illumina NlaIII Gex PCR Primer 2
-AATGATACGGCGACCACCGACAGGTTCAGAGTTCTACAGTCCGA
 >TruSeq_Universal_Adapter | >PrefixPE/1 | >PCR_Primer1 | >Illumina Single End PCR Primer 1 | >Illumina Paried End PCR Primer 1 | >Illumina Multiplexing PCR Primer 1.01 | >TruSeq Universal Adapter | >TruSeq_Universal_Adapter | >PrefixPE/1 | >PCR_Primer1
 AATGATACGGCGACCACCGAGATCTACACTCTTTCCCTACACGACGCTCTTCCGATCT
 >pcr_dimer
