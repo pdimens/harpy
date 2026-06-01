@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833653139640">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833655254658">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.833653139640" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.833655254658" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833653139640" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833655254658" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -335,6 +335,51 @@ k10_ng50 diploid	TRUE	50000	3	2	10
 k1_ng30 diploid	TRUE	50000	3	1	5
 high_ngen   diploid TRUE    50000   15  1   100</code></pre>
 </doc-codeblock></div>
+<h2 id="report">report</h2>
+<p>This command creates the necessary files to configure a repository to build a report website for
+a project repository (<a href="https://github.com/pdimens/RS-degradation" class="outbound" target="_blank"><span>see example</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>).
+It creates <code translate="no" v-pre>myst.yml</code> at the project root and the landing page <code translate="no" v-pre>.report/index.md</code> if
+they don&#x27;t already exist.</p>
+<div id="report-usage" class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">usage</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template report &lt;options&gt;</code></pre>
+</doc-codeblock></div>
+<div id="report-example--setup-a-github-action-and-update-mystyml-by-scanning-for-new-reports" class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-title">example | setup a GitHub Action and update myst.yml by scanning for new reports</div>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy template report --action</code></pre>
+</doc-codeblock></div>
+<h3 id="arguments-1">arguments</h3>
+<retype-table copy-text="| argument   | description                                                                                   |
+| :--------- | :-------------------------------------------------------- |
+| `--action`   |  Add a report-building GitHub Action to the repository  |
+| `--update`   |  Scan the git project for reports and update `myst.yml` |">
+<div class="table-wrapper scrollbar overflow-hidden">
+<table class="compact">
+<thead>
+<tr>
+<th style="text-align: left;">argument</th>
+<th style="text-align: left;">description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code translate="no" v-pre>--action</code></td>
+<td style="text-align: left;">Add a report-building GitHub Action to the repository</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code translate="no" v-pre>--update</code></td>
+<td style="text-align: left;">Scan the git project for reports and update <code translate="no" v-pre>myst.yml</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<h3 id="setting-up-an-auto-building-website">Setting up an auto-building website</h3>
+<p>Use <code translate="no" v-pre>--action</code> to also configure a GitHub Action
+that automatically builds and publishes the reports as a single website
+to GitHub on a push to the remote repository. If using <code translate="no" v-pre>--action</code>, Harpy will attempt to
+add a <a href="https://docs.github.com/en/code-security/tutorials/secure-your-dependencies/dependabot-quickstart-guide" class="outbound" target="_blank"><span>Dependabot</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
+workflow to make sure the Actions periodically get updated to prevent future breaking.</p>
 <div id="retype-backlinks">
     <h2>See also</h2>
 <div class="card-compact-group">

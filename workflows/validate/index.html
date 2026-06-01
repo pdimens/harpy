@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833653139640">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833655254658">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -24,10 +24,6 @@
     <meta property="og:url" content="https://pdimens.github.io/harpy/workflows/validate/">
     <meta property="og:title" content=" Validation checks for input files | Harpy">
     <meta property="og:description" content="Run file format checks on haplotagged FASTQ/BAM files">
-    <meta property="og:image" content="https://pdimens.github.io/harpy/static/report_preflightfastq.png">
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content=" Validation checks for input files | Harpy">
     <meta property="og:site_name" content="">
     <meta property="og:locale" content="en_US">
 
@@ -36,8 +32,6 @@
     <meta name="twitter:url" content="https://pdimens.github.io/harpy/workflows/validate/">
     <meta name="twitter:title" content=" Validation checks for input files | Harpy">
     <meta name="twitter:description" content="Run file format checks on haplotagged FASTQ/BAM files">
-    <meta name="twitter:image" content="https://pdimens.github.io/harpy/static/report_preflightfastq.png">
-    <meta name="twitter:image:alt" content=" Validation checks for input files | Harpy">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://pdimens.github.io/harpy/workflows/validate.md">
@@ -45,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.833653139640" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.833655254658" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833653139640" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.833655254658" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -379,7 +373,7 @@ harpy validate bam --threads 20 Align/bwa</code></pre>
 <h2 id="workflow">Workflow</h2>
 <doc-tabs>
 <doc-tab v-cloak id="fastq-files">
-<template #title>fastq files</template>
+<template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2ZM3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0Z"/></g></g></svg> fastq files</template>
 <p>Below is a table of the format specifics <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>validate fastq</span>
 </span> checks for FASTQ files. Since 10X data doesn&#x27;t use
@@ -429,7 +423,7 @@ of the language such as when &quot;any&quot; and &quot;all&quot; are written.</p
 </retype-table>
 </doc-tab>
 <doc-tab v-cloak id="bam-files">
-<template #title>bam files</template>
+<template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M10.25 2a8.25 8.25 0 0 1 6.34 13.53l5.69 5.69a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215l-5.69-5.69A8.25 8.25 0 1 1 10.25 2ZM3.5 10.25a6.75 6.75 0 1 0 13.5 0 6.75 6.75 0 0 0-13.5 0Z"/></g></g></svg> bam files</template>
 <p>Below is a table of the format specifics <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>validate bam</span>
 </span> checks for SAM/BAM files. Take note
@@ -482,35 +476,9 @@ of the language such as when &quot;any&quot; and &quot;all&quot; are written.</p
 </retype-table>
 </doc-tab>
 <doc-tab v-cloak id="output">
-<template #title>output</template>
-<p>The default output directory is <code translate="no" v-pre>Validate/fastq</code> or <code translate="no" v-pre>Validate/bam</code> depending on which mode you are using.</p>
-</doc-tab>
-<doc-tab v-cloak id="reports">
-<template #title>Reports</template>
-<p>The result of <code translate="no" v-pre>validate</code> is a single HTML report in <code translate="no" v-pre>inputdir/Validate/validate.xxx.html</code> where <code translate="no" v-pre>xxx</code> is either <code translate="no" v-pre>fastq</code> or <code translate="no" v-pre>bam</code>
-depending on which filetype you specified. The reports for both <code translate="no" v-pre>fastq</code> and <code translate="no" v-pre>bam</code> are very similar and give you both the
-criteria of what type of format checking occurred, the context, relevance, and severity of those checks, along with pass/fails for each
-file (or sample).</p>
-<div class="mb-6 overflow-hidden border rounded-md docs-columns dark:border-base-border" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
-    <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white border-r">
-        <span>FASTQ file report</span>
-    </div>
-    <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white">
-        <span>BAM file report</span>
-    </div>
-    <div class="px-5 py-3 docs-columns-content border-r border-base-border">
-<figure class="content-center">
-    <img src="../../static/report_preflightfastq.png" alt="Validate/validate.fastq.ipynb" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1360" height="905" />
-    <figcaption class="caption">Validate/validate.fastq.ipynb</figcaption>
-</figure>
-    </div>
-    <div class="px-5 py-3 docs-columns-content">
-<figure class="content-center">
-    <img src="../../static/report_preflightbam.png" alt="Validate/validate.bam.ipynb" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1368" height="925" />
-    <figcaption class="caption">Validate/validate.bam.ipynb</figcaption>
-</figure>
-    </div>
-</div>
+<template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M2 4.75C2 3.784 2.784 3 3.75 3h4.971c.58 0 1.12.286 1.447.765l1.404 2.063c.046.069.124.11.207.11h8.471c.966 0 1.75.783 1.75 1.75V19.25A1.75 1.75 0 0 1 20.25 21H3.75A1.75 1.75 0 0 1 2 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h16.5a.25.25 0 0 0 .25-.25V7.687a.25.25 0 0 0-.25-.25h-8.471a1.75 1.75 0 0 1-1.447-.765L8.928 4.61a.252.252 0 0 0-.208-.11Z"/></g></g></svg> output</template>
+<p>The default output directory is <code translate="no" v-pre>Validate/fastq</code> or <code translate="no" v-pre>Validate/bam</code> depending on which mode you are using.
+The sole output of the validation workflow will be an .ipynb file containing the validation report.</p>
 </doc-tab>
 </doc-tabs>
 <div id="retype-backlinks">

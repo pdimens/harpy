@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833653139640">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.833655254658">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.833653139640" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.833655254658" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.833653139640" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.833653139640" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.833655254658" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.833655254658" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -628,46 +628,6 @@ These are taken directly from the <a href="https://github.com/arshajii/ema" clas
 <pre translate="no" class="language-none"><code v-pre class="language-none">-d: apply fragment read density optimization [off]
 -i &lt;index&gt;: index to follow 'BX' tag in SAM output [1]</code></pre>
 </doc-codeblock></div>
-</doc-tab>
-<doc-tab v-cloak id="reports">
-<template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M2.5 2.75a.75.75 0 0 0-1.5 0v18.5c0 .414.336.75.75.75H20a.75.75 0 0 0 0-1.5H2.5V2.75Z"/><path d="M22.28 7.78a.75.75 0 0 0-1.06-1.06l-5.72 5.72-3.72-3.72a.75.75 0 0 0-1.06 0l-6 6a.75.75 0 1 0 1.06 1.06l5.47-5.47 3.72 3.72a.75.75 0 0 0 1.06 0l6.25-6.25Z"/></g></g></svg> reports</template>
-<p>These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.</p>
-<div class="mb-6 overflow-hidden border rounded-md docs-columns dark:border-base-border" style="grid-template-columns: repeat(3, minmax(0, 1fr));">
-    <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white border-r">
-        <span>Alignment BX Information</span>
-    </div>
-    <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white border-r">
-        <span>Molecule size and Coverage</span>
-    </div>
-    <div class="flex items-center px-5 py-3 font-medium leading-snug text-gray-900 border-b border-base-border dark:text-white">
-        <span>Samtools Alignment stats</span>
-    </div>
-    <div class="px-5 py-3 docs-columns-content border-r border-base-border">
-<p>An aggregate report of barcode-specific alignment information for all samples.
-<figure class="content-center">
-    <img src="../../../static/report_align_coverage.png" alt="reports/coverage/*.html" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1168" height="989" />
-    <figcaption class="caption">reports/coverage/*.html</figcaption>
-</figure>
-</p>
-    </div>
-    <div class="px-5 py-3 docs-columns-content border-r border-base-border">
-<p>Reports the inferred molecule sized based on barcodes in the alignments.
-<figure class="content-center">
-    <img src="../../../static/report_align_bxmol.png" alt="reports/BXstats/*.bxstats.html" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="1281" height="662" />
-    <figcaption class="caption">reports/BXstats/*.bxstats.html</figcaption>
-</figure>
-</p>
-    </div>
-    <div class="px-5 py-3 docs-columns-content">
-<p>Reports the general statistics computed by samtools <code translate="no" v-pre>stats</code> and <code translate="no" v-pre>flagstat</code>
-<figure class="content-center">
-    <img src="../../../static/report_align_flagstat.png" alt="reports/samtools_*stat/*html" class="max-w-full h-auto rounded-image-rounded border-image-border border-image-border-width" width="994" height="888" />
-    <figcaption class="caption">reports/samtools_*stat/*html</figcaption>
-</figure>
-</p>
-    </div>
-</div>
 </doc-tab>
 </doc-tabs>
 

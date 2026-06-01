@@ -184,18 +184,4 @@ Below is a list of all `strobealign` command line arguments, excluding those Har
 | -M        | integer  | Maximum number of mapping sites to try [20] |
 | -R        | integer  | Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R <= 1 deactivates rescue and is the fastest. |
 
-+++ :icon-graph: reports
-These are the summary reports Harpy generates for this workflow. You may right-click
-the images and open them in a new tab if you wish to see the examples in better detail.
-||| Alignment BX Information
-An aggregate report of barcode-specific alignment information for all samples.
-![reports/coverage/*.html](/static/report_align_coverage.png)
-||| Molecule size and Coverage
-Reports the inferred molecule sized based on barcodes in the alignments.
-![reports/BXstats/*.bxstats.html](/static/report_align_bxmol.png)
-||| Samtools Alignment stats
-Reports the general statistics computed by samtools `stats` and `flagstat`
-![reports/samtools_*stat/*html](/static/report_align_flagstat.png)
-|||
-
 +++

@@ -45,7 +45,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 
 ## Workflow
 
-+++ fastq files
++++ :icon-search: fastq files
 Below is a table of the format specifics [!badge corners="pill" text="validate fastq"] checks for FASTQ files. Since 10X data doesn't use
 the haplotagging data format, you will find little value in running [!badge corners="pill" text="validate fastq"] on 10X FASTQ files. Take note
 of the language such as when "any" and "all" are written.
@@ -58,7 +58,7 @@ of the language such as when "any" and "all" are written.
  | BX:Z: last comment | **all** reads have `BX:Z`: as final comment                                              | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
  | BX:Z: tag          | any `BX:Z:` tags present                                                                 | **all** reads lack `BX:Z:` tag                                |
 
-+++ bam files
++++ :icon-search: bam files
 Below is a table of the format specifics [!badge corners="pill" text="validate bam"] checks for SAM/BAM files. Take note
 of the language such as when "any" and "all" are written.
 
@@ -71,18 +71,7 @@ of the language such as when "any" and "all" are written.
 | Format         | **all** alignments with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** `BX:Z:` barcodes have incorrect format                |
 | BX:Z: last tag | **all** reads have `BX:Z`: as final tag in alignment records                                  | **at least 1 read** doesn't have `BX:Z:` tag as final tag     |
 
-+++ output
++++ :icon-file-directory: output
 The default output directory is `Validate/fastq` or `Validate/bam` depending on which mode you are using.
-
-+++ Reports
-The result of `validate` is a single HTML report in `inputdir/Validate/validate.xxx.html` where `xxx` is either `fastq` or `bam`
-depending on which filetype you specified. The reports for both `fastq` and `bam` are very similar and give you both the
-criteria of what type of format checking occurred, the context, relevance, and severity of those checks, along with pass/fails for each
-file (or sample).
-
-||| FASTQ file report
-![Validate/validate.fastq.ipynb](/static/report_preflightfastq.png)
-||| BAM file report
-![Validate/validate.bam.ipynb](/static/report_preflightbam.png)
-|||
+The sole output of the validation workflow will be an .ipynb file containing the validation report.
 +++
