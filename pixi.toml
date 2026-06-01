@@ -3,7 +3,7 @@ name = "harpy"
 authors = ["pdimens <pdimens@gmail.com>"]
 channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
-version = "4.1"
+version = "4.1.1"
 
 [dependencies]
 bcftools = ">=1.23"
