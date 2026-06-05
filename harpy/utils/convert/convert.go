@@ -52,11 +52,17 @@ type pheniqsJSON struct {
 
 // ─── barcode reconstruction ───────────────────────────────────────────────────
 
-func reconstructBarcode(nucBC, origBC string, stagger, bc *map[string]string) (string, int, int) {
+func reconstructBarcode(nucBC, origBC string, qcFail bool, stagger, bc *map[string]string) (string, int, int) {
 	var corrected int
-	seg := strings.SplitN(nucBC, "-", 4)
+	var seg []string
+
 	if nucBC != origBC {
 		corrected = 1
+	}
+	if qcFail {
+		seg = strings.SplitN(origBC, "-", 4)
+	} else {
+		seg = strings.SplitN(nucBC, "-", 4)
 	}
 	if len(seg) != 4 {
 		return "A00C00B00D00", 0, corrected
@@ -302,6 +308,8 @@ func main() {
 	// ── process records ───────────────────────────────────────────────────────
 	var valids int
 	var corrected int
+	var qcfail int
+
 	set := make(map[string]struct{}, 1_000_000)
 	for {
 		rec, err := br.Read()
@@ -322,7 +330,12 @@ func main() {
 			ox = rx
 		}
 
-		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, &stagger, &bc)
+		// Determine if the QC Fail 0x200 flag is set
+		qcFail := rec.Flags&sam.QCFail == sam.QCFail
+		if qcFail {
+			qcfail += 1
+		}
+		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, qcFail, &stagger, &bc)
 		valids += vxVal
 		corrected += corrVal
 		set[bxVal] = struct{}{}
@@ -342,6 +355,7 @@ func main() {
 	}
 
 	fmt.Fprintf(os.Stdout, "Total unique barcodes:               %d\n", len(set))
+	fmt.Fprintf(os.Stdout, "Total reads with barcode failure:    %d\n", qcfail)
 	fmt.Fprintf(os.Stdout, "Total reads with valid barcodes:     %d\n", valids)
 	fmt.Fprintf(os.Stdout, "Total reads with corrected barcodes: %d\n", corrected)
 }

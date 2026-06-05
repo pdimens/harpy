@@ -65,9 +65,7 @@ rule write_adapters:
     params:
         me_seq
     shell:
-        """
-        harpy-utils known-adapters -m {params} > {output}
-        """
+        "harpy-utils known-adapters -m {params} > {output}"
 
 rule pad_barcodes:
     input:
