@@ -73,22 +73,15 @@ rule process_reference:
         }} 2> {log}
         """
 
-rule optical_dist:
-    input:
-        get_fq
-    output:
-        temp("logs/optical/{sample}.opt")
-    shell:
-        "harpy-utils optical-dist-fq {input} > {output}"
-
 rule align:
     input:
         fastq      = get_fq,
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        sam = pipe("samples/{sample}/{sample}.sam"),
-        stats = "reports/data/samtools_stats/{sample}.raw.stats"
+        sam = pipe("samples/{sample}/{sample}.bwa.sam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats",
+        tmp = temp(touch(directory("samples/{sample}/tmp")))
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -97,47 +90,47 @@ rule align:
         unmapped = "-F 4" if not keep_unmapped else "",
         extra = extra
     threads:
-        max(1, min(4, workflow.cores - 2))
+        max(1, workflow.cores - 2)
     conda:
         "envs/align.yaml"
     container:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
+        # mkdir -p {output.tmp}
         {{
             bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
-            tee >(samtools stats -x - > {output.stats}) |
-            samtools view -h -u {params.unmapped}
+                samtools collate -T {output.tmp}/collate -O -u - |
+                samtools fixmate -z on -m -u - - |
+                tee >(samtools stats -x - > {output.stats}) |
+                samtools view -h -u {params.unmapped}
         }} 2> {log} > {output.sam}
-        """     
+        """
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.sam",
-        optical ="logs/optical/{sample}.opt"
+        fq  = get_fq,
+        sam = "samples/{sample}/{sample}.bwa.sam",
+        tmp = directory("samples/{sample}/tmp")
     output:
         bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("samples/{sample}/tmp"))
+        stats = "reports/data/markdup/{sample}.markdup"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
-    params: 
+    params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
-        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().rstrip()
     resources:
         mem_mb = 2000
     threads:
         2
     shell:
         """
-        mkdir -p {output.tmp}
+        OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
-            samtools collate -T {output.tmp}/collate -O -u {input.sam} |
-            samtools fixmate -z on -m -u - - |
-            samtools view -h -u -q {params.quality} - |
-            samtools sort -T {output.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {output.tmp}/mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
+            samtools view -h -u -q {params.quality} {input.sam} |
+            samtools sort -T {input.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {input.tmp}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         """
 

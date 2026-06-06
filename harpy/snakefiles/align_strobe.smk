@@ -32,7 +32,7 @@ samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) fo
 d             = dict(zip(samplenames, samplenames))
 
 def get_fq(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
+    # returns a list of fastq files for reads 1 and 2 based on *wildcards.sample* e.g.
     r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
     return sorted(list(filter(r.match, fqlist))[:2])
 
@@ -52,21 +52,14 @@ rule process_reference:
         }} 2> {log}
         """
 
-rule optical_dist:
-    input:
-        get_fq
-    output:
-        temp("logs/optical/{sample}.opt")
-    shell:
-        "harpy-utils optical-dist-fq {input} > {output}"
-
 rule align:
     input:
         fastq = get_fq,
         genome = workflow_geno
     output:  
         sam = pipe("samples/{sample}/{sample}.strobe.sam"),
-        stats = "reports/data/samtools_stats/{sample}.raw.stats"
+        tmp = temp(touch(directory("samples/{sample}/tmp"))),
+        stats = touch("reports/data/samtools_stats/{sample}.raw.stats")
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -76,44 +69,46 @@ rule align:
         RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        max(1, min(4, workflow.cores - 2))
+        max(1, workflow.cores - 2)
     conda:
         "envs/align.yaml"
     container:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        strobealign {params} -t {threads} {input.genome} {input.fastq} 2> {log} |
-        tee >(samtools stats -x - > {output.stats}) > {output.sam}
+        #mkdir -p {output.tmp}
+        {{
+            strobealign {params} -t {threads} {input.genome} {input.fastq} |
+                samtools collate -T {output.tmp}/collate -O -u - |
+                samtools fixmate -z on -m -u - - |
+                tee >(samtools stats -x - > {output.stats})
+        }} > {output.sam} 2> {log}
         """
 
 rule mark_duplicates:
     input:
-        sam    = "samples/{sample}/{sample}.strobe.sam",
-        optical ="logs/optical/{sample}.opt"
+        fq      = get_fq,
+        sam     = "samples/{sample}/{sample}.strobe.sam",
+        tmp = directory("samples/{sample}/tmp")
     output:
         bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("samples/{sample}/tmp"))
+        stats = "reports/data/markdup/{sample}.markdup"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
-        opt = lambda wc : open(f"logs/optical/{wc.sample}.opt").read().strip()
     resources:
         mem_mb = 2000
     threads:
         2
     shell:
         """
-        mkdir -p {output.tmp}
+        OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
-            samtools collate -T {output.tmp}/collate -O -u {input.sam} |
-            samtools fixmate -z on -m -u - - |
-            samtools view -h -u -q {params.quality} - |
-            samtools sort -T {output.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {output.tmp}/mkdup {params.bx_mode} -d {params.opt} -f {output.stats} - {output.bam}
+            samtools view -h -u -q {params.quality} {input.sam} |
+            samtools sort -T {input.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {input.tmp}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         """
 
