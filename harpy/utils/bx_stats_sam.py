@@ -113,7 +113,8 @@ def writestats(x: dict[str,ReadCloud], thresh):
     '''write to file the bx stats dictionary as a table'''
     for cloud in x.values():
         if not cloud.valid:
-            sys.stdout.write(f"{cloud.chromosome}\tinvalid\t" + cloud.stats(0, 0, 0, sum(cloud.bp), sum(cloud.count)))
+            if cloud.chromosome:
+                sys.stdout.write(f"{cloud.chromosome}\tinvalid\t" + cloud.stats(0, 0, 0, sum(cloud.bp), sum(cloud.count)))
             cloud.reset()
             continue
         cloud.deconvolve(thresh)
@@ -155,6 +156,8 @@ def bx_stats_sam(distance_threshold, input):
         LAST_CONTIG = None
 
         for read in alnfile.fetch(until_eof=True):
+            if not read.is_mapped:
+                continue
             chrom = read.reference_name
             # check if the current chromosome is different from the previous one
             # if so, process the dict
@@ -182,6 +185,8 @@ def bx_stats_sam(distance_threshold, input):
                 if "invalid" not in d:
                     d["invalid"] = ReadCloud(valid = False)
                 d["invalid"].add(read)
+                if chrom:
+                    d["invalid"].chromosome = chrom
                 LAST_CONTIG = chrom
                 continue
 
