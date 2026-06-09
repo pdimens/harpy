@@ -87,11 +87,11 @@ rule align:
 
 rule mark_duplicates:
     input:
-        fq      = get_fq,
-        sam     = "samples/{sample}/{sample}.strobe.sam",
+        fq  = get_fq,
+        sam = "samples/{sample}/{sample}.strobe.sam",
         tmp = directory("samples/{sample}/tmp")
     output:
-        bam = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
+        bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup"
     log:
         debug = "logs/markdup/{sample}.markdup.log",
@@ -125,18 +125,16 @@ if lr_type != "none" and not (bx_tag and vx_tag):
         shell:
             "djinn-standardize --threads {threads} {input} > {output} 2> {log}"
 
-rule sample_stats:
+rule depth_stats:
     input:
         "{sample}.bam"
     output: 
-        temp("{sample}.bam.bai"),
-        stats = "reports/data/samtools_stats/{sample}.filtered.stats",
-        depth = "reports/data/coverage/{sample}.regions.bed.gz"
+        "reports/data/coverage/{sample}.regions.bed.gz"
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
     log:
-        "logs/stats/{sample}.stats.log"
+        "logs/depthstats/{sample}.mosdepth.log"
     threads:
         2
     conda:
@@ -145,34 +143,54 @@ rule sample_stats:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
-        {{
-            samtools index {input} 
-            samtools stats -d {input} > {output.stats}
-            mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input}
-        }} 2> {log}
+        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
         """
 
-rule molecule_stats:
+rule sample_stats:
     input:
-        bam = "{sample}.bam",
-        fai = f"{workflow_geno}.fai"
+        "{sample}.bam"
     output: 
-        stats = "reports/data/lrstats/{sample}.lrstats.gz",
-        molcov = "reports/data/coverage/{sample}.molcov.gz"
+        temp("{sample}.bam.bai"),
+        stats = "reports/data/samtools_stats/{sample}.filtered.stats"
     log:
-        stats = "logs/molcov/{sample}.molcov.log",
-        molcov = "logs/stats/{sample}.molstats.log"
-    params:
-        dist = molecule_distance,
-        window = windowsize
+        "logs/stats/{sample}.stats.log"
+    threads:
+        2
     shell:
         """
-        harpy-utils bx-stats-sam -d {params.dist} {input.bam} 2> {log.stats} | gzip > {output.stats}
-        harpy-utils molecule-coverage -w {params.window} {input.fai} {output.stats} 2> {log.molcov} | gzip > {output.molcov}
+        {{
+            samtools index {input}
+            samtools stats -@ 1 -x -d {input} > {output.stats}
+        }} 2> {log}
         """
 
-rule samtools_report:
+rule molecule_coverage:
+    input:
+        fai = f"{workflow_geno}.fai",
+        stats = "reports/data/lrstats/{sample}.lrstats.gz"
+    output:
+        "reports/data/coverage/{sample}.molcov.gz"
+    log:
+        "logs/stats/{sample}.molstats.log"
+    params:
+        windowsize
+    shell:
+        "harpy-utils molecule-coverage -w {params} {input} 2> {log} | gzip > {output}"
+
+rule molecule_stats:
+    input:
+        "{sample}.bam"
+    output: 
+        "reports/data/lrstats/{sample}.lrstats.gz"
+    log:
+        "logs/molcov/{sample}.molcov.log"
+    params:
+        molecule_distance
+    shell:
+        "harpy-utils bx-stats-sam -d {params} {input} 2> {log} | gzip > {output}"
+
+rule alignment_report:
     input:
         collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw","filtered"]),
         collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
