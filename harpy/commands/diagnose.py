@@ -2,6 +2,7 @@ import glob
 import os
 import subprocess
 import sys
+from tkinter.constants import TRUE
 
 import rich_click as click
 import yaml
@@ -39,11 +40,12 @@ def stall(directory):
     with open(CONFIG_FILE, 'r', encoding="utf-8") as f:
         harpy_config = yaml.full_load(f)
 
-    command = harpy_config["snakemake"]["absolute"]
+    command = harpy_config["Workflow"]["snakemake"]["absolute"]
     # prefix the new arguments, in case a positional argument was added at the end by user
     command = command.replace("snakemake -", "snakemake --sdm env-modules --dry-run --debug-dag -")
 
     hp.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
+    hp.console.soft_wrap = TRUE
     try:
         process = subprocess.Popen(
             command.split(),
@@ -58,12 +60,12 @@ def stall(directory):
             if not output and not error and process.poll() is not None:
                 break
             if error:
-                hp.print(error, end="", style= "red")
+                hp.print(error, end="", style= "red", overflow = "ignore", no_wrap = True)
                 # error usually prints more than one line, so this will make sure all
                 # consecutive stderr text will be printed together
                 while error:
                     error = process.stderr.readline()
-                    hp.print(error, end="", style = "red")
+                    hp.print(error, end="", style = "red", overflow = "ignore", no_wrap = True)
             if output:
                 if output.startswith("This was a dry-run"):
                     process.terminate()
@@ -73,12 +75,12 @@ def stall(directory):
                         hp.print(output, end = "")
                         output = process.stdout.readline()
                 elif output.lstrip().startswith("["):
-                    hp.print(f"\n{output}", end = "", highlight=False, style = "blue")
+                    hp.print(f"\n{output}", end = "", highlight=False, style = "blue", overflow = "ignore", no_wrap = True)
                 else:
-                    hp.print(output, end="", style = "yellow")
+                    hp.print(output, end="", style = "yellow", overflow = "ignore", no_wrap = True)
     except Exception as e:
         hp.print("")
-        hp.rule("[bold]End of diagnosis", style = "yellow")
+        hp.rule("[bold]End of diagnosis", style = "yellow", overflow = "ignore", no_wrap = True)
         process.terminate()
         process.wait()
         sys.exit(1)
@@ -96,6 +98,7 @@ def rule(directory):
     those files, then execute the failing rule directly (i.e. without Snakemake).
     """
     hp = HarpyPrint()
+
     directory = directory.rstrip("/")
     PROFILE_FILE = os.path.join(directory, "workflow", "profile.yaml")
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")

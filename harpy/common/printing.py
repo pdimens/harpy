@@ -309,7 +309,7 @@ class HarpyPrint():
         #sys.exit()
         self.errortext = iter(errtext)
         self.missingoutput = []
-
+        self.console.soft_wrap = True
         # shortcut to FileNotFoundError #
         line = next(self.errortext)
         if line.strip().startswith("FileNotFound"):
