@@ -62,13 +62,12 @@ rule align:
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
-        um_strobe = "" if keep_unmapped else "-U",
         static = "-N 2 -C" if illumina_old else "-N 2",
         RGid = lambda wc: f"--rg-id={wc.get('sample')}",
         RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        max(1, workflow.cores - 2)
+        max(1, min(4, workflow.cores - 2))
     resources:
         tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
     conda:
@@ -98,6 +97,7 @@ rule mark_duplicates:
     params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
+        unmapped = "-F 4" if not keep_unmapped else "",
     resources:
         mem_mb = 2000,
         tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
@@ -108,7 +108,7 @@ rule mark_duplicates:
         mkdir -p {resources.tmpdir}
         OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
-            samtools view -h -u -q {params.quality} {input.sam} |
+            samtools view -h -u -q {params.quality} {params.unmapped} {input.sam} |
             samtools sort -T {resources.tmpdir}/sort -u -l 0 -m {resources.mem_mb}M - |
             samtools markdup -@ 1 -T {resources.tmpdir}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log}
