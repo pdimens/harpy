@@ -109,11 +109,11 @@ rule align:
 rule mark_duplicates:
     input:
         fq  = get_fq,
-        sam = "samples/{sample}/{sample}.bwa.sam",
-        tmp = directory("samples/{sample}/tmp")
+        sam = "samples/{sample}/{sample}.bwa.sam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup"
+        stats = "reports/data/markdup/{sample}.markdup",
+        tmp = temp(touch(directory("samples/{sample}/mdtmp")))
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params:
@@ -128,8 +128,8 @@ rule mark_duplicates:
         OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
             samtools view -h -u -q {params.quality} {input.sam} |
-            samtools sort -T {input.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {input.tmp}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
+            samtools sort -T {output.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {output.tmp}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log.debug}
         """
 
