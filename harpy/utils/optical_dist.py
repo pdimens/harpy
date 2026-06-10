@@ -31,7 +31,7 @@ def optical_dist_sam(bam):
                 if prefix.startswith(i):
                     sys.stdout.write(f"{seqCodes[i]}\n")
                     sys.exit(0)
-            sys.stdout.write(f"{seqCodes[i]}\n")
+            sys.stdout.write("100\n")
             sys.exit(0)
 
 @click.command(hidden = True, no_args_is_help = True)
@@ -49,5 +49,5 @@ def optical_dist_fq(fastq):
                 if _id.startswith(i):
                     sys.stdout.write(f"{seqCodes[i]}\n")
                     sys.exit(0)
-            sys.stdout.write(f"{seqCodes[i]}\n")
+            sys.stdout.write("100\n")
             sys.exit(0)
