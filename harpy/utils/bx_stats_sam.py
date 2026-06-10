@@ -124,7 +124,7 @@ class ReadCloud:
 @click.option('-d', '--distance-threshold', default=0, show_default=True, type=click.IntRange(min=0, max_open=True), help='Distance threshold for splitting molecules sharing a barcode')
 @click.argument('input', required=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden=True)
-def bx_stats_sam2(distance_threshold, input):
+def bx_stats_sam(distance_threshold, input):
     """
     Linked-read metrics from alignment files
 
@@ -151,6 +151,7 @@ def bx_stats_sam2(distance_threshold, input):
         # lazy deletion handles this cheaply.
         evict_heap: list[tuple[int, str]] = []
         last_contig: Optional[str] = None
+        last_pos = 0
 
         def flush_all() -> None:
             for _, cloud in clouds.items():
@@ -172,15 +173,22 @@ def bx_stats_sam2(distance_threshold, input):
             chrom = read.reference_name
             if last_contig and chrom != last_contig:
                 flush_all()
+                last_pos = 0
             last_contig = chrom
-
+            pos = read.reference_start
+            if pos < last_pos:
+                sys.stderr.write(
+                    "Error: Input alignment file does not appear to be coordinate-sorted, which will result in incorrect output statistics. "
+                    "Please sort the alignments by coordinates (e.g. samtools sort) and try again.\n"
+                )
+                sys.exit(1)
+            last_pos = pos
             # ── early eviction ────────────────────────────────────────────
             # Any barcode whose most-recent read ends more than `cutoff` bp
             # behind the current position cannot gain another read to its
             # current molecule. Safe to emit and reclaim now rather than at
             # contig end.
             if distance_threshold > 0:
-                pos = read.reference_start
                 while evict_heap and evict_heap[0][0] + distance_threshold < pos:
                     evicted_end, bx = heapq.heappop(evict_heap)
                     cloud = clouds.get(bx)
