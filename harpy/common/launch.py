@@ -74,7 +74,7 @@ class LaunchSnakemake():
                     self.process.communicate(timeout=0.5)
                 except subprocess.TimeoutExpired:
                     self.process.kill()
-                    self.process.communicate()
+                    #self.process.communicate()
             purge_empty_logs(outdir)
 
     def _is_foreground(self) -> bool:
@@ -255,7 +255,7 @@ class LaunchSnakemake():
             )
             while self.output:
                 self.nextline()
-                if self.iserror() or self.process.poll() == 1:
+                if self.iserror() or (self.process.poll() not in (None, 0)):
                     self.exitcode = EXIT_CODE_RUNTIME_ERROR
                     break
                 if "(100%) done" in self.output or self.output.startswith("Nothing to be") or self.process.poll() == 0:
@@ -270,6 +270,12 @@ class LaunchSnakemake():
                         self.task_ids[rule] = self.progress.add_task(self.job_inventory[rule].name, total=self.job_inventory[rule].total, visible=self.quiet != 1, active=1)
                     while True:
                         self.nextline()
+                        if not self.output:                              # EOF: process died
+                            self.exitcode = EXIT_CODE_RUNTIME_ERROR
+                            return
+                        if self.iserror() or self.process.poll() not in (None, 0):
+                            self.exitcode = EXIT_CODE_RUNTIME_ERROR
+                            return
                         if "jobid: " in self.output:
                             job_id = int(self.output.strip().split()[-1])
                             if rule != "all":
@@ -283,10 +289,6 @@ class LaunchSnakemake():
                     self.update_finished_progress()
 
     def return_or_collect(self):
-        '''
-        return if the error code is 0, otherwise print the corresponding error and drain the buffer to
-        get all the error text for processing after
-        '''
         if self.exitcode <= 0:
             self.exitcode = max(self.exitcode, 0)
             return
