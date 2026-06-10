@@ -81,7 +81,7 @@ rule align:
     output:
         sam = pipe("samples/{sample}/{sample}.bwa.sam"),
         stats = "reports/data/samtools_stats/{sample}.raw.stats",
-        tmp = temp(touch(directory("samples/{sample}/tmp")))
+        tmp = temp(directory("samples/{sample}/tmp"))
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -91,15 +91,18 @@ rule align:
         extra = extra
     threads:
         max(1, workflow.cores - 2)
+    resources:
+        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
     conda:
         "envs/align.yaml"
     container:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
+        mkdir -p {resources.tmpdir}
         {{
             bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
-                samtools collate -T {output.tmp}/collate -O -u - |
+                samtools collate -T {resources.tmpdir}/collate -O -u - |
                 samtools fixmate -z on -m -u - - |
                 tee >(samtools stats -x - > {output.stats}) |
                 samtools view -h -u {params.unmapped}
@@ -113,24 +116,27 @@ rule mark_duplicates:
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(touch(directory("samples/{sample}/mdtmp")))
+        tmp = temp(directory("samples/{sample}/mdtmp"))
     log:
         debug = "logs/markdup/{sample}.markdup.log",
     params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
     resources:
-        mem_mb = 2000
+        mem_mb = 2000,
+        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
     threads:
         2
     shell:
         """
+        mkdir -p {resources.tmpdir}
         OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
             samtools view -h -u -q {params.quality} {input.sam} |
-            samtools sort -T {output.tmp}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {output.tmp}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
+            samtools sort -T {resources.tmpdir}/sort -u -l 0 -m {resources.mem_mb}M - |
+            samtools markdup -@ 1 -T {resources.tmpdir}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log.debug}
+        rm -rf {resources.tmpdir}
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):
@@ -148,7 +154,8 @@ if lr_type != "none" and not (bx_tag and vx_tag):
 
 rule depth_stats:
     input:
-        "{sample}.bam"
+        "{sample}.bam.bai",
+        bam = "{sample}.bam"
     output: 
         "reports/data/coverage/{sample}.regions.bed.gz"
     params:
@@ -164,7 +171,7 @@ rule depth_stats:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
         """
-        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input} 2> {log}
+        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
         rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
         """
 
