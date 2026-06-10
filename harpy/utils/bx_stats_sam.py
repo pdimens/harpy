@@ -1,144 +1,130 @@
+import heapq
 import sys
+from dataclasses import dataclass
+from typing import Optional
 
 import click
-import numpy as np
 from pysam import AlignedSegment, AlignmentFile
 
 
-class ReadCloud():
-    '''
-    A class to store the relevant information of alignment records that have the same `BX` barcode tag.
-    '''
-    def __init__(self, valid: bool = True):
-        self.chromosome: str = ""
-        self.positions: list[list[int]] = []
-        self.bp: list[int] = []
-        self.inserts : list[int] = []
-        self.count : list[bool] = []
-        self.valid: bool = valid
-        self.barcode: str = ""
-        self.suffix: int = 0
+# ── helpers ──────────────────────────────────────────────────────────────────
 
-    def add(self, record: AlignedSegment):
-        '''add a pysam alignment record to the read cloud, keeping only the relevant info'''
-        if self.valid:
-            self.positions.append([record.reference_start, record.reference_end])
-            self.inserts.append(insert_size(record))
-            self.barcode = record.get_tag("BX")
-        self.bp.append(record.query_alignment_length)
-        self.count.append(record.is_read1 or not record.is_paired)
-        self.chromosome = record.reference_name
-
-    def deconvolve(self, cutoff):
-        '''
-        Process the read cloud and deconvolute using `cutoff` (if it's >0). Deconvolution
-        appends `-N` to the barcodes where `N` is an integer (e.g. `-1`, `-2`). Writes to
-        stdout and resets the ReadCloud to retain only `barcode`, `suffix`, and `valid`.
-        Returns without writing if the Readcloud is empty.
-        '''
-        if not self.positions:
-            return
-        result = ""
-        # sort alignment extrema by leftmost position and sort the subsequent info the same way
-        sort_values = [sublist[0] for sublist in self.positions]
-        sorted_indices = np.argsort(sort_values)
-        self.positions = [self.positions[i] for i in sorted_indices]
-        self.bp = [self.bp[i] for i in sorted_indices]
-        self.inserts = [self.inserts[i] for i in sorted_indices]
-        self.count = [self.count[i] for i in sorted_indices]
-
-        # instantiate with the first value
-        start = self.positions[0][0]
-        end = self.positions[0][1]
-        insert = self.inserts[0]
-        bp = self.bp[0]
-        count = int(self.count[0])
-
-        for idx in range(1, len(self.positions)):
-            prev_end = self.positions[idx - 1][1]
-            curr_start = self.positions[idx][0]
-            curr_end = self.positions[idx][1]
-
-            # check if this alignment should be merged with current molecule
-            if cutoff == 0 or (curr_start - prev_end) <= cutoff:
-                # merge into current molecule
-                end = max(end, curr_end)
-                insert += self.inserts[idx]
-                bp += self.bp[idx]
-                count += self.count[idx]
-            else:
-                # gap exceeds cutoff - write current molecule and start new one
-                BC = f"{self.barcode}-{self.suffix}" if self.suffix > 0 else self.barcode
-                result += f"{self.chromosome}\t{BC}\t" + self.stats(start, end, insert, bp, count)
-
-                # start new molecule with current alignment
-                self.suffix += 1
-                start = self.positions[idx][0]
-                end = curr_end
-                insert = self.inserts[idx]
-                bp = self.bp[idx]
-                count = int(self.count[idx])
-
-        # write final molecule
-        BC = f"{self.barcode}-{self.suffix}" if self.suffix > 0 else self.barcode
-        result += f"{self.chromosome}\t{BC}\t" + self.stats(start, end, insert, bp, count)
-        sys.stdout.write(result)
-        self.reset()
-
-    def stats(self, start, end, insert, bp, count) -> str:
-        '''
-        Calculate coverage and return a string of count, start position,
-        end position, inferred length, bases aligned, insert length,
-        coverage based on aligned bases, and coverage based on inferred inserts.
-        '''
-        #columns = reads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n"
-        inferred = end - start
-        try:
-            cov_bp = max(0, round(min(bp / inferred, 1.0),5))
-            cov_ins = max(0, round(min(insert / inferred, 1.0), 5))
-        except ZeroDivisionError:
-            cov_bp = 0
-            cov_ins = 0
-        return f"{max(1,count)}\t{start}\t{end}\t{inferred}\t{bp}\t{insert}\t{cov_bp}\t{cov_ins}\n"
-
-    def reset(self):
-        '''Reset the values in the class, keeping only `valid`, `barcode` and `suffix`'''
-        self.chromosome = ""
-        self.positions = []
-        self.bp = []
-        self.inserts = []
-        self.count = []
-
-def writestats(x: dict[str,ReadCloud], thresh):
-    '''write to file the bx stats dictionary as a table'''
-    for cloud in x.values():
-        if not cloud.valid:
-            if cloud.chromosome:
-                sys.stdout.write(f"{cloud.chromosome}\tinvalid\t" + cloud.stats(0, 0, 0, sum(cloud.bp), sum(cloud.count)))
-            cloud.reset()
-            continue
-        cloud.deconvolve(thresh)
-
-def insert_size(rec) -> int:
-    '''Calculate the insert size'''
-    # start position of first alignment
+def insert_size(rec: AlignedSegment) -> int:
     if rec.is_paired:
-        if rec.is_supplementary:
-            # if it's a supplementary alignment, just use the alignment length
-            isize = rec.query_alignment_length
-        else:
-            # by using max(), will either add 0 or positive TLEN to avoid double-counting
-            isize = max(0, rec.template_length)
-    else:
-        # if it's unpaired, use the TLEN or query length, whichever is bigger
-        isize = max(abs(rec.template_length), rec.infer_query_length())
-    return isize
+        return rec.query_alignment_length if rec.is_supplementary else max(0, rec.template_length)
+    return max(abs(rec.template_length), rec.infer_query_length())
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False})
-@click.option('-d', '--distance-threshold', default = 0, show_default = True, type = click.IntRange(min = 0, max_open=True), help = 'Calculate statistics assuming this distance threshold for linking alignments sharing a barcode')
-@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
-@click.help_option('--help', hidden = True)
-def bx_stats_sam(distance_threshold, input):
+
+def format_molecule(chrom: str, barcode: str, start: int, end: int, insert: int, bp: int, count: int) -> str:
+    inferred = end - start
+    if inferred:
+        cov_bp  = max(0.0, round(min(bp     / inferred, 1.0), 5))
+        cov_ins = max(0.0, round(min(insert / inferred, 1.0), 5))
+    else:
+        cov_bp = cov_ins = 0.0
+    return (
+        f"{chrom}\t{barcode}\t{max(1, count)}\t{start}\t{end}\t"
+        f"{inferred}\t{bp}\t{insert}\t{cov_bp}\t{cov_ins}\n"
+    )
+
+
+# ── per-barcode state ─────────────────────────────────────────────────────────
+
+@dataclass(slots=True)
+class _Mol:
+    """Running totals for the molecule currently being assembled."""
+    start:    int
+    end:      int       # max reference_end seen (molecule extent)
+    last_end: int       # reference_end of most-recently-added read (gap detection)
+    bp:       int
+    insert:   int
+    count:    int
+
+
+class ReadCloud:
+    """
+    O(1)-memory barcode state. Exploits coordinate-sort order to detect splits
+    on-the-fly, replacing the original list-accumulate-then-sort pattern.
+    """
+    __slots__ = ("barcode", "chromosome", "suffix", "valid", "cutoff", "_mol",
+                 "_inv_bp", "_inv_count")
+
+    def __init__(self, barcode: str, chromosome: str, valid: bool = True, initial_suffix: int = 0, cutoff: int = 0):
+        self.barcode    = barcode
+        self.chromosome = chromosome
+        self.suffix     = initial_suffix
+        self.valid      = valid
+        self._mol: Optional[_Mol] = None
+        self._inv_bp    = 0
+        self._inv_count = 0
+        self.cutoff     = cutoff
+
+    def add(self, record: AlignedSegment) -> str:
+        """
+        Incorporate one read. Returns a completed-molecule line on a split,
+        otherwise returns "". The gap is measured against the previous read's
+        end (not the molecule max-end), matching the original deconvolve() semantics.
+        """
+        self.chromosome = record.reference_name
+        bp  = record.query_alignment_length
+        ins = insert_size(record)
+        cnt = int(not record.is_paired or record.is_read1)
+
+        if not self.valid:
+            self._inv_bp    += bp
+            self._inv_count += cnt
+            return ""
+
+        start = record.reference_start
+        end   = record.reference_end
+
+        if self._mol is None:
+            self._mol = _Mol(start, end, end, bp, ins, cnt)
+            return ""
+
+        if self.cutoff > 0 and (start - self._mol.last_end) > self.cutoff:
+            completed = self._emit()
+            self.suffix += 1
+            self._mol = _Mol(start, end, end, bp, ins, cnt)
+            return completed
+
+        self._mol.end      = max(self._mol.end, end)
+        self._mol.last_end = end
+        self._mol.bp      += bp
+        self._mol.insert  += ins
+        self._mol.count   += cnt
+        return ""
+
+    def flush(self) -> str:
+        """Emit whatever is in progress and reset the molecule slot."""
+        if not self.valid:
+            if self.chromosome:
+                return format_molecule(self.chromosome, "invalid", 0, 0, 0, self._inv_bp, self._inv_count)
+            return ""
+        if self._mol is None:
+            return ""
+        line = self._emit()
+        self._mol = None
+        return line
+
+    @property
+    def last_end(self) -> int:
+        """Most recent read-end; used by the eviction heap."""
+        return self._mol.last_end if self._mol else 0
+
+    def _emit(self) -> str:
+        bc = f"{self.barcode}-{self.suffix}" if self.suffix else self.barcode
+        m = self._mol
+        return format_molecule(self.chromosome, bc, m.start, m.end, m.insert, m.bp, m.count)
+
+
+# ── command ───────────────────────────────────────────────────────────────────
+
+@click.command(no_args_is_help=True, context_settings={"allow_interspersed_args": False})
+@click.option('-d', '--distance-threshold', default=0, show_default=True, type=click.IntRange(min=0, max_open=True), help='Distance threshold for splitting molecules sharing a barcode')
+@click.argument('input', required=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden=True)
+def bx_stats_sam2(distance_threshold, input):
     """
     Linked-read metrics from alignment files
 
@@ -150,51 +136,81 @@ def bx_stats_sam(distance_threshold, input):
     coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
     insert length. Input file *must be coordinate sorted*.
     """
-    sys.stdout.write("contig\tmolecule\treads\tstart\tend\tlength_inferred\taligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n")
+    write = sys.stdout.write   # local binding avoids repeated attribute lookup
+    write(
+        "contig\tmolecule\treads\tstart\tend\tlength_inferred\t"
+        "aligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n"
+    )
+
     with AlignmentFile(input, require_index=False) as alnfile:
-        d = {}
-        LAST_CONTIG = None
+        clouds: dict[str, ReadCloud] = {}
+        # Persists the suffix counter across early evictions so that if a barcode
+        # reappears later on the same contig its molecule numbering continues.
+        suffix_next: dict[str, int] = {}
+        # Min-heap of (last_end, bx). Entries go stale when a cloud is updated;
+        # lazy deletion handles this cheaply.
+        evict_heap: list[tuple[int, str]] = []
+        last_contig: Optional[str] = None
+
+        def flush_all() -> None:
+            for _, cloud in clouds.items():
+                line = cloud.flush()
+                if line:
+                    write(line)
+            clouds.clear()
+            evict_heap.clear()
+            suffix_next.clear()   # per-contig; reset on contig boundary
 
         for read in alnfile.fetch(until_eof=True):
-            if not read.is_mapped:
-                continue
-            chrom = read.reference_name
-            # check if the current chromosome is different from the previous one
-            # if so, process the dict
-            if LAST_CONTIG and chrom != LAST_CONTIG:
-                writestats(d, distance_threshold)
-            LAST_CONTIG = chrom
-            # skip duplicates, unmapped, and secondary alignments
-            if read.is_duplicate or read.is_unmapped or read.is_secondary:
-                continue
-            # skip chimeric alignments that map to different contigs
-            if read.is_supplementary and read.reference_name != read.next_reference_name:
-                continue
-            if not read.get_blocks():
-                # unaligned, skip it
-                LAST_CONTIG = chrom
+            if (read.is_unmapped
+                    or read.is_duplicate
+                    or read.is_secondary
+                    or (read.is_supplementary and read.reference_name != read.next_reference_name)
+                    or not read.get_blocks()):
                 continue
 
+            chrom = read.reference_name
+            if last_contig and chrom != last_contig:
+                flush_all()
+            last_contig = chrom
+
+            # ── early eviction ────────────────────────────────────────────
+            # Any barcode whose most-recent read ends more than `cutoff` bp
+            # behind the current position cannot gain another read to its
+            # current molecule. Safe to emit and reclaim now rather than at
+            # contig end.
+            if distance_threshold > 0:
+                pos = read.reference_start
+                while evict_heap and evict_heap[0][0] + distance_threshold < pos:
+                    evicted_end, bx = heapq.heappop(evict_heap)
+                    cloud = clouds.get(bx)
+                    if cloud is None or cloud.last_end > evicted_end:
+                        continue   # stale heap entry — cloud was updated after push
+                    line = cloud.flush()
+                    if line:
+                        write(line)
+                    suffix_next[bx] = cloud.suffix + 1
+                    del clouds[bx]
+
+            # ── barcode lookup ────────────────────────────────────────────
             try:
                 bx = read.get_tag("BX")
                 if read.get_tag("VX") == 0:
-                    # VX:i:0 is invalid
                     raise KeyError
             except KeyError:
-                # There is either no BX or no/invalid VX tag
-                if "invalid" not in d:
-                    d["invalid"] = ReadCloud(valid = False)
-                d["invalid"].add(read)
-                if chrom:
-                    d["invalid"].chromosome = chrom
-                LAST_CONTIG = chrom
+                if "invalid" not in clouds:
+                    clouds["invalid"] = ReadCloud("invalid", chrom, valid=False)
+                clouds["invalid"].add(read)
                 continue
 
-            if bx not in d:
-                d[bx] = ReadCloud()
+            if bx not in clouds:
+                clouds[bx] = ReadCloud(bx, chrom, initial_suffix=suffix_next.get(bx, 0), cutoff = distance_threshold)
 
-            d[bx].add(read)
-            LAST_CONTIG = chrom
+            line = clouds[bx].add(read)
+            if line:
+                write(line)
 
-        # print the last entry
-        writestats(d, distance_threshold)
+            if distance_threshold > 0:
+                heapq.heappush(evict_heap, (clouds[bx].last_end, bx))
+
+        flush_all()
