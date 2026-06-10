@@ -97,7 +97,6 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        # mkdir -p {output.tmp}
         {{
             bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
                 samtools collate -T {output.tmp}/collate -O -u - |

@@ -76,7 +76,6 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        #mkdir -p {output.tmp}
         {{
             strobealign {params} -t {threads} {input.genome} {input.fastq} |
                 samtools collate -T {output.tmp}/collate -O -u - |
