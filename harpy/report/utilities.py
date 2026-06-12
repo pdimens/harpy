@@ -108,7 +108,7 @@ def binned_histogram(data: pd.Series, bin_size: int|float, normalize: bool = Fal
                 colname: binned_counts.values
             })
 
-def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: bool = False, max_val = int|float|None = None, precision = 2) -> pl.DataFrame:
+def binned_histogram_polars(data: pl.Series, bin_size: int|float, normalize: bool = False, max_val: int|float|None = None, precision = 2) -> pl.DataFrame:
     '''
     Calculates a binned histogram of counts from the input `data` for bins of size `bin_size`
     with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
