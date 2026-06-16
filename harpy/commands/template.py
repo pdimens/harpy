@@ -139,7 +139,7 @@ def report(update, action):
                 yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
     _init = ReportRender(git_dir)
     if update:
-        _init.scan_for_reports()
+        _init.scan()
         _init.update_yaml()
 
 @click.command(panel = "HPC Configurations")
