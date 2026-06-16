@@ -186,11 +186,12 @@ ENTRYPOINT ["/app/entrypoint.sh"]
 
 def check_environments(dirpath: str, envs: list) -> None:
     """Check that the provided dir exists and contains the necessary environment definitions"""
+    condadir = os.path.join(dirpath, "workflow", "envs")
     if not envs:
         return
-    if not os.path.exists(f"{dirpath}/workflow/envs"):
-        HarpyPrint().error("missing conda files", "This working directory does not contain the expected directory of conda environment definitions ([blue bold]workflow/envs/[/])\n  - use [green bold]--conda[/] to recreate it")
-    envlist = os.listdir(f"{dirpath}/workflow/envs")
+    if not os.path.exists(condadir):
+        HarpyPrint().error("missing conda files", f"[yellow]{dirpath}[/] does not contain the expected directory of conda environment definitions ([blue]workflow/envs/[/]).")
+    envlist = os.listdir(condadir)
     errcount = 0
     errtable = Table(show_footer=True, box=box.SIMPLE)
     errtable.add_column("File", justify="left", no_wrap=True)
@@ -205,7 +206,7 @@ def check_environments(dirpath: str, envs: list) -> None:
         HarpyPrint().error(
             "missing environment files",
             f"The directory [blue]{dirpath}/workflows/envs[/] is missing [yellow bold]{errcount}[/] of the expected conda environment definition files.",
-            "Check that the names conform to Harpy's expectations, otherwise you can recreate this directory using the [green bold]--conda[/] option.",
+            "Check that the names conform to Harpy's expectations, otherwise you will need these definition files, which may be created with [blue]harpy command --setup args...[/].",
             "Expected environment files",
             errtable
             )
