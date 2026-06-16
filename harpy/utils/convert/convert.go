@@ -31,6 +31,8 @@ import (
 	"github.com/klauspost/pgzip"
 )
 
+var empty string = "00"
+
 // ─── JSON schema ──────────────────────────────────────────────────────────────
 
 type codec struct {
@@ -52,11 +54,11 @@ type pheniqsJSON struct {
 
 // ─── barcode reconstruction ───────────────────────────────────────────────────
 
-func reconstructBarcode(nucBC, origBC string, qcFail bool, stagger, bc *map[string]string) (string, int, int) {
+func reconstructBarcode(nucBC, origBC string, qcFail bool, stagger, bc map[string]string) (string, int, int) {
 	var corrected int
 	var seg []string
 
-	if nucBC != origBC {
+	if nucBC != origBC && !qcFail {
 		corrected = 1
 	}
 	if qcFail {
@@ -68,24 +70,23 @@ func reconstructBarcode(nucBC, origBC string, qcFail bool, stagger, bc *map[stri
 		return "A00C00B00D00", 0, corrected
 	}
 
-	A := lookup(bc, &seg[1])
-	B := lookup(bc, &seg[2])
-	C := lookup(bc, &seg[3])
-	D := lookup(stagger, &seg[0])
+	A := lookup(bc, seg[1])
+	B := lookup(bc, seg[2])
+	C := lookup(bc, seg[3])
+	D := lookup(stagger, seg[0])
 
 	valid := 1
-	if *A == "00" || *B == "00" || *C == "00" || *D == "00" {
+	if *A == empty || *B == empty || *C == empty || *D == empty {
 		valid = 0
 	}
 
 	return "A" + *A + "C" + *B + "B" + *C + "D" + *D, valid, corrected
 }
 
-func lookup(m *map[string]string, key *string) *string {
-	if v, ok := (*m)[*key]; ok {
+func lookup(m map[string]string, key string) *string {
+	if v, ok := m[key]; ok {
 		return &v
 	}
-	empty := "00"
 	return &empty
 }
 
@@ -323,11 +324,11 @@ func main() {
 
 		rx, hasRX := getStringTag(rec, "RX")
 		ox, hasOX := getStringTag(rec, "OX")
-		if !hasRX {
+		if !hasOX {
 			continue // no RX tag — skip
 		}
-		if !hasOX {
-			ox = rx
+		if !hasRX {
+			rx = ox
 		}
 
 		// Determine if the QC Fail 0x200 flag is set
@@ -335,7 +336,7 @@ func main() {
 		if qcFail {
 			qcfail += 1
 		}
-		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, qcFail, &stagger, &bc)
+		bxVal, vxVal, corrVal := reconstructBarcode(rx, ox, qcFail, stagger, bc)
 		valids += vxVal
 		corrected += corrVal
 		set[bxVal] = struct{}{}

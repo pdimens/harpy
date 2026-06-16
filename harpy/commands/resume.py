@@ -13,6 +13,7 @@ from harpy.common.workflow import Workflow
 hp = HarpyPrint()
 
 def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = False):
+    '''Extract a specific YAML parameter from a config.yaml-derived dict'''
     val = d.get(section, {})
     if not val:
         if not allow_missing:
@@ -41,6 +42,7 @@ def config_extract(d: dict, section:str, key: str = "", allow_missing: bool = Fa
     return val
 
 def snakemake_profile_extract(d: dict, key: str):
+    '''Extract the value of a specific parameter from a profile.yaml-derived dict.'''
     val = d.get(key, None)
     if not val:
         hp.error(
@@ -116,7 +118,7 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     if _sdm != "apptainer":
         allow_missing = "validate" in _name or "mpileup" in _name
         workflow.conda = config_extract(harpy_config, "Workflow", "snakemake:conda-envs", allow_missing)
-        check_environments(_dir, workflow.conda)
+        check_environments(directory, workflow.conda)
 
     # inherit workflow report part, if present
     workflow.notebooks = harpy_config["Workflow"].get("reports", {"skip" : False})
