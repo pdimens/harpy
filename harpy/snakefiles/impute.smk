@@ -259,6 +259,7 @@ rule contig_report:
         extra   = f"-p extra {stitch_extra}"
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-{paramset}.{contig}
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
@@ -291,6 +292,7 @@ rule impute_reports:
         extra   = f"-p extra {stitch_extra}"
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-{paramset}.rpt
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}

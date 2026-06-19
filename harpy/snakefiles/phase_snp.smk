@@ -255,6 +255,7 @@ rule phase_report:
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-phase
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp}

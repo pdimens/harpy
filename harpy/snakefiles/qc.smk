@@ -94,6 +94,7 @@ rule barcode_report:
         lr = lr_type
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-{sample}
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr}
