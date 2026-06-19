@@ -175,7 +175,7 @@ rule barcode_report:
         indir = "-p indir " + os.path.abspath("reports/data/")
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}
+        export IPYTHONDIR=/tmp/ipython-pre-gih
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp}

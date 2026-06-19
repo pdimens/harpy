@@ -279,7 +279,7 @@ rule linked_read_report:
     shell:
         """
         {{
-            export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.lr
+            export IPYTHONDIR=/tmp/ipython-bwa.lr
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}

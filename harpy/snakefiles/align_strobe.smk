@@ -256,7 +256,7 @@ rule linked_read_report:
         f"logs/reports/lrstats.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.lr
+        export IPYTHONDIR=/tmp/ipython-strobe.lr
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
