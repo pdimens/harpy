@@ -254,7 +254,7 @@ rule BUSCO_analysis:
     input:
         "athena/athena.asm.fa"
     output:
-        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt"
+        f"busco/short_summary.specific.{lineagedb}.busco.txt"
     log:
         "logs/busco.log"
     params:
@@ -263,7 +263,8 @@ rule BUSCO_analysis:
         out_prefix = "-o busco",
         db_location = f"--download_path busco",
         lineage = f"-l {lineagedb}",
-        metaeuk = "--metaeuk" if organism == "eukaryote" else "" 
+        static - "--skip_bbtools --opt-out-run-stats --tar",
+        metaeuk = "--metaeuk" if organism == "eukaryote" else ""
     threads:
         workflow.cores
     conda:
@@ -271,13 +272,17 @@ rule BUSCO_analysis:
     container:
         f"docker://pdimens/harpy:assembly_{VERSION}"
     shell:
+        # BUSCO exits 1 when no buscos are found, hence creating an output file in case that happens
         """
-        ( busco -f -i {input} -c {threads} {params} > {log} 2>&1 ) || touch {output}
+        (
+            busco -f -i {input} -c {threads} {params} > {log} 2>&1 \
+                && mv busco/short_summary.specific.*_odb*.busco.txt {output}
+        ) || touch {output}
         """
 
 rule build_report:
     input:
-        f"busco/short_summary.specific.{lineagedb}_odb{odb_version}.busco.txt",
+        f"busco/short_summary.specific.{lineagedb}.busco.txt",
         "quast/report.tsv"
     output:
         "reports/assembly.metrics.html"
