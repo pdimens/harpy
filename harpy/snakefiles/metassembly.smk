@@ -263,7 +263,7 @@ rule BUSCO_analysis:
         out_prefix = "-o busco",
         db_location = f"--download_path busco",
         lineage = f"-l {lineagedb}",
-        static - "--skip_bbtools --opt-out-run-stats --tar",
+        static = "--skip_bbtools --opt-out-run-stats --tar",
         metaeuk = "--metaeuk" if organism == "eukaryote" else ""
     threads:
         workflow.cores
