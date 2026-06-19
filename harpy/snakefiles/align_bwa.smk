@@ -231,7 +231,7 @@ rule alignment_report:
         f"logs/reports/bwa.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{sample}.{data}
+        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.{wildcards.data}
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp}
@@ -257,7 +257,7 @@ rule sample_reports:
         "logs/reports/{sample}.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{sample}.rpt
+        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
             harpy-utils process-notebook {output.tmp} {wildcards.sample} BWA-MEM2 {params.lr_type}
@@ -279,7 +279,7 @@ rule linked_read_report:
     shell:
         """
         {{
-            export IPYTHONDIR=/tmp/ipython-{sample}.lr
+            export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.lr
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
         }} 2> {log} > {output.ipynb}

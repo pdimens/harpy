@@ -209,7 +209,7 @@ rule alignment_report:
         f"logs/reports/strobealign.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{sample}.{data}
+        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.{data}
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
@@ -235,7 +235,7 @@ rule sample_reports:
         "logs/reports/{sample}.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{sample}.rpt
+        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
             harpy-utils process-notebook {output.tmp} {wildcards.sample} strobealign {params.lr_type}
@@ -256,7 +256,7 @@ rule linked_read_report:
         f"logs/reports/lrstats.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{sample}.lr
+        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.lr
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}
