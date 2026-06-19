@@ -209,7 +209,7 @@ rule alignment_report:
         f"logs/reports/strobealign.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.{data}
+        export IPYTHONDIR=/tmp/ipython-stobe-stats
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type}

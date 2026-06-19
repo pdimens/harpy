@@ -231,7 +231,7 @@ rule alignment_report:
         f"logs/reports/bwa.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.{wildcards.data}
+        export IPYTHONDIR=/tmp/ipython-bwa-stats
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp}
