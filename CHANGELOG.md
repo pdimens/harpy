@@ -7,3 +7,5 @@
 - `harpy-utils optical-distance` now properly falls back to `100`
 - `harpy-utils molecule-coverage` is much less RAM hungry
 - `harpy-utils bx-stats-sam` is much less RAM hungry
+## Assembly/Metassembly
+- BUSCO now scrubs the orthodb version from the expected output `.txt` file to prevent orthodb version updates breaking the workflow
