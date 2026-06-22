@@ -1,7 +1,7 @@
 # Fixes
 ## QC
 - adapter trimming was being incorrectly skipped in all cases
-- set max threads for fastp to 4
+- set max threads for fastp jobs to 4
 ## Align
 - both `strobealign` and `bwa` workflows have the rules shifted a bit for better memory management
 - `harpy-utils optical-distance` now properly falls back to `100`
