@@ -157,7 +157,7 @@ rule mark_duplicates:
         {{
             samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
             samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
-        }} 2> {log.debug}
+        }} 2> {log}
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):

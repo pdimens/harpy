@@ -79,8 +79,8 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             strobealign {params} -t {threads} {input.genome} {input.fastq} |
-            samtools collate -T {resources.tmpdir} -o {output.bam} -u -l 0 -
-        }} 2> {log}
+            samtools collate -T {resources.tmpdir} -O -u -l 0 -
+        }} 2> {log} > {output.bam}
         """
 
 rule sort:
