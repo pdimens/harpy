@@ -99,7 +99,7 @@ rule sort:
         4
     resources:
         tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
-        mem_mb_per_thread = lambda wc, threads, attempt: max(500, (3000 - (1000 * attempt)) // threads)
+        mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
     shell:
         """
         mkdir -p {resources.tmpdir}
