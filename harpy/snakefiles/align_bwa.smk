@@ -85,7 +85,7 @@ rule align:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        static = "-C -v 2 -T 10" if illumina_old else "-v 2 -T 10",
+        static = "-m 10 -C -v 2 -T 10" if illumina_old else "-v 2 -T 10",
         extra = extra
     threads:
         4
