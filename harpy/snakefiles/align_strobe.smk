@@ -104,7 +104,7 @@ rule sort:
         mkdir -p {resources.tmpdir}
         {{
             samtools fixmate -z on -m -u {input} - |
-            tee >(samtools stats -x - > {output.stats})
+            tee >(samtools stats -x - > {output.stats}) |
             samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -u -l 0 -m {resources.mem_mb}M -
         }} 2> {log} > {output.bam}
         """
