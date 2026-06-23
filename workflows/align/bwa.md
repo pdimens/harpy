@@ -154,10 +154,10 @@ Align/bwa
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
 ```bash
-bwa-mem2 mem -T10 -m 10 -C -R "@RG\tID:samplename\tSM:samplename"
+bwa-mem2 mem -v 2 -T 10 -m 10 -C -R "@RG\tID:samplename\tSM:samplename"
 ```
 
-Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
+Below is a list of all `bwa-mem2 mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
 ```bwa arguments
   Algorithm options:
