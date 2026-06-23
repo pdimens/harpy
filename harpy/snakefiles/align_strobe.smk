@@ -111,6 +111,7 @@ rule sort:
         """
 
 rule mark_duplicates:
+    priority: 1
     input:
         fq  = get_fq,
         bam = "sort/{sample}/{sample}.sort.bam"
