@@ -105,6 +105,7 @@ rule align:
         """
 
 rule sort:
+    retries: 3
     input:
         "bwa/{sample}/{sample}.bwa.bam"
     output:
@@ -119,14 +120,14 @@ rule sort:
         4
     resources:
         tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
-        mem_mb = lambda wc, threads: threads * 3000,
+        mem_mb_per_thread = lambda wc, threads, attempt: max(500, (3000 - (1000 * attempt)) // threads)
     shell:
         """
         mkdir -p {resources.tmpdir}
         {{
             samtools fixmate -z on -m -u {input} - |
             tee >(samtools stats -x - > {output.stats}) |
-            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -u -l 0 -m {resources.mem_mb}M -
+            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -u -l 0 -m {resources.mem_mb_per_thread}M -
         }} 2> {log} > {output.bam}
         """
 
@@ -146,7 +147,7 @@ rule mark_duplicates:
         unmapped = "-F 4" if not keep_unmapped else "",
         mdthreads = lambda wc, threads: threads - 1
     resources:
-        tmpdir = lambda wc: f"makrdup/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"markdup/{wc.sample}/tmp"
     threads:
         4
     shell:
