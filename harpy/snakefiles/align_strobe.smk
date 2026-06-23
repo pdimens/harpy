@@ -81,7 +81,6 @@ rule align:
             strobealign {params} -t {threads} {input.genome} {input.fastq} |
             samtools collate -T {resources.tmpdir} -O -u -
         }} > {output.bam} 2> {log}
-        rm -rf {resources.tmpdir}
         """
 
 rule sort:
@@ -108,7 +107,6 @@ rule sort:
             tee >(samtools stats -x - > {output.stats})
             samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -u -l 0 -m {resources.mem_mb}M -
         }} 2> {log} > {output.bam}
-        rm -rf {resources.tmpdir}
         """
 
 rule mark_duplicates:
@@ -138,7 +136,6 @@ rule mark_duplicates:
             samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
             samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log.debug}
-        rm -rf {resources.tmpdir}
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):
