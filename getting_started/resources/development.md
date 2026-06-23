@@ -1,7 +1,8 @@
 # :icon-tools: Developing Harpy
-Harpy is an open source program written using a combination of BASH, R, 
-RMarkdown/Quarto, Python, and Snakemake. This page provides information on Harpy's
-development and how to contribute to it, if you were inclined to do so.
+Harpy is an open source program written using a combination of BASH, Go, R, 
+Python, and Snakemake. This page provides information on Harpy's
+development and how to contribute to it, if you were inclined to do so. If you want
+a great overview of the mechanics of the internals, [check out the DeepWiki for Harpy](https://deepwiki.com/pdimens/harpy/2-core-architecture).
 
 === Design Philosophy
 

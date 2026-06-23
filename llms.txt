@@ -20,7 +20,7 @@
 
 ### Resources
 
-- [ Developing Harpy](https://pdimens.github.io/harpy/getting_started/resources/development.md): Harpy is an open source program written using a combination of BASH, R, RMarkdown/Quarto, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.
+- [ Developing Harpy](https://pdimens.github.io/harpy/getting_started/resources/development.md): Harpy is an open source program written using a combination of BASH, Go, R, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.
 - [ Running on an HPC Cluster](https://pdimens.github.io/harpy/getting_started/resources/hpc.md): You'll be working with genomic data, so it's very likely you'll try to run Harpy on a high-performance computing (HPC) cluster at some point. Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g.
 - [ Snakamake Things](https://pdimens.github.io/harpy/getting_started/resources/snakemake.md): Barring a few exceptions, most of Harpy's options are Snakemake workflows. This means we are all at the mercy of how Snakemake operates, which includes the .snakemake/ folder in your project directory.
 - [ Software used in Harpy](https://pdimens.github.io/harpy/getting_started/resources/software.md): Harpy is the sum of its parts, and out of tremendous respect for the developers involved in the included software, we would like to highlight the tools directly involved in Harpy's many moving pieces.
