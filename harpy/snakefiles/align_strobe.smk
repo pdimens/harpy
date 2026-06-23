@@ -84,7 +84,6 @@ rule align:
         rm -rf {resources.tmpdir}
         """
 
-
 rule sort:
     input:
         "strobealign/{sample}/{sample}.strobe.bam"
