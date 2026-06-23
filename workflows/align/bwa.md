@@ -154,27 +154,46 @@ Align/bwa
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
 ```bash
-bwa mem -C -R "@RG\tID:samplename\tSM:samplename"
+bwa-mem2 mem -T10 -m 10 -C -R "@RG\tID:samplename\tSM:samplename"
 ```
 
 Below is a list of all `bwa mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
 ```bwa arguments
--k INT 	Minimum seed length. Matches shorter than INT will be missed. The alignment speed is usually insensitive to this value unless it significantly deviates 20. [19]
--w INT 	Band width. Essentially, gaps longer than INT will not be found. Note that the maximum gap length is also affected by the scoring matrix and the hit length, not solely determined by this option. [100]
--d INT 	Off-diagonal X-dropoff (Z-dropoff). Stop extension when the difference between the best and the current extension score is above |i-j|*A+INT, where i and j are the current positions of the query and reference, respectively, and A is the matching score. Z-dropoff is similar to BLAST’s X-dropoff except that it doesn’t penalize gaps in one of the sequences in the alignment. Z-dropoff not only avoids unnecessary extension, but also reduces poor alignments inside a long good alignment. [100]
--r FLOAT 	Trigger re-seeding for a MEM longer than minSeedLen*FLOAT. This is a key heuristic parameter for tuning the performance. Larger value yields fewer seeds, which leads to faster alignment speed but lower accuracy. [1.5]
--c INT 	Discard a MEM if it has more than INT occurence in the genome. This is an insensitive parameter. [10000]
--P 	In the paired-end mode, perform SW to rescue missing hits only but do not try to find hits that fit a proper pair.
--A INT 	Matching score. [1]
--B INT 	Mismatch penalty. The sequence error rate is approximately: {.75 * exp[-log(4) * B/A]}. [4]
--O INT 	Gap open penalty. [6]
--E INT 	Gap extension penalty. A gap of length k costs O + k*E (i.e. -O is for opening a zero-length gap). [1]
--L INT 	Clipping penalty. When performing SW extension, BWA-MEM keeps track of the best score reaching the end of query. If this score is larger than the best SW score minus the clipping penalty, clipping will not be applied. Note that in this case, the SAM AS tag reports the best SW score; clipping penalty is not deducted. [5]
--U INT 	Penalty for an unpaired read pair. BWA-MEM scores an unpaired read pair as scoreRead1+scoreRead2-INT and scores a paired as scoreRead1+scoreRead2-insertPenalty. It compares these two scores to determine whether we should force pairing. [9]
--T INT 	Don’t output alignment with score lower than INT. This option only affects output. [30]
--a 	Output all found alignments for single-end or unpaired paired-end reads. These alignments will be flagged as secondary alignments.
--H 	Use hard clipping ’H’ in the SAM output. This option may dramatically reduce the redundancy of output when mapping long contig or BAC sequences.
+  Algorithm options:
+    -k INT        minimum seed length [19]
+    -w INT        band width for banded alignment [100]
+    -d INT        off-diagonal X-dropoff [100]
+    -r FLOAT      look for internal seeds inside a seed longer than {-k} * FLOAT [1.5]
+    -y INT        seed occurrence for the 3rd round seeding [20]
+    -c INT        skip seeds with more than INT occurrences [500]
+    -D FLOAT      drop chains shorter than FLOAT fraction of the longest overlapping chain [0.50]
+    -W INT        discard a chain if seeded bases shorter than INT [0]
+    -S            skip mate rescue
+    -P            skip pairing; mate rescue performed unless -S also in use
+Scoring options:
+   -A INT        score for a sequence match, which scales options -TdBOELU unless overridden [1]
+   -B INT        penalty for a mismatch [4]
+   -O INT[,INT]  gap open penalties for deletions and insertions [6,6]
+   -E INT[,INT]  gap extension penalty; a gap of size k cost '{-O} + {-E}*k' [1,1]
+   -L INT[,INT]  penalty for 5'- and 3'-end clipping [5,5]
+   -U INT        penalty for an unpaired read pair [17]
+Input/output options:
+   -p            smart pairing (ignoring in2.fq)
+   -H STR/FILE   insert STR to header if it starts with @; or insert lines in FILE [null]
+   -j            treat ALT contigs as part of the primary assembly (i.e. ignore <idxbase>.alt file)
+   -5            for split alignment, take the alignment with the smallest coordinate as primary
+   -q            don't modify mapQ of supplementary alignments
+   -K INT        process INT input bases in each batch regardless of nThreads (for reproducibility) []
+   -h INT[,INT]  if there are <INT hits with score >80% of the max score, output all in XA [5,200]
+   -a            output all alignments for SE or unpaired PE
+   -V            output the reference FASTA header in the XR tag
+   -Y            use soft clipping for supplementary alignments
+   -M            mark shorter split hits as secondary
+   -I FLOAT[,FLOAT[,INT[,INT]]]
+                 specify the mean, standard deviation (10% of the mean if absent), max
+                 (4 sigma from the mean if absent) and min of the insert size distribution.
+                 FR orientation only. [inferred]
 ```
 
 +++
