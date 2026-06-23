@@ -47,11 +47,13 @@ when you activate the pixi shell:
 ```bash manually install the environment and activate the shell
 cd harpy
 pixi install
+pixi run build
 pixi shell
 # harpy ...
 ```
 ```bash have pixi do it automatically and activate the shell
 cd harpy
+pixi run build
 pixi shell
 # harpy ...
 ```
