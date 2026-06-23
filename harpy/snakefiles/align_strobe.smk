@@ -79,8 +79,8 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             strobealign {params} -t {threads} {input.genome} {input.fastq} |
-            samtools collate -T {resources.tmpdir} -O -u -
-        }} > {output.bam} 2> {log}
+            samtools collate -T {resources.tmpdir} -o {output.bam} -u -l 0 -
+        }} 2> {log}
         """
 
 rule sort:
@@ -98,7 +98,7 @@ rule sort:
         4
     resources:
         tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
-        mem_mb = lambda wc, threads: threads * 3000,
+        mem_mb = lambda wc, threads: threads * 2000,
     shell:
         """
         mkdir -p {resources.tmpdir}
