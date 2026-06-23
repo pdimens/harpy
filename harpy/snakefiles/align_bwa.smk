@@ -79,19 +79,18 @@ rule align:
         genome     = workflow_geno,
         genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
     output:
-        sam = pipe("samples/{sample}/{sample}.bwa.sam"),
-        stats = "reports/data/samtools_stats/{sample}.raw.stats",
-        tmp = temp(directory("samples/{sample}/tmp"))
+        bam = temp("bwa/{sample}/{sample}.bwa.bam"),
+        tmp = temp(directory("bwa/{sample}/tmp"))
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        static = "-C -v 2 -T 10" if illumina_old else "-v 2 -T 10",
+        static = "-m 10 -C -v 2 -T 10" if illumina_old else "-v 2 -T 10 -m 10",
         extra = extra
     threads:
-        max(1, min(4, workflow.cores - 2))
+        4
     resources:
-        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"bwa/{wc.sample}/tmp"
     conda:
         "envs/align.yaml"
     container:
@@ -100,42 +99,65 @@ rule align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            bwa-mem2 mem -t {threads} {params.RG_tag} {params.static} {params.extra} {input.genome} {input.fastq} |
-                samtools collate -T {resources.tmpdir}/collate -O -u - |
-                samtools fixmate -z on -m -u - - |
-                tee >(samtools stats -x - > {output.stats})
-        }} 2> {log} > {output.sam}
+            bwa-mem2 mem -t {threads} {params} {input.genome} {input.fastq} |
+            samtools collate -T {resources.tmpdir} -O -u - 
+        }} 2> {log} > {output.bam}
+        """
+
+rule sort:
+    retries: 3
+    input:
+        "bwa/{sample}/{sample}.bwa.bam"
+    output:
+        bam = temp("sort/{sample}/{sample}.sort.bam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats",
+        tmp = temp(directory("sort/{sample}/tmp"))
+    log:
+        "logs/sort/{sample}.sort.log"
+    params:
+        sortthreads = lambda wc, threads: threads - 1
+    threads:
+        4
+    resources:
+        tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
+        mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
+    shell:
+        """
+        mkdir -p {resources.tmpdir}
+        {{
+            samtools fixmate -z on -m -u {input} - |
+            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params.sortthreads} -x {output.bam} > {output.stats} 
+        }} 2> {log}
         """
 
 rule mark_duplicates:
     input:
         fq  = get_fq,
-        sam = "samples/{sample}/{sample}.bwa.sam"
+        bam = "sort/{sample}/{sample}.sort.bam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("samples/{sample}/mdtmp"))
+        tmp = temp(directory("markdup/{sample}/tmp"))
     log:
-        debug = "logs/markdup/{sample}.markdup.log",
+        "logs/markdup/{sample}.markdup.log"
     params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
         unmapped = "-F 4" if not keep_unmapped else "",
+        mdthreads = lambda wc, threads: threads - 1
     resources:
-        mem_mb = 2000,
-        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"markdup/{wc.sample}/tmp"
     threads:
-        2
+        4
     shell:
         """
         mkdir -p {resources.tmpdir}
         OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
-            samtools view -h -u -q {params.quality} {params.unmapped} {input.sam} |
-            samtools sort -T {resources.tmpdir}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {resources.tmpdir}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
-        }} 2> {log.debug}
-        rm -rf {resources.tmpdir}
+            samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
+            samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
+        }} 2> {log}
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):

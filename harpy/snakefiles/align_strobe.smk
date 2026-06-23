@@ -57,8 +57,8 @@ rule align:
         fastq = get_fq,
         genome = workflow_geno
     output:  
-        sam = pipe("samples/{sample}/{sample}.strobe.sam"),
-        stats = touch("reports/data/samtools_stats/{sample}.raw.stats")
+        bam = temp("strobealign/{sample}/{sample}.strobe.bam"),
+        tmp = temp(directory("strobealign/{sample}/tmp"))
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -67,9 +67,9 @@ rule align:
         RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        max(1, min(4, workflow.cores - 2))
+        4
     resources:
-        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"strobealign/{wc.sample}/tmp"
     conda:
         "envs/align.yaml"
     container:
@@ -79,40 +79,64 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             strobealign {params} -t {threads} {input.genome} {input.fastq} |
-                samtools collate -T {resources.tmpdir}/collate -O -u - |
-                samtools fixmate -z on -m -u - - |
-                tee >(samtools stats -x - > {output.stats})
-        }} > {output.sam} 2> {log}
+            samtools collate -T {resources.tmpdir} -O -u -l 0 -
+        }} 2> {log} > {output.bam}
+        """
+
+rule sort:
+    retries: 3
+    input:
+        "strobealign/{sample}/{sample}.strobe.bam"
+    output:
+        bam = temp("sort/{sample}/{sample}.sort.bam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats",
+        tmp = temp(directory("sort/{sample}/tmp"))
+    log:
+        "logs/sort/{sample}.sort.log"
+    params:
+        sortthreads = lambda wc, threads: threads - 1
+    threads:
+        4
+    resources:
+        tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
+        mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
+    shell:
+        """
+        mkdir -p {resources.tmpdir}
+        {{
+            samtools fixmate -z on -m -u {input} - |
+            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params.sortthreads} -x {output.bam} > {output.stats} 
+        }} 2> {log}
         """
 
 rule mark_duplicates:
     input:
         fq  = get_fq,
-        sam = "samples/{sample}/{sample}.strobe.sam",
+        bam = "sort/{sample}/{sample}.sort.bam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup"
+        stats = "reports/data/markdup/{sample}.markdup",
+        tmp = temp(directory("markdup/{sample}/tmp"))
     log:
         "logs/markdup/{sample}.markdup.log"
     params:
         bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
         unmapped = "-F 4" if not keep_unmapped else "",
+        mdthreads = lambda wc, threads: threads - 1
     resources:
-        mem_mb = 2000,
-        tmpdir = lambda wc: f"samples/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"markdup/{wc.sample}/tmp"
     threads:
-        2
+        4
     shell:
         """
         mkdir -p {resources.tmpdir}
         OPT=$(harpy-utils optical-dist-fq {input.fq})
         {{
-            samtools view -h -u -q {params.quality} {params.unmapped} {input.sam} |
-            samtools sort -T {resources.tmpdir}/sort -u -l 0 -m {resources.mem_mb}M - |
-            samtools markdup -@ 1 -T {resources.tmpdir}/mkdup {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
+            samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
+            samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log}
-        rm -rf {resources.tmpdir}
         """
 
 if lr_type != "none" and not (bx_tag and vx_tag):

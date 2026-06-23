@@ -34,38 +34,19 @@ class BwaParams(click.ParamType):
     """A class for a click type that validates bwa extra-params."""
     name = "bwa_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-C -v -t -R".split()
-        valid_options = "-k -w -d -r -c -P -A -B -O -E -L -U -p -T -a -H -M ".split()
+        harpy_options = "-C -v -t -R -T -m".split()
+        valid_options = "-k -w -d -r -y -c -D -W -S -P -A -B -O -E -L -U -p -R -H -j -5 -q -K -h -a -V -Y -M -I".split()
         opts = 0
-        docs = "https://bio-bwa.sourceforge.net/bwa.shtml"
+        docs = "https://github.com/bwa-mem2/bwa-mem2"
         for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
-                    self.fail(f"{i} is already used by Harpy when calling bwa mem.", param, ctx)
+                    self.fail(f"{i} is already used by Harpy when calling bwa-mem2 mem.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid bwa mem option. See the bwa documentation for a list of available options: {docs}.", param, ctx)
+                    self.fail(f"{i} is not a valid bwa-mem2 option. See the bwa documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
-            self.fail(f"No valid options recognized. Available bwa options begin with one dash (e.g. -M). See the bwa documentation for a list of available options: {docs}.", param, ctx)
-        return sanitize_shell(value)
-
-class EmaParams(click.ParamType):
-    """A class for a click type that validates ema extra-params."""
-    name = "ema_params"
-    def convert(self, value, param, ctx):
-        harpy_options = "-t -p -d -r -R -x".split()
-        valid_options = "-i".split()
-        opts = 0
-        docs = "https://github.com/arshajii/ema"
-        for i in shellsplit(value):
-            if i.startswith("-"):
-                opts += 1
-                if i in harpy_options:
-                    self.fail(f"{i} is already used by Harpy when calling ema.", param, ctx)
-                if i not in valid_options:
-                    self.fail(f"{i} is not a valid ema option. See the ema documentation for a list of available options: {docs}.", param, ctx)
-        if opts < 1:
-            self.fail(f"No valid options recognized. Available ema options begin with one dash (e.g. -i). See the ema documentation for a list of available options: {docs}.", param, ctx)
+            self.fail(f"No valid options recognized. Available bwa-mem2 options begin with one dash (e.g. -M). See the bwa-mem2 documentation: {docs}.", param, ctx)
         return sanitize_shell(value)
 
 class StrobeAlignParams(click.ParamType):
@@ -470,3 +451,5 @@ class ImputeRegion(click.ParamType):
         if startpos > endpos:
             self.fail(f"The region start position ({startpos}) must be less than the end position ({endpos}).", param, ctx)
         return value
+
+
