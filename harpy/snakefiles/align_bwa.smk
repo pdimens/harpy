@@ -75,9 +75,9 @@ rule process_reference:
 
 rule align:
     input:
-        fastq      = get_fq,
-        genome     = workflow_geno,
-        genome_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac")
+        multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
+        ref     = workflow_geno,
+        fastq      = get_fq
     output:
         bam = temp("bwa/{sample}/{sample}.bwa.bam"),
         tmp = temp(directory("bwa/{sample}/tmp"))
@@ -99,7 +99,7 @@ rule align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            bwa-mem2 mem -t {threads} {params} {input.genome} {input.fastq} |
+            bwa-mem2 mem -t {threads} {params} {input.ref} {input.fastq} |
             samtools collate -T {resources.tmpdir} -O -u - 
         }} 2> {log} > {output.bam}
         """
@@ -107,7 +107,8 @@ rule align:
 rule sort:
     retries: 3
     input:
-        "bwa/{sample}/{sample}.bwa.bam"
+        ref = 
+        bam = "bwa/{sample}/{sample}.bwa.bam"
     output:
         bam = temp("sort/{sample}/{sample}.sort.bam"),
         stats = "reports/data/samtools_stats/{sample}.raw.stats",
@@ -125,9 +126,9 @@ rule sort:
         """
         mkdir -p {resources.tmpdir}
         {{
-            samtools fixmate -z on -m -u {input} - |
-            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
-            samtools stats -@ {params.sortthreads} -x {output.bam} > {output.stats} 
+            samtools fixmate -z on -m -u {input.bam} - |
+            samtools sort -@ {params.sortthreads} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params.sortthreads} -d -x -r {input.ref} {output.bam} > {output.stats} 
         }} 2> {log}
         """
 

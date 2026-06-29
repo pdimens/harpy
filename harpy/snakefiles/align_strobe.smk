@@ -54,8 +54,8 @@ rule process_reference:
 
 rule align:
     input:
-        fastq = get_fq,
-        genome = workflow_geno
+        workflow_geno,
+        get_fq,
     output:  
         bam = temp("strobealign/{sample}/{sample}.strobe.bam"),
         tmp = temp(directory("strobealign/{sample}/tmp"))
@@ -78,7 +78,7 @@ rule align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            strobealign {params} -t {threads} {input.genome} {input.fastq} |
+            strobealign {params} -t {threads} {input} |
             samtools collate -T {resources.tmpdir} -O -u -l 0 -
         }} 2> {log} > {output.bam}
         """
@@ -86,7 +86,8 @@ rule align:
 rule sort:
     retries: 3
     input:
-        "strobealign/{sample}/{sample}.strobe.bam"
+        ref = workflow_geno,
+        bam = "strobealign/{sample}/{sample}.strobe.bam"
     output:
         bam = temp("sort/{sample}/{sample}.sort.bam"),
         stats = "reports/data/samtools_stats/{sample}.raw.stats",
@@ -104,9 +105,9 @@ rule sort:
         """
         mkdir -p {resources.tmpdir}
         {{
-            samtools fixmate -z on -m -u {input} - |
-            samtools sort -@ {params.sortthreads} -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
-            samtools stats -@ {params.sortthreads} -x {output.bam} > {output.stats} 
+            samtools fixmate -z on -m -u {input.bam} - |
+            samtools sort -@ {params.sortthreads} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params.sortthreads} -d -x -r {input.ref} {output.bam} > {output.stats} 
         }} 2> {log}
         """
 
