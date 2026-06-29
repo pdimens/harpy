@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -351,70 +351,62 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>align bwa</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument                   | type                 | default | description                                                                                                                                     |
-|:---------------------------|:---------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference assembly for read mapping                                                                     |
-| `INPUTS`                   | file/directory paths |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |         | Additional BWA arguments, in quotes                                                                                                             |
-| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
-| `--min-quality` `-q`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                                   |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                     |
+| :------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                      |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference assembly for read mapping                                                                     |
+| `INPUTS`                         |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                      |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`            |                              | Additional BWA arguments, in quotes                                                                                                             |
+| `--molecule-distance` `-d`       |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
+| `--min-quality` `-q`             |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
+| `--keep-unmapped` `-u`           |            false             | Output unmapped sequences too                                                                                                                   |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: left;">type</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
-<td style="text-align: left;">file path</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>REFERENCE</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference assembly for read mapping</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: left;">file/directory paths</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input FASTQ files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: left;">file path or list</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional BWA arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;"><code translate="no" v-pre>0</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>0</code></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules given as base pairs, disabled with <code translate="no" v-pre>0</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-q</code></td>
-<td style="text-align: left;">integer (0-40)</td>
-<td style="text-align: center;"><code translate="no" v-pre>30</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-q</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
 <td style="text-align: left;">Minimum <code translate="no" v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;">false</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: center;" class="whitespace-nowrap">false</td>
 <td style="text-align: left;">Output unmapped sequences too</td>
 </tr>
 </tbody>
@@ -516,70 +508,70 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
         └── coverage
             └── Sample1.cov.gz</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item     | description                                                                                                 |
-|:---------|:------------------------------------------------------------------------------------------------------------|
-| `*.bam`                             | sequence alignments for each sample                                              |
-| `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/*bwa.log`                     | output of BWA during run                                                         |
-| `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
-| `logs/*sort.log`                    | output of `samtools sort`                                                        |
-| `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
-| `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
-| `reports/bwa.summary.ipynb`         | report summarizing `samtools stats` of raw alignments across all samples         |
-| `reports/Sample1.ipynb`             | report summarizing BX tag metrics and alignment coverage                         | 
-| `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
-| `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |">
+<retype-table copy-text="| item| description                                                                      |
+| :------------------------------- | :------------------------------------------------------------------------------- |
+| `*.bam`                          | sequence alignments for each sample                                              |
+| `*.bai`                          | sequence alignment indexes for each sample                                       |
+| `logs/*bwa.log`                  | output of BWA during run                                                         |
+| `logs/*markdup.log`              | stats provided by `samtools markdup`                                             |
+| `logs/*sort.log`                 | output of `samtools sort`                                                        |
+| `reports/`                       | various counts/statistics/reports relating to sequence alignment                 |
+| `reports/barcodes.summary.ipynb` | report summarizing barcode-specific metrics across all samples                   |
+| `reports/bwa.summary.ipynb`      | report summarizing `samtools stats` of raw alignments across all samples         |
+| `reports/Sample1.ipynb`          | report summarizing BX tag metrics and alignment coverage                         |
+| `reports/data/coverage/*.cov.gz` | output from mosdepth, used for reports                                           |
+| `reports/data/lrstats`           | tabular data containing the information used to generate the BX stats in reports |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.bam</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.bam</code></td>
 <td style="text-align: left;">sequence alignments for each sample</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.bai</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.bai</code></td>
 <td style="text-align: left;">sequence alignment indexes for each sample</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*bwa.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*bwa.log</code></td>
 <td style="text-align: left;">output of BWA during run</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*markdup.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*markdup.log</code></td>
 <td style="text-align: left;">stats provided by <code translate="no" v-pre>samtools markdup</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*sort.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*sort.log</code></td>
 <td style="text-align: left;">output of <code translate="no" v-pre>samtools sort</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/</code></td>
 <td style="text-align: left;">various counts/statistics/reports relating to sequence alignment</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/barcodes.summary.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/barcodes.summary.ipynb</code></td>
 <td style="text-align: left;">report summarizing barcode-specific metrics across all samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/bwa.summary.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/bwa.summary.ipynb</code></td>
 <td style="text-align: left;">report summarizing <code translate="no" v-pre>samtools stats</code> of raw alignments across all samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/Sample1.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/Sample1.ipynb</code></td>
 <td style="text-align: left;">report summarizing BX tag metrics and alignment coverage</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/data/coverage/*.cov.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/data/coverage/*.cov.gz</code></td>
 <td style="text-align: left;">output from mosdepth, used for reports</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/data/lrstats</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/data/lrstats</code></td>
 <td style="text-align: left;">tabular data containing the information used to generate the BX stats in reports</td>
 </tr>
 </tbody>

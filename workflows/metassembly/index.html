@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -269,70 +269,70 @@ assemble the most contiguous sequences for multi-sample (or multi-species) data.
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>metassembly</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument               |   default   | description                                                                                                                                    |
-|:-----------------------|:-----------:|:-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `FASTQ_R1`             |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] deconvolved FASTQ file of forward reads                                                                |
-| `FASTQ_R2`             |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] deconvolved FASTQ file of reverse reads                                                                |
-| `--bx-tag` `-b`        |    `BX`     | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Which sequence header tag encodes the linked-read barcode (`BX` for `BX:Z` or `BC` for `BC:Z`)         |
-| `--extra-params` `-x`  |             | Additional spades parameters, in quotes                                                                                                        |
-| `--ignore-bx`          |             | Ignore linked-read info for initial spades assembly                                                                                            |
-| `--kmer-length` `-k`   |   `auto`    | Kmer lengths to use for initial spades assembly. They must be **odd** and **&lt;128**, separated by commas, and without spaces. (e.g. `13,23,51`) |
-| `--max-memory` `-r`    |   `10000`   | Maximum memory for spades to use, given in megabytes                                                                                           |
-| `--organism-type` `-u` | `eukaryote` | Organism type for assembly report. Options: `eukaryote`,`prokaryote`,`fungus`                                                                  |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                    |
+| :----------------------------- | :--------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FASTQ_R1`                     |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] deconvolved FASTQ file of forward reads                                                                |
+| `FASTQ_R2`                     |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] deconvolved FASTQ file of reverse reads                                                                |
+| `--bx-tag` `-b`                |             `BX`             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Which sequence header tag encodes the linked-read barcode (`BX` for `BX:Z` or `BC` for `BC:Z`)         |
+| `--extra-params` `-x`          |                              | Additional spades parameters, in quotes                                                                                                        |
+| `--ignore-bx`                  |                              | Ignore linked-read info for initial spades assembly                                                                                            |
+| `--kmer-length` `-k`           |            `auto`            | Kmer lengths to use for initial spades assembly. They must be **odd** and **&lt;128**, separated by commas, and without spaces. (e.g. `13,23,51`) |
+| `--max-memory` `-r`            |           `10000`            | Maximum memory for spades to use, given in megabytes                                                                                           |
+| `--organism-type` `-u`         |         `eukaryote`          | Organism type for assembly report. Options: `eukaryote`,`prokaryote`,`fungus`                                                                  |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>FASTQ_R1</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>FASTQ_R1</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> deconvolved FASTQ file of forward reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>FASTQ_R2</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>FASTQ_R2</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> deconvolved FASTQ file of reverse reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--bx-tag</code> <code translate="no" v-pre>-b</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>BX</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--bx-tag</code> <code translate="no" v-pre>-b</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>BX</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Which sequence header tag encodes the linked-read barcode (<code translate="no" v-pre>BX</code> for <code translate="no" v-pre>BX:Z</code> or <code translate="no" v-pre>BC</code> for <code translate="no" v-pre>BC:Z</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional spades parameters, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--ignore-bx</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--ignore-bx</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Ignore linked-read info for initial spades assembly</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--kmer-length</code> <code translate="no" v-pre>-k</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>auto</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--kmer-length</code> <code translate="no" v-pre>-k</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>auto</code></td>
 <td style="text-align: left;">Kmer lengths to use for initial spades assembly. They must be <strong>odd</strong> and <strong>&lt;128</strong>, separated by commas, and without spaces. (e.g. <code translate="no" v-pre>13,23,51</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--max-memory</code> <code translate="no" v-pre>-r</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>10000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--max-memory</code> <code translate="no" v-pre>-r</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>10000</code></td>
 <td style="text-align: left;">Maximum memory for spades to use, given in megabytes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--organism-type</code> <code translate="no" v-pre>-u</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>eukaryote</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--organism-type</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>eukaryote</code></td>
 <td style="text-align: left;">Organism type for assembly report. Options: <code translate="no" v-pre>eukaryote</code>,<code translate="no" v-pre>prokaryote</code>,<code translate="no" v-pre>fungus</code></td>
 </tr>
 </tbody>
@@ -399,7 +399,7 @@ structure and most important outputs.</p>
 └── *spades_assembly
     └── contigs.fasta</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                             | description                                                                   |
+<retype-table copy-text="| item| description                                                                   |
 | :------------------------------- | :---------------------------------------------------------------------------- |
 | `athena/athena.asm.fa`           | final metagenome assemble                                                     |
 | `busco/`                         | directory with results from the BUSCO analysis                                |
@@ -411,53 +411,53 @@ structure and most important outputs.</p>
 | `reports/assembly.metrics.html`  | aggregate and generalization of QUAST and BUSCO results                       |
 | `*spades_assembly/`              | directory with the SPADES output                                              |
 | `*spades_assembly/contigs.fasta` | the resulting primary assembly                                                |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>athena/athena.asm.fa</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>athena/athena.asm.fa</code></td>
 <td style="text-align: left;">final metagenome assemble</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/</code></td>
 <td style="text-align: left;">directory with results from the BUSCO analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/short_summary.*.txt</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/short_summary.*.txt</code></td>
 <td style="text-align: left;">text file summarizing BUSCO analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/run_*_odb10</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/run_*_odb10</code></td>
 <td style="text-align: left;">directory with results from the BUSCO analysis for the specific organism type</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/</code></td>
 <td style="text-align: left;">directory with results from the QUAST analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/report*</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/report*</code></td>
 <td style="text-align: left;">resulting QUAST report in various formats</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/predicted_genes/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/predicted_genes/</code></td>
 <td style="text-align: left;">GLIMMER gene-finding output</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/assembly.metrics.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/assembly.metrics.html</code></td>
 <td style="text-align: left;">aggregate and generalization of QUAST and BUSCO results</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*spades_assembly/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*spades_assembly/</code></td>
 <td style="text-align: left;">directory with the SPADES output</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*spades_assembly/contigs.fasta</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*spades_assembly/contigs.fasta</code></td>
 <td style="text-align: left;">the resulting primary assembly</td>
 </tr>
 </tbody>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -271,142 +271,142 @@ assemble the most contiguous sequences for this one individual.</p>
 </span>
 module is configured using the command-line arguments below. Since the assembly process consists of several distinct phases,
 the descriptions are provided with an extra badge to reflect which part of the assembly process they correspond to.</p>
-<retype-table copy-text="| argument                   |   default   | description                                                                                                                                                                                        |
-|:---------------------------|:-----------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `FASTQ_R1`                 |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] FASTQ file of forward reads                                                                                                                                |
-| `FASTQ_R2`                 |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] FASTQ file of reverse reads                                                                                                                                |
-| `--extra-params` `-x`      |             | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Additional spades parameters, in quotes                                                                                                        |
-| `--kmer-length` `-k`       |   `auto`    | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Kmer lengths to use for initial spades assembly. They must be **odd** and **&lt;128**, separated by commas, and without spaces. (e.g. `13,23,51`) |
-| `--max-memory` `-r`        |   `10000`   | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Maximum memory for spades to use, given in megabytes                                                                                           |
-| `--arcs-extra` `-y`        |             | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Additional ARCS parameters, in quotes and `option=arg` format                                                                                   |
-| `--contig-length` `-c`     |    `500`    | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum contig length                                                                                                                           |
-| `--links` `-n`             |     `5`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum number of links to compute scaffold                                                                                                     |
-| `--min-aligned` `-a`       |     `5`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum aligned read pairs per barcode                                                                                                          |
-| `--min-quality` `-q`       |     `0`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum mapping quality                                                                                                                         |
-| `--mismatch` `-m`          |     `5`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Maximum number of mismatches                                                                                                                    |
-| `--molecule-distance` `-d` |   `50000`   | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Distance cutoff to split molecules (bp)                                                                                                         |
-| `--molecule-length` `-l`   |   `2000`    | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum molecule length (bp)                                                                                                                    |
-| `--seq-identity` `-i`      |    `98`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum sequence identity                                                                                                                       |
-| `--span` `-s`              |    `20`     | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum number of spanning molecules to be considered assembled                                                                                 |
-| `--organism-type` `-u`     | `eukaryote` | [!badge variant=&quot;secondary&quot; text=&quot;report&quot;]         Organism type for assembly report: `eukaryote`,`prokaryote`, or `fungus`                                                                        |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                                                                        |
+| :---------------------------- | :--------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `FASTQ_R1`                    |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] FASTQ file of forward reads                                                                                                                                |
+| `FASTQ_R2`                    |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] FASTQ file of reverse reads                                                                                                                                |
+| `--extra-params` `-x`         |                              | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Additional spades parameters, in quotes                                                                                                        |
+| `--kmer-length` `-k`          |            `auto`            | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Kmer lengths to use for initial spades assembly. They must be **odd** and **&lt;128**, separated by commas, and without spaces. (e.g. `13,23,51`) |
+| `--max-memory` `-r`           |           `10000`            | [!badge variant=&quot;secondary&quot; text=&quot;spades assembly&quot;] Maximum memory for spades to use, given in megabytes                                                                                           |
+| `--arcs-extra` `-y`           |                              | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Additional ARCS parameters, in quotes and `option=arg` format                                                                                   |
+| `--contig-length` `-c`        |            `500`             | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum contig length                                                                                                                           |
+| `--links` `-n`                |             `5`              | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum number of links to compute scaffold                                                                                                     |
+| `--min-aligned` `-a`          |             `5`              | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum aligned read pairs per barcode                                                                                                          |
+| `--min-quality` `-q`          |             `0`              | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum mapping quality                                                                                                                         |
+| `--mismatch` `-m`             |             `5`              | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Maximum number of mismatches                                                                                                                    |
+| `--molecule-distance` `-d`    |           `50000`            | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Distance cutoff to split molecules (bp)                                                                                                         |
+| `--molecule-length` `-l`      |            `2000`            | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum molecule length (bp)                                                                                                                    |
+| `--seq-identity` `-i`         |             `98`             | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum sequence identity                                                                                                                       |
+| `--span` `-s`                 |             `20`             | [!badge variant=&quot;secondary&quot; text=&quot;arcs scaffold&quot;]  Minimum number of spanning molecules to be considered assembled                                                                                 |
+| `--organism-type` `-u`        |         `eukaryote`          | [!badge variant=&quot;secondary&quot; text=&quot;report&quot;]         Organism type for assembly report: `eukaryote`,`prokaryote`, or `fungus`                                                                        |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>FASTQ_R1</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>FASTQ_R1</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> FASTQ file of forward reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>FASTQ_R2</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>FASTQ_R2</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> FASTQ file of reverse reads</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Additional spades parameters, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--kmer-length</code> <code translate="no" v-pre>-k</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>auto</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--kmer-length</code> <code translate="no" v-pre>-k</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>auto</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Kmer lengths to use for initial spades assembly. They must be <strong>odd</strong> and <strong>&lt;128</strong>, separated by commas, and without spaces. (e.g. <code translate="no" v-pre>13,23,51</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--max-memory</code> <code translate="no" v-pre>-r</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>10000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--max-memory</code> <code translate="no" v-pre>-r</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>10000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>spades assembly</span>
 </span> Maximum memory for spades to use, given in megabytes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--arcs-extra</code> <code translate="no" v-pre>-y</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--arcs-extra</code> <code translate="no" v-pre>-y</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Additional ARCS parameters, in quotes and <code translate="no" v-pre>option=arg</code> format</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contig-length</code> <code translate="no" v-pre>-c</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>500</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contig-length</code> <code translate="no" v-pre>-c</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>500</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum contig length</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--links</code> <code translate="no" v-pre>-n</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>5</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--links</code> <code translate="no" v-pre>-n</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum number of links to compute scaffold</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-aligned</code> <code translate="no" v-pre>-a</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>5</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-aligned</code> <code translate="no" v-pre>-a</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum aligned read pairs per barcode</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-q</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>0</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-q</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>0</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum mapping quality</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--mismatch</code> <code translate="no" v-pre>-m</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>5</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--mismatch</code> <code translate="no" v-pre>-m</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>5</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Maximum number of mismatches</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>50000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>50000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Distance cutoff to split molecules (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--molecule-length</code> <code translate="no" v-pre>-l</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>2000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-length</code> <code translate="no" v-pre>-l</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>2000</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum molecule length (bp)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--seq-identity</code> <code translate="no" v-pre>-i</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>98</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--seq-identity</code> <code translate="no" v-pre>-i</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>98</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum sequence identity</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--span</code> <code translate="no" v-pre>-s</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>20</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--span</code> <code translate="no" v-pre>-s</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>20</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>arcs scaffold</span>
 </span>  Minimum number of spanning molecules to be considered assembled</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--organism-type</code> <code translate="no" v-pre>-u</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>eukaryote</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--organism-type</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>eukaryote</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>report</span>
 </span>         Organism type for assembly report: <code translate="no" v-pre>eukaryote</code>,<code translate="no" v-pre>prokaryote</code>, or <code translate="no" v-pre>fungus</code></td>
@@ -471,7 +471,7 @@ to highlight the general structure and most important outputs.</p>
 │   └── contigs.fasta
 └── scaffolds.fasta</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                            | description                                                                   |
+<retype-table copy-text="| item| description                                                                   |
 | :------------------------------ | :---------------------------------------------------------------------------- |
 | `busco/`                        | directory with results from the BUSCO analysis                                |
 | `busco/short_summary.*.txt`     | text file summarizing BUSCO analysis                                          |
@@ -484,57 +484,57 @@ to highlight the general structure and most important outputs.</p>
 | `quast/report*`                 | resulting QUAST report in various formats                                     |
 | `quast/predicted_genes/`        | GLIMMER gene-finding output                                                   |
 | `reports/assembly.metrics.html` | aggregate and generalization of QUAST and BUSCO results                       |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/</code></td>
 <td style="text-align: left;">directory with results from the BUSCO analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/short_summary.*.txt</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/short_summary.*.txt</code></td>
 <td style="text-align: left;">text file summarizing BUSCO analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>busco/run_*_odb10</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>busco/run_*_odb10</code></td>
 <td style="text-align: left;">directory with results from the BUSCO analysis for the specific organism type</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>scaffold/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>scaffold/</code></td>
 <td style="text-align: left;">directory with the tigmint/arcs/links output</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>scaffolds.fasta</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>scaffolds.fasta</code></td>
 <td style="text-align: left;">the resulting scaffolded assembly</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>spades/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>spades/</code></td>
 <td style="text-align: left;">directory with the SPADES output</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>spades/contigs.fasta</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>spades/contigs.fasta</code></td>
 <td style="text-align: left;">the resulting primary assembly</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/</code></td>
 <td style="text-align: left;">directory with results from the QUAST analysis</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/report*</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/report*</code></td>
 <td style="text-align: left;">resulting QUAST report in various formats</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>quast/predicted_genes/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>quast/predicted_genes/</code></td>
 <td style="text-align: left;">GLIMMER gene-finding output</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/assembly.metrics.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/assembly.metrics.html</code></td>
 <td style="text-align: left;">aggregate and generalization of QUAST and BUSCO results</td>
 </tr>
 </tbody>

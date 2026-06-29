@@ -5,7 +5,7 @@ If any tools were missed, please let us know!
 Issues with specific tools might warrant a discussion with the authors/developers on the repositories of these projects.
 
 ## Standalone Software
-{.compact}
+{.compact .clean}
 | Software           | Links                                                                                                                       | Publication                                                                                                                                                                     |
 |:-------------------|:----------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | ARCS suite         | [tigmint](https://github.com/bcgsc/tigmint), [arcs](https://github.com/bcgsc/arcs), [links](https://github.com/bcgsc/links) | [tigmint](https://doi.org/10.1186/s12859-018-2425-6), [arcs](https://doi.org/10.1101/100750), [links](https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0076-3) |
@@ -37,7 +37,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | whatshap           | [github](https://github.com/whatshap/whatshap)                                                                              | [publication](https://doi.org/10.1101/085050)                                                                                                                                   |
 
 ## Software Packages
-{.compact}
+{.compact .clean}
 | Package     | Language | Links                                                                                                          | Publication                                        |
 |:------------|:--------:|:---------------------------------------------------------------------------------------------------------------|:---------------------------------------------------|
 | biocircos   |    R     | [github](https://github.com/lvulliard/BioCircos.R)                                                             |                                                    |

@@ -25,15 +25,15 @@ harpy qc --threads 20 -a auto Sequences_Raw/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="qc"] module is configured using these command-line arguments:
 
-{.compact}
-| argument               |    default     | description                                                                                                                                                                                                  |
-|:-----------------------|:--------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`               |                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments)                                                              |
-| `--deduplicate` `-d`   |                | Identify and remove PCR duplicates                                                                                                                                                                           |
-| `--extra-params` `-x`  |                | Additional fastp arguments, in quotes                                                                                                                                                                        |
-| `--min-length` `-m`    |      `30`      | Discard reads shorter than this length                                                                                                                                                                       |
-| `--max-length` `-M`    |     `150`      | Maximum length to trim sequences down to                                                                                                                                                                     |
-| `--trim-adapters` `-a` |                | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                                                                                         |
+{.compact .clean}
+| argument      {.whitespace-nowrap} | default   {.whitespace-nowrap} | description                                                                                                                                     |
+| :--------------------------------- | :----------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                           |                                | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--deduplicate` `-d`               |                                | Identify and remove PCR duplicates                                                                                                              |
+| `--extra-params` `-x`              |                                | Additional fastp arguments, in quotes                                                                                                           |
+| `--min-length` `-m`                |              `30`              | Discard reads shorter than this length                                                                                                          |
+| `--max-length` `-M`                |             `150`              | Maximum length to trim sequences down to                                                                                                        |
+| `--trim-adapters` `-a`             |                                | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                            |
 
 By default, this workflow will only quality-trim the sequences.
 ### Deduplicate reads
@@ -106,9 +106,9 @@ QC/
         ├── Sample1.fastp.json
         └── Sample2.fastp.json
 ```
-{.compact}
-| item                            | description                                                                        |
-|:--------------------------------|:-----------------------------------------------------------------------------------|
+{.compact .clean}
+| item       {.whitespace-nowrap} | description                                                                        |
+| :------------------------------ | :--------------------------------------------------------------------------------- |
 | `*.R1.fq.gz`                    | quality trimmed forward reads of the samples                                       |
 | `*.R1.fq.gz`                    | quality trimmed reverse reads of the samples                                       |
 | `logs/`                         | all debug/diagnostic files that aren't the trimmed reads `fastp` creates           |

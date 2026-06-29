@@ -21,21 +21,21 @@ When any of the `view` commands are run without the `DIRECTORY` argument (except
 harpy will look for the `.harpyerror` 
 
 ### arguments
-{.compact}
-| argument      |  description                                                                           |
-| :------------ | :------------------------------------------------------------------------------------- |
-| `DIRECTORY`   | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |
+{.compact .clean}
+| argument    | description                                                                                              |
+| :---------- | :------------------------------------------------------------------------------------------------------- |
+| `DIRECTORY` | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |
 
 ### modes
-{.compact}
-| MODE            | description                                                       |
-|:----------------|:------------------------------------------------------------------|
-| `config`        | View a workflow's config file                                     |
-| `error`         | View the exact failture of a snakemake run                        |
-| `envs`* | View the conda environments and their software in `.environments` |
-| `log`           | View a workflow's last log file                                   |
-| `snakefile`     | View a workflow's snakefile                                       |
-| `profile`       | View a workflow's snakemake parameter file                        |
+{.compact .clean}
+| Mode   {.whitespace-nowrap} | description                                                       |
+| :-------------------------- | :---------------------------------------------------------------- |
+| `config`                    | View a workflow's config file                                     |
+| `error`                     | View the exact failture of a snakemake run                        |
+| `envs`*                     | View the conda environments and their software in `.environments` |
+| `log`                       | View a workflow's last log file                                   |
+| `snakefile`                 | View a workflow's snakefile                                       |
+| `profile`                   | View a workflow's snakemake parameter file                        |
 
 #### environments
 `view envs` is an exception in that it does not require a `DIRECTORY` argument.

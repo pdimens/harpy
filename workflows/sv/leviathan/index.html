@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -353,80 +353,80 @@ format validity.</p>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>sv leviathan</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument                    |  default   | description                                                                                                                                    |
-|:----------------------------|:----------:|:-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                    |            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)  |
-| `REFERENCE`                 |            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome that was used to create alignments                                                    |
-| `--contigs`                 |            | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                  |
-| `--duplicates` `-d`         |    `10`    | Consider SV of the same type as duplicates if their breakpoints are within this distance                                                       |
-| `--extra-params` `-x`       |            | Additional naibr arguments, in quotes                                                                                                          |
-| `--iterations` `-i`         |    `50`    | Number of iterations to perform through index (reduces memory)                                                                                 |
-| `--min-barcodes` `-b`       |    `2`     | Minimum number of barcode overlaps supporting candidate SV                                                                                     |
-| `--min-size` `-m`           |   `1000`   | Minimum size of SV to detect                                                                                                                   |
-| `--populations` `-p`        |            | Tab-delimited file of sample\&lt;*tab*\&gt;group                                                                                                     |
-| `--sharing-thresholds` `-s` | `99 99 99` | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas (no spaces) |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                    |
+| :----------------------------------- | :---------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                             |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)  |
+| `REFERENCE`                          |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome that was used to create alignments                                                    |
+| `--contigs`                          |                               | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                  |
+| `--duplicates` `-d`                  |             `10`              | Consider SV of the same type as duplicates if their breakpoints are within this distance                                                       |
+| `--extra-params` `-x`                |                               | Additional naibr arguments, in quotes                                                                                                          |
+| `--iterations` `-i`                  |             `50`              | Number of iterations to perform through index (reduces memory)                                                                                 |
+| `--min-barcodes` `-b`                |              `2`              | Minimum number of barcode overlaps supporting candidate SV                                                                                     |
+| `--min-size` `-m`                    |            `1000`             | Minimum size of SV to detect                                                                                                                   |
+| `--populations` `-p`                 |                               | Tab-delimited file of sample\&lt;*tab*\&gt;group                                                                                                     |
+| `--sharing-thresholds` `-s`          |          `99 99 99`           | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas (no spaces) |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>REFERENCE</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference genome that was used to create alignments</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--duplicates</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>10</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--duplicates</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>10</code></td>
 <td style="text-align: left;">Consider SV of the same type as duplicates if their breakpoints are within this distance</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional naibr arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--iterations</code> <code translate="no" v-pre>-i</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>50</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--iterations</code> <code translate="no" v-pre>-i</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>50</code></td>
 <td style="text-align: left;">Number of iterations to perform through index (reduces memory)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-barcodes</code> <code translate="no" v-pre>-b</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>2</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-barcodes</code> <code translate="no" v-pre>-b</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>2</code></td>
 <td style="text-align: left;">Minimum number of barcode overlaps supporting candidate SV</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-size</code> <code translate="no" v-pre>-m</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>1000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-size</code> <code translate="no" v-pre>-m</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>1000</code></td>
 <td style="text-align: left;">Minimum size of SV to detect</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--sharing-thresholds</code> <code translate="no" v-pre>-s</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>99 99 99</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--sharing-thresholds</code> <code translate="no" v-pre>-s</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>99 99 99</code></td>
 <td style="text-align: left;">Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas (no spaces)</td>
 </tr>
 </tbody>
@@ -513,60 +513,60 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
     ├── sample1.bcf
     └── sample2.bcf</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                      | description                                                                              |
-| :------------------------ | :--------------------------------------------------------------------------------------- |
-| `breakends.bedpe`         | an aggregation of all the breakends identified by LEVIATHAN                              |
-| `deletions.bedpe`         | an aggregation of all the deletions identified by LEVIATHAN                              |
-| `duplications.bedpe`      | an aggregation of all the duplications identified by LEVIATHAN                           |
-| `inversions.bedpe`        | an aggregation of all the inversions identified by LEVIATHAN                             |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                      |
-| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed |
-| `logs/*candidates`        | candidate structural variants LEVIATHAN identified                                       |
-| `reports/`                | summary report  with interactive plots of detected SV                                    |
-| `vcf/`                    | structural variants identified by LEVIATHAN                                              |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item| description                                                                              |
+| :----------------------------- | :--------------------------------------------------------------------------------------- |
+| `breakends.bedpe`              | an aggregation of all the breakends identified by LEVIATHAN                              |
+| `deletions.bedpe`              | an aggregation of all the deletions identified by LEVIATHAN                              |
+| `duplications.bedpe`           | an aggregation of all the duplications identified by LEVIATHAN                           |
+| `inversions.bedpe`             | an aggregation of all the inversions identified by LEVIATHAN                             |
+| `logs/harpy.variants.log`      | relevant runtime parameters for the variants module                                      |
+| `logs/sample.groups`           | if provided, a copy of the file provided to `--populations` with commented lines removed |
+| `logs/*candidates`             | candidate structural variants LEVIATHAN identified                                       |
+| `reports/`                     | summary report  with interactive plots of detected SV                                    |
+| `vcf/`                         | structural variants identified by LEVIATHAN                                              |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>breakends.bedpe</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>breakends.bedpe</code></td>
 <td style="text-align: left;">an aggregation of all the breakends identified by LEVIATHAN</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>deletions.bedpe</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>deletions.bedpe</code></td>
 <td style="text-align: left;">an aggregation of all the deletions identified by LEVIATHAN</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>duplications.bedpe</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>duplications.bedpe</code></td>
 <td style="text-align: left;">an aggregation of all the duplications identified by LEVIATHAN</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>inversions.bedpe</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>inversions.bedpe</code></td>
 <td style="text-align: left;">an aggregation of all the inversions identified by LEVIATHAN</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/harpy.variants.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/harpy.variants.log</code></td>
 <td style="text-align: left;">relevant runtime parameters for the variants module</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/sample.groups</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/sample.groups</code></td>
 <td style="text-align: left;">if provided, a copy of the file provided to <code translate="no" v-pre>--populations</code> with commented lines removed</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*candidates</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*candidates</code></td>
 <td style="text-align: left;">candidate structural variants LEVIATHAN identified</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/</code></td>
 <td style="text-align: left;">summary report  with interactive plots of detected SV</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>vcf/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>vcf/</code></td>
 <td style="text-align: left;">structural variants identified by LEVIATHAN</td>
 </tr>
 </tbody>

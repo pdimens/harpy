@@ -35,17 +35,17 @@ harpy phase bam --threads 10 phased.bcf data/*.bam
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                   |     default     | description                                                                                                                                                                                       |
-|:---------------------------|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                |                 | Path to reference genome used to create alignments                                                                                                                                               |
-| `VCF`                      |                 | [!badge variant="info" text="required"] Path to phased BCF/VCF file                                                                                                                                      |
-| `INPUTS`                   |                 | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)                                                     |
-| `--extra-params` `-x`      |                 | Additional `whatshap haplotag` arguments, in quotes                                                                                                                                                           |
-| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                                                                                |
-| `--ploidy` `-n`            |      `2`        | Ploidy of samples                                                                                                                                        |
-| `--unlinked` `-U`          |                 | Ignore linked-read information in the alignment `BX` tag when phasing                                                                                                                      |
-| `--vcf-samples` , `-V`     |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                                                                  |
+{.compact .clean}
+| argument          {.whitespace-nowrap} | default  {.whitespace-nowrap} | description                                                                                                                                   |
+| :------------------------------------- | :---------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                            |                               | Path to reference genome used to create alignments                                                                                            |
+| `VCF`                                  |                               | [!badge variant="info" text="required"] Path to phased BCF/VCF file                                                                           |
+| `INPUTS`                               |                               | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--extra-params` `-x`                  |                               | Additional `whatshap haplotag` arguments, in quotes                                                                                           |
+| `--molecule-distance` `-d`             |           `100000`            | Base-pair distance threshold to separate molecules                                                                                            |
+| `--ploidy` `-n`                        |              `2`              | Ploidy of samples                                                                                                                             |
+| `--unlinked` `-U`                      |                               | Ignore linked-read information in the alignment `BX` tag when phasing                                                                         |
+| `--vcf-samples` , `-V`                 |                               | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                 |
 
 ### Prioritize the vcf file
 By default, Harpy assumes you want to use all the samples
@@ -93,11 +93,11 @@ Phase/bam/
     └── phasing.summary.log
 ```
 
-{.compact}
-| item                        | description                                                                              |
-| :-------------------------- | :--------------------------------------------------------------------------------------- |
-| `*.phased.bam`              | phased alignment file output                                                             |
-| `logs/phasing.summary.log`  | consolidated output of whatshap logs                                                     |
+{.compact .clean}
+| item           {.whitespace-nowrap} | description                          |
+| :---------------------------------- | :----------------------------------- |
+| `*.phased.bam`                      | phased alignment file output         |
+| `logs/phasing.summary.log`          | consolidated output of whatshap logs |
 
 +++ :icon-code-square: Whatshap parameters
 By default, Harpy runs `whatshap haplotag` with these parameters (excluding inputs and outputs):

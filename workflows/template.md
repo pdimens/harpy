@@ -12,10 +12,10 @@ harpy template groupings INPUTS > output
 harpy template groupings data/ > samples.groups
 ```
 ### arguments
-{.compact}
-| argument   | description                                                                                   |
-| :--------- | :-------------------------------------------------------------------------------------------- |
-| `INPUTS`   | [!badge variant="info" text="required"] Files or directories containing input FASTQ/BAM files |
+{.compact .clean}
+| argument {.whitespace-nowrap} | description                                                                                   |
+| :---------------------------- | :-------------------------------------------------------------------------------------------- |
+| `INPUTS`                      | [!badge variant="info" text="required"] Files or directories containing input FASTQ/BAM files |
 
 This optional file is useful if you want SNP variant calling to happen on a
 per-population level via [!badge corners="pill" text="harpy snp"](snp.md#populations) or on samples
@@ -89,11 +89,11 @@ harpy template report --action
 ```
 
 ### arguments
-{.compact}
-| argument   | description                                                                                   |
-| :--------- | :-------------------------------------------------------- |
-| `--action`   |  Add a report-building GitHub Action to the repository  |
-| `--update`   |  Scan the git project for reports and update `myst.yml` |
+{.compact .clean}
+| argument  {.whitespace-nowrap} | description                                            |
+| :----------------------------- | :----------------------------------------------------- |
+| `--action`                     | Add a report-building GitHub Action to the repository  |
+| `--update`                     | Scan the git project for reports and update `myst.yml` |
 
 ### Setting up an auto-building website
 Use `--action` to also configure a GitHub Action

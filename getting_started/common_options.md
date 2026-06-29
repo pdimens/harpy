@@ -43,22 +43,22 @@ parameters that don't impact the results of the module, but instead control the 
 of calling the module. These runtime parameters **always have upper-cased short names** and are listed
 in the modules' help strings and can be configured using these arguments:
 
-{.compact}
-| argument            | type              | default | description                                                                                                                                            |
-|:--------------------|:------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--container` `-C`  | toggle            |         | Use preconfigured Apptainer container instead of local conda environments                                                                              |
-| `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                       |
-| `--help`            |                   |         | Show the module docstring                                                                                                                              |
-| `--hpc` `-H`        |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
-| `--output-dir` `-O` | string            | varies  | Name of output directory                                                                                                                               |
-| `--quiet` `-Q`      | [0,1,2]   |    0    | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                                 |
-| `--setup` `-N`      | toggle [!badge variant="secondary" corners="pill" text="hidden"]           |         | Perform validations and setup workflow environment, but don't run anything |
-| `--skip-reports` `-R` | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                     |
-| `--snakemake` `-S`  | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
-| `--threads` `-@`    | integer           |    4    | Number of threads to use                                                                                                                               |
-| `--unlinked` `-U`   | toggle            |         | Treat the input as non linked-read data                                                                                                                |
-| `--no-temp` `-T`    | toggle            |         | Do no delete temporary files during or after a workflow (shortcut for snakemake's `--no-temp`)                                                         |
-| `--clean`           | [w,s,l] [!badge variant="secondary" corners="pill" text="hidden"]           |         | Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done. Letters should be provided sequentially (e.g. `--clean sw`)           |
+{.compact .clean}
+| argument {.whitespace-nowrap} | type  {.whitespace-nowrap}                                        | default {.whitespace-nowrap} | description                                                                                                                                  |
+| :---------------------------- | :---------------------------------------------------------------- | :--------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--container` `-C`            | toggle                                                            |                              | Use preconfigured Apptainer container instead of local conda environments                                                                    |
+| `--contigs`                   | file path or list                                                 |                              | Contigs to plot in the report(s)                                                                                                             |
+| `--help`                      |                                                                   |                              | Show the module docstring                                                                                                                    |
+| `--hpc` `-H`                  |                                                                   |                              | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                       |
+| `--output-dir` `-O`           | string                                                            |            varies            | Name of output directory                                                                                                                     |
+| `--quiet` `-Q`                | [0,1,2]                                                           |              0               | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                       |
+| `--setup` `-N`                | toggle [!badge variant="secondary" corners="pill" text="hidden"]  |                              | Perform validations and setup workflow environment, but don't run anything                                                                   |
+| `--skip-reports` `-R`         | toggle                                                            |                              | Skip the processing and generation of HTML reports in a workflow                                                                             |
+| `--snakemake` `-S`            | string                                                            |                              | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                   |
+| `--threads` `-@`              | integer                                                           |              4               | Number of threads to use                                                                                                                     |
+| `--unlinked` `-U`             | toggle                                                            |                              | Treat the input as non linked-read data                                                                                                      |
+| `--no-temp` `-T`              | toggle                                                            |                              | Do no delete temporary files during or after a workflow (shortcut for snakemake's `--no-temp`)                                               |
+| `--clean`                     | [w,s,l] [!badge variant="secondary" corners="pill" text="hidden"] |                              | Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done. Letters should be provided sequentially (e.g. `--clean sw`) |
 
 ### --unlinked
 As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: `haplotagging`, `stlfr`, `tellseq`, or `none`.
@@ -110,14 +110,14 @@ both necessary for the module to run and is very useful to understand what the m
 understanding or as a point of reference when writing the Methods within a manuscript. The presence of the folder
 and the contents therein also allow you to rerun the workflow manually. The `workflow` folder may contain the following:
 
-{.compact}
-| item               | contents                                                                                                       | utility                                                |
-|:-------------------|:---------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------|
-| `workflow.smk`            | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
-| `config.yml`       | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
+{.compact .clean}
+| item           | contents                                                                                                       | utility                                                |
+| :------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| `workflow.smk` | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
+| `config.yml`   | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
 | `workflow.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
-| `envs/`            | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
-| `hpc/`             | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
-| `reference/`       | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
-| `report/*.qmd`     | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
-| `*.summary`        | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |
+| `envs/`        | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
+| `hpc/`         | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
+| `reference/`   | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
+| `report/*.qmd` | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
+| `*.summary`    | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |

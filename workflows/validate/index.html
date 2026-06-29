@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -348,20 +348,20 @@ harpy validate bam --threads 20 Align/bwa</code></pre>
 </span> and <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>validate bam</span>
 </span> modules are configured using only command-line input arguments:</p>
-<retype-table copy-text="| argument          | description                                                                                                                            |
-|:------------------|:---------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`          | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input fastq or bam files](/Getting_Started/common_options.md#input-arguments) |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| description                                                                                                                                            |
+| :------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input fastq or bam files](/Getting_Started/common_options.md#input-arguments) |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../getting_started/common_options/#input-arguments">input fastq or bam files</a></td>
@@ -381,14 +381,15 @@ the haplotagging data format, you will find little value in running <span class=
     <span>validate fastq</span>
 </span> on 10X FASTQ files. Take note
 of the language such as when &quot;any&quot; and &quot;all&quot; are written.</p>
-<retype-table copy-text="| Criteria           | Pass Condition                                                                           | Fail Condition                                                |
- |:-------------------|:-----------------------------------------------------------------------------------------|:--------------------------------------------------------------|
- | Format             | **all** reads with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** BX:Z: barcodes have incorrect format                  |
- | follows SAM spec   | **all** reads have proper `TAG:TYPE:VALUE` comments                                      | **any** reads have incorrectly formatted comments             |
- | BX:Z: last comment | **all** reads have `BX:Z`: as final comment                                              | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
- | BX:Z: tag          | any `BX:Z:` tags present                                                                 | **all** reads lack `BX:Z:` tag                                |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+ <!--retype-table-column-attrs:Y29sdW1ucwowCXsud2hpdGVzcGFjZS1ub3dyYXB9Cg==-->
+<retype-table copy-text="| Criteria| Pass Condition                                                                                   | Fail Condition                                                |
+ | :-------------------------------- | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
+ | Format                            | **all** reads with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** BX:Z: barcodes have incorrect format                  |
+ | follows SAM spec                  | **all** reads have proper `TAG:TYPE:VALUE` comments                                              | **any** reads have incorrectly formatted comments             |
+ | BX:Z: last comment                | **all** reads have `BX:Z`: as final comment                                                      | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
+ | BX:Z: tag                         | any `BX:Z:` tags present                                                                         | **all** reads lack `BX:Z:` tag                                |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
 <th style="text-align: left;">Criteria</th>
@@ -428,45 +429,45 @@ of the language such as when &quot;any&quot; and &quot;all&quot; are written.</p
     <span>validate bam</span>
 </span> checks for SAM/BAM files. Take note
 of the language such as when &quot;any&quot; and &quot;all&quot; are written.</p>
-<retype-table copy-text="| Criteria       | Pass Condition                                                                                | Fail Condition                                                |
-|:---------------|:----------------------------------------------------------------------------------------------|:--------------------------------------------------------------|
-| name matches   | the file name matches the `@RG ID:` tag in the header                                         | file name does not match `@RG ID:` in the header              |
-| MI: tag        | **any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags                      | **all** reads have `BX:Z:` tag present but `MI:i:` tag absent |
-| BX:Z: tag      | any `BX:Z:` tags present                                                                      | **all** alignments lack `BX:Z:` tag                           |
-| Format         | **all** alignments with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** `BX:Z:` barcodes have incorrect format                |
-| BX:Z: last tag | **all** reads have `BX:Z`: as final tag in alignment records                                  | **at least 1 read** doesn't have `BX:Z:` tag as final tag     |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| Criteria| Pass Condition                                                                                        | Fail Condition                                                |
+| :------------------------------ | :---------------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
+| name matches                    | the file name matches the `@RG ID:` tag in the header                                                 | file name does not match `@RG ID:` in the header              |
+| MI: tag                         | **any** alignments with `BX:Z:` tags also have `MI:i:` (or `MI:Z:`) tags                              | **all** reads have `BX:Z:` tag present but `MI:i:` tag absent |
+| BX:Z: tag                       | any `BX:Z:` tags present                                                                              | **all** alignments lack `BX:Z:` tag                           |
+| Format                          | **all** alignments with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** `BX:Z:` barcodes have incorrect format                |
+| BX:Z: last tag                  | **all** reads have `BX:Z`: as final tag in alignment records                                          | **at least 1 read** doesn't have `BX:Z:` tag as final tag     |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">Criteria</th>
+<th style="text-align: left;" class="whitespace-nowrap">Criteria</th>
 <th style="text-align: left;">Pass Condition</th>
 <th style="text-align: left;">Fail Condition</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">name matches</td>
+<td style="text-align: left;" class="whitespace-nowrap">name matches</td>
 <td style="text-align: left;">the file name matches the <code translate="no" v-pre>@RG ID:</code> tag in the header</td>
 <td style="text-align: left;">file name does not match <code translate="no" v-pre>@RG ID:</code> in the header</td>
 </tr>
 <tr>
-<td style="text-align: left;">MI: tag</td>
+<td style="text-align: left;" class="whitespace-nowrap">MI: tag</td>
 <td style="text-align: left;"><strong>any</strong> alignments with <code translate="no" v-pre>BX:Z:</code> tags also have <code translate="no" v-pre>MI:i:</code> (or <code translate="no" v-pre>MI:Z:</code>) tags</td>
 <td style="text-align: left;"><strong>all</strong> reads have <code translate="no" v-pre>BX:Z:</code> tag present but <code translate="no" v-pre>MI:i:</code> tag absent</td>
 </tr>
 <tr>
-<td style="text-align: left;">BX:Z: tag</td>
+<td style="text-align: left;" class="whitespace-nowrap">BX:Z: tag</td>
 <td style="text-align: left;">any <code translate="no" v-pre>BX:Z:</code> tags present</td>
 <td style="text-align: left;"><strong>all</strong> alignments lack <code translate="no" v-pre>BX:Z:</code> tag</td>
 </tr>
 <tr>
-<td style="text-align: left;">Format</td>
+<td style="text-align: left;" class="whitespace-nowrap">Format</td>
 <td style="text-align: left;"><strong>all</strong> alignments with BX:Z: tag have properly formatted barcodes for the given linked-read platform</td>
 <td style="text-align: left;"><strong>any</strong> <code translate="no" v-pre>BX:Z:</code> barcodes have incorrect format</td>
 </tr>
 <tr>
-<td style="text-align: left;">BX:Z: last tag</td>
+<td style="text-align: left;" class="whitespace-nowrap">BX:Z: last tag</td>
 <td style="text-align: left;"><strong>all</strong> reads have <code translate="no" v-pre>BX:Z</code>: as final tag in alignment records</td>
 <td style="text-align: left;"><strong>at least 1 read</strong> doesn&#x27;t have <code translate="no" v-pre>BX:Z:</code> tag as final tag</td>
 </tr>

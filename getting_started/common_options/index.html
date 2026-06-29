@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -308,112 +308,112 @@ the genome assembly, etc. All main modules (e.g. <a href="../../workflows/qc/" c
 parameters that don&#x27;t impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters <strong>always have upper-cased short names</strong> and are listed
 in the modules&#x27; help strings and can be configured using these arguments:</p>
-<retype-table copy-text="| argument            | type              | default | description                                                                                                                                            |
-|:--------------------|:------------------|:-------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `--container` `-C`  | toggle            |         | Use preconfigured Apptainer container instead of local conda environments                                                                              |
-| `--contigs`         | file path or list |         | Contigs to plot in the report(s)                                                                                                                       |
-| `--help`            |                   |         | Show the module docstring                                                                                                                              |
-| `--hpc` `-H`        |                   |         | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                                 |
-| `--output-dir` `-O` | string            | varies  | Name of output directory                                                                                                                               |
-| `--quiet` `-Q`      | [0,1,2]   |    0    | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                                 |
-| `--setup` `-N`      | toggle [!badge variant=&quot;secondary&quot; corners=&quot;pill&quot; text=&quot;hidden&quot;]           |         | Perform validations and setup workflow environment, but don't run anything |
-| `--skip-reports` `-R` | toggle            |         | Skip the processing and generation of HTML reports in a workflow                                                                                     |
-| `--snakemake` `-S`  | string            |         | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                             |
-| `--threads` `-@`    | integer           |    4    | Number of threads to use                                                                                                                               |
-| `--unlinked` `-U`   | toggle            |         | Treat the input as non linked-read data                                                                                                                |
-| `--no-temp` `-T`    | toggle            |         | Do no delete temporary files during or after a workflow (shortcut for snakemake's `--no-temp`)                                                         |
-| `--clean`           | [w,s,l] [!badge variant=&quot;secondary&quot; corners=&quot;pill&quot; text=&quot;hidden&quot;]           |         | Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done. Letters should be provided sequentially (e.g. `--clean sw`)           |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| type| default| description                                                                                                                                  |
+| :---------------------------- | :---------------------------------------------------------------- | :--------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--container` `-C`            | toggle                                                            |                              | Use preconfigured Apptainer container instead of local conda environments                                                                    |
+| `--contigs`                   | file path or list                                                 |                              | Contigs to plot in the report(s)                                                                                                             |
+| `--help`                      |                                                                   |                              | Show the module docstring                                                                                                                    |
+| `--hpc` `-H`                  |                                                                   |                              | Have snakemake submit all jobs to an HPC ([details](Resources/hpc.md))                                                                       |
+| `--output-dir` `-O`           | string                                                            |            varies            | Name of output directory                                                                                                                     |
+| `--quiet` `-Q`                | [0,1,2]                                                           |              0               | `0` prints all progress information, `1` prints unified progress bar, `2` suppressess all console output except errors                       |
+| `--setup` `-N`                | toggle [!badge variant=&quot;secondary&quot; corners=&quot;pill&quot; text=&quot;hidden&quot;]  |                              | Perform validations and setup workflow environment, but don't run anything                                                                   |
+| `--skip-reports` `-R`         | toggle                                                            |                              | Skip the processing and generation of HTML reports in a workflow                                                                             |
+| `--snakemake` `-S`            | string                                                            |                              | Additional [Snakemake](Resources/snakemake#adding-snakemake-parameters) options, in quotes                                                   |
+| `--threads` `-@`              | integer                                                           |              4               | Number of threads to use                                                                                                                     |
+| `--unlinked` `-U`             | toggle                                                            |                              | Treat the input as non linked-read data                                                                                                      |
+| `--no-temp` `-T`              | toggle                                                            |                              | Do no delete temporary files during or after a workflow (shortcut for snakemake's `--no-temp`)                                               |
+| `--clean`                     | [w,s,l] [!badge variant=&quot;secondary&quot; corners=&quot;pill&quot; text=&quot;hidden&quot;] |                              | Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done. Letters should be provided sequentially (e.g. `--clean sw`) |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: left;">type</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: left;" class="whitespace-nowrap">type</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--container</code> <code translate="no" v-pre>-C</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--container</code> <code translate="no" v-pre>-C</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">toggle</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Use preconfigured Apptainer container instead of local conda environments</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: left;">file path or list</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">file path or list</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Contigs to plot in the report(s)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--help</code></td>
-<td style="text-align: left;"> </td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--help</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"> </td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Show the module docstring</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--hpc</code> <code translate="no" v-pre>-H</code></td>
-<td style="text-align: left;"> </td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--hpc</code> <code translate="no" v-pre>-H</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"> </td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Have snakemake submit all jobs to an HPC (<a href="../resources/hpc/">details</a>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--output-dir</code> <code translate="no" v-pre>-O</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: center;">varies</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--output-dir</code> <code translate="no" v-pre>-O</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">string</td>
+<td style="text-align: center;" class="whitespace-nowrap">varies</td>
 <td style="text-align: left;">Name of output directory</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--quiet</code> <code translate="no" v-pre>-Q</code></td>
-<td style="text-align: left;">[0,1,2]</td>
-<td style="text-align: center;">0</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--quiet</code> <code translate="no" v-pre>-Q</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">[0,1,2]</td>
+<td style="text-align: center;" class="whitespace-nowrap">0</td>
 <td style="text-align: left;"><code translate="no" v-pre>0</code> prints all progress information, <code translate="no" v-pre>1</code> prints unified progress bar, <code translate="no" v-pre>2</code> suppressess all console output except errors</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--setup</code> <code translate="no" v-pre>-N</code></td>
-<td style="text-align: left;">toggle <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-full">
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--setup</code> <code translate="no" v-pre>-N</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">toggle <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-full">
     <span>hidden</span>
 </span></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Perform validations and setup workflow environment, but don&#x27;t run anything</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--skip-reports</code> <code translate="no" v-pre>-R</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--skip-reports</code> <code translate="no" v-pre>-R</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">toggle</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Skip the processing and generation of HTML reports in a workflow</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--snakemake</code> <code translate="no" v-pre>-S</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--snakemake</code> <code translate="no" v-pre>-S</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">string</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional <a href="../resources/snakemake/#adding-snakemake-parameters">Snakemake</a> options, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--threads</code> <code translate="no" v-pre>-@</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;">4</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--threads</code> <code translate="no" v-pre>-@</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">integer</td>
+<td style="text-align: center;" class="whitespace-nowrap">4</td>
 <td style="text-align: left;">Number of threads to use</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--unlinked</code> <code translate="no" v-pre>-U</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--unlinked</code> <code translate="no" v-pre>-U</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">toggle</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Treat the input as non linked-read data</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--no-temp</code> <code translate="no" v-pre>-T</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--no-temp</code> <code translate="no" v-pre>-T</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">toggle</td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Do no delete temporary files during or after a workflow (shortcut for snakemake&#x27;s <code translate="no" v-pre>--no-temp</code>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--clean</code></td>
-<td style="text-align: left;">[w,s,l] <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-full">
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--clean</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">[w,s,l] <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-full">
     <span>hidden</span>
 </span></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Delete the log (<code translate="no" v-pre>l</code>), .snakemake (<code translate="no" v-pre>s</code>), and/or workflow (<code translate="no" v-pre>w</code>) folders when done. Letters should be provided sequentially (e.g. <code translate="no" v-pre>--clean sw</code>)</td>
 </tr>
 </tbody>
@@ -483,18 +483,18 @@ harpy align strobe -t 20 -q genome.fasta samples/trimmedreads</code></pre>
 both necessary for the module to run and is very useful to understand what the module did, be it for your own
 understanding or as a point of reference when writing the Methods within a manuscript. The presence of the folder
 and the contents therein also allow you to rerun the workflow manually. The <code translate="no" v-pre>workflow</code> folder may contain the following:</p>
-<retype-table copy-text="| item               | contents                                                                                                       | utility                                                |
-|:-------------------|:---------------------------------------------------------------------------------------------------------------|:-------------------------------------------------------|
-| `workflow.smk`            | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
-| `config.yml`       | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
+<retype-table copy-text="| item           | contents                                                                                                       | utility                                                |
+| :------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| `workflow.smk` | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
+| `config.yml`   | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
 | `workflow.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
-| `envs/`            | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
-| `hpc/`             | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
-| `reference/`       | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
-| `report/*.qmd`     | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
-| `*.summary`        | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+| `envs/`        | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
+| `hpc/`         | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
+| `reference/`   | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
+| `report/*.qmd` | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
+| `*.summary`    | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
 <th style="text-align: left;">item</th>

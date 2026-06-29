@@ -25,16 +25,16 @@ harpy align bwa genome.fasta Sequences/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="align bwa"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                   | type                 | default | description                                                                                                                                     |
-|:---------------------------|:---------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference assembly for read mapping                                                                     |
-| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |         | Additional BWA arguments, in quotes                                                                                                             |
-| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
-| `--min-quality` `-q`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                                   |
+{.compact .clean}
+| argument    {.whitespace-nowrap} | default {.whitespace-nowrap} | description                                                                                                                                     |
+| :------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                      |                              | [!badge variant="info" text="required"] Reference assembly for read mapping                                                                     |
+| `INPUTS`                         |                              | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                      |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`            |                              | Additional BWA arguments, in quotes                                                                                                             |
+| `--molecule-distance` `-d`       |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
+| `--min-quality` `-q`             |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
+| `--keep-unmapped` `-u`           |            false             | Output unmapped sequences too                                                                                                                   |
 
 ### Output format
 Regardless of the input linked-read format, the `align` workflows will standardize the output alignment records
@@ -137,19 +137,19 @@ Align/bwa
             └── Sample1.cov.gz
 ```
 {.compact}
-| item     | description                                                                                                 |
-|:---------|:------------------------------------------------------------------------------------------------------------|
-| `*.bam`                             | sequence alignments for each sample                                              |
-| `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/*bwa.log`                     | output of BWA during run                                                         |
-| `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
-| `logs/*sort.log`                    | output of `samtools sort`                                                        |
-| `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
-| `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
-| `reports/bwa.summary.ipynb`         | report summarizing `samtools stats` of raw alignments across all samples         |
-| `reports/Sample1.ipynb`             | report summarizing BX tag metrics and alignment coverage                         | 
-| `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
-| `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |
+| item        {.whitespace-nowrap} | description                                                                      |
+| :------------------------------- | :------------------------------------------------------------------------------- |
+| `*.bam`                          | sequence alignments for each sample                                              |
+| `*.bai`                          | sequence alignment indexes for each sample                                       |
+| `logs/*bwa.log`                  | output of BWA during run                                                         |
+| `logs/*markdup.log`              | stats provided by `samtools markdup`                                             |
+| `logs/*sort.log`                 | output of `samtools sort`                                                        |
+| `reports/`                       | various counts/statistics/reports relating to sequence alignment                 |
+| `reports/barcodes.summary.ipynb` | report summarizing barcode-specific metrics across all samples                   |
+| `reports/bwa.summary.ipynb`      | report summarizing `samtools stats` of raw alignments across all samples         |
+| `reports/Sample1.ipynb`          | report summarizing BX tag metrics and alignment coverage                         |
+| `reports/data/coverage/*.cov.gz` | output from mosdepth, used for reports                                           |
+| `reports/data/lrstats`           | tabular data containing the information used to generate the BX stats in reports |
 
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):

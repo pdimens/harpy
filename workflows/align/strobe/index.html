@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -351,70 +351,62 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>align strobe</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument                   | type                 | default | description                                                                                                                                     |
-|:---------------------------|:---------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome for read mapping                                                                       |
-| `INPUTS`                   | file/directory paths |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |         | Additional stroebealign arguments, in quotes                                                                                                    |
-| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                                   |
-| `--min-quality` `-d`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                     |
+| :-------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                       |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome for read mapping                                                                       |
+| `INPUTS`                          |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                       |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`             |                              | Additional stroebealign arguments, in quotes                                                                                                    |
+| `--keep-unmapped` `-u`            |            false             | Output unmapped sequences too                                                                                                                   |
+| `--min-quality` `-d`              |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
+| `--molecule-distance` `-d`        |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: left;">type</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
-<td style="text-align: left;">file path</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>REFERENCE</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference genome for read mapping</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: left;">file/directory paths</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input FASTQ files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: left;">file path or list</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: left;">string</td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional stroebealign arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
-<td style="text-align: left;">toggle</td>
-<td style="text-align: center;">false</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: center;" class="whitespace-nowrap">false</td>
 <td style="text-align: left;">Output unmapped sequences too</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: left;">integer (0-40)</td>
-<td style="text-align: center;"><code translate="no" v-pre>30</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-quality</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
 <td style="text-align: left;">Minimum <code translate="no" v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: left;">integer</td>
-<td style="text-align: center;"><code translate="no" v-pre>0</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>0</code></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules given as base pairs, disabled with <code translate="no" v-pre>0</code></td>
 </tr>
 </tbody>
@@ -518,8 +510,8 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
         └── coverage
             └── Sample1.cov.gz</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item     | description                                                                                                 |
-|:---------|:------------------------------------------------------------------------------------------------------------|
+<retype-table copy-text="| item| description                                                                      |
+| :---------------------------------- | :------------------------------------------------------------------------------- |
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
 | `logs/*bwa.log`                     | output of strobealign during run                                                 |
@@ -528,60 +520,60 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
 | `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
 | `reports/strobealign.summary.ipynb` | report summarizing `samtools stats` of raw alignments across all samples         |
-| `reports/Sample1.ipynb`             | html report summarizing BX tag metrics and alignment coverage                    | 
+| `reports/Sample1.ipynb`             | html report summarizing BX tag metrics and alignment coverage                    |
 | `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
 | `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.bam</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.bam</code></td>
 <td style="text-align: left;">sequence alignments for each sample</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.bai</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.bai</code></td>
 <td style="text-align: left;">sequence alignment indexes for each sample</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*bwa.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*bwa.log</code></td>
 <td style="text-align: left;">output of strobealign during run</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*markdup.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*markdup.log</code></td>
 <td style="text-align: left;">stats provided by <code translate="no" v-pre>samtools markdup</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*sort.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*sort.log</code></td>
 <td style="text-align: left;">output of <code translate="no" v-pre>samtools sort</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/</code></td>
 <td style="text-align: left;">various counts/statistics/reports relating to sequence alignment</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/barcodes.summary.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/barcodes.summary.ipynb</code></td>
 <td style="text-align: left;">report summarizing barcode-specific metrics across all samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/strobealign.summary.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/strobealign.summary.ipynb</code></td>
 <td style="text-align: left;">report summarizing <code translate="no" v-pre>samtools stats</code> of raw alignments across all samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/Sample1.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/Sample1.ipynb</code></td>
 <td style="text-align: left;">html report summarizing BX tag metrics and alignment coverage</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/data/coverage/*.cov.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/data/coverage/*.cov.gz</code></td>
 <td style="text-align: left;">output from mosdepth, used for reports</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/data/lrstats</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/data/lrstats</code></td>
 <td style="text-align: left;">tabular data containing the information used to generate the BX stats in reports</td>
 </tr>
 </tbody>
@@ -596,154 +588,154 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">strobealign [--use-index -r ...] -t THREADS -U -C --rg-id={sample} --rg=SM:{sample} {input.genome} {input.fastq}</code></pre>
 </doc-codeblock></div>
 <p>Below is a list of all <code translate="no" v-pre>strobealign</code> command line arguments, excluding those Harpy already uses or those made redundant by Harpy&#x27;s implementation of it.</p>
-<retype-table copy-text="| argument  | type    | description |
-| :----      | :---:  | :---------- |
-| -v        | toggle  | Verbose output |
-| --aemb    | toggle  | Output the estimated abundance value of contigs, the format of output file is: contig_id abundance_value |
-| --eqx     | toggle  | Emit =/X instead of M CIGAR operations |
-| --no-PG   | toggle  | Do not output PG header |
-| --details | toggle  | Add debugging details to SAM records |
-| --rg=     | [TAG:VALUE...] | Add read group metadata to SAM header (can be specified multiple times). Example: SM:samplename |
-| -N        | integer  | Retain at most INT secondary alignments (is upper bounded by -M and depends on -S) [0] |
-| -m        | integer  | Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, the seed length distribution is usually determined by parameters l and u. Then, this parameter is only active in regions where syncmers are very sparse. |
-| -k        | integer  | Strobe length, has to be below 32. [20] |
-| -l        | integer  | Lower syncmer offset from k/(k-s+1). Start sample second syncmer k/(k-s+1) + l syncmers downstream [0] |
-| -u        | integer  | Upper syncmer offset from k/(k-s+1). End sample second syncmer k/(k-s+1) + u syncmers downstream [7] |
-| -c        | integer  | Bitcount length between 2 and 63. [8] |
-| -s        | integer  | Submer size used for creating syncmers [k-4]. Only even numbers on k-s allowed. A value of s=k-4 roughly represents w=10 as minimizer window [k-4]. It is recommended not to change this parameter unless you have a good understanding of syncmers as it will drastically change the memory usage and results with non default values. |
-| -b        | integer  | No. of top bits of hash to use as bucket indices (8-31)[determined from reference size] |
-| -A        | integer  | Matching score [2] |
-| -B        | integer  | Mismatch penalty [8] |
-| -O        | integer  | Gap open penalty [12] |
-| -E        | integer  | Gap extension penalty [1] |
-| -L        | integer  | Soft clipping penalty [10] |
-| -f        | float  | Top fraction of repetitive strobemers to filter out from sampling [0.0002] |
-| -S        | float  | Try candidate sites with mapping score at least S of maximum mapping score [0.5] |
-| -M        | integer  | Maximum number of mapping sites to try [20] |
-| -R        | integer  | Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R &lt;= 1 deactivates rescue and is the fastest. |">
+<retype-table copy-text="| argument| type| description                                                                                                                                                                                                                                                                                                                             |
+| :---------------------------- | :-------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -v                            |           toggle            | Verbose output                                                                                                                                                                                                                                                                                                                          |
+| --aemb                        |           toggle            | Output the estimated abundance value of contigs, the format of output file is: contig_id abundance_value                                                                                                                                                                                                                                |
+| --eqx                         |           toggle            | Emit =/X instead of M CIGAR operations                                                                                                                                                                                                                                                                                                  |
+| --no-PG                       |           toggle            | Do not output PG header                                                                                                                                                                                                                                                                                                                 |
+| --details                     |           toggle            | Add debugging details to SAM records                                                                                                                                                                                                                                                                                                    |
+| --rg=                         |       [TAG:VALUE...]        | Add read group metadata to SAM header (can be specified multiple times). Example: SM:samplename                                                                                                                                                                                                                                         |
+| -N                            |           integer           | Retain at most INT secondary alignments (is upper bounded by -M and depends on -S) [0]                                                                                                                                                                                                                                                  |
+| -m                            |           integer           | Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, the seed length distribution is usually determined by parameters l and u. Then, this parameter is only active in regions where syncmers are very sparse.                                                                                                   |
+| -k                            |           integer           | Strobe length, has to be below 32. [20]                                                                                                                                                                                                                                                                                                 |
+| -l                            |           integer           | Lower syncmer offset from k/(k-s+1). Start sample second syncmer k/(k-s+1) + l syncmers downstream [0]                                                                                                                                                                                                                                  |
+| -u                            |           integer           | Upper syncmer offset from k/(k-s+1). End sample second syncmer k/(k-s+1) + u syncmers downstream [7]                                                                                                                                                                                                                                    |
+| -c                            |           integer           | Bitcount length between 2 and 63. [8]                                                                                                                                                                                                                                                                                                   |
+| -s                            |           integer           | Submer size used for creating syncmers [k-4]. Only even numbers on k-s allowed. A value of s=k-4 roughly represents w=10 as minimizer window [k-4]. It is recommended not to change this parameter unless you have a good understanding of syncmers as it will drastically change the memory usage and results with non default values. |
+| -b                            |           integer           | No. of top bits of hash to use as bucket indices (8-31)[determined from reference size]                                                                                                                                                                                                                                                 |
+| -A                            |           integer           | Matching score [2]                                                                                                                                                                                                                                                                                                                      |
+| -B                            |           integer           | Mismatch penalty [8]                                                                                                                                                                                                                                                                                                                    |
+| -O                            |           integer           | Gap open penalty [12]                                                                                                                                                                                                                                                                                                                   |
+| -E                            |           integer           | Gap extension penalty [1]                                                                                                                                                                                                                                                                                                               |
+| -L                            |           integer           | Soft clipping penalty [10]                                                                                                                                                                                                                                                                                                              |
+| -f                            |            float            | Top fraction of repetitive strobemers to filter out from sampling [0.0002]                                                                                                                                                                                                                                                              |
+| -S                            |            float            | Try candidate sites with mapping score at least S of maximum mapping score [0.5]                                                                                                                                                                                                                                                        |
+| -M                            |           integer           | Maximum number of mapping sites to try [20]                                                                                                                                                                                                                                                                                             |
+| -R                            |           integer           | Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R &lt;= 1 deactivates rescue and is the fastest.                                    |">
 <div class="table-wrapper scrollbar overflow-hidden">
 <table class="compact">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">type</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">type</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">-v</td>
-<td style="text-align: center;">toggle</td>
+<td style="text-align: left;" class="whitespace-nowrap">-v</td>
+<td style="text-align: center;" class="whitespace-nowrap">toggle</td>
 <td style="text-align: left;">Verbose output</td>
 </tr>
 <tr>
-<td style="text-align: left;">--aemb</td>
-<td style="text-align: center;">toggle</td>
+<td style="text-align: left;" class="whitespace-nowrap">--aemb</td>
+<td style="text-align: center;" class="whitespace-nowrap">toggle</td>
 <td style="text-align: left;">Output the estimated abundance value of contigs, the format of output file is: contig_id abundance_value</td>
 </tr>
 <tr>
-<td style="text-align: left;">--eqx</td>
-<td style="text-align: center;">toggle</td>
+<td style="text-align: left;" class="whitespace-nowrap">--eqx</td>
+<td style="text-align: center;" class="whitespace-nowrap">toggle</td>
 <td style="text-align: left;">Emit =/X instead of M CIGAR operations</td>
 </tr>
 <tr>
-<td style="text-align: left;">--no-PG</td>
-<td style="text-align: center;">toggle</td>
+<td style="text-align: left;" class="whitespace-nowrap">--no-PG</td>
+<td style="text-align: center;" class="whitespace-nowrap">toggle</td>
 <td style="text-align: left;">Do not output PG header</td>
 </tr>
 <tr>
-<td style="text-align: left;">--details</td>
-<td style="text-align: center;">toggle</td>
+<td style="text-align: left;" class="whitespace-nowrap">--details</td>
+<td style="text-align: center;" class="whitespace-nowrap">toggle</td>
 <td style="text-align: left;">Add debugging details to SAM records</td>
 </tr>
 <tr>
-<td style="text-align: left;">--rg=</td>
-<td style="text-align: center;">[TAG:VALUE...]</td>
+<td style="text-align: left;" class="whitespace-nowrap">--rg=</td>
+<td style="text-align: center;" class="whitespace-nowrap">[TAG:VALUE...]</td>
 <td style="text-align: left;">Add read group metadata to SAM header (can be specified multiple times). Example: SM:samplename</td>
 </tr>
 <tr>
-<td style="text-align: left;">-N</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-N</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Retain at most INT secondary alignments (is upper bounded by -M and depends on -S) [0]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-m</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-m</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, the seed length distribution is usually determined by parameters l and u. Then, this parameter is only active in regions where syncmers are very sparse.</td>
 </tr>
 <tr>
-<td style="text-align: left;">-k</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-k</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Strobe length, has to be below 32. [20]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-l</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-l</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Lower syncmer offset from k/(k-s+1). Start sample second syncmer k/(k-s+1) + l syncmers downstream [0]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-u</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-u</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Upper syncmer offset from k/(k-s+1). End sample second syncmer k/(k-s+1) + u syncmers downstream [7]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-c</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-c</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Bitcount length between 2 and 63. [8]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-s</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-s</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Submer size used for creating syncmers [k-4]. Only even numbers on k-s allowed. A value of s=k-4 roughly represents w=10 as minimizer window [k-4]. It is recommended not to change this parameter unless you have a good understanding of syncmers as it will drastically change the memory usage and results with non default values.</td>
 </tr>
 <tr>
-<td style="text-align: left;">-b</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-b</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">No. of top bits of hash to use as bucket indices (8-31)[determined from reference size]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-A</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-A</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Matching score [2]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-B</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-B</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Mismatch penalty [8]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-O</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-O</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Gap open penalty [12]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-E</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-E</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Gap extension penalty [1]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-L</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-L</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Soft clipping penalty [10]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-f</td>
-<td style="text-align: center;">float</td>
+<td style="text-align: left;" class="whitespace-nowrap">-f</td>
+<td style="text-align: center;" class="whitespace-nowrap">float</td>
 <td style="text-align: left;">Top fraction of repetitive strobemers to filter out from sampling [0.0002]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-S</td>
-<td style="text-align: center;">float</td>
+<td style="text-align: left;" class="whitespace-nowrap">-S</td>
+<td style="text-align: center;" class="whitespace-nowrap">float</td>
 <td style="text-align: left;">Try candidate sites with mapping score at least S of maximum mapping score [0.5]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-M</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-M</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Maximum number of mapping sites to try [20]</td>
 </tr>
 <tr>
-<td style="text-align: left;">-R</td>
-<td style="text-align: center;">integer</td>
+<td style="text-align: left;" class="whitespace-nowrap">-R</td>
+<td style="text-align: center;" class="whitespace-nowrap">integer</td>
 <td style="text-align: left;">Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R &lt;= 1 deactivates rescue and is the fastest.</td>
 </tr>
 </tbody>

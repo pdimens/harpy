@@ -39,16 +39,16 @@ package dependencies provided below. Since `conda` is disabled, you will need to
 the commands.
 
 ==- additional harpy dependencies
-{.compact}
-| program             | minimum version | notes                     |
-|:--------------------|:---------------:|:--------------------------|
-| `bcftools`          |      1.22       | usually already installed |
-| `htslib`            |      1.22       | usually already installed |
-| `pysam`             |      0.23       |                           |
-| `rich-click`        |       1.8       |                           |
-| `snakemake-minimal` |       9.0       | `snakemake` works too     |
-| `samtools`          |      1.22       | usually already installed |
-| `seqtk`             |                 |                           |
+{.compact .clean}
+| program {.whitespace-nowrap} | minimum version | notes                     |
+| :--------------------------- | :-------------: | :------------------------ |
+| `bcftools`                   |      1.22       | usually already installed |
+| `htslib`                     |      1.22       | usually already installed |
+| `pysam`                      |      0.23       |                           |
+| `rich-click`                 |       1.8       |                           |
+| `snakemake-minimal`          |       9.0       | `snakemake` works too     |
+| `samtools`                   |      1.22       | usually already installed |
+| `seqtk`                      |                 |                           |
 ===
 
 ### nodes do not have internet access

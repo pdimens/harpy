@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -323,80 +323,80 @@ Harpy using the <span class="no-link inline-flex align-middle items-center justi
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>phase</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument                   |     default     | description                                                                                                                                                                                       |
-|:---------------------------|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `VCF`                      |                 | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Path to BCF/VCF file                                                                                                                                      |
-| `INPUTS`                   |                 | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)                                                     |
-| `--contigs`                |                 | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                                                                     |
-| `--extra-params` `-x`      |                 | Additional Hapcut2 arguments, in quotes                                                                                                                                                           |
-| `--reference` `-r`         |                 | Path to reference genome if wanting to also use reads spanning indels                                                                                                                             |
-| `--min-map-qual` `-q`      |      `20`       | Minimum mapping quality score to be considered for phasing                                                                                                                                        |
-| `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                                                                      |
-| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                                                                                |
-| `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                                                                         |
-| `--vcf-samples`, `-V`      |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                                                                  |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                   |
+| :---------------------------------- | :----------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VCF`                               |                                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Path to BCF/VCF file                                                                                  |
+| `INPUTS`                            |                                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                         |                                | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
+| `--extra-params` `-x`               |                                | Additional Hapcut2 arguments, in quotes                                                                                                       |
+| `--reference` `-r`                  |                                | Path to reference genome if wanting to also use reads spanning indels                                                                         |
+| `--min-map-qual` `-q`               |              `20`              | Minimum mapping quality score to be considered for phasing                                                                                    |
+| `--min-map-qual` `-m`               |              `13`              | Minimum base quality score to be considered for haplotype fragment inclusion                                                                  |
+| `--molecule-distance` `-d`          |            `100000`            | Base-pair distance threshold to separate molecules                                                                                            |
+| `--prune-threshold` `-p`            |              `30`              | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                     |
+| `--vcf-samples`, `-V`               |                                | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                 |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>VCF</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>VCF</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Path to BCF/VCF file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional Hapcut2 arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--reference</code> <code translate="no" v-pre>-r</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--reference</code> <code translate="no" v-pre>-r</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Path to reference genome if wanting to also use reads spanning indels</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-map-qual</code> <code translate="no" v-pre>-q</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>20</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-map-qual</code> <code translate="no" v-pre>-q</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>20</code></td>
 <td style="text-align: left;">Minimum mapping quality score to be considered for phasing</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-map-qual</code> <code translate="no" v-pre>-m</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>13</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-map-qual</code> <code translate="no" v-pre>-m</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>13</code></td>
 <td style="text-align: left;">Minimum base quality score to be considered for haplotype fragment inclusion</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>100000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>100000</code></td>
 <td style="text-align: left;">Base-pair distance threshold to separate molecules</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--prune-threshold</code> <code translate="no" v-pre>-p</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>30</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--prune-threshold</code> <code translate="no" v-pre>-p</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
 <td style="text-align: left;">PHRED-scale (%) threshold for pruning low-confidence SNPs</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--vcf-samples</code>, <code translate="no" v-pre>-V</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--vcf-samples</code>, <code translate="no" v-pre>-V</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><doc-anchor-trigger to="#prioritize-the-vcf-file">Use samples present in vcf file</doc-anchor-trigger> for phasing rather than those found the directory</td>
 </tr>
 </tbody>
@@ -486,85 +486,85 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
         └── Sample1.blocks.phased.log
 </code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                        | description                                                                              |
-| :-------------------------- | :--------------------------------------------------------------------------------------- |
-| `variants.phased.bcf*`      | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
-| `annotations/`              | phased vcf annotated with phased blocks                                                  |
-| `annotations_merge/`        | merged vcf of annotated and original vcf                                                 |
-| `extractHairs/`             | output from `extractHairs`                                                               |
-| `extractHairs/logs/`        | everything HapCut2's `extractHairs` prints to `stderr`                                   |
-| `input/head.names`          | extra file harpy creates to support new INFO fields in the phased VCF                    |
-| `input/*.bcf`               | vcf of a single sample from the original multi-sample input vcf                          |
-| `input/*.het.bcf`           | vcf of heterozygous loci of a single sample from the original multi-sample input vcf     |
-| `linkFragments/`            | results from HapCut2's `linkFragments`                                                   |
-| `linkFragments/logs`        | everything `linkFragments` prints to `stderr`                                            |
-| `reports/blocks.summary.gz` | summary information of all the samples' block files                                      |
-| `reports/phase.ipynb`       | report of haplotype phasing results                                                      |
-| `phaseBlocks/*.blocks*`     | output from HapCut2                                                                      |
-| `phaseBlocks/logs`          | everything HapCut2 prints to `stderr`                                                    |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item| description                                                                              |
+| :------------------------------ | :--------------------------------------------------------------------------------------- |
+| `variants.phased.bcf*`          | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
+| `annotations/`                  | phased vcf annotated with phased blocks                                                  |
+| `annotations_merge/`            | merged vcf of annotated and original vcf                                                 |
+| `extractHairs/`                 | output from `extractHairs`                                                               |
+| `extractHairs/logs/`            | everything HapCut2's `extractHairs` prints to `stderr`                                   |
+| `input/head.names`              | extra file harpy creates to support new INFO fields in the phased VCF                    |
+| `input/*.bcf`                   | vcf of a single sample from the original multi-sample input vcf                          |
+| `input/*.het.bcf`               | vcf of heterozygous loci of a single sample from the original multi-sample input vcf     |
+| `linkFragments/`                | results from HapCut2's `linkFragments`                                                   |
+| `linkFragments/logs`            | everything `linkFragments` prints to `stderr`                                            |
+| `reports/blocks.summary.gz`     | summary information of all the samples' block files                                      |
+| `reports/phase.ipynb`           | report of haplotype phasing results                                                      |
+| `phaseBlocks/*.blocks*`         | output from HapCut2                                                                      |
+| `phaseBlocks/logs`              | everything HapCut2 prints to `stderr`                                                    |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>variants.phased.bcf*</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>variants.phased.bcf*</code></td>
 <td style="text-align: left;">final vcf output of HapCut2 with all samples merged into a single file (with .csi index)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>annotations/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>annotations/</code></td>
 <td style="text-align: left;">phased vcf annotated with phased blocks</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>annotations_merge/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>annotations_merge/</code></td>
 <td style="text-align: left;">merged vcf of annotated and original vcf</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>extractHairs/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>extractHairs/</code></td>
 <td style="text-align: left;">output from <code translate="no" v-pre>extractHairs</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>extractHairs/logs/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>extractHairs/logs/</code></td>
 <td style="text-align: left;">everything HapCut2&#x27;s <code translate="no" v-pre>extractHairs</code> prints to <code translate="no" v-pre>stderr</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>input/head.names</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>input/head.names</code></td>
 <td style="text-align: left;">extra file harpy creates to support new INFO fields in the phased VCF</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>input/*.bcf</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>input/*.bcf</code></td>
 <td style="text-align: left;">vcf of a single sample from the original multi-sample input vcf</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>input/*.het.bcf</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>input/*.het.bcf</code></td>
 <td style="text-align: left;">vcf of heterozygous loci of a single sample from the original multi-sample input vcf</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>linkFragments/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>linkFragments/</code></td>
 <td style="text-align: left;">results from HapCut2&#x27;s <code translate="no" v-pre>linkFragments</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>linkFragments/logs</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>linkFragments/logs</code></td>
 <td style="text-align: left;">everything <code translate="no" v-pre>linkFragments</code> prints to <code translate="no" v-pre>stderr</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/blocks.summary.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/blocks.summary.gz</code></td>
 <td style="text-align: left;">summary information of all the samples&#x27; block files</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/phase.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/phase.ipynb</code></td>
 <td style="text-align: left;">report of haplotype phasing results</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>phaseBlocks/*.blocks*</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>phaseBlocks/*.blocks*</code></td>
 <td style="text-align: left;">output from HapCut2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>phaseBlocks/logs</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>phaseBlocks/logs</code></td>
 <td style="text-align: left;">everything HapCut2 prints to <code translate="no" v-pre>stderr</code></td>
 </tr>
 </tbody>
@@ -585,8 +585,6 @@ These are taken directly from running <code translate="no" v-pre>HAPCUT2 --help<
 <pre translate="no" class="language-none"><code v-pre class="language-none">Haplotype Post-Processing Options:
 --skip_prune, --sp &lt;0/1&gt;:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
 --discrete_pruning, --dp &lt;0/1&gt;:     use discrete heuristic to prune SNPs. default: 0
-
-Advanced Options:
 --max_iter, --mi &lt;int&gt; :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
 --maxcut_iter, --mc &lt;int&gt; :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000</code></pre>
 </doc-codeblock></div>

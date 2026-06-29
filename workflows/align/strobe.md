@@ -25,16 +25,16 @@ harpy align strobe genome.fasta Sequences/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="align strobe"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                   | type                 | default | description                                                                                                                                     |
-|:---------------------------|:---------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`                | file path            |         | [!badge variant="info" text="required"] Reference genome for read mapping                                                                       |
-| `INPUTS`                   | file/directory paths |         | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                | file path or list    |         | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
-| `--extra-params` `-x`      | string               |         | Additional stroebealign arguments, in quotes                                                                                                    |
-| `--keep-unmapped` `-u`     | toggle               |  false  | Output unmapped sequences too                                                                                                                   |
-| `--min-quality` `-d`       | integer (0-40)       |  `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--molecule-distance` `-d` | integer              |   `0`   | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
+{.compact .clean}
+| argument     {.whitespace-nowrap} | default {.whitespace-nowrap} | description                                                                                                                                     |
+| :-------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                       |                              | [!badge variant="info" text="required"] Reference genome for read mapping                                                                       |
+| `INPUTS`                          |                              | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                       |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `--extra-params` `-x`             |                              | Additional stroebealign arguments, in quotes                                                                                                    |
+| `--keep-unmapped` `-u`            |            false             | Output unmapped sequences too                                                                                                                   |
+| `--min-quality` `-d`              |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
+| `--molecule-distance` `-d`        |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
 
 ### Molecule distance
 The `--molecule-distance` option is used during the BWA alignment workflow
@@ -135,8 +135,8 @@ Align/strobealign
             └── Sample1.cov.gz
 ```
 {.compact}
-| item     | description                                                                                                 |
-|:---------|:------------------------------------------------------------------------------------------------------------|
+| item    {.whitespace-nowrap}        | description                                                                      |
+| :---------------------------------- | :------------------------------------------------------------------------------- |
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
 | `logs/*bwa.log`                     | output of strobealign during run                                                 |
@@ -145,7 +145,7 @@ Align/strobealign
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
 | `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                   |
 | `reports/strobealign.summary.ipynb` | report summarizing `samtools stats` of raw alignments across all samples         |
-| `reports/Sample1.ipynb`             | html report summarizing BX tag metrics and alignment coverage                    | 
+| `reports/Sample1.ipynb`             | html report summarizing BX tag metrics and alignment coverage                    |
 | `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                           |
 | `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports |
 
@@ -158,30 +158,30 @@ strobealign [--use-index -r ...] -t THREADS -U -C --rg-id={sample} --rg=SM:{samp
 Below is a list of all `strobealign` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of it.
 
 {.compact}
-| argument  | type    | description |
-| :----      | :---:  | :---------- |
-| -v        | toggle  | Verbose output |
-| --aemb    | toggle  | Output the estimated abundance value of contigs, the format of output file is: contig_id abundance_value |
-| --eqx     | toggle  | Emit =/X instead of M CIGAR operations |
-| --no-PG   | toggle  | Do not output PG header |
-| --details | toggle  | Add debugging details to SAM records |
-| --rg=     | [TAG:VALUE...] | Add read group metadata to SAM header (can be specified multiple times). Example: SM:samplename |
-| -N        | integer  | Retain at most INT secondary alignments (is upper bounded by -M and depends on -S) [0] |
-| -m        | integer  | Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, the seed length distribution is usually determined by parameters l and u. Then, this parameter is only active in regions where syncmers are very sparse. |
-| -k        | integer  | Strobe length, has to be below 32. [20] |
-| -l        | integer  | Lower syncmer offset from k/(k-s+1). Start sample second syncmer k/(k-s+1) + l syncmers downstream [0] |
-| -u        | integer  | Upper syncmer offset from k/(k-s+1). End sample second syncmer k/(k-s+1) + u syncmers downstream [7] |
-| -c        | integer  | Bitcount length between 2 and 63. [8] |
-| -s        | integer  | Submer size used for creating syncmers [k-4]. Only even numbers on k-s allowed. A value of s=k-4 roughly represents w=10 as minimizer window [k-4]. It is recommended not to change this parameter unless you have a good understanding of syncmers as it will drastically change the memory usage and results with non default values. |
-| -b        | integer  | No. of top bits of hash to use as bucket indices (8-31)[determined from reference size] |
-| -A        | integer  | Matching score [2] |
-| -B        | integer  | Mismatch penalty [8] |
-| -O        | integer  | Gap open penalty [12] |
-| -E        | integer  | Gap extension penalty [1] |
-| -L        | integer  | Soft clipping penalty [10] |
-| -f        | float  | Top fraction of repetitive strobemers to filter out from sampling [0.0002] |
-| -S        | float  | Try candidate sites with mapping score at least S of maximum mapping score [0.5] |
-| -M        | integer  | Maximum number of mapping sites to try [20] |
-| -R        | integer  | Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R <= 1 deactivates rescue and is the fastest. |
+| argument {.whitespace-nowrap} | type   {.whitespace-nowrap} | description                                                                                                                                                                                                                                                                                                                             |
+| :---------------------------- | :-------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -v                            |           toggle            | Verbose output                                                                                                                                                                                                                                                                                                                          |
+| --aemb                        |           toggle            | Output the estimated abundance value of contigs, the format of output file is: contig_id abundance_value                                                                                                                                                                                                                                |
+| --eqx                         |           toggle            | Emit =/X instead of M CIGAR operations                                                                                                                                                                                                                                                                                                  |
+| --no-PG                       |           toggle            | Do not output PG header                                                                                                                                                                                                                                                                                                                 |
+| --details                     |           toggle            | Add debugging details to SAM records                                                                                                                                                                                                                                                                                                    |
+| --rg=                         |       [TAG:VALUE...]        | Add read group metadata to SAM header (can be specified multiple times). Example: SM:samplename                                                                                                                                                                                                                                         |
+| -N                            |           integer           | Retain at most INT secondary alignments (is upper bounded by -M and depends on -S) [0]                                                                                                                                                                                                                                                  |
+| -m                            |           integer           | Maximum seed length. Defaults to r - 50. For reasonable values on -l and -u, the seed length distribution is usually determined by parameters l and u. Then, this parameter is only active in regions where syncmers are very sparse.                                                                                                   |
+| -k                            |           integer           | Strobe length, has to be below 32. [20]                                                                                                                                                                                                                                                                                                 |
+| -l                            |           integer           | Lower syncmer offset from k/(k-s+1). Start sample second syncmer k/(k-s+1) + l syncmers downstream [0]                                                                                                                                                                                                                                  |
+| -u                            |           integer           | Upper syncmer offset from k/(k-s+1). End sample second syncmer k/(k-s+1) + u syncmers downstream [7]                                                                                                                                                                                                                                    |
+| -c                            |           integer           | Bitcount length between 2 and 63. [8]                                                                                                                                                                                                                                                                                                   |
+| -s                            |           integer           | Submer size used for creating syncmers [k-4]. Only even numbers on k-s allowed. A value of s=k-4 roughly represents w=10 as minimizer window [k-4]. It is recommended not to change this parameter unless you have a good understanding of syncmers as it will drastically change the memory usage and results with non default values. |
+| -b                            |           integer           | No. of top bits of hash to use as bucket indices (8-31)[determined from reference size]                                                                                                                                                                                                                                                 |
+| -A                            |           integer           | Matching score [2]                                                                                                                                                                                                                                                                                                                      |
+| -B                            |           integer           | Mismatch penalty [8]                                                                                                                                                                                                                                                                                                                    |
+| -O                            |           integer           | Gap open penalty [12]                                                                                                                                                                                                                                                                                                                   |
+| -E                            |           integer           | Gap extension penalty [1]                                                                                                                                                                                                                                                                                                               |
+| -L                            |           integer           | Soft clipping penalty [10]                                                                                                                                                                                                                                                                                                              |
+| -f                            |            float            | Top fraction of repetitive strobemers to filter out from sampling [0.0002]                                                                                                                                                                                                                                                              |
+| -S                            |            float            | Try candidate sites with mapping score at least S of maximum mapping score [0.5]                                                                                                                                                                                                                                                        |
+| -M                            |           integer           | Maximum number of mapping sites to try [20]                                                                                                                                                                                                                                                                                             |
+| -R                            |           integer           | Rescue level. Perform additional search for reads with many repetitive seeds filtered out. This search includes seeds of R*repetitive_seed_size_filter (default: R=2). Higher R than default makes strobealign significantly slower but more accurate. R <= 1 deactivates rescue and is the fastest.                                    |
 
 +++

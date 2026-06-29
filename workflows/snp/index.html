@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -355,56 +355,56 @@ harpy snp freebayes --threads 20 genome.fasta Align/bwa</code></pre>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>snp</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument              | default | description                                                                                                                   |
-|:----------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`           |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome used for variant calling                                             |
-| `INPUTS`              |         | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
-| `--extra-params` `-x` |         | Additional mpileup/freebayes arguments, in quotes                                                                             |
-| `--ploidy` `-n`       |   `2`   | Ploidy of samples                                                                                                             |
-| `--populations` `-p`  |         | Tab-delimited file of sample\&lt;*tab*\&gt;group                                                                                    |
-| `--regions` `-r`      | `50000` | Regions to call variants on ([see below](#regions))                                                                           |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                   |
+| :------------------------------- | :--------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                      |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference genome used for variant calling                                                             |
+| `INPUTS`                         |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--extra-params` `-x`            |                              | Additional mpileup/freebayes arguments, in quotes                                                                                             |
+| `--ploidy` `-n`                  |             `2`              | Ploidy of samples                                                                                                                             |
+| `--populations` `-p`             |                              | Tab-delimited file of sample\&lt;*tab*\&gt;group                                                                                                    |
+| `--regions` `-r`                 |           `50000`            | Regions to call variants on ([see below](#regions))                                                                                           |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>REFERENCE</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>REFERENCE</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Reference genome used for variant calling</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../getting_started/common_options/#input-arguments">input BAM files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional mpileup/freebayes arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--ploidy</code> <code translate="no" v-pre>-n</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>2</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--ploidy</code> <code translate="no" v-pre>-n</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>2</code></td>
 <td style="text-align: left;">Ploidy of samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--populations</code> <code translate="no" v-pre>-p</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Tab-delimited file of sample&lt;<em>tab</em>&gt;group</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--regions</code> <code translate="no" v-pre>-r</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>50000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--regions</code> <code translate="no" v-pre>-r</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>50000</code></td>
 <td style="text-align: left;">Regions to call variants on (<doc-anchor-trigger to="#regions">see below</doc-anchor-trigger>)</td>
 </tr>
 </tbody>
@@ -563,60 +563,60 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
     └── variants.raw.ipynb
 </code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                      | description                                                                                    |
-|:--------------------------|:-----------------------------------------------------------------------------------------------|
-| `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |
-| `variants.normalized.bcf` | variants, but with indels realigned and duplicates removed                                     |
-| `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
-| `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
-| `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |
-| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
-| `logs/samples.files`      | list of alignment files used for variant calling                                               |
-| `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
-| `reports/variants.*.ipynb` | report summarizing variants                                                                    |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item| description                                                                              |
+| :----------------------------- | :--------------------------------------------------------------------------------------- |
+| `variants.raw.bcf`             | vcf file produced from variant calling, contains all samples and loci                    |
+| `variants.normalized.bcf`      | variants, but with indels realigned and duplicates removed                               |
+| `variants.*.bcf.csi`           | index file for `variants.*.bcf`                                                          |
+| `logs/*.call.log`              | what `bcftools call` writes to `stderr`                                                  |
+| `logs/*.METHOD.log`            | what `bcftools mpileup` or `freebayes` writes to `stderr`                                |
+| `logs/sample.groups`           | if provided, a copy of the file provided to `--populations` with commented lines removed |
+| `logs/samples.files`           | list of alignment files used for variant calling                                         |
+| `logs/samples.names`           | list of sample names associated with alignment files used for variant calling            |
+| `reports/variants.*.ipynb`     | report summarizing variants                                                              |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>variants.raw.bcf</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>variants.raw.bcf</code></td>
 <td style="text-align: left;">vcf file produced from variant calling, contains all samples and loci</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>variants.normalized.bcf</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>variants.normalized.bcf</code></td>
 <td style="text-align: left;">variants, but with indels realigned and duplicates removed</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>variants.*.bcf.csi</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>variants.*.bcf.csi</code></td>
 <td style="text-align: left;">index file for <code translate="no" v-pre>variants.*.bcf</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*.call.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*.call.log</code></td>
 <td style="text-align: left;">what <code translate="no" v-pre>bcftools call</code> writes to <code translate="no" v-pre>stderr</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/*.METHOD.log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/*.METHOD.log</code></td>
 <td style="text-align: left;">what <code translate="no" v-pre>bcftools mpileup</code> or <code translate="no" v-pre>freebayes</code> writes to <code translate="no" v-pre>stderr</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/sample.groups</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/sample.groups</code></td>
 <td style="text-align: left;">if provided, a copy of the file provided to <code translate="no" v-pre>--populations</code> with commented lines removed</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/samples.files</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/samples.files</code></td>
 <td style="text-align: left;">list of alignment files used for variant calling</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/samples.names</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/samples.names</code></td>
 <td style="text-align: left;">list of sample names associated with alignment files used for variant calling</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/variants.*.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/variants.*.ipynb</code></td>
 <td style="text-align: left;">report summarizing variants</td>
 </tr>
 </tbody>

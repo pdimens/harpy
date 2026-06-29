@@ -43,12 +43,12 @@ harpy preprocess gih --threads 20 data/*R{1,2}.fastq.gz
 ### :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="preprocess meier2021"] module is configured using these command-line arguments:
 
-{.compact}
-| argument         |  default     | description                                                                                              |
-|:-----------------|--------------|:---------------------------------------------------------------------------------------------------------|
-| `INPUTS`         |              | [!badge variant="info" text="required"] The sample FASTQ files (R1 and R2)                               |
-| `--me-seq` `-m`  | AGATGTGTATAAGAGACAG | ME sequence to look for  |
-| `--mismatch` `n` | 2 | Allow $n$ mismatches in ME sequence                                                 |
+{.compact .clean}
+| argument   {.whitespace-nowrap} | default  {.whitespace-nowrap} | description                                                                |
+| :------------------------------ | ----------------------------- | :------------------------------------------------------------------------- |
+| `INPUTS`                        |                               | [!badge variant="info" text="required"] The sample FASTQ files (R1 and R2) |
+| `--me-seq` `-m`                 | AGATGTGTATAAGAGACAG           | ME sequence to look for                                                    |
+| `--mismatch` `n`                | 2                             | Allow $n$ mismatches in ME sequence                                        |
 
 ### The ME Sequence
 The ME sequence is very important for preprocessing these data correctly, as identifying the position it starts will
@@ -107,13 +107,13 @@ Preprocess/
     ├── performance.QC.ipynb
     └── preprocess.QC.html
 ```
-{.compact}
-| item                          | description                                                                               |
-| :---------------------------- | :---------------------------------------------------------------------------------------- |
-| `*.R1.fq.gz`                  | Processed forward-reads in 'standard' format                                              |
-| `*.R2.fq.gz`                  | Processed reverse-reads in 'standard' format                                              |
-| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
-| `reports/performance.ipynb`   | Preprocessing-specific report for all samples                                             |
+{.compact .clean}
+| item      {.whitespace-nowrap} | description                                   |
+| :----------------------------- | :-------------------------------------------- |
+| `*.R1.fq.gz`                   | Processed forward-reads in 'standard' format  |
+| `*.R2.fq.gz`                   | Processed reverse-reads in 'standard' format  |
+| `reports/preprocess.QC.html`   | MultiQC report of FASTQC quality assessment   |
+| `reports/performance.ipynb`    | Preprocessing-specific report for all samples |
 +++
 
 ## meier2021
@@ -147,17 +147,17 @@ harpy preprocess meier2021 --threads 20 --schema demux.schema Plate_1_S001_R*.fa
 ### :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="preprocess meier2021"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                       | description                                                                                              |
-|:-------------------------------|:---------------------------------------------------------------------------------------------------------|
-| `R1_FQ`                        | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
-| `R2_FQ`                        | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
-| `I1_FQ`                        | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
-| `I2_FQ`                        | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
-| `--keep-unknown-samples` `-u`  | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
-| `--keep-unknown-barcodes` `-b` | Keep a separate file of reads with unrecognized barcodes                                                 |
-| `--qxrx` `-q`                  | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
-| `--schema` `-s`                | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
+{.compact .clean}
+| argument      {.whitespace-nowrap} | description                                                                                              |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| `R1_FQ`                            | [!badge variant="info" text="required"] The forward multiplexed FASTQ file                               |
+| `R2_FQ`                            | [!badge variant="info" text="required"] The reverse multiplexed FASTQ file                               |
+| `I1_FQ`                            | [!badge variant="info" text="required"] The forward FASTQ index file provided by the sequencing facility |
+| `I2_FQ`                            | [!badge variant="info" text="required"] The reverse FASTQ index file provided by the sequencing facility |
+| `--keep-unknown-samples` `-u`      | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
+| `--keep-unknown-barcodes` `-b`     | Keep a separate file of reads with unrecognized barcodes                                                 |
+| `--qxrx` `-q`                      | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
+| `--schema` `-s`                    | [!badge variant="info" text="required"] Tab-delimited file of sample\<tab\>barcode                       |
 
 #### Keeping Unknown Samples
 It's not uncommon that some sequences cannot be demultiplexed due to sequencing errors at the ID location. Use `--keep-unknown-samples`/`-u` to
@@ -238,12 +238,12 @@ Preprocess/
 └── reports
     └── preprocess.QC.html
 ```
-{.compact}
-| item                          | description                                                                               |
-| :---------------------------- | :---------------------------------------------------------------------------------------- |
-| `*.F.fq.gz`                   | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
+{.compact .clean}
+| item                         | description                                                                               |
+| :--------------------------- | :---------------------------------------------------------------------------------------- |
+| `*.F.fq.gz`                  | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `*.R.fq.gz`                  | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `reports/preprocess.QC.html` | MultiQC report of FASTQC quality assessment                                               |
 
 +++
 

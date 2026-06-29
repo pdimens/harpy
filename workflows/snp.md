@@ -51,15 +51,15 @@ harpy snp freebayes --threads 20 genome.fasta Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](../Getting_Started/common_options.md), the [!badge corners="pill" text="snp"] module is configured using these command-line arguments:
 
-{.compact}
-| argument              | default | description                                                                                                                   |
-|:----------------------|:-------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `REFERENCE`           |         | [!badge variant="info" text="required"] Reference genome used for variant calling                                             |
-| `INPUTS`              |         | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
-| `--extra-params` `-x` |         | Additional mpileup/freebayes arguments, in quotes                                                                             |
-| `--ploidy` `-n`       |   `2`   | Ploidy of samples                                                                                                             |
-| `--populations` `-p`  |         | Tab-delimited file of sample\<*tab*\>group                                                                                    |
-| `--regions` `-r`      | `50000` | Regions to call variants on ([see below](#regions))                                                                           |
+{.compact .clean}
+| argument    {.whitespace-nowrap} | default {.whitespace-nowrap} | description                                                                                                                                   |
+| :------------------------------- | :--------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `REFERENCE`                      |                              | [!badge variant="info" text="required"] Reference genome used for variant calling                                                             |
+| `INPUTS`                         |                              | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--extra-params` `-x`            |                              | Additional mpileup/freebayes arguments, in quotes                                                                                             |
+| `--ploidy` `-n`                  |             `2`              | Ploidy of samples                                                                                                                             |
+| `--populations` `-p`             |                              | Tab-delimited file of sample\<*tab*\>group                                                                                                    |
+| `--regions` `-r`                 |           `50000`            | Regions to call variants on ([see below](#regions))                                                                                           |
 
 ### ploidy
 If you are calling haploid or diploid samples, using either `mpileup` or `freebayes` will be comparable. However, if you need to call SNPs in polyploids (ploidy >2),
@@ -175,18 +175,18 @@ SNP/method
     └── variants.raw.ipynb
 
 ```
-{.compact}
-| item                      | description                                                                                    |
-|:--------------------------|:-----------------------------------------------------------------------------------------------|
-| `variants.raw.bcf`        | vcf file produced from variant calling, contains all samples and loci                          |
-| `variants.normalized.bcf` | variants, but with indels realigned and duplicates removed                                     |
-| `variants.*.bcf.csi`      | index file for `variants.*.bcf`                                                                |
-| `logs/*.call.log`         | what `bcftools call` writes to `stderr`                                                        |
-| `logs/*.METHOD.log`       | what `bcftools mpileup` or `freebayes` writes to `stderr`                                      |
-| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed       |
-| `logs/samples.files`      | list of alignment files used for variant calling                                               |
-| `logs/samples.names`      | list of sample names associated with alignment files used for variant calling                  |
-| `reports/variants.*.ipynb` | report summarizing variants                                                                    |
+{.compact .clean}
+| item      {.whitespace-nowrap} | description                                                                              |
+| :----------------------------- | :--------------------------------------------------------------------------------------- |
+| `variants.raw.bcf`             | vcf file produced from variant calling, contains all samples and loci                    |
+| `variants.normalized.bcf`      | variants, but with indels realigned and duplicates removed                               |
+| `variants.*.bcf.csi`           | index file for `variants.*.bcf`                                                          |
+| `logs/*.call.log`              | what `bcftools call` writes to `stderr`                                                  |
+| `logs/*.METHOD.log`            | what `bcftools mpileup` or `freebayes` writes to `stderr`                                |
+| `logs/sample.groups`           | if provided, a copy of the file provided to `--populations` with commented lines removed |
+| `logs/samples.files`           | list of alignment files used for variant calling                                         |
+| `logs/samples.names`           | list of sample names associated with alignment files used for variant calling            |
+| `reports/variants.*.ipynb`     | report summarizing variants                                                              |
 
 +++ :icon-code-square: mpileup parameters
 By default, Harpy runs `mpileup` with these parameters (excluding inputs and outputs):

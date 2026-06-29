@@ -55,7 +55,7 @@ get results like these:
 
 Given these results, a sensible pooling strategy may be:
 
-{.compact}
+{.compact .clean}
 | Pool | Sample Locations           |
 | :---:| :------------------------- |
 | 1    | Miramichi                  |

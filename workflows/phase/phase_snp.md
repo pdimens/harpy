@@ -28,19 +28,19 @@ harpy phase --threads 20 Variants/variants.raw.bcf alignments/
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="phase"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                   |     default     | description                                                                                                                                                                                       |
-|:---------------------------|:---------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `VCF`                      |                 | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                                                                                      |
-| `INPUTS`                   |                 | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)                                                     |
-| `--contigs`                |                 | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                                                                     |
-| `--extra-params` `-x`      |                 | Additional Hapcut2 arguments, in quotes                                                                                                                                                           |
-| `--reference` `-r`         |                 | Path to reference genome if wanting to also use reads spanning indels                                                                                                                             |
-| `--min-map-qual` `-q`      |      `20`       | Minimum mapping quality score to be considered for phasing                                                                                                                                        |
-| `--min-map-qual` `-m`      |      `13`       | Minimum base quality score to be considered for haplotype fragment inclusion                                                                                                                      |
-| `--molecule-distance` `-d` |    `100000`     | Base-pair distance threshold to separate molecules                                                                                                                                                |
-| `--prune-threshold` `-p`   |      `30`       | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                                                                         |
-| `--vcf-samples`, `-V`      |                 | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                                                                  |
+{.compact .clean}
+| argument       {.whitespace-nowrap} | default   {.whitespace-nowrap} | description                                                                                                                                   |
+| :---------------------------------- | :----------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VCF`                               |                                | [!badge variant="info" text="required"] Path to BCF/VCF file                                                                                  |
+| `INPUTS`                            |                                | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `--contigs`                         |                                | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                 |
+| `--extra-params` `-x`               |                                | Additional Hapcut2 arguments, in quotes                                                                                                       |
+| `--reference` `-r`                  |                                | Path to reference genome if wanting to also use reads spanning indels                                                                         |
+| `--min-map-qual` `-q`               |              `20`              | Minimum mapping quality score to be considered for phasing                                                                                    |
+| `--min-map-qual` `-m`               |              `13`              | Minimum base quality score to be considered for haplotype fragment inclusion                                                                  |
+| `--molecule-distance` `-d`          |            `100000`            | Base-pair distance threshold to separate molecules                                                                                            |
+| `--prune-threshold` `-p`            |              `30`              | PHRED-scale (%) threshold for pruning low-confidence SNPs                                                                                     |
+| `--vcf-samples`, `-V`               |                                | [Use samples present in vcf file](#prioritize-the-vcf-file) for phasing rather than those found the directory                                 |
 
 ### Prioritize the vcf file
 By default, Harpy assumes you want to use all the samples
@@ -130,23 +130,23 @@ Phase/
         └── Sample1.blocks.phased.log
 
 ```
-{.compact}
-| item                        | description                                                                              |
-| :-------------------------- | :--------------------------------------------------------------------------------------- |
-| `variants.phased.bcf*`      | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
-| `annotations/`              | phased vcf annotated with phased blocks                                                  |
-| `annotations_merge/`        | merged vcf of annotated and original vcf                                                 |
-| `extractHairs/`             | output from `extractHairs`                                                               |
-| `extractHairs/logs/`        | everything HapCut2's `extractHairs` prints to `stderr`                                   |
-| `input/head.names`          | extra file harpy creates to support new INFO fields in the phased VCF                    |
-| `input/*.bcf`               | vcf of a single sample from the original multi-sample input vcf                          |
-| `input/*.het.bcf`           | vcf of heterozygous loci of a single sample from the original multi-sample input vcf     |
-| `linkFragments/`            | results from HapCut2's `linkFragments`                                                   |
-| `linkFragments/logs`        | everything `linkFragments` prints to `stderr`                                            |
-| `reports/blocks.summary.gz` | summary information of all the samples' block files                                      |
-| `reports/phase.ipynb`       | report of haplotype phasing results                                                      |
-| `phaseBlocks/*.blocks*`     | output from HapCut2                                                                      |
-| `phaseBlocks/logs`          | everything HapCut2 prints to `stderr`                                                    |
+{.compact .clean}
+| item       {.whitespace-nowrap} | description                                                                              |
+| :------------------------------ | :--------------------------------------------------------------------------------------- |
+| `variants.phased.bcf*`          | final vcf output of HapCut2 with all samples merged into a single file (with .csi index) |
+| `annotations/`                  | phased vcf annotated with phased blocks                                                  |
+| `annotations_merge/`            | merged vcf of annotated and original vcf                                                 |
+| `extractHairs/`                 | output from `extractHairs`                                                               |
+| `extractHairs/logs/`            | everything HapCut2's `extractHairs` prints to `stderr`                                   |
+| `input/head.names`              | extra file harpy creates to support new INFO fields in the phased VCF                    |
+| `input/*.bcf`                   | vcf of a single sample from the original multi-sample input vcf                          |
+| `input/*.het.bcf`               | vcf of heterozygous loci of a single sample from the original multi-sample input vcf     |
+| `linkFragments/`                | results from HapCut2's `linkFragments`                                                   |
+| `linkFragments/logs`            | everything `linkFragments` prints to `stderr`                                            |
+| `reports/blocks.summary.gz`     | summary information of all the samples' block files                                      |
+| `reports/phase.ipynb`           | report of haplotype phasing results                                                      |
+| `phaseBlocks/*.blocks*`         | output from HapCut2                                                                      |
+| `phaseBlocks/logs`              | everything HapCut2 prints to `stderr`                                                    |
 
 +++ :icon-code-square: HapCut2 parameters
 By default, Harpy runs `HAPCUT2` with these parameters (excluding inputs and outputs):
@@ -160,8 +160,6 @@ These are taken directly from running `HAPCUT2 --help`.
 Haplotype Post-Processing Options:
 --skip_prune, --sp <0/1>:           skip default likelihood pruning step (prune SNPs after the fact using column 11 of the output). default: 0
 --discrete_pruning, --dp <0/1>:     use discrete heuristic to prune SNPs. default: 0
-
-Advanced Options:
 --max_iter, --mi <int> :            maximum number of global iterations. Preferable to tweak --converge option instead. default: 10000
 --maxcut_iter, --mc <int> :         maximum number of max-likelihood-cut iterations. Preferable to tweak --converge option instead. default: 10000
 ```

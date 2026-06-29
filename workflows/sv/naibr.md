@@ -56,18 +56,18 @@ harpy sv naibr --threads 20 genome.fasta Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="sv naibr"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                   | default  | description                                                                                                                   |
-|:---------------------------|:--------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                   |          | [!badge variant="info" text="required"] Files or directories containing [phased BAM files](/Getting_Started/common_options.md#input-arguments) |
-| `REFERENCE`                |          | [!badge variant="info" text="required"] Reference genome used to generate input alignments                                    |
-| `--contigs`                |          | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                 |
-| `--extra-params` `-x`      |          | Additional naibr arguments, in quotes                                                                                         |
-| `--min-barcodes` `-b`      |   `2`    | Minimum number of barcode overlaps supporting candidate SV                                                                    |
-| `--min-quality` `-q`       |   `30`   | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                          |
-| `--min-size` `-m`          |  `1000`  | Minimum size of SV to detect                                                                                                  |
-| `--molecule-distance` `-d` | `100000` | Base-pair distance threshold to separate molecules                                                                            |
-| `--populations` `-p`       |          | Tab-delimited file of sample\<*tab*\>group                                                                                    |
+{.compact .clean}
+| argument       {.whitespace-nowrap} | default {.whitespace-nowrap} | description                                                                                                                                    |
+| :---------------------------------- | :--------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                            |                              | [!badge variant="info" text="required"] Files or directories containing [phased BAM files](/Getting_Started/common_options.md#input-arguments) |
+| `REFERENCE`                         |                              | [!badge variant="info" text="required"] Reference genome used to generate input alignments                                                     |
+| `--contigs`                         |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                  |
+| `--extra-params` `-x`               |                              | Additional naibr arguments, in quotes                                                                                                          |
+| `--min-barcodes` `-b`               |             `2`              | Minimum number of barcode overlaps supporting candidate SV                                                                                     |
+| `--min-quality` `-q`                |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                           |
+| `--min-size` `-m`                   |            `1000`            | Minimum size of SV to detect                                                                                                                   |
+| `--molecule-distance` `-d`          |           `100000`           | Base-pair distance threshold to separate molecules                                                                                             |
+| `--populations` `-p`                |                              | Tab-delimited file of sample\<*tab*\>group                                                                                                     |
 
 ### Molecule distance
 The `--molecule-distance` option is used to let the program determine how far apart alignments on a contig with the same
@@ -145,19 +145,19 @@ SV/naibr
     └── sample2.vcf
 ```
 
-{.compact}
-| item                 | description                                                |
-| :------------------- | :--------------------------------------------------------- |
-| `deletions.bedpe`    | an aggregation of all the deletions identified by NAIBR    |
-| `duplications.bedpe` | an aggregation of all the duplications identified by NAIBR |
-| `inversions.bedpe`   | an aggregation of all the inversions identified by NAIBR   |
-| `bedpe/`             | structural variants identified by NAIBR                    |
-| `configs/`           | the configuration files harpy generated for each sample    |
-| `filtered/`          | the variants that failed NAIBR's internal filters          |
-| `IGV/`               | same as the output `.bedpe` files but in IGV format        |
-| `logs/*.log`         | what NAIBR writes to `stderr` during operation             |
-| `reports/`           | summary report with interactive plots of detected SV       |
-| `vcf/`               | the resulting variants, but in `.VCF` format               |
+{.compact .clean}
+| item       {.whitespace-nowrap} | description                                                |
+| :------------------------------ | :--------------------------------------------------------- |
+| `deletions.bedpe`               | an aggregation of all the deletions identified by NAIBR    |
+| `duplications.bedpe`            | an aggregation of all the duplications identified by NAIBR |
+| `inversions.bedpe`              | an aggregation of all the inversions identified by NAIBR   |
+| `bedpe/`                        | structural variants identified by NAIBR                    |
+| `configs/`                      | the configuration files harpy generated for each sample    |
+| `filtered/`                     | the variants that failed NAIBR's internal filters          |
+| `IGV/`                          | same as the output `.bedpe` files but in IGV format        |
+| `logs/*.log`                    | what NAIBR writes to `stderr` during operation             |
+| `reports/`                      | summary report with interactive plots of detected SV       |
+| `vcf/`                          | the resulting variants, but in `.VCF` format               |
 
 +++ :icon-code-square: naibr parameters
 By default, Harpy runs `naibr` with these parameters (excluding inputs and outputs):

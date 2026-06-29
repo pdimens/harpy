@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -304,36 +304,36 @@ for these characteristics, so it does not require user intervention.</p>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>preprocess meier2021</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument         |  default     | description                                                                                              |
-|:-----------------|--------------|:---------------------------------------------------------------------------------------------------------|
-| `INPUTS`         |              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The sample FASTQ files (R1 and R2)                               |
-| `--me-seq` `-m`  | AGATGTGTATAAGAGACAG | ME sequence to look for  |
-| `--mismatch` `n` | 2 | Allow $n$ mismatches in ME sequence                                                 |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                |
+| :------------------------------ | ----------------------------- | :------------------------------------------------------------------------- |
+| `INPUTS`                        |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The sample FASTQ files (R1 and R2) |
+| `--me-seq` `-m`                 | AGATGTGTATAAGAGACAG           | ME sequence to look for                                                    |
+| `--mismatch` `n`                | 2                             | Allow $n$ mismatches in ME sequence                                        |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th>default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The sample FASTQ files (R1 and R2)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--me-seq</code> <code translate="no" v-pre>-m</code></td>
-<td>AGATGTGTATAAGAGACAG</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--me-seq</code> <code translate="no" v-pre>-m</code></td>
+<td class="whitespace-nowrap">AGATGTGTATAAGAGACAG</td>
 <td style="text-align: left;">ME sequence to look for</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--mismatch</code> <code translate="no" v-pre>n</code></td>
-<td>2</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--mismatch</code> <code translate="no" v-pre>n</code></td>
+<td class="whitespace-nowrap">2</td>
 <td style="text-align: left;">Allow <span class="math">n</span> mismatches in ME sequence</td>
 </tr>
 </tbody>
@@ -412,35 +412,35 @@ generic sample names for demonstration purposes. The resulting folder also inclu
     ├── performance.QC.ipynb
     └── preprocess.QC.html</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                          | description                                                                               |
-| :---------------------------- | :---------------------------------------------------------------------------------------- |
-| `*.R1.fq.gz`                  | Processed forward-reads in 'standard' format                                              |
-| `*.R2.fq.gz`                  | Processed reverse-reads in 'standard' format                                              |
-| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |
-| `reports/performance.ipynb`   | Preprocessing-specific report for all samples                                             |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item| description                                   |
+| :----------------------------- | :-------------------------------------------- |
+| `*.R1.fq.gz`                   | Processed forward-reads in 'standard' format  |
+| `*.R2.fq.gz`                   | Processed reverse-reads in 'standard' format  |
+| `reports/preprocess.QC.html`   | MultiQC report of FASTQC quality assessment   |
+| `reports/performance.ipynb`    | Preprocessing-specific report for all samples |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.R1.fq.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.R1.fq.gz</code></td>
 <td style="text-align: left;">Processed forward-reads in &#x27;standard&#x27; format</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.R2.fq.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.R2.fq.gz</code></td>
 <td style="text-align: left;">Processed reverse-reads in &#x27;standard&#x27; format</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/preprocess.QC.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/preprocess.QC.html</code></td>
 <td style="text-align: left;">MultiQC report of FASTQC quality assessment</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/performance.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/performance.ipynb</code></td>
 <td style="text-align: left;">Preprocessing-specific report for all samples</td>
 </tr>
 </tbody>
@@ -505,63 +505,63 @@ meaning a single sample should have the same <code translate="no" v-pre>C</code>
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>preprocess meier2021</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument                       | description                                                                                              |
-|:-------------------------------|:---------------------------------------------------------------------------------------------------------|
-| `R1_FQ`                        | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The forward multiplexed FASTQ file                               |
-| `R2_FQ`                        | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The reverse multiplexed FASTQ file                               |
-| `I1_FQ`                        | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The forward FASTQ index file provided by the sequencing facility |
-| `I2_FQ`                        | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The reverse FASTQ index file provided by the sequencing facility |
-| `--keep-unknown-samples` `-u`  | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
-| `--keep-unknown-barcodes` `-b` | Keep a separate file of reads with unrecognized barcodes                                                 |
-| `--qxrx` `-q`                  | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
-| `--schema` `-s`                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Tab-delimited file of sample\&lt;tab\&gt;barcode                       |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| description                                                                                              |
+| :--------------------------------- | :------------------------------------------------------------------------------------------------------- |
+| `R1_FQ`                            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The forward multiplexed FASTQ file                               |
+| `R2_FQ`                            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The reverse multiplexed FASTQ file                               |
+| `I1_FQ`                            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The forward FASTQ index file provided by the sequencing facility |
+| `I2_FQ`                            | [!badge variant=&quot;info&quot; text=&quot;required&quot;] The reverse FASTQ index file provided by the sequencing facility |
+| `--keep-unknown-samples` `-u`      | Keep a separate file of reads with recognized barcodes but don't match any sample in the schema          |
+| `--keep-unknown-barcodes` `-b`     | Keep a separate file of reads with unrecognized barcodes                                                 |
+| `--qxrx` `-q`                      | Include the `QX:Z` and `RX:Z` tags in the read header                                                    |
+| `--schema` `-s`                    | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Tab-delimited file of sample\&lt;tab\&gt;barcode                       |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>R1_FQ</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>R1_FQ</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The forward multiplexed FASTQ file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>R2_FQ</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>R2_FQ</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The reverse multiplexed FASTQ file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>I1_FQ</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>I1_FQ</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The forward FASTQ index file provided by the sequencing facility</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>I2_FQ</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>I2_FQ</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> The reverse FASTQ index file provided by the sequencing facility</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--keep-unknown-samples</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unknown-samples</code> <code translate="no" v-pre>-u</code></td>
 <td style="text-align: left;">Keep a separate file of reads with recognized barcodes but don&#x27;t match any sample in the schema</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--keep-unknown-barcodes</code> <code translate="no" v-pre>-b</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unknown-barcodes</code> <code translate="no" v-pre>-b</code></td>
 <td style="text-align: left;">Keep a separate file of reads with unrecognized barcodes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--qxrx</code> <code translate="no" v-pre>-q</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--qxrx</code> <code translate="no" v-pre>-q</code></td>
 <td style="text-align: left;">Include the <code translate="no" v-pre>QX:Z</code> and <code translate="no" v-pre>RX:Z</code> tags in the read header</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--schema</code> <code translate="no" v-pre>-s</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--schema</code> <code translate="no" v-pre>-s</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Tab-delimited file of sample&lt;tab&gt;barcode</td>
@@ -657,13 +657,13 @@ generic sample names for demonstration purposes. The resulting folder also inclu
 └── reports
     └── preprocess.QC.html</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                          | description                                                                               |
-| :---------------------------- | :---------------------------------------------------------------------------------------- |
-| `*.F.fq.gz`                   | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `*.R.fq.gz`                   | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
-| `reports/preprocess.QC.html`  | MultiQC report of FASTQC quality assessment                                               |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item                         | description                                                                               |
+| :--------------------------- | :---------------------------------------------------------------------------------------- |
+| `*.F.fq.gz`                  | Forward-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `*.R.fq.gz`                  | Reverse-reads from multiplexed input `--file` belonging to samples from the `samplesheet` |
+| `reports/preprocess.QC.html` | MultiQC report of FASTQC quality assessment                                               |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
 <th style="text-align: left;">item</th>

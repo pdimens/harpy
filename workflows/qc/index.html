@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -322,54 +322,54 @@ remove duplicates, and quality trim sequences using the <span class="no-link inl
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>qc</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument               |    default     | description                                                                                                                                                                                                  |
-|:-----------------------|:--------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`               |                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments)                                                              |
-| `--deduplicate` `-d`   |                | Identify and remove PCR duplicates                                                                                                                                                                           |
-| `--extra-params` `-x`  |                | Additional fastp arguments, in quotes                                                                                                                                                                        |
-| `--min-length` `-m`    |      `30`      | Discard reads shorter than this length                                                                                                                                                                       |
-| `--max-length` `-M`    |     `150`      | Maximum length to trim sequences down to                                                                                                                                                                     |
-| `--trim-adapters` `-a` |                | Detect and remove adapter sequences  [!badge variant=&quot;secondary&quot; text=&quot;recommended&quot;]                                                                                                                         |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                                     |
+| :--------------------------------- | :----------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                           |                                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
+| `--deduplicate` `-d`               |                                | Identify and remove PCR duplicates                                                                                                              |
+| `--extra-params` `-x`              |                                | Additional fastp arguments, in quotes                                                                                                           |
+| `--min-length` `-m`                |              `30`              | Discard reads shorter than this length                                                                                                          |
+| `--max-length` `-M`                |             `150`              | Maximum length to trim sequences down to                                                                                                        |
+| `--trim-adapters` `-a`             |                                | Detect and remove adapter sequences  [!badge variant=&quot;secondary&quot; text=&quot;recommended&quot;]                                                            |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../getting_started/common_options/#input-arguments">input FASTQ files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--deduplicate</code> <code translate="no" v-pre>-d</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--deduplicate</code> <code translate="no" v-pre>-d</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Identify and remove PCR duplicates</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional fastp arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--min-length</code> <code translate="no" v-pre>-m</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>30</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-length</code> <code translate="no" v-pre>-m</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
 <td style="text-align: left;">Discard reads shorter than this length</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--max-length</code> <code translate="no" v-pre>-M</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>150</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--max-length</code> <code translate="no" v-pre>-M</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>150</code></td>
 <td style="text-align: left;">Maximum length to trim sequences down to</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--trim-adapters</code> <code translate="no" v-pre>-a</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--trim-adapters</code> <code translate="no" v-pre>-a</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Detect and remove adapter sequences  <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>recommended</span>
 </span></td>
@@ -455,8 +455,8 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
         ├── Sample1.fastp.json
         └── Sample2.fastp.json</code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                            | description                                                                        |
-|:--------------------------------|:-----------------------------------------------------------------------------------|
+<retype-table copy-text="| item| description                                                                        |
+| :------------------------------ | :--------------------------------------------------------------------------------- |
 | `*.R1.fq.gz`                    | quality trimmed forward reads of the samples                                       |
 | `*.R1.fq.gz`                    | quality trimmed reverse reads of the samples                                       |
 | `logs/`                         | all debug/diagnostic files that aren't the trimmed reads `fastp` creates           |
@@ -465,45 +465,45 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
 | `reports/trim.report.html`      | a report generated by `multiqc` summarizing the quality trimming results           |
 | `reports/summary.bx.valid.html` | a report detailing valid vs invalid barcodes and the segments causing invalidation |
 | `logs/json`                     | json representation of the data `fastp` uses to create the html reports            |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.R1.fq.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.R1.fq.gz</code></td>
 <td style="text-align: left;">quality trimmed forward reads of the samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>*.R1.fq.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.R1.fq.gz</code></td>
 <td style="text-align: left;">quality trimmed reverse reads of the samples</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/</code></td>
 <td style="text-align: left;">all debug/diagnostic files that aren&#x27;t the trimmed reads <code translate="no" v-pre>fastp</code> creates</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/err</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/err</code></td>
 <td style="text-align: left;">what fastp prints to <code translate="no" v-pre>stderr</code> when running</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/*.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/*.html</code></td>
 <td style="text-align: left;">interactive html reports <code translate="no" v-pre>fastp</code> creates from quality trimming</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/trim.report.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/trim.report.html</code></td>
 <td style="text-align: left;">a report generated by <code translate="no" v-pre>multiqc</code> summarizing the quality trimming results</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>reports/summary.bx.valid.html</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>reports/summary.bx.valid.html</code></td>
 <td style="text-align: left;">a report detailing valid vs invalid barcodes and the segments causing invalidation</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>logs/json</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>logs/json</code></td>
 <td style="text-align: left;">json representation of the data <code translate="no" v-pre>fastp</code> uses to create the html reports</td>
 </tr>
 </tbody>

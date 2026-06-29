@@ -4,7 +4,7 @@ After your sequences (in FASTQ format) have been checked for quality, you
 will need to align them to a reference genome before you can call variants.
 Harpy offers several aligners for this purpose:
 
-{.compact}
+{.compact .whitespace-nowrap}
 | aligner                  |     speed     |                    repository                    |                     publication                     |
 |:-------------------------|:-------------:|:------------------------------------------------:|:---------------------------------------------------:|
 | [BWA](bwa.md)            |    fast ⚡     |       [github](https://github.com/lh3/bwa)       |       [paper](http://arxiv.org/abs/1303.3997)       |

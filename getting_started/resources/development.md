@@ -95,7 +95,7 @@ shortage of [great resources](https://www.youtube.com/watch?v=8Dd7KRpKeaE) to ge
 you started. The 3 standard branches in the Harpy repository are outlined in the 
 table below:
 
-{.compact}
+{.compact .clean}
 | branch | purpose |
 |:---| :---|
 | `main` | staging and testing area for new code prior to creating the next release  |

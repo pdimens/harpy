@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -349,70 +349,70 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 </a>, the <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
     <span>impute</span>
 </span> module is configured using these command-line arguments:</p>
-<retype-table copy-text="| argument              |   default   | description                                                                                                                   |
-|:----------------------|:-----------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `PARAMETERS`          |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] STITCH [parameter file](#parameter-file) (tab-delimited)                              |
-| `VCF`                 |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Path to VCF/BCF file                                                                  |
-| `INPUTS`              |             | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
-| `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
-| `--grid-size` `-g`    | `1` (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
-| `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
-| `--strategy` `-s`     | `window:1000000` |Imputation strategy ([see below](#imputation-strategies)) |
-| `--buffer` `-b`       | `0.1`       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                       |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| default| description                                                                                                                   |
+| :----------------------------- | :---------------------------: | :---------------------------------------------------------------------------------------------------------------------------- |
+| `PARAMETERS`                   |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] STITCH [parameter file](#parameter-file) (tab-delimited)                              |
+| `VCF`                          |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Path to VCF/BCF file                                                                  |
+| `INPUTS`                       |                               | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
+| `--extra-params` `-x`          |                               | Extra arguments to add to STITCH, provided in quotes                                                                          |
+| `--grid-size` `-g`             |         `1` (per-snp)         | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
+| `--vcf-samples`, `-V`          |                               | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--strategy` `-s`              |       `window:1000000`        | Imputation strategy ([see below](#imputation-strategies))                                                                     |
+| `--buffer` `-b`                |             `0.1`             | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                                  |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
-<th style="text-align: center;">default</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
+<th style="text-align: center;" class="whitespace-nowrap">default</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>PARAMETERS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>PARAMETERS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> STITCH <doc-anchor-trigger to="#parameter-file">parameter file</doc-anchor-trigger> (tab-delimited)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>VCF</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>VCF</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Path to VCF/BCF file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>INPUTS</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>INPUTS</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Files or directories containing <a href="../../getting_started/common_options/">input BAM files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Extra arguments to add to STITCH, provided in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--grid-size</code> <code translate="no" v-pre>-g</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>1</code> (per-snp)</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--grid-size</code> <code translate="no" v-pre>-g</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>1</code> (per-snp)</td>
 <td style="text-align: left;">Perform imputation in windows of a specific size, instead of per-SNP</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--vcf-samples</code>, <code translate="no" v-pre>-V</code></td>
-<td style="text-align: center;"> </td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--vcf-samples</code>, <code translate="no" v-pre>-V</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Use samples present in vcf file for imputation rather than those found the directory (<doc-anchor-trigger to="#prioritize-the-vcf-file">see below</doc-anchor-trigger>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--strategy</code> <code translate="no" v-pre>-s</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>window:1000000</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--strategy</code> <code translate="no" v-pre>-s</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>window:1000000</code></td>
 <td style="text-align: left;">Imputation strategy (<doc-anchor-trigger to="#imputation-strategies">see below</doc-anchor-trigger>)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--buffer</code> <code translate="no" v-pre>-b</code></td>
-<td style="text-align: center;"><code translate="no" v-pre>0.1</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--buffer</code> <code translate="no" v-pre>-b</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>0.1</code></td>
 <td style="text-align: left;">Base pairs to consider on each side of genomic region or window (depending on <code translate="no" v-pre>--strategy</code>).</td>
 </tr>
 </tbody>
@@ -574,8 +574,8 @@ waffles    pseudoHaploid   TRUE    50000   10      1       50</code></pre>
 | model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
 | model2  | diploid       | TRUE  | 50000   | 15  | 10  | 100  |
 | waffles | pseudoHaploid | TRUE  | 50000   | 10  | 1   | 50   |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
 <th style="text-align: left;">name</th>
@@ -624,62 +624,62 @@ waffles    pseudoHaploid   TRUE    50000   10      1       50</code></pre>
 <template #title>parameter file columns</template>
 <p>See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.</p>
-<retype-table copy-text="| column name |               accepted values                | description                                                                                     |
-| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
-| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
-| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant=&quot;secondary&quot; text=&quot;case sensitive&quot;]              |
-| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant=&quot;secondary&quot; text=&quot;case insensitive&quot;] |
-| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
-| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
-| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
-| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| column name|     accepted values| description                                                                                     |
+| :------------------------------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
+| name                             |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
+| model                            | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant=&quot;secondary&quot; text=&quot;case sensitive&quot;]              |
+| usebx                            |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant=&quot;secondary&quot; text=&quot;case insensitive&quot;] |
+| bxlimit                          |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
+| k                                |                     ≥ 1                      | Number of founder haplotypes                                                                    |
+| s                                |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
+| nGen                             |                     ≥ 1                      | Estimated number of generations since founding                                                  |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">column name</th>
-<th style="text-align: center;">accepted values</th>
+<th style="text-align: left;" class="whitespace-nowrap">column name</th>
+<th style="text-align: center;" class="whitespace-nowrap">accepted values</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;">name</td>
-<td style="text-align: center;">alphanumeric (a-z, 0-9) and <code translate="no" v-pre>-_.</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">name</td>
+<td style="text-align: center;" class="whitespace-nowrap">alphanumeric (a-z, 0-9) and <code translate="no" v-pre>-_.</code></td>
 <td style="text-align: left;">Arbitrary name of the parameter set, used to name outputs</td>
 </tr>
 <tr>
-<td style="text-align: left;">model</td>
-<td style="text-align: center;"><code translate="no" v-pre>pseudoHaploid</code>, <code translate="no" v-pre>diploid</code>, <code translate="no" v-pre>diploid-inbred</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">model</td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>pseudoHaploid</code>, <code translate="no" v-pre>diploid</code>, <code translate="no" v-pre>diploid-inbred</code></td>
 <td style="text-align: left;">The STITCH model/method to use  <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>case sensitive</span>
 </span></td>
 </tr>
 <tr>
-<td style="text-align: left;">usebx</td>
-<td style="text-align: center;"><code translate="no" v-pre>true</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>yes</code>, <code translate="no" v-pre>no</code></td>
+<td style="text-align: left;" class="whitespace-nowrap">usebx</td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>true</code>, <code translate="no" v-pre>false</code>, <code translate="no" v-pre>yes</code>, <code translate="no" v-pre>no</code></td>
 <td style="text-align: left;">Whether to incorporate beadtag information <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span>case insensitive</span>
 </span></td>
 </tr>
 <tr>
-<td style="text-align: left;">bxlimit</td>
-<td style="text-align: center;">≥ 1</td>
+<td style="text-align: left;" class="whitespace-nowrap">bxlimit</td>
+<td style="text-align: center;" class="whitespace-nowrap">≥ 1</td>
 <td style="text-align: left;">Distance between identical BX tags at which to consider them different molecules</td>
 </tr>
 <tr>
-<td style="text-align: left;">k</td>
-<td style="text-align: center;">≥ 1</td>
+<td style="text-align: left;" class="whitespace-nowrap">k</td>
+<td style="text-align: center;" class="whitespace-nowrap">≥ 1</td>
 <td style="text-align: left;">Number of founder haplotypes</td>
 </tr>
 <tr>
-<td style="text-align: left;">s</td>
-<td style="text-align: center;">≥ 1</td>
+<td style="text-align: left;" class="whitespace-nowrap">s</td>
+<td style="text-align: center;" class="whitespace-nowrap">≥ 1</td>
 <td style="text-align: left;">Number of instances of the founder haplotypes to average results over</td>
 </tr>
 <tr>
-<td style="text-align: left;">nGen</td>
-<td style="text-align: center;">≥ 1</td>
+<td style="text-align: left;" class="whitespace-nowrap">nGen</td>
+<td style="text-align: center;" class="whitespace-nowrap">≥ 1</td>
 <td style="text-align: left;">Estimated number of generations since founding</td>
 </tr>
 </tbody>
@@ -757,45 +757,45 @@ The resulting folder also includes a <code translate="no" v-pre>workflow</code> 
         └── modelname.summary.ipynb
 </code></pre>
 </doc-codeblock></div>
-<retype-table copy-text="| item                                 | description                                  |
-| :----------------------------------- | :------------------------------------------- |
-| `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
-| `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
-| `modelname/reports/modelname.summary.ipynb`   | report summarizing the results of imputation across contigs|
-| `modelname/reports/*.modelname.ipynb` | summary of STITCH imputation (per contig)    |
-| `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
-| `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| item| description                                                 |
+| :------------------------------------------ | :---------------------------------------------------------- |
+| `modelname/modelname.bcf`                   | final bcf file of imputed genotypes                         |
+| `modelname/modelname.bcf.csi`               | index of `modelname.bcf`                                    |
+| `modelname/reports/modelname.summary.ipynb` | report summarizing the results of imputation across contigs |
+| `modelname/reports/*.modelname.ipynb`       | summary of STITCH imputation (per contig)                   |
+| `modelname/contigs/*.vcf.gz`                | variants resulting from imputation                          |
+| `modelname/contigs/*.vcf.gz.tbi`            | index of variant file                                       |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">item</th>
+<th style="text-align: left;" class="whitespace-nowrap">item</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/modelname.bcf</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/modelname.bcf</code></td>
 <td style="text-align: left;">final bcf file of imputed genotypes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/modelname.bcf.csi</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/modelname.bcf.csi</code></td>
 <td style="text-align: left;">index of <code translate="no" v-pre>modelname.bcf</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/reports/modelname.summary.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/reports/modelname.summary.ipynb</code></td>
 <td style="text-align: left;">report summarizing the results of imputation across contigs</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/reports/*.modelname.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/reports/*.modelname.ipynb</code></td>
 <td style="text-align: left;">summary of STITCH imputation (per contig)</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/contigs/*.vcf.gz</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/contigs/*.vcf.gz</code></td>
 <td style="text-align: left;">variants resulting from imputation</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>modelname/contigs/*.vcf.gz.tbi</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>modelname/contigs/*.vcf.gz.tbi</code></td>
 <td style="text-align: left;">index of variant file</td>
 </tr>
 </tbody>

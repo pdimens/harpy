@@ -10,13 +10,13 @@ harpy resume [--threads] [--direct] DIRECTORY
 ```
 
 #### arguments
-{.compact}
-| argument    | description                                                                            |
-| :---------- | :------------------------------------------------------------------------------------- |
-| `DIRECTORY` | [!badge variant="info" text="required"] Output directory of an existing harpy workflow |
-| `--conda`   | [!badge variant="danger" text="being deprecated"] Generate a `/workflow/envs` folder with the necessary conda enviroments                |
-| `--direct`  | [!badge text="unreleased"] Launch Snakemake without any Harpy intervention                                        |
-| `--threads` | Change the number of threads the workflow will be run with                             |
+{.compact .clean}
+| argument {.whitespace-nowrap} | description                                                                                                               |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `DIRECTORY`                   | [!badge variant="info" text="required"] Output directory of an existing harpy workflow                                    |
+| `--conda`                     | [!badge variant="danger" text="being deprecated"] Generate a `/workflow/envs` folder with the necessary conda enviroments |
+| `--direct`                    | [!badge text="unreleased"] Launch Snakemake without any Harpy intervention                                                |
+| `--threads`                   | Change the number of threads the workflow will be run with                                                                |
 
 The `DIRECTORY` is the output directory of a previous harpy-invoked workflow, which **must** have the `workflow/config.yaml`
 and `workflow/workflow.yaml` files.

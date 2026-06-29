@@ -47,17 +47,17 @@ harpy impute --threads 20 --vcf-samples stitch.params data/variants.bcf data/*.b
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="impute"] module is configured using these command-line arguments:
 
-{.compact}
-| argument              |   default   | description                                                                                                                   |
-|:----------------------|:-----------:|:------------------------------------------------------------------------------------------------------------------------------|
-| `PARAMETERS`          |             | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                              |
-| `VCF`                 |             | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                  |
-| `INPUTS`              |             | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
-| `--extra-params` `-x` |             | Extra arguments to add to STITCH, provided in quotes                                                                          |
-| `--grid-size` `-g`    | `1` (per-snp) | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
-| `--vcf-samples`, `-V` |             | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
-| `--strategy` `-s`     | `window:1000000` |Imputation strategy ([see below](#imputation-strategies)) |
-| `--buffer` `-b`       | `0.1`       | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                       |
+{.compact .clean}
+| argument  {.whitespace-nowrap} | default  {.whitespace-nowrap} | description                                                                                                                   |
+| :----------------------------- | :---------------------------: | :---------------------------------------------------------------------------------------------------------------------------- |
+| `PARAMETERS`                   |                               | [!badge variant="info" text="required"] STITCH [parameter file](#parameter-file) (tab-delimited)                              |
+| `VCF`                          |                               | [!badge variant="info" text="required"] Path to VCF/BCF file                                                                  |
+| `INPUTS`                       |                               | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md) |
+| `--extra-params` `-x`          |                               | Extra arguments to add to STITCH, provided in quotes                                                                          |
+| `--grid-size` `-g`             |         `1` (per-snp)         | Perform imputation in windows of a specific size, instead of per-SNP                                                          |
+| `--vcf-samples`, `-V`          |                               | Use samples present in vcf file for imputation rather than those found the directory ([see below](#prioritize-the-vcf-file))  |
+| `--strategy` `-s`              |       `window:1000000`        | Imputation strategy ([see below](#imputation-strategies))                                                                     |
+| `--buffer` `-b`                |             `0.1`             | Base pairs to consider on each side of genomic region or window (depending on `--strategy`).                                  |
 
 ### Imputation strategies
 When employing the window or region strategies, the `--buffer` can either be an absolute base-pair value (e.g. 10kb = `-b 10000`)
@@ -175,7 +175,7 @@ waffles    pseudoHaploid   TRUE    50000   10      1       50
 +++example file (as a table)
 This is the table view of the tab-delimited file, shown here for clarity.
 
-{.compact}
+{.compact .clean}
 | name    | model         | useBX | bxlimit | k   | s   | nGen |
 | :------ | :------------ | :---- | :------ | :-- | :-- | :--- |
 | model1  | diploid       | TRUE  | 50000   | 10  | 5   | 50   |
@@ -186,16 +186,16 @@ This is the table view of the tab-delimited file, shown here for clarity.
 See the section below for detailed information on each parameter. This
 table serves as an overview of the parameters.
 
-{.compact}
-| column name |               accepted values                | description                                                                                     |
-| :---------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
-| name        |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
-| model       | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
-| usebx       |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
-| bxlimit     |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
-| k           |                     ≥ 1                      | Number of founder haplotypes                                                                    |
-| s           |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
-| nGen        |                     ≥ 1                      | Estimated number of generations since founding                                                  |
+{.compact .clean}
+| column name {.whitespace-nowrap} |     accepted values {.whitespace-nowrap}     | description                                                                                     |
+| :------------------------------- | :------------------------------------------: | :---------------------------------------------------------------------------------------------- |
+| name                             |      alphanumeric (a-z, 0-9) and `-_.`       | Arbitrary name of the parameter set, used to name outputs                                       |
+| model                            | `pseudoHaploid`, `diploid`, `diploid-inbred` | The STITCH model/method to use  [!badge variant="secondary" text="case sensitive"]              |
+| usebx                            |         `true`, `false`, `yes`, `no`         | Whether to incorporate beadtag information [!badge variant="secondary" text="case insensitive"] |
+| bxlimit                          |                     ≥ 1                      | Distance between identical BX tags at which to consider them different molecules                |
+| k                                |                     ≥ 1                      | Number of founder haplotypes                                                                    |
+| s                                |                     ≥ 1                      | Number of instances of the founder haplotypes to average results over                           |
+| nGen                             |                     ≥ 1                      | Estimated number of generations since founding                                                  |
 
 +++
 
@@ -254,15 +254,15 @@ Impute/
         └── modelname.summary.ipynb
 
 ```
-{.compact}
-| item                                 | description                                  |
-| :----------------------------------- | :------------------------------------------- |
-| `modelname/modelname.bcf`            | final bcf file of imputed genotypes          |
-| `modelname/modelname.bcf.csi`        | index of `modelname.bcf`                     |
-| `modelname/reports/modelname.summary.ipynb`   | report summarizing the results of imputation across contigs|
-| `modelname/reports/*.modelname.ipynb` | summary of STITCH imputation (per contig)    |
-| `modelname/contigs/*.vcf.gz`         | variants resulting from imputation           |
-| `modelname/contigs/*.vcf.gz.tbi`     | index of variant file                        |
+{.compact .clean}
+| item                 {.whitespace-nowrap}   | description                                                 |
+| :------------------------------------------ | :---------------------------------------------------------- |
+| `modelname/modelname.bcf`                   | final bcf file of imputed genotypes                         |
+| `modelname/modelname.bcf.csi`               | index of `modelname.bcf`                                    |
+| `modelname/reports/modelname.summary.ipynb` | report summarizing the results of imputation across contigs |
+| `modelname/reports/*.modelname.ipynb`       | summary of STITCH imputation (per contig)                   |
+| `modelname/contigs/*.vcf.gz`                | variants resulting from imputation                          |
+| `modelname/contigs/*.vcf.gz.tbi`            | index of variant file                                       |
 
 +++ :icon-code-square: STITCH parameters
 While you are expected to run STITCH using your own set of 

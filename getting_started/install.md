@@ -1,6 +1,6 @@
 # :icon-desktop-download: Install Harpy
 === :icon-checklist: You will need one of either
-{.compact}
+{.compact .clean}
 | method                                                                                                                                                | considerations                                                                                                                                       |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------|:-----------------------------------------------------------------------------------------------------------------------------------------------------|
 | [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) or [mamba](https://mamba.readthedocs.io/en/latest/installation.html) | If using conda, we strongly recommend using version `23.10` or later. If using mamba, replace `conda` with `mamba` in the instructions below.        |

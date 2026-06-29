@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -254,11 +254,11 @@ directory. This file contains a string path to the last output directory that ca
 When any of the <code translate="no" v-pre>view</code> commands are run without the <code translate="no" v-pre>DIRECTORY</code> argument (except <code translate="no" v-pre>envs</code>),
 harpy will look for the <code translate="no" v-pre>.harpyerror</code></p>
 <h3 id="arguments">arguments</h3>
-<retype-table copy-text="| argument      |  description                                                                           |
-| :------------ | :------------------------------------------------------------------------------------- |
-| `DIRECTORY`   | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument    | description                                                                                              |
+| :---------- | :------------------------------------------------------------------------------------------------------- |
+| `DIRECTORY` | Output directory of an existing harpy workflow. Defaults to path in `.harpyerror` if present and omitted |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
 <th style="text-align: left;">argument</th>
@@ -275,45 +275,45 @@ harpy will look for the <code translate="no" v-pre>.harpyerror</code></p>
 </div>
 </retype-table>
 <h3 id="modes">modes</h3>
-<retype-table copy-text="| MODE            | description                                                       |
-|:----------------|:------------------------------------------------------------------|
-| `config`        | View a workflow's config file                                     |
-| `error`         | View the exact failture of a snakemake run                        |
-| `envs`* | View the conda environments and their software in `.environments` |
-| `log`           | View a workflow's last log file                                   |
-| `snakefile`     | View a workflow's snakefile                                       |
-| `profile`       | View a workflow's snakemake parameter file                        |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| Mode| description                                                       |
+| :-------------------------- | :---------------------------------------------------------------- |
+| `config`                    | View a workflow's config file                                     |
+| `error`                     | View the exact failture of a snakemake run                        |
+| `envs`*                     | View the conda environments and their software in `.environments` |
+| `log`                       | View a workflow's last log file                                   |
+| `snakefile`                 | View a workflow's snakefile                                       |
+| `profile`                   | View a workflow's snakemake parameter file                        |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">MODE</th>
+<th style="text-align: left;" class="whitespace-nowrap">Mode</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>config</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>config</code></td>
 <td style="text-align: left;">View a workflow&#x27;s config file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>error</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>error</code></td>
 <td style="text-align: left;">View the exact failture of a snakemake run</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>envs</code>*</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>envs</code>*</td>
 <td style="text-align: left;">View the conda environments and their software in <code translate="no" v-pre>.environments</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>log</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>log</code></td>
 <td style="text-align: left;">View a workflow&#x27;s last log file</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>snakefile</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>snakefile</code></td>
 <td style="text-align: left;">View a workflow&#x27;s snakefile</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>profile</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>profile</code></td>
 <td style="text-align: left;">View a workflow&#x27;s snakemake parameter file</td>
 </tr>
 </tbody>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.835805534127">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.835805534127" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.835805534127" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.835805534127" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -248,41 +248,41 @@ you can use <span class="no-link inline-flex align-middle items-center justify-c
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy resume [--threads] [--direct] DIRECTORY</code></pre>
 </doc-codeblock></div>
 <h4 id="arguments">arguments</h4>
-<retype-table copy-text="| argument    | description                                                                            |
-| :---------- | :------------------------------------------------------------------------------------- |
-| `DIRECTORY` | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Output directory of an existing harpy workflow |
-| `--conda`   | [!badge variant=&quot;danger&quot; text=&quot;being deprecated&quot;] Generate a `/workflow/envs` folder with the necessary conda enviroments                |
-| `--direct`  | [!badge text=&quot;unreleased&quot;] Launch Snakemake without any Harpy intervention                                        |
-| `--threads` | Change the number of threads the workflow will be run with                             |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="compact">
+<retype-table copy-text="| argument| description                                                                                                               |
+| :---------------------------- | :------------------------------------------------------------------------------------------------------------------------ |
+| `DIRECTORY`                   | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Output directory of an existing harpy workflow                                    |
+| `--conda`                     | [!badge variant=&quot;danger&quot; text=&quot;being deprecated&quot;] Generate a `/workflow/envs` folder with the necessary conda enviroments |
+| `--direct`                    | [!badge text=&quot;unreleased&quot;] Launch Snakemake without any Harpy intervention                                                |
+| `--threads`                   | Change the number of threads the workflow will be run with                                                                |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
 <thead>
 <tr>
-<th style="text-align: left;">argument</th>
+<th style="text-align: left;" class="whitespace-nowrap">argument</th>
 <th style="text-align: left;">description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>DIRECTORY</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>DIRECTORY</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-info-text bg-badge-info border border-badge-info-border h-6 px-2 text-xs rounded-md">
     <span>required</span>
 </span> Output directory of an existing harpy workflow</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--conda</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--conda</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-danger-text bg-badge-danger border border-badge-danger-border h-6 px-2 text-xs rounded-md">
     <span>being deprecated</span>
 </span> Generate a <code translate="no" v-pre>/workflow/envs</code> folder with the necessary conda enviroments</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--direct</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--direct</code></td>
 <td style="text-align: left;"><span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-md">
     <span>unreleased</span>
 </span> Launch Snakemake without any Harpy intervention</td>
 </tr>
 <tr>
-<td style="text-align: left;"><code translate="no" v-pre>--threads</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--threads</code></td>
 <td style="text-align: left;">Change the number of threads the workflow will be run with</td>
 </tr>
 </tbody>

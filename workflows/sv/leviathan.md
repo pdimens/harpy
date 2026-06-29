@@ -51,19 +51,19 @@ harpy sv leviathan --threads 20 -s 90,95,95 genome.fasta Align/bwa
 ## :icon-terminal: Running Options
 In addition to the [!badge variant="info" corners="pill" text="common runtime options"](/Getting_Started/common_options.md), the [!badge corners="pill" text="sv leviathan"] module is configured using these command-line arguments:
 
-{.compact}
-| argument                    |  default   | description                                                                                                                                    |
-|:----------------------------|:----------:|:-----------------------------------------------------------------------------------------------------------------------------------------------|
-| `INPUTS`                    |            | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)  |
-| `REFERENCE`                 |            | [!badge variant="info" text="required"] Reference genome that was used to create alignments                                                    |
-| `--contigs`                 |            | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                  |
-| `--duplicates` `-d`         |    `10`    | Consider SV of the same type as duplicates if their breakpoints are within this distance                                                       |
-| `--extra-params` `-x`       |            | Additional naibr arguments, in quotes                                                                                                          |
-| `--iterations` `-i`         |    `50`    | Number of iterations to perform through index (reduces memory)                                                                                 |
-| `--min-barcodes` `-b`       |    `2`     | Minimum number of barcode overlaps supporting candidate SV                                                                                     |
-| `--min-size` `-m`           |   `1000`   | Minimum size of SV to detect                                                                                                                   |
-| `--populations` `-p`        |            | Tab-delimited file of sample\<*tab*\>group                                                                                                     |
-| `--sharing-thresholds` `-s` | `99 99 99` | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas (no spaces) |
+{.compact .clean}
+| argument        {.whitespace-nowrap} | default  {.whitespace-nowrap} | description                                                                                                                                    |
+| :----------------------------------- | :---------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INPUTS`                             |                               | [!badge variant="info" text="required"] Files or directories containing [input BAM files](/Getting_Started/common_options.md#input-arguments)  |
+| `REFERENCE`                          |                               | [!badge variant="info" text="required"] Reference genome that was used to create alignments                                                    |
+| `--contigs`                          |                               | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                  |
+| `--duplicates` `-d`                  |             `10`              | Consider SV of the same type as duplicates if their breakpoints are within this distance                                                       |
+| `--extra-params` `-x`                |                               | Additional naibr arguments, in quotes                                                                                                          |
+| `--iterations` `-i`                  |             `50`              | Number of iterations to perform through index (reduces memory)                                                                                 |
+| `--min-barcodes` `-b`                |              `2`              | Minimum number of barcode overlaps supporting candidate SV                                                                                     |
+| `--min-size` `-m`                    |            `1000`             | Minimum size of SV to detect                                                                                                                   |
+| `--populations` `-p`                 |                               | Tab-delimited file of sample\<*tab*\>group                                                                                                     |
+| `--sharing-thresholds` `-s`          |          `99 99 99`           | Percentile thresholds in the distributions of the number of shared barcodes for (small,medium,large) variants, separated by commas (no spaces) |
 
 ### Duplicates
 If it feels like Leviathan is unneccesarily splitting larger variants into smaller overlapping or adjacent ones,
@@ -136,18 +136,18 @@ SV/leviathan
     ├── sample1.bcf
     └── sample2.bcf
 ```
-{.compact}
-| item                      | description                                                                              |
-| :------------------------ | :--------------------------------------------------------------------------------------- |
-| `breakends.bedpe`         | an aggregation of all the breakends identified by LEVIATHAN                              |
-| `deletions.bedpe`         | an aggregation of all the deletions identified by LEVIATHAN                              |
-| `duplications.bedpe`      | an aggregation of all the duplications identified by LEVIATHAN                           |
-| `inversions.bedpe`        | an aggregation of all the inversions identified by LEVIATHAN                             |
-| `logs/harpy.variants.log` | relevant runtime parameters for the variants module                                      |
-| `logs/sample.groups`      | if provided, a copy of the file provided to `--populations` with commented lines removed |
-| `logs/*candidates`        | candidate structural variants LEVIATHAN identified                                       |
-| `reports/`                | summary report  with interactive plots of detected SV                                    |
-| `vcf/`                    | structural variants identified by LEVIATHAN                                              |
+{.compact .clean}
+| item      {.whitespace-nowrap} | description                                                                              |
+| :----------------------------- | :--------------------------------------------------------------------------------------- |
+| `breakends.bedpe`              | an aggregation of all the breakends identified by LEVIATHAN                              |
+| `deletions.bedpe`              | an aggregation of all the deletions identified by LEVIATHAN                              |
+| `duplications.bedpe`           | an aggregation of all the duplications identified by LEVIATHAN                           |
+| `inversions.bedpe`             | an aggregation of all the inversions identified by LEVIATHAN                             |
+| `logs/harpy.variants.log`      | relevant runtime parameters for the variants module                                      |
+| `logs/sample.groups`           | if provided, a copy of the file provided to `--populations` with commented lines removed |
+| `logs/*candidates`             | candidate structural variants LEVIATHAN identified                                       |
+| `reports/`                     | summary report  with interactive plots of detected SV                                    |
+| `vcf/`                         | structural variants identified by LEVIATHAN                                              |
 
 +++ :icon-code-square: leviathan parameters
 Below is a list of all `leviathan` command line options, excluding those Harpy already uses or those made redundant by Harpy's implementation of LEVIATHAN.

@@ -115,7 +115,7 @@ This isn't really the place to go into the nitty-gritty of the different linked-
 of the raw (FASTQ) data. Knowing these details might help you make sense of compatibilties/incompatibilities
 for software, or how you can convert between styles.
 
-{.compact}
+{.compact .clean}
 | Type         | Location               | Format   | Invalid Encoding | Example                            |
 |:-------------|:-----------------------|:---------|:-----------------|:-----------------------------------|
 | Standard     | `BX:Z` and `VX:i` tags | any      | `VX:i:0`         | `BX:Z:31_442_512 VX:i:1`           |

@@ -26,7 +26,7 @@ templates/assets if necessary, then start a local liveserver to view the reports
 harpy report <options> DIRECTORY
 ```
 
-{.compact}
+{.compact .clean}
 | argument    |   default   | description |
 |:-----------------------|:--------------:|:--------------------------------------------------------|
 | `DIRECTORY` | `.` | Path of where to setup configs and launch server |
