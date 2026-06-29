@@ -76,8 +76,8 @@ rule process_reference:
 rule align:
     input:
         multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
-        ref     = workflow_geno,
-        fastq      = get_fq
+        ref   = workflow_geno,
+        fastq = get_fq
     output:
         bam = temp("bwa/{sample}/{sample}.bwa.bam"),
         tmp = temp(directory("bwa/{sample}/tmp"))
@@ -107,7 +107,7 @@ rule align:
 rule sort:
     retries: 3
     input:
-        ref = 
+        ref = workflow_geno,
         bam = "bwa/{sample}/{sample}.bwa.bam"
     output:
         bam = temp("sort/{sample}/{sample}.sort.bam"),
