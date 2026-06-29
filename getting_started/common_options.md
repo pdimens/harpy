@@ -12,13 +12,13 @@ In most cases, you can provide an unlimited amount of input arguments. In practi
 ```bash
 harpy align bwa -t 5 genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz 
 ```
-!!!info not recursive
+!!-info not recursive
 By design, Harpy will not recursively scan input directories for files. If you provide `data/` as an input,
 Harpy will search for fastq/bam files in `data/` and not in any subdirectories within `data/`. This is done
 to avoid unexpected behavior.
 !!!
 
-!!!warning clashing names
+!!-warning clashing names
 Given the regex pattern matching that happens under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
 and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)

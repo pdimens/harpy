@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836067961592">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836068120667">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836067961592" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836068120667" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836068120667" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836067961592" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836067961592" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836068120667" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836068120667" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -248,39 +248,31 @@ In most cases, you can provide an unlimited amount of input arguments. In practi
 <div id="input-arguments-code-2" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy align bwa -t 5 genome.fasta data/pop1 data/pop2/trimmed*gz data/pop3/sample{1,2}* data/pop4/sample{2..5}*gz </code></pre>
 </doc-codeblock></div>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-info"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-info" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 20c-4.96 0-9-4.04-9-9s4.04-9 9-9 9 4.04 9 9-4.04 9-9 9z"></path>
-                    <path d="M12 11c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1s1-.45 1-1v-4c0-.55-.45-1-1-1zM12.01 7c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                    <path fill="none" d="M0 0h24v24H0z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>not recursive</h5>
+<doc-callout id="not-recursive" left-border-class="bg-callout-info" callout-class="bg-callout-base-bg border-callout-base-border" collapsed>
+    <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-info" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+            <g fill="currentColor"><g>
+                <path d="M12 1C5.93 1 1 5.93 1 12s4.93 11 11 11 11-4.93 11-11S18.07 1 12 1zm0 20c-4.96 0-9-4.04-9-9s4.04-9 9-9 9 4.04 9 9-4.04 9-9 9z"></path>
+                <path d="M12 11c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1s1-.45 1-1v-4c0-.55-.45-1-1-1zM12.01 7c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+                <path fill="none" d="M0 0h24v24H0z"></path>
+            </g></g>
+        </svg>
+    </template>
+    <template #title>not recursive</template>
 <p>By design, Harpy will not recursively scan input directories for files. If you provide <code translate="no" v-pre>data/</code> as an input,
 Harpy will search for fastq/bam files in <code translate="no" v-pre>data/</code> and not in any subdirectories within <code translate="no" v-pre>data/</code>. This is done
 to avoid unexpected behavior.</p>
-        </div>
-    </div>
-</div>
-<div class="flex mb-6">
-    <div class="shrink-0 w-1.5 rounded-tl-lg rounded-bl-lg bg-callout-warning"></div>
-    <div class="flex w-full py-4 border border-l-0 rounded-tr-lg rounded-br-lg doc-callout bg-callout-base-bg border-callout-base-border" role="alert">
-        <div class="flex items-center ml-4 h-7">
-            <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
-                <g fill="currentColor"><g>
-                    <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
-                    <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
-                </g></g>
-            </svg>
-        </div>
-        <div class="pr-5 ml-3 w-full">
-            <h5>clashing names</h5>
+</doc-callout>
+<doc-callout id="clashing-names" left-border-class="bg-callout-warning" callout-class="bg-callout-base-bg border-callout-base-border" collapsed>
+    <template #icon>
+        <svg xmlns="http://www.w3.org/2000/svg" class="block text-callout-warning" width="22" height="22" viewBox="0 0 24 24" role="presentation">
+            <g fill="currentColor"><g>
+                <path d="M22.48 15.59L14.01 1.45A2.968 2.968 0 0012.16.09c-.78-.19-1.58-.07-2.27.35-.41.25-.76.6-1.01 1.01v.01L.4 15.6c-.83 1.43-.33 3.27 1.1 4.1.45.26.95.4 1.48.4h16.95c.8-.01 1.55-.33 2.11-.9.56-.57.87-1.33.86-2.13a3.04 3.04 0 00-.42-1.48zm-1.87 2.21c-.19.19-.44.3-.69.3H2.99c-.17 0-.34-.05-.49-.13a.992.992 0 01-.37-1.35L10.6 2.48c.08-.14.2-.25.34-.33a.992.992 0 011.37.33l8.46 14.13c.09.15.13.32.13.49 0 .26-.1.51-.29.7z"></path>
+                <path d="M11.45 12.1c.55 0 1-.45 1-1v-4c0-.55-.45-1-1-1s-1 .45-1 1v4c0 .56.45 1 1 1zM11.46 14.1c-.56 0-1 .45-1 1s.45 1 1 1 1-.45 1-1-.45-1-1-1z"></path>
+            </g></g>
+        </svg>
+    </template>
+    <template #title>clashing names</template>
 <p>Given the regex pattern matching that happens under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, <code translate="no" v-pre>lane1/sample1.F.fq</code>
 and <code translate="no" v-pre>lane2/sample1.F.fq</code> would both derive the sample name <code translate="no" v-pre>sample1</code>, which, in a workflow like <a href="../../workflows/align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
@@ -289,9 +281,7 @@ and <code translate="no" v-pre>lane2/sample1.F.fq</code> would both derive the s
 would both result in <code translate="no" v-pre>output/sample1.bam</code>, creating a problem. This also holds true for the same sample name but different extension, such
 as <code translate="no" v-pre>sample1.F.fq</code> and <code translate="no" v-pre>sample1_R1.fq.gz</code>, which would again derive <code translate="no" v-pre>sample1</code> as the sample name and create a naming clash for workflow outputs.
 You will be informed ahead of time of and naming clashes to protect you against this happening.</p>
-        </div>
-    </div>
-</div>
+</doc-callout>
 <h2 id="software-dependencies">Software Dependencies</h2>
 <p>Harpy workflows typically require various different pieces of software to run. To
 keep the Harpy installation small, we include only the bare minimum to invoke Harpy.
