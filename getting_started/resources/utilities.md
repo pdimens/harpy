@@ -15,9 +15,6 @@ assign-mi -c cutoff input.bam > output.bam
 ```
 Assign an `MI:i` (Molecular Identifier) tag to each barcoded
 record based on a molecular distance cutoff. Input file **must be coordinate sorted**.
-This is similar to [deconvolve_alignments](#deconvolve_alignments), except it does not record the deconvolution in the `BX` tag.
-- unmapped records are discarded
-- records without a `BX:Z` tag or with an invalid barcode (`00` as one of its segments) are presevered but are not assigned an `MI:i` tag
 
 ### bx-stats-fq
 ```bash

@@ -3,12 +3,6 @@
 
 ## Getting Started
 
-- [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
-- [ Input FASTQ Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
-- [ Intro to linked-read data](https://pdimens.github.io/harpy/getting_started/linked_read_data.md): What you ought to know about linked reads
-- [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
-- [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
-
 ### Guides
 
 - [ Filtering SNPs](https://pdimens.github.io/harpy/getting_started/guides/filtering_snps.md): A gentle introduction to the wild world of filtering SNPs
@@ -34,6 +28,11 @@
 - [ Install / Conda](https://pdimens.github.io/harpy/getting_started/troubleshooting/conda.md): Conda is an awesome package manager, but was slow and used a ton of memory as dependencies increased. Recent (23.10+) versions of Conda now use the libmamba solver, the super-fast and super-lightweight solver from Mamba.
 - [ Resume](https://pdimens.github.io/harpy/getting_started/troubleshooting/resume.md): When calling a workflow (e.g. ), Harpy performs various file checks and validations, sets up the Snakemake command, output folder(s), etc. In the event you want to continue a failed or manually terminated workflow without overwriting the workflow files (e.g.
 - [ View](https://pdimens.github.io/harpy/getting_started/troubleshooting/view.md): This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.
+- [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
+- [ Input FASTQ Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
+- [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
+- [ Intro to linked-read data](https://pdimens.github.io/harpy/getting_started/linked_read_data.md): What you ought to know about linked reads
+- [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
 
 ## Workflows
 

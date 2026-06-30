@@ -2,173 +2,173 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://pdimens.github.io/harpy/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/common_options/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/align/ema/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/linked_read_data/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/inputformat/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/impute/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/install/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/qc/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/reports/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/align/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <loc>https://pdimens.github.io/harpy/getting_started/linked_read_data/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/guides/wgs_data/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
-    <loc>https://pdimens.github.io/harpy/workflows/align/bwa/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <loc>https://pdimens.github.io/harpy/workflows/qc/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/align/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/deconvolve/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/getting_started/inputformat/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/align/bwa/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/snp/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/phase/phase_snp/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/template/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/guides/filtering_snps/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/getting_started/install/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/align/strobe/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/assembly/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/workflows/preprocess/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
-    <loc>https://pdimens.github.io/harpy/workflows/metassembly/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/guides/sv_pooling/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <loc>https://pdimens.github.io/harpy/workflows/template/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/guides/simulate_variants/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
-    <loc>https://pdimens.github.io/harpy/workflows/validate/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <loc>https://pdimens.github.io/harpy/workflows/metassembly/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/guides/sort_by_barcode/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
-    <loc>https://pdimens.github.io/harpy/workflows/sv/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <loc>https://pdimens.github.io/harpy/getting_started/guides/sv_pooling/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/getting_started/reports/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/guides/software_environments/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/resources/hpc/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/validate/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/resources/utilities/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/common_issues/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/sv/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/resources/development/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/resources/snakemake/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/phase/phase_alignment/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/resources/software/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/diagnose/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/resume/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/sv/leviathan/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/basics/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/conda/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/phase/phase_alignment/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/sv/leviathan/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/view/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
+  </url>
+  <url>
+    <loc>https://pdimens.github.io/harpy/workflows/sv/naibr/</loc>
+    <lastmod>2026-06-30T00:19:02Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/tags/linked-read/</loc>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/categories/linked-read/</loc>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/workflows/sv/naibr/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
-  </url>
-  <url>
-    <loc>https://pdimens.github.io/harpy/getting_started/troubleshooting/view/</loc>
-    <lastmod>2026-06-29T23:41:59Z</lastmod>
   </url>
   <url>
     <loc>https://pdimens.github.io/harpy/tags/wgs/</loc>

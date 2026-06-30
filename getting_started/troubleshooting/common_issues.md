@@ -19,7 +19,7 @@ Harpy will check for this and will preemtively warn you of a mismatch between fi
 sample name. Due to certain expectations of the workflow, this mismatch will absolutely cause things
 to fail, hence the pre-flight check.
 
-**Solution**: If you need to rename a bam file, do so using the [rename_bam](../Resources/utilities.md#rename_bam) script bundled with Harpy, which is a just a thin veneer over `samtools addreplacerg` with some extra validations.
+**Solution**: If you need to rename a bam file, do so using the [rename_bam](../Resources/utilities.md#rename-bam) script bundled with Harpy, which is a just a thin veneer over `samtools addreplacerg` with some extra validations.
 ```bash
 rename_bam newname input.bam 
 ```
