@@ -1,11 +1,18 @@
 # :icon-file-binary: Input FASTQ Format
 
+## Linked-Read Format
+Haplotagging, stLFR, TELLseq are valid and recognized. We continue to
+push for all linked-read platforms to adopt [a standard FASTQ format we nicknamed LASTQ](https://pdimens.github.io/lastq/).
+
+## Non-linked reads
+Standard FASTQ files with both old (`/1`) and new (`1:N:ATCG`) CASAVA format are expected to work.
+
 ## FASTQ Read length
 Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](/Workflows/qc.md) module removes reads <30bp.
 
 ## Compression
 Harpy generally doesn't require the FASTQ input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
-Compressed files are expected to end with the extension [!badge variant="success" text=".gz"].
+Compressed files are expected be compressed with either `gzip` or `bgzip` and end with the extension [!badge variant="success" text=".gz"].
 
 ## Naming conventions
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
