@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836068384217">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836106138165">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title> Running on an HPC Cluster | Harpy</title>
     <meta name="title" content=" Running on an HPC Cluster | Harpy">
-    <meta name="description" content="You'll be working with genomic data, so it's very likely you'll try to run Harpy on a high-performance computing (HPC) cluster at some point. Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g.">
+    <meta name="description" content="Best-practices for running on a computing cluster">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://pdimens.github.io/harpy/getting_started/resources/hpc/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pdimens.github.io/harpy/getting_started/resources/hpc/">
     <meta property="og:title" content=" Running on an HPC Cluster | Harpy">
-    <meta property="og:description" content="You'll be working with genomic data, so it's very likely you'll try to run Harpy on a high-performance computing (HPC) cluster at some point. Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g.">
+    <meta property="og:description" content="Best-practices for running on a computing cluster">
     <meta property="og:site_name" content="">
     <meta property="og:locale" content="en_US">
 
@@ -31,7 +31,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://pdimens.github.io/harpy/getting_started/resources/hpc/">
     <meta name="twitter:title" content=" Running on an HPC Cluster | Harpy">
-    <meta name="twitter:description" content="You'll be working with genomic data, so it's very likely you'll try to run Harpy on a high-performance computing (HPC) cluster at some point. Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g.">
+    <meta name="twitter:description" content="Best-practices for running on a computing cluster">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://pdimens.github.io/harpy/getting_started/resources/hpc.md">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836068384217" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836106138165" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836068384217" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836106138165" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -235,6 +235,7 @@
 
                 <!-- Page content  -->
 <h1 id="running-on-an-hpc-cluster"><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M10.75 6.5a.75.75 0 0 0 0 1.5h6.5a.75.75 0 0 0 0-1.5h-6.5ZM6 7.25a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5A.75.75 0 0 1 6 7.25Zm4 9a.75.75 0 0 1 .75-.75h6.5a.75.75 0 0 1 0 1.5h-6.5a.75.75 0 0 1-.75-.75Zm-3.25-.75a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z"/><path d="M3.25 2h17.5c.966 0 1.75.784 1.75 1.75v7c0 .372-.116.716-.314 1 .198.284.314.628.314 1v7a1.75 1.75 0 0 1-1.75 1.75H3.25a1.75 1.75 0 0 1-1.75-1.75v-7c0-.358.109-.707.314-1a1.741 1.741 0 0 1-.314-1v-7C1.5 2.784 2.284 2 3.25 2Zm0 10.5a.25.25 0 0 0-.25.25v7c0 .138.112.25.25.25h17.5a.25.25 0 0 0 .25-.25v-7a.25.25 0 0 0-.25-.25Zm0-1.5h17.5a.25.25 0 0 0 .25-.25v-7a.25.25 0 0 0-.25-.25H3.25a.25.25 0 0 0-.25.25v7c0 .138.112.25.25.25Z"/></g></g></svg> Running on an HPC Cluster</h1>
+<div id="retype-page-description" class="description-display text-description font-description leading-description mb-description-margin-bottom mt-description-margin-top tracking-description text-transform-description">Best-practices for running on a computing cluster</div>
 <p>You&#x27;ll be working with genomic data, so it&#x27;s very likely you&#x27;ll try to run Harpy on a high-performance computing (HPC) cluster at some point.
 Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g. SLURM, HTCondor)
 will manage by sending to the worker nodes. Naturally, it would seem like running Harpy on an HPC should be done in the typical
@@ -304,7 +305,7 @@ that you would like <code translate="no" v-pre>harpy template</code> support for
                 <span class="card-compact-icon inline-flex shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" role="presentation" fill="currentColor"><!--icon--><path d="M8.75 5.5h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5Zm0 6h11.5a.75.75 0 0 1 0 1.5H8.75a.75.75 0 0 1 0-1.5ZM5 12a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM4 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm0 12a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/></svg></span>
                 <span class="card-compact-title"> Common Harpy Options</span>
             </div>
-            <p class="card-compact-description">Each of the main Harpy modules (e.g. or ) follows the format of</p>
+            <p class="card-compact-description">Command-line options across harpy workflows</p>
         </div>
     </a>
 </div>
@@ -325,11 +326,11 @@ that you would like <code translate="no" v-pre>harpy template</code> support for
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/resources/haplotagging/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/resources/development/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
-                                <span class="block mt-1">Haplotagging</span>
+                                <span class="block mt-1">Development</span>
                             </span>
                         </a>
                     </div>

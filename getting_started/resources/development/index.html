@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836068384217">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836106138165">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title> Developing Harpy | Harpy</title>
     <meta name="title" content=" Developing Harpy | Harpy">
-    <meta name="description" content="Harpy is an open source program written using a combination of BASH, Go, R, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.">
+    <meta name="description" content="Source code structure and how to contribute to Harpy's development">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://pdimens.github.io/harpy/getting_started/resources/development/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pdimens.github.io/harpy/getting_started/resources/development/">
     <meta property="og:title" content=" Developing Harpy | Harpy">
-    <meta property="og:description" content="Harpy is an open source program written using a combination of BASH, Go, R, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.">
+    <meta property="og:description" content="Source code structure and how to contribute to Harpy's development">
     <meta property="og:image" content="https://pdimens.github.io/harpy/static/errormsg.png">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://pdimens.github.io/harpy/getting_started/resources/development/">
     <meta name="twitter:title" content=" Developing Harpy | Harpy">
-    <meta name="twitter:description" content="Harpy is an open source program written using a combination of BASH, Go, R, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.">
+    <meta name="twitter:description" content="Source code structure and how to contribute to Harpy's development">
     <meta name="twitter:image" content="https://pdimens.github.io/harpy/static/errormsg.png">
     <meta name="twitter:image:alt" content=" Developing Harpy | Harpy">
 
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836068384217" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836106138165" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836068384217" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836106138165" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -241,6 +241,7 @@
 
                 <!-- Page content  -->
 <h1 id="developing-harpy"><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M7.875 2.292a.114.114 0 0 0-.032.018A7.239 7.239 0 0 0 4.75 8.25a7.248 7.248 0 0 0 3.654 6.297c.57.327.982.955.941 1.682v.002l-.317 6.058a.75.75 0 1 1-1.498-.078l.317-6.062v-.004c.006-.09-.047-.215-.188-.296A8.749 8.749 0 0 1 3.25 8.25a8.738 8.738 0 0 1 3.732-7.169 1.547 1.547 0 0 1 1.709-.064c.484.292.809.835.809 1.46v4.714a.25.25 0 0 0 .119.213l2.25 1.385c.08.05.182.05.262 0l2.25-1.385a.25.25 0 0 0 .119-.213V2.478c0-.626.325-1.169.81-1.461a1.547 1.547 0 0 1 1.708.064 8.741 8.741 0 0 1 3.732 7.17 8.747 8.747 0 0 1-4.41 7.598c-.14.081-.193.206-.188.296v.004l.318 6.062a.75.75 0 1 1-1.498.078l-.317-6.058v-.002c-.041-.727.37-1.355.94-1.682A7.247 7.247 0 0 0 19.25 8.25a7.239 7.239 0 0 0-3.093-5.94.114.114 0 0 0-.032-.018l-.01-.001c-.003 0-.014 0-.031.01-.036.022-.084.079-.084.177V7.19c0 .608-.315 1.172-.833 1.49l-2.25 1.385a1.75 1.75 0 0 1-1.834 0l-2.25-1.384A1.752 1.752 0 0 1 8 7.192V2.477c0-.098-.048-.155-.084-.176a.068.068 0 0 0-.031-.011l-.01.001Z"/></g></g></svg> Developing Harpy</h1>
+<div id="retype-page-description" class="description-display text-description font-description leading-description mb-description-margin-bottom mt-description-margin-top tracking-description text-transform-description">Source code structure and how to contribute to Harpy's development</div>
 <p>Harpy is an open source program written using a combination of BASH, Go, R,
 Python, and Snakemake. This page provides information on Harpy&#x27;s
 development and how to contribute to it, if you were inclined to do so. If you want
@@ -283,17 +284,22 @@ style of presenting and explaining the error, then providing a solution and show
 </doc-panel>
 <h2 id="installing-dev-version">Installing dev version</h2>
 <p>As of v3.2, the easiest way to locally install the development build is to use <a href="https://pixi.sh/latest/installation/" class="outbound" target="_blank"><span>pixi</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>.</p>
-<p>First, you&#x27;ll need to install <code translate="no" v-pre>pixi</code> if you don&#x27;t already have it on your system:</p>
-<div id="installing-dev-version-code-1" class="codeblock-wrapper"><doc-codeblock>
+<doc-steps>
+   <doc-step id="install-pixi-if-you-dont-already-have-it-on-your-system" step-number="1">
+      <template #title>Install <code translate="no" v-pre>pixi</code> if you don&#x27;t already have it on your system:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">curl -fsSL https://pixi.sh/install.sh | sh</code></pre>
 </doc-codeblock></div>
-<p>Then, you&#x27;ll need to clone the Harpy git repository:</p>
-<div id="installing-dev-version-code-2" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="clone-the-harpy-git-repository" step-number="2">
+      <template #title>Clone the Harpy git repository:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">git clone https://github.com/pdimens/harpy.git</code></pre>
 </doc-codeblock></div>
-<p>After, you can install the environment manually or have <code translate="no" v-pre>pixi</code> do it automatically
-when you activate the pixi shell:</p>
-<div id="installing-dev-version-manually-install-the-environment-and-activate-the-shell" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="install-the-environment-manually-or-have-pixi-do-it-automatically-when-you-activate-the-pixi-shell" step-number="3">
+      <template #title>Install the environment manually or have <code translate="no" v-pre>pixi</code> do it automatically when you activate the pixi shell:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">manually install the environment and activate the shell</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
 pixi install
@@ -301,7 +307,7 @@ pixi run build
 pixi shell
 # harpy ...</code></pre>
 </doc-codeblock></div>
-<div id="installing-dev-version-have-pixi-do-it-automatically-and-activate-the-shell" class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">have pixi do it automatically and activate the shell</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">cd harpy
 pixi run build
@@ -309,24 +315,32 @@ pixi shell
 # harpy ...</code></pre>
 </doc-codeblock></div>
 <p>Alternatively, you can prefix harpy commands with <code translate="no" v-pre>pixi run</code>:</p>
-<div id="installing-dev-version-from-within-the-harpy-folder" class="codeblock-wrapper"><doc-codeblock>
+<div class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">from within the harpy/ folder</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">pixi run harpy impute...</code></pre>
 </doc-codeblock></div>
+   </doc-step>
+</doc-steps>
 <h2 id="harpys-components">Harpy&#x27;s components</h2>
 <h3 id="source-code">source code</h3>
 <p>Harpy runs in two stages:</p>
-<ol>
-<li>it recieves command line inputs and parses them</li>
-<li>uses the parsed command line inputs to run a specific Snakemake workflow</li>
-</ol>
+<doc-steps>
+   <doc-step id="parse-command-line" step-number="1">
+      <template #title>Parse command line</template>
+<p>It recieves command line inputs and parses them</p>
+   </doc-step>
+   <doc-step id="configure-and-run-workflow" step-number="2">
+      <template #title>Configure and run workflow</template>
+<p>The parsed inputs configure workflows and output directories, then execute a Snakemake workflow</p>
+   </doc-step>
+</doc-steps>
 <p>To accomplish this, Harpy is written as a Python program, using <a href="https://github.com/ewels/rich-click" class="outbound" target="_blank"><span>rich-click</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
 for the aesthetically pleasing interface. Since Harpy also relies on Snakemake
-snakefiles for each module, bash scripts, python scripts, and rmarkdown files,
+snakefiles for each module, bash scripts, python scripts, and ipynb files,
 not all of it can be installed as a pure python program using <code translate="no" v-pre>setuptools</code>.
 The build process installs part of Harpy as a pure-python command line program, but
 all the extra files Harpy needs to run need to be installed separately. All of
-this is handled by <code translate="no" v-pre>resources/buildlocal.sh</code>. It&#x27;s a little circuitous, but it&#x27;s how
+this is handled by <code translate="no" v-pre>pixi</code>. It&#x27;s a little circuitous, but it&#x27;s how
 we can keep the source code modular, installable, and have the flexibility of
 using non-python code.</p>
 <h3 id="bioconda-recipe">bioconda recipe</h3>
@@ -376,12 +390,24 @@ table below:</p>
 </retype-table>
 <h3 id="development-workflow">development workflow</h3>
 <p>The dev workflow is reasonably standard:</p>
-<ol>
-<li><a href="https://github.com/pdimens/harpy/fork" class="outbound" target="_blank"><span>create a fork</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> of Harpy, usually from the <code translate="no" v-pre>main</code> branch</li>
-<li>within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code translate="no" v-pre>naibr_bugfix</code>, <code translate="no" v-pre>add_deepvariant</code>)</li>
-<li>add and modify code with your typical coding workflow, pushing your changes to your Harpy fork</li>
-<li>when it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code translate="no" v-pre>main</code> branch</li>
-</ol>
+<doc-steps>
+   <doc-step id="fork-harpy" step-number="1">
+      <template #title>Fork Harpy</template>
+<p><a href="https://github.com/pdimens/harpy/fork" class="outbound" target="_blank"><span>create a fork</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> of Harpy, usually from the <code translate="no" v-pre>main</code> branch</p>
+   </doc-step>
+   <doc-step id="create-new-development-branch" step-number="2">
+      <template #title>Create new development branch</template>
+<p>Within your fork, create a new branch, name it something relevant to what you intend to do (<em>e.g.</em>, <code translate="no" v-pre>naibr_bugfix</code>, <code translate="no" v-pre>add_deepvariant</code>)</p>
+   </doc-step>
+   <doc-step id="make-code-changes" step-number="3">
+      <template #title>Make code changes</template>
+<p>Add and modify code with your typical coding workflow, pushing your changes to your Harpy fork</p>
+   </doc-step>
+   <doc-step id="create-pull-request" step-number="4">
+      <template #title>Create pull request</template>
+<p>When it&#x27;s ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy <code translate="no" v-pre>main</code> branch (unless specified otherwise)</p>
+   </doc-step>
+</doc-steps>
 <h3 id="containerization">containerization</h3>
 <p>As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image
 that is uploaded to Dockerhub. Updating or editing this container can be done automatically or manually. As of v3.2,
@@ -470,10 +496,10 @@ $ git push origin X.X.X</code></pre>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/resources/haplotagging/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/resources/hpc/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">Haplotagging</span>
+                                <span class="block mt-1">Running on an HPC</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>

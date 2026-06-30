@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836068384217">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836106138165">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -33,11 +33,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836068384217" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836106138165" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -228,7 +228,7 @@
         </div>
         <div class="p-card-padding">
             <div class="text-card-kicker font-card-kicker text-card-kicker-text card-kicker-case">linked-read &#8226; wgs</div>
-            <div class="mt-2 text-card-title font-card-title leading-card-title text-card-title-text md:text-card-title-md"> Map Reads onto a genome with BWA MEM</div>
+            <div class="mt-2 text-card-title font-card-title leading-card-title text-card-title-text md:text-card-title-md"> Map Reads to a reference with BWA MEM</div>
             <div class="line-clamp-4"><p class="mt-card-description-margin-top text-card-description-text">Once sequences have been trimmed and passed through other QC filters, they will need to be aligned to a reference genome. This module within Harpy expects filtered reads as input, such as those derived using . You can map reads onto a genome assembly with Harpy using the module:</p></div>
         </div>
     </a>
@@ -240,7 +240,7 @@
         </div>
         <div class="p-card-padding">
             <div class="text-card-kicker font-card-kicker text-card-kicker-text card-kicker-case">linked-read &#8226; wgs</div>
-            <div class="mt-2 text-card-title font-card-title leading-card-title text-card-title-text md:text-card-title-md"> Map Reads onto a genome with strobealign</div>
+            <div class="mt-2 text-card-title font-card-title leading-card-title text-card-title-text md:text-card-title-md"> Map Reads to a reference with strobealign</div>
             <div class="line-clamp-4"><p class="mt-card-description-margin-top text-card-description-text">Once sequences have been trimmed and passed through other QC filters, they will need to be aligned to a reference genome. This module within Harpy expects filtered reads as input, such as those derived using . You can map reads onto a genome assembly with Harpy using the module:</p></div>
         </div>
     </a>
@@ -268,7 +268,7 @@
         <div class="p-card-padding">
             <div class="text-card-kicker font-card-kicker text-card-kicker-text card-kicker-case">linked-read &#8226; wgs</div>
             <div class="mt-2 text-card-title font-card-title leading-card-title text-card-title-text md:text-card-title-md"> Phase SNPs into Haplotypes</div>
-            <div class="line-clamp-5"><p class="mt-card-description-margin-top text-card-description-text">You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing genotypes into haplotypes requires alignment files, such as those produced by and a variant call file, such as one produced by or . <strong>Phasing only works on SNP data</strong>, and will not work for structural variants produced by or , preferably filtered in some capacity. You can phase genotypes into haplotypes with Harpy using the module:</p></div>
+            <div class="line-clamp-5"><p class="mt-card-description-margin-top text-card-description-text">You may want to phase your genotypes into haplotypes, as haplotypes tend to be more informative than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing genotypes into haplotypes requires alignment files, such as those produced by and a variant call file, such as one produced by or . <strong>Phasing only works on SNP/indel data</strong>, and will not work for structural variants produced by or , preferably filtered in some capacity. You can phase genotypes into haplotypes with Harpy using the module:</p></div>
         </div>
     </a>
 </div>

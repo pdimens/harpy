@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836068384217">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836106138165">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -13,7 +13,7 @@
     <!-- Primary Meta Tags -->
     <title> Utilities | Harpy</title>
     <meta name="title" content=" Utilities | Harpy">
-    <meta name="description" content="Harpy is the sum of its parts and some of those parts are stand-alone scripts used by the workflows that are accessible from within the Harpy conda environment.">
+    <meta name="description" content="Utilities provided alongside a Harpy installation">
 
     <!-- Canonical -->
     <link rel="canonical" href="https://pdimens.github.io/harpy/getting_started/resources/utilities/">
@@ -23,7 +23,7 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://pdimens.github.io/harpy/getting_started/resources/utilities/">
     <meta property="og:title" content=" Utilities | Harpy">
-    <meta property="og:description" content="Harpy is the sum of its parts and some of those parts are stand-alone scripts used by the workflows that are accessible from within the Harpy conda environment.">
+    <meta property="og:description" content="Utilities provided alongside a Harpy installation">
     <meta property="og:site_name" content="">
     <meta property="og:locale" content="en_US">
 
@@ -31,7 +31,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:url" content="https://pdimens.github.io/harpy/getting_started/resources/utilities/">
     <meta name="twitter:title" content=" Utilities | Harpy">
-    <meta name="twitter:description" content="Harpy is the sum of its parts and some of those parts are stand-alone scripts used by the workflows that are accessible from within the Harpy conda environment.">
+    <meta name="twitter:description" content="Utilities provided alongside a Harpy installation">
 
     <!-- Alternate Markdown -->
     <link rel="alternate" type="text/markdown" href="https://pdimens.github.io/harpy/getting_started/resources/utilities.md">
@@ -39,14 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836068384217" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836106138165" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836068384217" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836068384217" defer></script>
-    <link href="../../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
-    <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.6.0" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836106138165" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836106138165" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -237,14 +235,19 @@
 
                 <!-- Page content  -->
 <h1 id="utilities"><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M9.25 12a.75.75 0 0 1-.22.53l-2.75 2.75a.75.75 0 0 1-1.06-1.06L7.44 12 5.22 9.78a.75.75 0 1 1 1.06-1.06l2.75 2.75c.141.14.22.331.22.53Zm2 2a.75.75 0 0 0 0 1.5h5a.75.75 0 0 0 0-1.5h-5Z"/><path d="M0 4.75C0 3.784.784 3 1.75 3h20.5c.966 0 1.75.784 1.75 1.75v14.5A1.75 1.75 0 0 1 22.25 21H1.75A1.75 1.75 0 0 1 0 19.25Zm1.75-.25a.25.25 0 0 0-.25.25v14.5c0 .138.112.25.25.25h20.5a.25.25 0 0 0 .25-.25V4.75a.25.25 0 0 0-.25-.25Z"/></g></g></svg> Utilities</h1>
-<p>Harpy is the sum of its parts and some of those parts are <a href="https://github.com/pdimens/harpy/tree/main/harpy/bin" class="outbound" target="_blank"><span>stand-alone scripts</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>
-used by the workflows that are accessible from within the Harpy conda environment.
-This page serves to document those scripts, since using them outside of a workflow
-might be useful too. You can call up the docstring for any one of these utilities
-by calling the program without any arguments.</p>
-<h3 id="assign_mi">assign_mi</h3>
-<div id="assign_mi-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">assign_mi -c cutoff input.bam &gt; output.bam</code></pre>
+<div id="retype-page-description" class="description-display text-description font-description leading-description mb-description-margin-bottom mt-description-margin-top tracking-description text-transform-description">Utilities provided alongside a Harpy installation</div>
+<p>Harpy is the sum of its parts and some of those parts are utilities
+used by the workflows that are accessible from within the Harpy conda environment (or however Harpy was installed).
+This page serves to document those utilities, since using them outside of a workflow
+might be useful too. Each of these utilities are accessible with the <code translate="no" v-pre>harpy-utils</code> prefix, e.g.:</p>
+<div id="utilities-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy-utils check-bam</code></pre>
+</doc-codeblock></div>
+<p>You can call up the docstring for any one of these utilities by calling the program without any arguments.
+You can view all the utilities by calling the docstring of <code translate="no" v-pre>harpy-utils</code> itself.</p>
+<h3 id="assign-mi">assign-mi</h3>
+<div id="assign-mi-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">assign-mi -c cutoff input.bam &gt; output.bam</code></pre>
 </doc-codeblock></div>
 <p>Assign an <code translate="no" v-pre>MI:i</code> (Molecular Identifier) tag to each barcoded
 record based on a molecular distance cutoff. Input file <strong>must be coordinate sorted</strong>.
@@ -253,9 +256,16 @@ This is similar to <doc-anchor-trigger to="#deconvolve_alignments">deconvolve_al
 <li>unmapped records are discarded</li>
 <li>records without a <code translate="no" v-pre>BX:Z</code> tag or with an invalid barcode (<code translate="no" v-pre>00</code> as one of its segments) are presevered but are not assigned an <code translate="no" v-pre>MI:i</code> tag</li>
 </ul>
-<h3 id="bx_stats">bx_stats</h3>
-<div id="bx_stats-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_stats input.bam &gt; output.gz</code></pre>
+<h3 id="bx-stats-fq">bx-stats-fq</h3>
+<div id="bx-stats-fq-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx-stats-fq input.fq &gt; output.gz</code></pre>
+</doc-codeblock></div>
+<p>Parses a FASTQ file to count: total sequences, total number of linked-read barcodes,
+number of valid barcodes, number of invalid BX tags, and a count of positional
+barcode invalidations (e.g. A00, <em>0</em>, N)</p>
+<h3 id="bx-stats-sam">bx-stats-sam</h3>
+<div id="bx-stats-sam-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx-stats input.bam &gt; output.gz</code></pre>
 </doc-codeblock></div>
 <p>Calculates various linked-read molecule metrics from the (coordinate-sorted) input alignment file.
 Metrics include (per molecule):</p>
@@ -269,17 +279,17 @@ Metrics include (per molecule):</p>
 <li>molecule coverage (%) based on aligned bases</li>
 <li>molecule coverage (%) based on total inferred insert length</li>
 </ul>
-<h3 id="bx_to_end">bx_to_end</h3>
-<div id="bx_to_end-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx_to_end input.[fq|bam] &gt; output.[fq.gz|bam]</code></pre>
+<h3 id="bx-to-end">bx-to-end</h3>
+<div id="bx-to-end-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bx-to-end input.[fq|bam] &gt; output.[fq.gz|bam]</code></pre>
 </doc-codeblock></div>
 <p>Parses the records of a FASTQ or BAM file and moves the <code translate="no" v-pre>BX:Z</code> tag, if present, to
 the end of the record, which makes the data play nice with LRez/LEVIATHAN. During
 alignment, Harpy will automatically move the <code translate="no" v-pre>BX:Z</code> tag to the end of the alignment
 record, so that will <strong>not</strong> require manual intervention.</p>
-<h3 id="check_bam">check_bam</h3>
-<div id="check_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_bam platform input.bam &gt; output.txt</code></pre>
+<h3 id="check-bam">check-bam</h3>
+<div id="check-bam-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">check-bam platform input.bam &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses an aligment file to check:</p>
 <ul>
@@ -294,9 +304,9 @@ record, so that will <strong>not</strong> require manual intervention.</p>
 </ul>
 </li>
 </ul>
-<h3 id="check_fastq">check_fastq</h3>
-<div id="check_fastq-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">check_fastq platform input.fq &gt; output.txt</code></pre>
+<h3 id="check-fastq">check-fastq</h3>
+<div id="check-fastq-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">check-fastq platform input.fq &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parses a FASTQ file to check if any sequences don&#x27;t conform to the SAM spec,
 whether BX:Z: is the last tag in the record, and the counts of:</p>
@@ -305,98 +315,44 @@ whether BX:Z: is the last tag in the record, and the counts of:</p>
 <li>reads without <code translate="no" v-pre>BX:Z</code> tag</li>
 <li>reads with incorrect <code translate="no" v-pre>BX:Z</code> tag (specific to <code translate="no" v-pre>platform</code>)</li>
 </ul>
-<h3 id="concatenate_bam">concatenate_bam</h3>
-<div id="concatenate_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">concatenate_bam [--bx] file_1.bam file_2.bam...file_N.bam &gt; output.bam
-# or #
-concatenate_bam [--bx] -b bam_files.txt &gt; output.bam</code></pre>
-</doc-codeblock></div>
-<p>Concatenate records from haplotagged SAM/BAM files while making sure <code translate="no" v-pre>MI</code> tags  remain unique for every sample.
-This is a means of accomplishing the same as <code translate="no" v-pre>samtools cat</code>, except all <code translate="no" v-pre>MI</code> tags are updated
-so individuals don&#x27;t have overlapping <code translate="no" v-pre>MI</code> tags (which would mess up all the linked-read data). You can either provide
-all the files you want to concatenate, or a single file featuring filenames with the <code translate="no" v-pre>-b</code> option. Use the <code translate="no" v-pre>--bx</code> option
-to also rewrite <code translate="no" v-pre>BX</code> tags such that they are unique for every individual too, although take note that there can only be
-<span class="math">96^4</span> (84,934,656) unique haplotag barcodes and it will raise an error if that number is exceeded.</p>
-<h3 id="count_bx">count_bx</h3>
-<div id="count_bx-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">count_bx input.fastq &gt; output.txt</code></pre>
-</doc-codeblock></div>
-<p>Parses a FASTQ file to count:</p>
-<ul>
-<li>total sequences</li>
-<li>total number of <code translate="no" v-pre>BX</code> tags</li>
-<li>number of valid haplotagging <code translate="no" v-pre>BX</code> tags</li>
-<li>number of invalid <code translate="no" v-pre>BX</code> tags</li>
-<li>number of invalid <code translate="no" v-pre>BX</code> tag segments (i.e. <code translate="no" v-pre>A00</code>, <code translate="no" v-pre>C00</code>, <code translate="no" v-pre>B00</code>, <code translate="no" v-pre>D00</code>).</li>
-</ul>
-<h3 id="deconvolve_alignments">deconvolve_alignments</h3>
-<div id="deconvolve_alignments-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">deconvolve_alignments -c cutoff input.bam &gt; output.bam</code></pre>
-</doc-codeblock></div>
-<p>Deconvolve BX-tagged barcodes and assign an <code translate="no" v-pre>MI</code> (Molecular Identifier) tag to each barcoded record based on a molecular distance cutoff.
-Input file <strong>must be coordinate sorted</strong>. This is similar to <doc-anchor-trigger to="#assign_mi">assign_mi</doc-anchor-trigger>, except it will also deconvolve the <code translate="no" v-pre>BX</code> tag by
-hyphenating it with an integer (e.g. <code translate="no" v-pre>A01C25B31D92-2</code>).</p>
-<ul>
-<li>unmapped records are discarded</li>
-<li>records without a <code translate="no" v-pre>BX</code> tag or with an invalid barcode (<code translate="no" v-pre>00</code> as one of its segments) are presevered but are not assigned an <code translate="no" v-pre>MI</code> tag</li>
-</ul>
-<h3 id="depth_windows">depth_windows</h3>
-<div id="depth_windows-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">samtools depth -a file.bam | depth_windows windowsize &gt; output.txt</code></pre>
-</doc-codeblock></div>
-<p>Reads the output of <code translate="no" v-pre>samtools depth -a</code> from stdin and calculates means within windows of a given <code translate="no" v-pre>windowsize</code>.</p>
-<h3 id="haplotag_acbd">haplotag_acbd</h3>
-<div id="haplotag_acbd-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">haplotag_acbd output_directory</code></pre>
+<h3 id="haplotag-acbd">haplotag-acbd</h3>
+<div id="haplotag-acbd-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">haplotag-acbd output_directory</code></pre>
 </doc-codeblock></div>
 <p>Generates the <code translate="no" v-pre>BC_{ABCD}.txt</code> files necessary to demultiplex Gen I haplotag barcodes into the specified <code translate="no" v-pre>output_directory</code>.</p>
-<h3 id="infer_sv">infer_sv</h3>
-<div id="infer_sv-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">infer_sv file.bedpe [-f fail.bedpe] &gt; outfile.bedpe</code></pre>
+<h3 id="infer-sv">infer-sv</h3>
+<div id="infer-sv-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">infer-sv file.bedpe [-f fail.bedpe] &gt; outfile.bedpe</code></pre>
 </doc-codeblock></div>
 <p>Create column in NAIBR bedpe output inferring the SV type from the orientation. Removes variants with FAIL flags
 and you can use the optional <code translate="no" v-pre>-f</code> (<code translate="no" v-pre>--fail</code>) argument to output FAIL variants to a separate file.</p>
-<h3 id="make_windows">make_windows</h3>
-<div id="make_windows-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">make_windows -w &lt;window.size&gt; -m &lt;0,1&gt; input.fasta[.fai] &gt; output.bed</code></pre>
-</doc-codeblock></div>
-<p>Create a BED file of fixed intervals (<code translate="no" v-pre>-w</code>, --<code translate="no" v-pre>window</code>) from a FASTA or fai file (the kind generated with <code translate="no" v-pre>samtools faidx</code>).
-Nearly identical to <code translate="no" v-pre>bedtools makewindows</code>, except the intervals are nonoverlapping. The <code translate="no" v-pre>-m</code> (<code translate="no" v-pre>--mode</code>) option specified
-whether indexing starts at <code translate="no" v-pre>0</code> or <code translate="no" v-pre>1</code>.</p>
-<h3 id="molecule_coverage">molecule_coverage</h3>
-<div id="molecule_coverage-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">molecule_coverage -f genome.fasta.fai statsfile &gt; output.cov</code></pre>
+<h3 id="molecule-coverage">molecule-coverage</h3>
+<div id="molecule-coverage-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">molecule-coverage -f genome.fasta.fai statsfile &gt; output.cov</code></pre>
 </doc-codeblock></div>
 <p>Using the statsfile generated by <code translate="no" v-pre>bx_stats</code> from Harpy, will calculate &quot;molecular coverage&quot; across the genome.
 Molecular coverage is the &quot;effective&quot; alignment coverage if you treat a molecule inferred from linked-read data as
 one contiguous alignment, even though the reads that make up that molecule don&#x27;t cover its entire length. Requires a
 FASTA fai index (the kind created with <code translate="no" v-pre>samtools faidx</code>) to know the actual sizes of the contigs.</p>
-<h3 id="parse_phaseblocks">parse_phaseblocks</h3>
-<div id="parse_phaseblocks-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">parse_phaseblocks input &gt; output.txt</code></pre>
+<h3 id="parse-phaseblocks">parse-phaseblocks</h3>
+<div id="parse-phaseblocks-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">parse-phaseblocks input &gt; output.txt</code></pre>
 </doc-codeblock></div>
 <p>Parse a phase block file from HapCut2 to pull out summary information</p>
-<h3 id="rename_bam">rename_bam</h3>
-<div id="rename_bam-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">rename_bam [-d] new_name input.bam</code></pre>
+<h3 id="rename-bam">rename-bam</h3>
+<div id="rename-bam-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">rename-bam [-d] new_name input.bam</code></pre>
 </doc-codeblock></div>
 <p>Rename a sam/bam file and modify the <code translate="no" v-pre>@RG</code> tag of the alignment file to reflect the change for both <code translate="no" v-pre>ID</code> and <code translate="no" v-pre>SM</code>.
 This process creates a new file <code translate="no" v-pre>new_name.bam</code> and you may use <code translate="no" v-pre>-d</code> to delete the original file. Requires <code translate="no" v-pre>samtools</code>.</p>
-<h3 id="standardize_barcodes_sam">standardize_barcodes_sam</h3>
-<div id="standardize_barcodes_sam-code-1" class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">standardize_barcodes_sam input.bam &gt; output.sam</code></pre>
+<h3 id="plot-depth">plot-depth</h3>
+<div id="plot-depth-code-1" class="codeblock-wrapper"><doc-codeblock>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">plot-depth [--molcov] [--coverage] [--prefix] contigs</code></pre>
 </doc-codeblock></div>
-<p>Parse a SAM/BAM file to identify the linked-read barcode (haplotagging, stlfr, tellseq, 10x) and
-move it to the <code translate="no" v-pre>BX:Z</code> tag if it&#x27;s not already there. After, add a <code translate="no" v-pre>VX:i:0</code> if the barcode is
-invalid for the given technology or <code translate="no" v-pre>VX:i:1</code> if it is valid for the given technology.</p>
+<p>Since per-contig plotting has been removed from alignment reports in Harpy &gt;=4, this convenience utility is provided
+to restore potting depth per contig, albeit no longer as a Circos plot. Outputs one html file of <code translate="no" v-pre>{prefix}</code>.<code translate="no" v-pre>{contig}</code>.depth.html per contig. Provide with a harpy-produced molecule coverage file, mosdep-produced coverage file, or both.</p>
 <ul>
-<li>input file can be SAM or BAM, doesn&#x27;t require index
-<ul>
-<li>can read from <code translate="no" v-pre>stdin</code></li>
-</ul>
-</li>
-<li><code translate="no" v-pre>stdout</code>: alignments in SAM format (not BAM)</li>
-<li>used in <code translate="no" v-pre>align</code> workflows</li>
+<li><code translate="no" v-pre>contigs</code>: name(s) of contigs to plot, space-separated (default = 30 largest)</li>
 </ul>
 <div id="retype-backlinks">
     <h2>See also</h2>
@@ -508,6 +464,6 @@ invalid for the given technology or <code translate="no" v-pre>VX:i:1</code> if 
 
     <div id="retype-overlay-target"></div>
 
-        <script data-cfasync="false">window.__DOCS__ = { "title": "Utilities", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: true, tocDepth: 23, "md": "/getting_started/resources/utilities.md" }</script>
+        <script data-cfasync="false">window.__DOCS__ = { "title": "Utilities", level: 3, icon: "file", hasPrism: true, hasInstagram: false, hasMermaid: false, hasMath: false, tocDepth: 23, "md": "/getting_started/resources/utilities.md" }</script>
 </body>
 </html>

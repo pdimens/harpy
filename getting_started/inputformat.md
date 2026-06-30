@@ -1,4 +1,4 @@
-# :icon-file-binary: Input Format
+# :icon-file-binary: Input FASTQ Format
 
 ## FASTQ Read length
 Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](/Workflows/qc.md) module removes reads <30bp.

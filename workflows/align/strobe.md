@@ -1,4 +1,4 @@
-# :icon-quote: Map Reads onto a genome with strobealign
+# :icon-quote: Map Reads to a reference with strobealign
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

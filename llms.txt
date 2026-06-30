@@ -3,11 +3,11 @@
 
 ## Getting Started
 
-- [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): method
-- [ Input Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): Reads must be at least 30 base pairs in length for alignment. By default, the module removes reads <30bp.
+- [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
+- [ Input FASTQ Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
 - [ Intro to linked-read data](https://pdimens.github.io/harpy/getting_started/linked_read_data.md): What you ought to know about linked reads
-- [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Each of the main Harpy modules (e.g. or ) follows the format of
-- [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): Harpy has always maintained a robust reporting system for most workflows. These reports detail the common characteristics of data after a given workflow (e.g.
+- [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
+- [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
 
 ### Guides
 
@@ -20,11 +20,11 @@
 
 ### Resources
 
-- [ Developing Harpy](https://pdimens.github.io/harpy/getting_started/resources/development.md): Harpy is an open source program written using a combination of BASH, Go, R, Python, and Snakemake. This page provides information on Harpy's development and how to contribute to it, if you were inclined to do so.
-- [ Running on an HPC Cluster](https://pdimens.github.io/harpy/getting_started/resources/hpc.md): You'll be working with genomic data, so it's very likely you'll try to run Harpy on a high-performance computing (HPC) cluster at some point. Doing so will usually require you to log into a head node and submit jobs that some kind of scheduler (e.g.
-- [ Snakamake Things](https://pdimens.github.io/harpy/getting_started/resources/snakemake.md): Barring a few exceptions, most of Harpy's options are Snakemake workflows. This means we are all at the mercy of how Snakemake operates, which includes the .snakemake/ folder in your project directory.
-- [ Software used in Harpy](https://pdimens.github.io/harpy/getting_started/resources/software.md): Harpy is the sum of its parts, and out of tremendous respect for the developers involved in the included software, we would like to highlight the tools directly involved in Harpy's many moving pieces.
-- [ Utilities](https://pdimens.github.io/harpy/getting_started/resources/utilities.md): Harpy is the sum of its parts and some of those parts are stand-alone scripts used by the workflows that are accessible from within the Harpy conda environment.
+- [ Developing Harpy](https://pdimens.github.io/harpy/getting_started/resources/development.md): Source code structure and how to contribute to Harpy's development
+- [ Running on an HPC Cluster](https://pdimens.github.io/harpy/getting_started/resources/hpc.md): Best-practices for running on a computing cluster
+- [ Snakamake Things](https://pdimens.github.io/harpy/getting_started/resources/snakemake.md): Helpful things to understand about Snakemake
+- [ Software used in Harpy](https://pdimens.github.io/harpy/getting_started/resources/software.md): A significant debt of gratitude; we stand on the shoulders of giants
+- [ Utilities](https://pdimens.github.io/harpy/getting_started/resources/utilities.md): Utilities provided alongside a Harpy installation
 
 ### Troubleshooting
 
@@ -39,22 +39,22 @@
 
 ### Align
 
-- [ Align Sequences to a Genome](https://pdimens.github.io/harpy/workflows/align/align.md): Align haplotagged sequences
-- [ Map Reads onto a genome with BWA MEM](https://pdimens.github.io/harpy/workflows/align/bwa.md): Align haplotagged sequences with BWA MEM
-- [ Map Reads onto a genome with strobealign](https://pdimens.github.io/harpy/workflows/align/strobe.md): Align haplotagged sequences with strobealign
+- [ Align Sequences to a Genome](https://pdimens.github.io/harpy/workflows/align/align.md): Choosing an aligner
+- [ Map Reads to a reference with BWA MEM](https://pdimens.github.io/harpy/workflows/align/bwa.md): Align haplotagged sequences with BWA-MEM2
+- [ Map Reads to a reference with strobealign](https://pdimens.github.io/harpy/workflows/align/strobe.md): Align haplotagged sequences with strobealign
 - [ Create a Genome Assembly](https://pdimens.github.io/harpy/workflows/assembly.md): Create a genome assembly from linked reads
 - [ Resolve barcodes shared by different molecules](https://pdimens.github.io/harpy/workflows/deconvolve.md): Resolve barcodes shared by different molecules
 - [ Preprocess Raw Sequences](https://pdimens.github.io/harpy/workflows/preprocess.md): Preprocess raw sequences into haplotag barcoded samples
-- [ Impute Genotypes using Sequences](https://pdimens.github.io/harpy/workflows/impute.md): Impute genotypes for haplotagged data with Harpy
+- [ Impute Genotypes using Sequences](https://pdimens.github.io/harpy/workflows/impute.md): Impute genotypes for linked-read data with STITCH
 - [ Create a Metagenome Assembly](https://pdimens.github.io/harpy/workflows/metassembly.md): Create a metagenome assembly from linked reads
 - [Template](https://pdimens.github.io/harpy/workflows/template.md): Generate extra files for analysis with Harpy
 
 ### Phase
 
-- [ Phase Alignments from Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_alignment.md): Phase alignments with Harpy
-- [ Phase SNPs into Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_snp.md): Phase haplotypes with Harpy
-- [ Validation checks for input files](https://pdimens.github.io/harpy/workflows/validate.md): Run file format checks on haplotagged FASTQ/BAM files
-- [ Quality Trim Sequences](https://pdimens.github.io/harpy/workflows/qc.md): Quality trim haplotagged sequences with Harpy
+- [ Phase Alignments from Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_alignment.md): Phasing will add PS tags to alignment records using Whatshap
+- [ Phase SNPs into Haplotypes](https://pdimens.github.io/harpy/workflows/phase/phase_snp.md): Phase SNPs and indels into haplotypes with HapCut2
+- [ Validation checks for input files](https://pdimens.github.io/harpy/workflows/validate.md): Perform file format checks on linked-read FASTQ/BAM files
+- [ Quality Trim Sequences](https://pdimens.github.io/harpy/workflows/qc.md): Quality trim haplotagged sequences with fastp
 - [ Call SNPs and small indels](https://pdimens.github.io/harpy/workflows/snp.md): Call SNPs and small indels
 
 ### SV

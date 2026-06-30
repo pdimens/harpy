@@ -1,4 +1,4 @@
-# :icon-quote: Map Reads onto a genome with BWA MEM
+# :icon-quote: Map Reads to a reference with BWA MEM
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available
@@ -86,7 +86,7 @@ alignments as duplicates if the primary alignment was marked as a duplicate. Dup
 - ignores (but retains) barcode information
 - fast
 
-The [BWA MEM](https://github.com/lh3/bwa) workflow maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
+The [BWA MEM](https://github.com/bwa-mem2/bwa-mem2) workflow maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
 The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
 are not used to inform mapping. The `-m` threshold is used for alignment molecule assignment.
 

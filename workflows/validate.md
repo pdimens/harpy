@@ -51,12 +51,12 @@ the haplotagging data format, you will find little value in running [!badge corn
 of the language such as when "any" and "all" are written.
 
 {.compact .clean}
- | Criteria     {.whitespace-nowrap} | Pass Condition                                                                                   | Fail Condition                                                |
- | :-------------------------------- | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
- | Format                            | **all** reads with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** BX:Z: barcodes have incorrect format                  |
- | follows SAM spec                  | **all** reads have proper `TAG:TYPE:VALUE` comments                                              | **any** reads have incorrectly formatted comments             |
- | BX:Z: last comment                | **all** reads have `BX:Z`: as final comment                                                      | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
- | BX:Z: tag                         | any `BX:Z:` tags present                                                                         | **all** reads lack `BX:Z:` tag                                |
+| Criteria     {.whitespace-nowrap} | Pass Condition                                                                                   | Fail Condition                                                |
+| :-------------------------------- | :----------------------------------------------------------------------------------------------- | :------------------------------------------------------------ |
+| Format                            | **all** reads with BX:Z: tag have properly formatted barcodes for the given linked-read platform | **any** BX:Z: barcodes have incorrect format                  |
+| follows SAM spec                  | **all** reads have proper `TAG:TYPE:VALUE` comments                                              | **any** reads have incorrectly formatted comments             |
+| BX:Z: last comment                | **all** reads have `BX:Z`: as final comment                                                      | **at least 1 read** doesn't have `BX:Z:` tag as final comment |
+| BX:Z: tag                         | any `BX:Z:` tags present                                                                         | **all** reads lack `BX:Z:` tag                                |
 
 +++ :icon-search: bam files
 Below is a table of the format specifics [!badge corners="pill" text="validate bam"] checks for SAM/BAM files. Take note

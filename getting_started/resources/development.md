@@ -32,18 +32,17 @@ style of presenting and explaining the error, then providing a solution and show
 ## Installing dev version
 As of v3.2, the easiest way to locally install the development build is to use [pixi](https://pixi.sh/latest/installation/).
 
-First, you'll need to install `pixi` if you don't already have it on your system:
+>>> Install `pixi` if you don't already have it on your system:
 ```bash
 curl -fsSL https://pixi.sh/install.sh | sh
 ```
 
-Then, you'll need to clone the Harpy git repository:
+>>> Clone the Harpy git repository:
 ```bash
 git clone https://github.com/pdimens/harpy.git
 ```
 
-After, you can install the environment manually or have `pixi` do it automatically
-when you activate the pixi shell:
+>>> Install the environment manually or have `pixi` do it automatically when you activate the pixi shell:
 ```bash manually install the environment and activate the shell
 cd harpy
 pixi install
@@ -61,20 +60,24 @@ Alternatively, you can prefix harpy commands with `pixi run`:
 ```bash from within the harpy/ folder
 pixi run harpy impute...
 ```
+>>>
 
 ## Harpy's components
 ### source code
 Harpy runs in two stages:
-1. it recieves command line inputs and parses them
-2. uses the parsed command line inputs to run a specific Snakemake workflow
+>>> Parse command line
+It recieves command line inputs and parses them
+>>> Configure and run workflow
+The parsed inputs configure workflows and output directories, then execute a Snakemake workflow
+>>>
 
 To accomplish this, Harpy is written as a Python program, using [rich-click](https://github.com/ewels/rich-click)
 for the aesthetically pleasing interface. Since Harpy also relies on Snakemake
-snakefiles for each module, bash scripts, python scripts, and rmarkdown files,
+snakefiles for each module, bash scripts, python scripts, and ipynb files,
 not all of it can be installed as a pure python program using `setuptools`.
 The build process installs part of Harpy as a pure-python command line program, but
 all the extra files Harpy needs to run need to be installed separately. All of 
-this is handled by `resources/buildlocal.sh`. It's a little circuitous, but it's how
+this is handled by `pixi`. It's a little circuitous, but it's how
 we can keep the source code modular, installable, and have the flexibility of 
 using non-python code.
 
@@ -104,10 +107,15 @@ table below:
 
 ### development workflow
 The dev workflow is reasonably standard:
-1. [create a fork](https://github.com/pdimens/harpy/fork) of Harpy, usually from the `main` branch
-2. within your fork, create a new branch, name it something relevant to what you intend to do (_e.g._, `naibr_bugfix`, `add_deepvariant`)
-3. add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
-4. when it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `main` branch
+>>> Fork Harpy
+[create a fork](https://github.com/pdimens/harpy/fork) of Harpy, usually from the `main` branch
+>>> Create new development branch
+Within your fork, create a new branch, name it something relevant to what you intend to do (_e.g._, `naibr_bugfix`, `add_deepvariant`)
+>>> Make code changes
+Add and modify code with your typical coding workflow, pushing your changes to your Harpy fork
+>>> Create pull request
+When it's ready for inclusion into Harpy (and testing), create a Pull Request to merge your changes into the Harpy `main` branch (unless specified otherwise)
+>>>
 
 ### containerization
 As of Harpy v1.0, the software dependencies that the Snakemake workflows use are pre-configured as a Docker image

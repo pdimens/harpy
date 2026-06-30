@@ -13,7 +13,7 @@ You may want to phase your genotypes into haplotypes, as haplotypes tend to be m
 than unphased genotypes (higher polymorphism, captures relationship between genotypes). Phasing
 genotypes into haplotypes requires alignment files, such as those produced by [!badge corners="pill" text="align bwa"](../Align/bwa.md)
 and a variant call file, such as one produced by [!badge corners="pill" text="snp freebayes"](../snp.md)
-or [!badge corners="pill" text="impute"](../impute.md). **Phasing only works on SNP data**, and will not
+or [!badge corners="pill" text="impute"](../impute.md). **Phasing only works on SNP/indel data**, and will not
 work for structural variants produced by [!badge corners="pill" text="sv leviathan"](../SV/leviathan.md)
 or [!badge corners="pill" text="sv naibr"](../SV/naibr.md), preferably [filtered in some capacity](/Getting_Started/Guides/filtering_snps.md). You can phase genotypes into haplotypes with
 Harpy using the [!badge corners="pill" text="phase"] module:
