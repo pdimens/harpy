@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836168561248">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836183221966">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836168561248" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836183221966" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836168561248" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836168561248" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836168561248" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836183221966" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -396,7 +396,7 @@ remove duplicates, and quality trim sequences using the <span class="no-link inl
     <span>not recommended</span>
 </span></p>
 <p>You can opt-in to have <code translate="no" v-pre>fastp</code> deduplicate optical (PCR) duplicates. It&#x27;s generally not recommended to perform deduplication during quality-checking,
-as the <a href="../align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+as the <a href="align/align.md" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>align</span>
 </a> workflows use the linked-read barcode to more accurately tag reads as duplicates.</p>
 <h3 id="trim-adapters">Trim adapters</h3>
@@ -566,39 +566,6 @@ be cumbersome to print here. See the list of options in the <a href="https://git
                 <span class="card-compact-title"> Input FASTQ Format</span>
             </div>
             <p class="card-compact-description">What FASTQ formats are compatible with Harpy</p>
-        </div>
-    </a>
-</div>
-<div class="card-compact-container">
-    <a href="/harpy/workflows/align/ema/" class="group card-compact no-link">
-        <div class="card-compact-body">
-            <div class="card-compact-header">
-                <span class="card-compact-icon inline-flex shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" role="presentation" fill="currentColor"><!--icon--><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-1.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg></span>
-                <span class="card-compact-title"> Map Reads onto a genome with EMA</span>
-            </div>
-            <p class="card-compact-description">Align haplotagged sequences with EMA</p>
-        </div>
-    </a>
-</div>
-<div class="card-compact-container">
-    <a href="/harpy/workflows/align/bwa/" class="group card-compact no-link">
-        <div class="card-compact-body">
-            <div class="card-compact-header">
-                <span class="card-compact-icon inline-flex shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" role="presentation" fill="currentColor"><!--icon--><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-1.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg></span>
-                <span class="card-compact-title"> Map Reads to a reference with BWA MEM</span>
-            </div>
-            <p class="card-compact-description">Align haplotagged sequences with BWA-MEM2</p>
-        </div>
-    </a>
-</div>
-<div class="card-compact-container">
-    <a href="/harpy/workflows/align/strobe/" class="group card-compact no-link">
-        <div class="card-compact-body">
-            <div class="card-compact-header">
-                <span class="card-compact-icon inline-flex shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" role="presentation" fill="currentColor"><!--icon--><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-1.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg></span>
-                <span class="card-compact-title"> Map Reads to a reference with strobealign</span>
-            </div>
-            <p class="card-compact-description">Align haplotagged sequences with strobealign</p>
         </div>
     </a>
 </div>

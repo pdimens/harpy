@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836168561248">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836183221966">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836168561248" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836183221966" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836168561248" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836168561248" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836168561248" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836183221966" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -341,7 +341,7 @@ from the sample names. A simple fix would be to use underscores (<code translate
 </div>
    </doc-panel>
 </doc-panels>
-<p>After reads have been aligned, <em>e.g.</em>, with <a href="../align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
+<p>After reads have been aligned, <em>e.g.</em>, with <a href="align/align.md" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>harpy align</span>
 </a>, you can use those alignment files
 (<code translate="no" v-pre>.bam</code>) to call variants in your data. Harpy can call SNPs and small indels using
@@ -670,16 +670,6 @@ refer to the <a href="https://github.com/freebayes/freebayes#usage" class="outbo
     </a>
 </div>
 <div class="card-compact-container">
-    <a href="/harpy/workflows/sv/" class="group card-compact no-link">
-        <div class="card-compact-body">
-            <div class="card-compact-header">
-                <span class="card-compact-title"> Find structural variants</span>
-            </div>
-            <p class="card-compact-description">Find structural variants</p>
-        </div>
-    </a>
-</div>
-<div class="card-compact-container">
     <a href="/harpy/getting_started/guides/wgs_data/" class="group card-compact no-link">
         <div class="card-compact-body">
             <div class="card-compact-header">
@@ -698,17 +688,6 @@ refer to the <a href="https://github.com/freebayes/freebayes#usage" class="outbo
                 <span class="card-compact-title"> Impute Genotypes using Sequences</span>
             </div>
             <p class="card-compact-description">Impute genotypes for linked-read data with STITCH</p>
-        </div>
-    </a>
-</div>
-<div class="card-compact-container">
-    <a href="/harpy/workflows/phase/phase_snp/" class="group card-compact no-link">
-        <div class="card-compact-body">
-            <div class="card-compact-header">
-                <span class="card-compact-icon inline-flex shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" role="presentation" fill="currentColor"><!--icon--><path d="M12 18a6 6 0 1 1 0-12 6 6 0 0 1 0 12Zm0-1.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9Z"/></svg></span>
-                <span class="card-compact-title"> Phase SNPs into Haplotypes</span>
-            </div>
-            <p class="card-compact-description">Phase SNPs and indels into haplotypes with HapCut2</p>
         </div>
     </a>
 </div>
@@ -754,7 +733,7 @@ refer to the <a href="https://github.com/freebayes/freebayes#usage" class="outbo
             
                 <nav id="retype-nextprev" class="print:hidden flex mt-14">
                     <div class="w-1/2">
-                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../workflows/qc/">
+                        <a class="px-5 py-4 h-full flex items-center break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r rounded-l-lg transition-colors duration-150 relative hover:z-5" href="../../workflows/qc/">
                             <svg xmlns="http://www.w3.org/2000/svg" class="mr-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19 11H7.41l5.29-5.29a.996.996 0 10-1.41-1.41l-7 7a1 1 0 000 1.42l7 7a1.024 1.024 0 001.42-.01.996.996 0 000-1.41L7.41 13H19c.55 0 1-.45 1-1s-.45-1-1-1z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                             <span>
                                 <span class="block text-xs font-normal text-base-text-muted">Previous</span>
@@ -764,13 +743,6 @@ refer to the <a href="https://github.com/freebayes/freebayes#usage" class="outbo
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../workflows/sv/">
-                            <span>
-                                <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1">SV</span>
-                            </span>
-                            <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
-                        </a>
                     </div>
                 </nav>
             </footer>
