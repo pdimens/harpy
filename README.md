@@ -3,7 +3,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=anaconda&logoColor=ffffff)](https://github.com/pdimens/harpy/releases)
 [![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://pdimens.github.io/harpy)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
-[![haplotagging badge](https://custom-icon-badges.demolab.com/badge/-Haplotagging-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://www.fml.tuebingen.mpg.de/9418/haplotagging)
+[![Linked-Read Data Standard](https://custom-icon-badges.demolab.com/badge/-Standardized%20Data-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://pdimens.github.io/lastq/)
 
 [Linked-read](https://doi.org/10.1073/pnas.2015005118) data processing pipeline. Getting you from raw linked reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋
 
