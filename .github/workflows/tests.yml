@@ -1,12 +1,15 @@
 name: Test
-
 on:
   push:
     branches:
-      - 'main'
+      - main
+    paths-ignore:
+      - "docs/**"
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "docs/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref }}
@@ -39,7 +42,7 @@ jobs:
       resume: ${{ steps.filter.outputs.resume }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
       - name: Check Which Files Have Changes
         uses: dorny/paths-filter@v4
         id: filter
@@ -53,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -76,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -102,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -128,7 +131,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -149,7 +152,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -170,7 +173,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -195,7 +198,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -228,7 +231,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -265,7 +268,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -302,7 +305,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -328,7 +331,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -354,7 +357,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -385,7 +388,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy

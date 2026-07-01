@@ -1,5 +1,4 @@
 name: Upload Release Tarball and Container
-
 on:
   push:
     tags:
