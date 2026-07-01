@@ -16,7 +16,7 @@ jobs:
         env: [align, assembly, preprocess, metassembly, phase, qc, impute, variants]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Install Harpy
@@ -55,7 +55,9 @@ jobs:
       repository-projects: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6.0.2
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
       - name: Build project
         # This builds the release tarball, stripped of unneccessary things
         run: |
