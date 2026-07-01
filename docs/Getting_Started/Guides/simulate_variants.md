@@ -4,6 +4,7 @@ author:
     avatar: https://cals.cornell.edu/sites/default/files/styles/faculty/public/2024-09/afs-headshot-high-res-2cropped_0.jpg
 date: 2024-09-30
 category: guides
+hidden: true
 description: A realistic workflow to simulate variants
 icon: git-merge-queue
 image: https://neupsykey.com/wp-content/uploads/2017/03/ch02_f01.jpg

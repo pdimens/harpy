@@ -30,7 +30,7 @@ harpy align --help
 ```
 
 ## Utilities
-An installation of Harpy also includes a series of [scripts/utilities](Getting_Started/Resources/utilities.md) called `harpy-utils` that are available along with the `harpy` package. These scripts are used within Harpy workflows, but you can also use them outside of Harpy workflows.
+An installation of Harpy also includes a series of [scripts/utilities](Getting_Started/utilities.md) called `harpy-utils` that are available along with the `harpy` package. These scripts are used within Harpy workflows, but you can also use them outside of Harpy workflows.
 ```bash
 harpy-utils molecule-coverage
 ```
