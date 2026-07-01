@@ -52,16 +52,7 @@ and your "layer" (modification) is installing a program into it using `sudo apt 
 run particular things with the software you installed into it.
 ===
 
-The Harpy team manages [a container on Dockerhub](https://hub.docker.com/repository/docker/pdimens/harpy/general) called, you guessed it, Harpy, that 
-is synchronously versioned with the Harpy software. In other words, if 
-you're using Harpy v1.4, it will use the container version v1.4. The 
-development version of Harpy uses `latest` and the versions are automagically
-managed through GitHub Actions. The Harpy container actually contains all of
-the conda environments **in** it. So, when Snakemake is using the container
-environment method, it will pull the versioned container from Dockerhub, and
-jump in and out of container instances as required by the different jobs. 
-When inside a container, Snakemake will automatically activate the correct
-conda environment within the container!
+Harpy is distributed with Bioconda and every conda package in Bioconda has a corresponding Docker BioContainer automatically created and uploaded to Quay.io. You can find it [here](https://biocontainers.pro/tools/harpy)
 
 ## What's the Catch?
 While local conda enviroments at runtime or containers might seem like  foolproof approaches, there are drawbacks.
@@ -82,7 +73,7 @@ That itself isn't terrible, but it's an extra step because you will
 need to identify which environment is the correct one since Snakemake renames
 them by their hash. There are two ways to get that information quickly:
 1. check the Snakemake output log, as it lists the conda environment of the failing rule/job
-2. use `harpy view environments` to list the main software in every environment available in `.environments` 
+2. use `harpy view envs` to list the main software in every environment available in `.environments` 
 
 ## Container Caveats
 #### 🚥 Container Caveat 1: Speed

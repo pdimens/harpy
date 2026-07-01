@@ -55,7 +55,7 @@ get results like these:
 
 Given these results, a sensible pooling strategy may be:
 
-{.compact .clean {.whitespace-nowrap}}
+{.compact .clean .whitespace-nowrap}
 | Pool | Sample Locations           |
 | :---:| :------------------------- |
 | 1    | Miramichi                  |
@@ -70,27 +70,21 @@ Given these results, a sensible pooling strategy may be:
 | 10   | Merrimack, Kennebec        |
 
 !!!danger Do not concatenate manually!
+!!!
+
 It would seem natural to use `samtools cat` to combine alignment files
 quickly and easily, but **do not do this**. The [!badge corners="pill" text="harpy sv"](/Workflows/SV/SV.md)
 workflows will intelligently concatenate files and will make sure
-every individual will have unique `MI` values that are not shared with any
+every individual will have unique `BX` (or `MI`) values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside
 of a workflow, use [djinn](https://pdimens.github.io/djinn/) shipped with Harpy
- instead of `samtools cat` or other similar tools. 
-==- technical explanation
-The reason is, samples aligned
-using Harpy have their linked-read barcodes deconvolved and supplemented with
-a unique molecule ID, given as an `MI:i` SAM tag in the alignment records. The
-molecule ID's start at `1` for each sample and increment for every identified
-unique molecule. What this means is that doing a typical concatenation via
-`samtools cat` **will not resolve conflicting molecule IDs**.
+instead of `samtools cat` or other similar tools.
 
-Think of it this way,
-every sample has MI's from `1` to `N`, and as soon as you do a basic concatenation,
-the MI 1..N from sample2 will immediately conflict with 1..N from sample1. Why?
-Well, it's impossible that `MI:i:1` from sample1 and `MI:i:1` from sample2 came from
-the same molecule. A basic concatenation will flood the resulting file with clashing `MI`
-tags, which will make it impossible for a linked-read aware SV caller to make sense
-of the data and do its job well.
+==- technical explanation
+Every sample has a set of unique-to-itself barcodes from a pool of all possible barcodes.
+As soon as you do a niave concatenation, you will have barcodes shared between samples.
+This is a problem because it's impossible that reads with one barcode from sample1 and reads
+with that same barcode from sample2 came from the same molecule. A basic concatenation will flood
+the resulting file with clashing BX (or MI) tags, which will make it impossible for a linked-read
+aware SV caller to make sense of the data and do its job well.
 ===
-!!!

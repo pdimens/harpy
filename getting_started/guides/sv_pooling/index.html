@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836183221966">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836232788867">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,11 +45,11 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836183221966" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836232788867" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -329,7 +329,6 @@ get results like these:
 </figure>
 </p>
 <p>Given these results, a sensible pooling strategy may be:</p>
-<p class="whitespace-nowrap">{.compact .clean }</p>
 <retype-table copy-text="| Pool | Sample Locations           |
 | :---:| :------------------------- |
 | 1    | Miramichi                  |
@@ -342,8 +341,8 @@ get results like these:
 | 8    | Hudson                     |
 | 9    | Connecticut                |
 | 10   | Merrimack, Kennebec        |">
-<div class="table-wrapper scrollbar overflow-hidden">
-<table class="comfortable whitespace-nowrap">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean whitespace-nowrap">
 <thead>
 <tr>
 <th style="text-align: center;">Pool</th>
@@ -408,34 +407,27 @@ get results like these:
         </div>
         <div class="pr-5 ml-3 w-full">
             <h5>Do not concatenate manually!</h5>
+        </div>
+    </div>
+</div>
 <p>It would seem natural to use <code translate="no" v-pre>samtools cat</code> to combine alignment files
 quickly and easily, but <strong>do not do this</strong>. The <a href="/workflows/sv/sv.md" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
     <span>harpy sv</span>
 </a>
 workflows will intelligently concatenate files and will make sure
-every individual will have unique <code translate="no" v-pre>MI</code> values that are not shared with any
+every individual will have unique <code translate="no" v-pre>BX</code> (or <code translate="no" v-pre>MI</code>) values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside
 of a workflow, use <a href="https://pdimens.github.io/djinn/" class="outbound" target="_blank"><span>djinn</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> shipped with Harpy
 instead of <code translate="no" v-pre>samtools cat</code> or other similar tools.</p>
 <doc-panel id="technical-explanation" collapsed>
     <template #title>technical explanation</template>
-<p>The reason is, samples aligned
-using Harpy have their linked-read barcodes deconvolved and supplemented with
-a unique molecule ID, given as an <code translate="no" v-pre>MI:i</code> SAM tag in the alignment records. The
-molecule ID&#x27;s start at <code translate="no" v-pre>1</code> for each sample and increment for every identified
-unique molecule. What this means is that doing a typical concatenation via
-<code translate="no" v-pre>samtools cat</code> <strong>will not resolve conflicting molecule IDs</strong>.</p>
-<p>Think of it this way,
-every sample has MI&#x27;s from <code translate="no" v-pre>1</code> to <code translate="no" v-pre>N</code>, and as soon as you do a basic concatenation,
-the MI 1..N from sample2 will immediately conflict with 1..N from sample1. Why?
-Well, it&#x27;s impossible that <code translate="no" v-pre>MI:i:1</code> from sample1 and <code translate="no" v-pre>MI:i:1</code> from sample2 came from
-the same molecule. A basic concatenation will flood the resulting file with clashing <code translate="no" v-pre>MI</code>
-tags, which will make it impossible for a linked-read aware SV caller to make sense
-of the data and do its job well.</p>
+<p>Every sample has a set of unique-to-itself barcodes from a pool of all possible barcodes.
+As soon as you do a niave concatenation, you will have barcodes shared between samples.
+This is a problem because it&#x27;s impossible that reads with one barcode from sample1 and reads
+with that same barcode from sample2 came from the same molecule. A basic concatenation will flood
+the resulting file with clashing BX (or MI) tags, which will make it impossible for a linked-read
+aware SV caller to make sense of the data and do its job well.</p>
 </doc-panel>
-        </div>
-    </div>
-</div>
 
                 
                 <!-- Required only on API pages -->

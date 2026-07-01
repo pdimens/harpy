@@ -6,7 +6,6 @@
 ### Guides
 
 - [ Filtering SNPs](https://pdimens.github.io/harpy/getting_started/guides/filtering_snps.md): A gentle introduction to the wild world of filtering SNPs
-- [ Simulating variants](https://pdimens.github.io/harpy/getting_started/guides/simulate_variants.md): A realistic workflow to simulate variants
 - [ Sort data by barcode](https://pdimens.github.io/harpy/getting_started/guides/sort_by_barcode.md): Sorting data by linked-read barcode
 - [ Harpy for (non linked-read) WGS data](https://pdimens.github.io/harpy/getting_started/guides/wgs_data.md): How to use Harpy for plain-regular WGS data
 - [ Choosing a software runtime method](https://pdimens.github.io/harpy/getting_started/guides/software_environments.md): Deciding between using Conda or Containers
@@ -18,7 +17,6 @@
 - [ Running on an HPC Cluster](https://pdimens.github.io/harpy/getting_started/resources/hpc.md): Best-practices for running on a computing cluster
 - [ Snakamake Things](https://pdimens.github.io/harpy/getting_started/resources/snakemake.md): Helpful things to understand about Snakemake
 - [ Software used in Harpy](https://pdimens.github.io/harpy/getting_started/resources/software.md): A significant debt of gratitude; we stand on the shoulders of giants
-- [ Utilities](https://pdimens.github.io/harpy/getting_started/resources/utilities.md): Utilities provided alongside a Harpy installation
 
 ### Troubleshooting
 
@@ -33,6 +31,7 @@
 - [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
 - [ Intro to linked-read data](https://pdimens.github.io/harpy/getting_started/linked_read_data.md): What you ought to know about linked reads
 - [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
+- [ Utilities](https://pdimens.github.io/harpy/getting_started/utilities.md): Utilities provided alongside a Harpy installation
 
 ## Workflows
 

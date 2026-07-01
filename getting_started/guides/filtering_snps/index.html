@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836183221966">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836232788867">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836183221966" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836232788867" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836183221966" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836183221966" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836232788867" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -349,37 +349,40 @@ missing data! Harpy can leverage linked-read information to impute genotypes wit
 module. You should try to impute genotypes first before filtering out sites based on missingness.</p>
 <h2 id="real-world-example">Real-world example</h2>
 <p>In <a href="https://doi.org/10.1111/mec.70067" class="outbound" target="_blank"><span>Pal <em>et al.</em> (2025)</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>, they filtered
-their variants to produce a set 11,574,426 candidate sites as such:</p>
-<ol>
-<li>Removed INDELs:</li>
-</ol>
-<div id="real-world-example-code-1" class="codeblock-wrapper"><doc-codeblock>
+their variants to produce a set 11,574,426 candidate sites. You should view this as
+<strong>one of the possible approaches</strong>, but by no means a golden standard. The workflow was as such:</p>
+<doc-steps>
+   <doc-step id="removed-indels" step-number="1">
+      <template #title>Removed INDELs:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -V indels</code></pre>
 </doc-codeblock></div>
-<ol start="2">
-<li>Removed SNPs within five basepairs of INDELs</li>
-</ol>
-<div id="real-world-example-code-2" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="removed-snps-within-five-basepairs-of-indels" step-number="2">
+      <template #title>Removed SNPs within five basepairs of INDELs</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter –SnpGap 5</code></pre>
 </doc-codeblock></div>
-<ol start="3">
-<li>Removed non-bialelleics and monomorphic REF/ALT sites:</li>
-</ol>
-<div id="real-world-example-code-3" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="removed-non-bialelleics-and-monomorphic-refalt-sites" step-number="3">
+      <template #title>Removed non-bialelleics and monomorphic REF/ALT sites:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -m2 -M2 -e “AC==AN || AC==0”</code></pre>
 </doc-codeblock></div>
-<ol start="4">
-<li>Removed sites with &gt;2.5x the mean coverage across all samples (130× in their case), genotype quality score &lt; 20, and a mapping quality score &lt; 30:</li>
-</ol>
-<div id="real-world-example-code-4" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="removed-sites-with-25x-the-mean-coverage-across-all-samples-130-in-their-case-genotype-quality-score-20-and-a-mapping-quality-score-30" step-number="4">
+      <template #title>Removed sites with &gt;2.5x the mean coverage across all samples (130× in their case), genotype quality score &lt; 20, and a mapping quality score &lt; 30:</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter -e “INFO/DP&gt; 130 | QUAL&lt; 20 | MQ&lt; 30”</code></pre>
 </doc-codeblock></div>
-<ol start="5">
-<li>Removed sites with &gt;0.8 missing genotypes</li>
-</ol>
-<div id="real-world-example-code-5" class="codeblock-wrapper"><doc-codeblock>
+   </doc-step>
+   <doc-step id="removed-sites-with-08-missing-genotypes" step-number="5">
+      <template #title>Removed sites with &gt;0.8 missing genotypes</template>
+<div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -e ‘F_MISSING &gt; 0.80’</code></pre>
 </doc-codeblock></div>
+   </doc-step>
+</doc-steps>
 <div id="retype-backlinks">
     <h2>See also</h2>
 <div class="card-compact-group">
@@ -414,10 +417,10 @@ their variants to produce a set 11,574,426 candidate sites as such:</p>
                     </div>
             
                     <div class="w-1/2">
-                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/guides/simulate_variants/">
+                        <a class="px-5 py-4 -mx-px h-full flex items-center justify-end break-normal font-medium text-body-link border border-base-border hover:border-base-border-hover rounded-l rounded-r-lg transition-colors duration-150 relative hover:z-5" href="../../../getting_started/guides/sort_by_barcode/">
                             <span>
                                 <span class="block text-xs font-normal text-right text-base-text-muted">Next</span>
-                                <span class="block mt-1"> Simulating variants</span>
+                                <span class="block mt-1"> Sort data by barcode</span>
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" class="ml-3" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" overflow="visible"><path d="M19.92 12.38a1 1 0 00-.22-1.09l-7-7a.996.996 0 10-1.41 1.41l5.3 5.3H5c-.55 0-1 .45-1 1s.45 1 1 1h11.59l-5.29 5.29a.996.996 0 000 1.41c.19.2.44.3.7.3s.51-.1.71-.29l7-7c.09-.09.16-.21.21-.33z" /><path fill="none" d="M0 0h24v24H0z" /></svg>
                         </a>

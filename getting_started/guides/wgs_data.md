@@ -1,7 +1,7 @@
 # :icon-feed-rocket: Harpy for (non linked-read) WGS data
 As of Harpy v3, the program will auto-detect that your input FASTQ or BAM files are not linked-read data. This can also be forced with `--unlinked` / `-U`. You can safely ignore the linked-read information in some of the reports Harpy produces.
 
-||| Harpy v2
+==- Harpy version <3
 - version `2.0`-`2.6`: use `--ignore-bx`
 - version `2.7+` use `--lr-type none`
 
@@ -12,20 +12,17 @@ align sequences, call SNPs and small indels, phase, and impute genotypes. All of
 RADseq data may also work, however the SNP calling workflows
 probably won't be very computationally efficient for a highly fragmented RAD assembly. 
 There is also another consideration for RADseq regarding marking duplicates (described below).
-|||
+==-
 
 ## Quality Assessment
-Using [!badge corners="pill" text="harpy qc"](/Workflows/qc.md), you are able to detect and remove adapters, poly G tails, trim low 
-quality, bases, detect duplicates with UMIs, etc. You **cannot** use `--deconvolve` when ignoring
-linked-read information.
+Setting `--unlinked` in [!badge corners="pill" text="harpy qc"](/Workflows/qc.md) just ignores calculating/reporting linked-read metrics, the actual QC process doesn't incorporate linked-read data.
 ```bash qc example
 harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
 ```
 
 ## Sequence Alignment
-Likewise, you can use either [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md) or [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md) to align
-your sequences onto a reference genome. The `--molecule-distance` will be ignored when
-using `--unlinked`.
+Setting `--unlinked` disables linked-read specific routines in [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md)
+ and [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md). Doing so also ignores `--molecule-distance`.
 
 ```bash align example
 harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed 
@@ -48,8 +45,8 @@ harpy snp mpileup --regions 100000 --populations data.groups genome.fasta Align/
 ```
 
 ## Impute Genotypes
-You can use the third (`usebx`) column of the [parameter file](/Workflows/impute.md/#parameter-file) to disable the barcode-aware
-routines of [!badge corners="pill" text="harpy impute"](/Workflows/impute.md) by setting the value to `FALSE`:
+Set the value of the third (`usebx`) column of the [parameter file](/Workflows/impute.md/#parameter-file) to `FALSE` to disable 
+the linked-read things in [!badge corners="pill" text="harpy impute"](/Workflows/impute.md).
 ``` stitch.parameters
 name    model   usebx   bxlimit   k       s       nGen
 model1    diploid   FALSE    50000    10      5       50
@@ -66,5 +63,3 @@ information. When using this option, the value for `-d`/`--molecule-distance` wi
 ```bash phase example
 harpy phase -t 10 --unlinked variants.bcf data/*.bam 
 ```
-
-|||

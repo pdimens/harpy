@@ -62,7 +62,7 @@ in the modules' help strings and can be configured using these arguments:
 
 ### --unlinked
 As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: `haplotagging`, `stlfr`, `tellseq`, or `none`.
-The formats for these data and how their barcodes look are described [in this section](linked_read_data.md#linked-read-data-types). That means
+The formats for these data and how their barcodes look are described [here](https://pdimens.github.io/lastq/). That means
 you no longer have to specify linked-read technology, and if you aren't using linked reads, that's fine too ([in most cases](Guides/wgs_data.md)). 
 However, you can force many commands to treat your data as not linked-read using `-U`/`--unlinked`. This toggle skips data type detection
 and circumvents any linked-read specific parts of workflows. Data that is already not linked-read would be detected as such, so this
@@ -111,13 +111,12 @@ understanding or as a point of reference when writing the Methods within a manus
 and the contents therein also allow you to rerun the workflow manually. The `workflow` folder may contain the following:
 
 {.compact .clean}
-| item           | contents                                                                                                       | utility                                                |
-| :------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------- |
-| `workflow.smk` | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
-| `config.yml`   | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
-| `workflow.yml` | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
-| `envs/`        | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
-| `hpc/`         | Folder with the HPC-specific configuration file that let's Snakemake submit jobs to a scheduler on your behalf | necessary for running on an HPC                        |
-| `reference/`   | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
-| `report/*.qmd` | Quarto files used to generate the fancy reports                                                                | seeing math behind plots/tables or borrow code from    |
-| `*.summary`    | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |
+| item  {.whitespace-nowrap} | contents                                                                                                       | utility                                                |
+| :------------------------- | :------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------- |
+| `workflow.smk`             | Snakefile with the full recipe of the workflow                                                                 | understanding the entire workflow                      |
+| `profile.yaml`               | Configuration file for Snakemake workflow dispatching                                                          | general bookkeeping, advanced runs                     |
+| `workflow.yaml`             | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
+| `envs/`                    | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
+| `reference/`               | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
+| `report/*.ipynb`           | Jupyter notebook templates used to execute and generate reports                                                | seeing math behind plots/tables or borrow code from    |
+| `*.summary`                | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |

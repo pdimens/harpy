@@ -72,24 +72,26 @@ module. You should try to impute genotypes first before filtering out sites base
 
 ## Real-world example
 In [Pal _et al._ (2025)](https://doi.org/10.1111/mec.70067), they filtered
-their variants to produce a set 11,574,426 candidate sites as such:
-1. Removed INDELs:
+their variants to produce a set 11,574,426 candidate sites. You should view this as
+**one of the possible approaches**, but by no means a golden standard. The workflow was as such:
+>>> Removed INDELs:
 ```bash
 bcftools view -V indels
 ```
-2. Removed SNPs within five basepairs of INDELs
+>>> Removed SNPs within five basepairs of INDELs
 ```bash
 bcftools filter –SnpGap 5
 ```
-3. Removed non-bialelleics and monomorphic REF/ALT sites:
+>>> Removed non-bialelleics and monomorphic REF/ALT sites:
 ```bash
 bcftools view -m2 -M2 -e “AC==AN || AC==0”
 ```
-4. Removed sites with >2.5x the mean coverage across all samples (130× in their case), genotype quality score < 20, and a mapping quality score < 30:
+>>> Removed sites with >2.5x the mean coverage across all samples (130× in their case), genotype quality score < 20, and a mapping quality score < 30:
 ```bash
 bcftools filter -e “INFO/DP> 130 | QUAL< 20 | MQ< 30”
 ```
-5. Removed sites with >0.8 missing genotypes
+>>> Removed sites with >0.8 missing genotypes
 ```bash
 bcftools view -e ‘F_MISSING > 0.80’
 ```
+>>>
