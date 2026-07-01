@@ -2,7 +2,6 @@ import glob
 import os
 import subprocess
 import sys
-from tkinter.constants import TRUE
 
 import rich_click as click
 import yaml
@@ -45,7 +44,7 @@ def stall(directory):
     command = command.replace("snakemake -", "snakemake --sdm env-modules --dry-run --debug-dag -")
 
     hp.rule("[bold]Diagnosing Snakemake Job Graph", style = "green")
-    hp.console.soft_wrap = TRUE
+    hp.console.soft_wrap = True
     try:
         process = subprocess.Popen(
             command.split(),

@@ -8,6 +8,7 @@
     - the new rules create temporary (uncompressed BAM) files at the choke-point steps (i.e. collate, sort, markdups) to make better use of time and computational resources
     - `samtools sort` is now given more threads and RAM per thread, with the memory per thread decreasing on failed attempts
         - 3 total attempts. Initially 3GB RAM per thread (x4 threads), drops by half each attempt (e.g. 12GB, 6GB, 3GB total)
+- `samtools stats` properly ignores duplicates on processed alignments
 - `harpy-utils optical-distance` now properly falls back to `100`
 - `harpy-utils molecule-coverage` is much less RAM hungry
 - `harpy-utils bx-stats-sam` is much less RAM hungry
