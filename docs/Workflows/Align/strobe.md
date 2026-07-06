@@ -1,6 +1,6 @@
 ---
 label: Strobe
-description: Align haplotagged sequences with strobealign
+description: Align sequences with strobealign
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
 icon: dot

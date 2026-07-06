@@ -1,6 +1,6 @@
 ---
 label: BWA
-description: Align haplotagged sequences with BWA-MEM2
+description: Align sequences with BWA-MEM2
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
 icon: dot
