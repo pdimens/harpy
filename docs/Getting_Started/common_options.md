@@ -124,5 +124,5 @@ and the contents therein also allow you to rerun the workflow manually. The `wor
 | `workflow.yaml`             | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
 | `envs/`                    | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
 | `reference/`               | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
-| `report/*.ipynb`           | Jupyter notebook templates used to execute and generate reports                                                | seeing math behind plots/tables or borrow code from    |
+| `*.ipynb`           | Jupyter notebook templates used to execute and generate reports                                                | seeing math behind plots/tables or borrow code from    |
 | `*.summary`                | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |
