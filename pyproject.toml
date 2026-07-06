@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=80", "setuptools_scm[toml]>=8"]
+requires = ["setuptools>=80"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -11,14 +11,16 @@ requires-python = ">=3.11"
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "GPL-3.0-or-later"
 dependencies = [
+    'altair>=6.0.0',
     'click>8.0',
-    'rich-click>=1.8',
-    'pillow',
-    'pysam>=0.23',
-    'snakemake>=9.0',
-    'polars>=1.39.2',
+    'papermill',
     'pandas>=3,<4',
-    'altair>=6.0.0'
+    'pillow',
+    'polars>=1.39.2',
+    'pysam>=0.23',
+    'rich-click>=1.8',
+    'snakemake>=9.0',
+    'vl-convert-python',
 ]
 
 [project.scripts]
@@ -30,8 +32,7 @@ harpy-utils = "harpy.utils:cli"
 Homepage = "https://github.com/pdimens/harpy"
 
 [tool.setuptools.packages.find]
-where = ["."]
-exclude = ["test/*", ".deprecated/*", "resources/*", ".github/*"]
+exclude = [".pixi/*", "_build/*", ".environments/*", ".vscode/*", ".report/*", "test/*", ".deprecated/*", "resources/*", ".github/*", "docs/*"]
 
 [tool.setuptools.package-data]
 harpy = ["**/*"]
