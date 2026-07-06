@@ -38,8 +38,8 @@
 ### Align
 
 - [ Align Sequences to a Genome](https://pdimens.github.io/harpy/workflows/align/align.md): Choosing an aligner
-- [ Map Reads to a reference with BWA MEM](https://pdimens.github.io/harpy/workflows/align/bwa.md): Align haplotagged sequences with BWA-MEM2
-- [ Map Reads to a reference with strobealign](https://pdimens.github.io/harpy/workflows/align/strobe.md): Align haplotagged sequences with strobealign
+- [ Map Reads to a reference with BWA MEM](https://pdimens.github.io/harpy/workflows/align/bwa.md): Align sequences with BWA-MEM2
+- [ Map Reads to a reference with strobealign](https://pdimens.github.io/harpy/workflows/align/strobe.md): Align sequences with strobealign
 - [ Create a Genome Assembly](https://pdimens.github.io/harpy/workflows/assembly.md): Create a genome assembly from linked reads
 - [ Resolve barcodes shared by different molecules](https://pdimens.github.io/harpy/workflows/deconvolve.md): Resolve barcodes shared by different molecules
 - [ Preprocess Raw Sequences](https://pdimens.github.io/harpy/workflows/preprocess.md): Preprocess raw sequences into haplotag barcoded samples
