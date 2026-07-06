@@ -15,13 +15,13 @@ Deconvolve/
 Downsample/
 Preprocess/
 Genome/
-Align/
+/Align/
 SNP/
-SV/
+/SV/
 Simulate/
 Impute/
 Validate/
-Phase/
+/Phase/
 Assembly/
 Metassembly/
 samples.populations
