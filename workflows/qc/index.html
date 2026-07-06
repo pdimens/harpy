@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836232788867">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836667434695">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836232788867" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836667434695" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836667434695" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836232788867" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836667434695" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836667434695" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../resources/js/mermaid.js?v=4.6.0" defer></script>
 </head>
 <body>
@@ -339,8 +339,7 @@ remove duplicates, and quality trim sequences using the <span class="no-link inl
 | `INPUTS`                           |                                | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
 | `--deduplicate` `-d`               |                                | Identify and remove PCR duplicates                                                                                                              |
 | `--extra-params` `-x`              |                                | Additional fastp arguments, in quotes                                                                                                           |
-| `--min-length` `-m`                |              `30`              | Discard reads shorter than this length                                                                                                          |
-| `--max-length` `-M`                |             `150`              | Maximum length to trim sequences down to                                                                                                        |
+| `--length` `-l`                    |            `30,150`            | [Minimum,Maximum] read lengths                                                                                                                    |
 | `--trim-adapters` `-a`             |                                | Detect and remove adapter sequences  [!badge variant=&quot;secondary&quot; text=&quot;recommended&quot;]                                                            |">
 <div class="table-wrapper clean scrollbar overflow-hidden">
 <table class="compact clean">
@@ -370,14 +369,9 @@ remove duplicates, and quality trim sequences using the <span class="no-link inl
 <td style="text-align: left;">Additional fastp arguments, in quotes</td>
 </tr>
 <tr>
-<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--min-length</code> <code translate="no" v-pre>-m</code></td>
-<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
-<td style="text-align: left;">Discard reads shorter than this length</td>
-</tr>
-<tr>
-<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--max-length</code> <code translate="no" v-pre>-M</code></td>
-<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>150</code></td>
-<td style="text-align: left;">Maximum length to trim sequences down to</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--length</code> <code translate="no" v-pre>-l</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30,150</code></td>
+<td style="text-align: left;">[Minimum,Maximum] read lengths</td>
 </tr>
 <tr>
 <td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--trim-adapters</code> <code translate="no" v-pre>-a</code></td>
@@ -419,12 +413,16 @@ AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA</code></pre>
 </doc-codeblock></div>
 <doc-panel id="trimming-reads-to-different-lengths" collapsed>
     <template #title>Trimming reads to different lengths</template>
-<p>In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
-setting <code translate="no" v-pre>-M</code> (<code translate="no" v-pre>--max-length</code>) to the length you want the <strong>forward</strong> reads trimmed down to (e.g. <code translate="no" v-pre>-M 125</code>), then specify an extra
-<code translate="no" v-pre>fastp</code> parameter with <code translate="no" v-pre>-x &quot;--max_len2 VAL&quot;</code> to set the maximum length of the <strong>reverse</strong> reads to <code translate="no" v-pre>VAL</code>, e.g. <code translate="no" v-pre>-x &quot;--max_len2 130&quot;</code>.
-In practice that would look like:</p>
+<p>When setting the read lengths via <code translate="no" v-pre>--length</code>:</p>
+<ul>
+<li>reads less than the minimum <strong>will be discarded</strong></li>
+<li>reads greater than the maximum <strong>will be trimmed down to the maximum</strong>
+In the event you need the forward and reverse reads trimmed down to different read lengths, this can be achieved by
+adding the <code translate="no" v-pre>--max_len2</code> fastp parameter with <code translate="no" v-pre>-x &quot;--max_len2 VAL&quot;</code> to set the maximum length of the <strong>reverse</strong> reads to <code translate="no" v-pre>VAL</code>,
+e.g. <code translate="no" v-pre>-x &quot;--max_len2 130&quot;</code>. In practice that would look like:</li>
+</ul>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc -M 150 -x &quot;--max_len2 125&quot; -a data/fastq/</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy qc -l 30,150 -x &quot;--max_len2 125&quot; -a data/fastq/</code></pre>
 </doc-codeblock></div>
 </doc-panel>
 <hr>

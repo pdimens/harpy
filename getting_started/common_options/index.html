@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836232788867">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836667434695">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836232788867" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836667434695" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836667434695" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836232788867" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836232788867" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836667434695" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836667434695" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -493,7 +493,7 @@ and the contents therein also allow you to rerun the workflow manually. The <cod
 | `workflow.yaml`             | Configuration file generated from command-line arguments and consumed by the Snakefile                         | general bookkeeping, advanced runs                     |
 | `envs/`                    | Configurations of the software environments required by the workflow                                           | bookkeeping                                            |
 | `reference/`               | Folder with a link or copy to the FASTA file used as the reference for various workflows                       | necessary for concurrent workflows to avoid data races |
-| `report/*.ipynb`           | Jupyter notebook templates used to execute and generate reports                                                | seeing math behind plots/tables or borrow code from    |
+| `*.ipynb`           | Jupyter notebook templates used to execute and generate reports                                                | seeing math behind plots/tables or borrow code from    |
 | `*.summary`                | Plain-text overview of the important parts of the workflow                                                     | bookkeeping and writing Methods in manuscripts         |">
 <div class="table-wrapper clean scrollbar overflow-hidden">
 <table class="compact clean">
@@ -531,7 +531,7 @@ and the contents therein also allow you to rerun the workflow manually. The <cod
 <td style="text-align: left;">necessary for concurrent workflows to avoid data races</td>
 </tr>
 <tr>
-<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>report/*.ipynb</code></td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>*.ipynb</code></td>
 <td style="text-align: left;">Jupyter notebook templates used to execute and generate reports</td>
 <td style="text-align: left;">seeing math behind plots/tables or borrow code from</td>
 </tr>
