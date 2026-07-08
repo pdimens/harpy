@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836667851783">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836839364908">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836667851783" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836839364908" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836667851783" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836839364908" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836667851783" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836667851783" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836839364908" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836839364908" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -285,7 +285,7 @@ insights and considerations for SNP/indel filtering. Here are some of the basic 
     <template #title>using bcftools to filter</template>
 <p>The best and fastest way to filter variants is to use <a href="https://samtools.github.io/bcftools/bcftools.html#expressions" class="outbound" target="_blank"><span>bcftools</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>,
 which has a bit of a learning curve, but its power is unmatched. Filtering can be achieved using either <code translate="no" v-pre>bcftools view</code> or <code translate="no" v-pre>bcftools filter</code>
-and the filtering expression can either be <code translate="no" v-pre>-i</code> to <strong>include</strong> sites or <code translate="no" v-pre>-e</code> to <strong>exclude</strong> sites matching the expression:</p>
+and the filtering expression can either be <code translate="no" v-pre>-i</code> to <strong>include</strong> sites or <code translate="no" v-pre>-e</code> to <strong>exclude</strong> sites matching the expression. <strong>Use single-quotes to wrap the expression</strong>.</p>
 <div class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># bcftools view approach
 bcftools view -i 'EXPRESSION' input.vcf &gt; output.vcf
@@ -367,13 +367,13 @@ their variants to produce a set 11,574,426 candidate sites. You should view this
    <doc-step id="removed-non-bialelleics-and-monomorphic-refalt-sites" step-number="3">
       <template #title>Removed non-bialelleics and monomorphic REF/ALT sites:</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -m2 -M2 -e “AC==AN || AC==0”</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -m2 -M2 -e 'AC==AN || AC==0'</code></pre>
 </doc-codeblock></div>
    </doc-step>
    <doc-step id="removed-sites-with-25x-the-mean-coverage-across-all-samples-130-in-their-case-genotype-quality-score-20-and-a-mapping-quality-score-30" step-number="4">
       <template #title>Removed sites with &gt;2.5x the mean coverage across all samples (130× in their case), genotype quality score &lt; 20, and a mapping quality score &lt; 30:</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter -e “INFO/DP&gt; 130 | QUAL&lt; 20 | MQ&lt; 30”</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter -e 'INFO/DP&gt; 130 | QUAL&lt; 20 | MQ&lt; 30'</code></pre>
 </doc-codeblock></div>
    </doc-step>
    <doc-step id="removed-sites-with-08-missing-genotypes" step-number="5">
