@@ -1,3 +1,5 @@
 # Fixes
-## Align
-- report forces `contig` columns to be Strings, avoiding type-errors where contig names are a mix of numbers and alphanumeric
+## Reports
+- preprocess GIH uses log-scaled binning to reduce data significantly and prevent altair crashes
+- align aggregate linked read Total vs. plot uses reversed tubro palette and a dropdown selector instead of radio
+- samtools stats stats-boxes sets more realistic cutoffs for %mapped, %properly paired, %optical dupes 
