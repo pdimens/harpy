@@ -9,10 +9,11 @@ opinionated as to why their method is the best. As a starting point, have a look
 technical overview of variant filtering](http://www.htslib.org/workflow/filter.html). It's a dense read, but does offer
 insights and considerations for SNP/indel filtering. Here are some of the basic things to be mindful of for variant filtering:
 
-==- using bcftools to filter
+## Using bcftools to filter
 The best and fastest way to filter variants is to use [bcftools](https://samtools.github.io/bcftools/bcftools.html#expressions),
 which has a bit of a learning curve, but its power is unmatched. Filtering can be achieved using either `bcftools view` or `bcftools filter`
-and the filtering expression can either be `-i` to **include** sites or `-e` to **exclude** sites matching the expression. **Use single-quotes to wrap the expression**. 
+and the filtering expression can either be `-i` to **include** sites or `-e` to **exclude** sites matching the expression. 
+
 ```bash
 # bcftools view approach
 bcftools view -i 'EXPRESSION' input.vcf > output.vcf
@@ -22,17 +23,38 @@ bcftools view -e 'EXPRESSION' input.vcf > output.vcf
 bcftools filter -i 'EXPRESSION' input.vcf > output.vcf
 bcftools filter -e 'EXPRESSION' input.vcf > output.vcf
 ```
+
 In either case, you can add `-Ob` to output a compressed `bcf` (recommended) file instead of an uncompressed `vcf` file (default). The
 [EXPRESSION](https://samtools.github.io/bcftools/bcftools.html#expressions) is extremely flexible and multiple expressions can be chained
-with `||` (OR) and `&&` (AND).
+with `||`/`|` (OR) and `&&`/`&` (AND).
+
+### mini-language rules
+1. Use single-quotes to wrap the expression (e.g., `'EXPRESSION'`)
+
+{.compact .clean}
+| expression | example   |
+| :--------- | :-------- |
+| good       | `'AC==0'` |
+| bad        | `"AC==0"` |
+
+2. Individual expressions should not contain spaces across their boolean operators
+
+{.compact .clean}
+| expression | example       |
+| :--------- | :------------ |
+| good       | `'MAF>0.5'`   |
+| bad        | `'MAF > 0.5'` |
+
+However, chained expressions can use spaces between each expression
+  - e.g. `'QUAL<=10 || DP>35'`
+
 ```bash filtering expression examples
 # -e to EXCLUDE
-bcftools view -Ob -e 'QUAL <= 10 || DP > 35 || MQBZ < -3 || RPBZ < -3 || RPBZ > 3 || FORMAT/SP > 32 || SCBZ > 3' in.vcf > out.bcf
+bcftools view -Ob -e 'QUAL<=10 | DP>35 | MQBZ<-3 | RPBZ<-3 | RPBZ>3 | FORMAT/SP>32 | SCBZ>3' in.vcf > out.bcf
 
 # -i to INCLUDE, this example would result in the same output as the -e example
-bcftools filter -Ob -i 'QUAL > 10 || DP <= 35 || MQBZ >= -3 || RPBZ >= -3 || RPBZ <= 3 || FORMAT/SP <= 32 || SCBZ <= 3' in.vcf > out.bcf
+bcftools filter -Ob -i 'QUAL>10 | DP<=35 | MQBZ>=-3 | RPBZ>=-3 | RPBZ<=3 | FORMAT/SP<=32 | SCBZ<=3' in.vcf > out.bcf
 ```
-===
 
 ## Filtering Basics
 ### genotype quality (QUAL)
@@ -88,10 +110,10 @@ bcftools view -m2 -M2 -e 'AC==AN || AC==0'
 ```
 >>> Removed sites with >2.5x the mean coverage across all samples (130× in their case), genotype quality score < 20, and a mapping quality score < 30:
 ```bash
-bcftools filter -e 'INFO/DP> 130 | QUAL< 20 | MQ< 30'
+bcftools filter -e 'INFO/DP>130 | QUAL<20 | MQ<30'
 ```
 >>> Removed sites with >0.8 missing genotypes
 ```bash
-bcftools view -e ‘F_MISSING > 0.80’
+bcftools view -e ‘F_MISSING>0.80’
 ```
 >>>

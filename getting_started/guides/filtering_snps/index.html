@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836839364908">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836840552753">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836839364908" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836840552753" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836839364908" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836840552753" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836839364908" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836839364908" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836840552753" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836840552753" defer></script>
 </head>
 <body>
     <div id="retype-app" class="relative text-base antialiased text-base-text bg-base-bg font-body">
@@ -281,12 +281,11 @@
 opinionated as to why their method is the best. As a starting point, have a look at how the authors of <code translate="no" v-pre>HTSlib</code> give <a href="http://www.htslib.org/workflow/filter.html" class="outbound" target="_blank">a
 technical overview of variant filtering</a>. It&#x27;s a dense read, but does offer
 insights and considerations for SNP/indel filtering. Here are some of the basic things to be mindful of for variant filtering:</p>
-<doc-panel id="using-bcftools-to-filter" collapsed>
-    <template #title>using bcftools to filter</template>
+<h2 id="using-bcftools-to-filter">Using bcftools to filter</h2>
 <p>The best and fastest way to filter variants is to use <a href="https://samtools.github.io/bcftools/bcftools.html#expressions" class="outbound" target="_blank"><span>bcftools</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>,
 which has a bit of a learning curve, but its power is unmatched. Filtering can be achieved using either <code translate="no" v-pre>bcftools view</code> or <code translate="no" v-pre>bcftools filter</code>
-and the filtering expression can either be <code translate="no" v-pre>-i</code> to <strong>include</strong> sites or <code translate="no" v-pre>-e</code> to <strong>exclude</strong> sites matching the expression. <strong>Use single-quotes to wrap the expression</strong>.</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+and the filtering expression can either be <code translate="no" v-pre>-i</code> to <strong>include</strong> sites or <code translate="no" v-pre>-e</code> to <strong>exclude</strong> sites matching the expression.</p>
+<div id="using-bcftools-to-filter-code-1" class="codeblock-wrapper"><doc-codeblock>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># bcftools view approach
 bcftools view -i 'EXPRESSION' input.vcf &gt; output.vcf
 bcftools view -e 'EXPRESSION' input.vcf &gt; output.vcf
@@ -297,16 +296,76 @@ bcftools filter -e 'EXPRESSION' input.vcf &gt; output.vcf</code></pre>
 </doc-codeblock></div>
 <p>In either case, you can add <code translate="no" v-pre>-Ob</code> to output a compressed <code translate="no" v-pre>bcf</code> (recommended) file instead of an uncompressed <code translate="no" v-pre>vcf</code> file (default). The
 <a href="https://samtools.github.io/bcftools/bcftools.html#expressions" class="outbound" target="_blank"><span>EXPRESSION</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a> is extremely flexible and multiple expressions can be chained
-with <code translate="no" v-pre>||</code> (OR) and <code translate="no" v-pre>&amp;&amp;</code> (AND).</p>
-<div class="codeblock-wrapper"><doc-codeblock>
+with <code translate="no" v-pre>||</code>/<code translate="no" v-pre>|</code> (OR) and <code translate="no" v-pre>&amp;&amp;</code>/<code translate="no" v-pre>&amp;</code> (AND).</p>
+<h3 id="mini-language-rules">mini-language rules</h3>
+<ol>
+<li>Use single-quotes to wrap the expression (e.g., <code translate="no" v-pre>'EXPRESSION'</code>)</li>
+</ol>
+<retype-table copy-text="| expression | example   |
+| :--------- | :-------- |
+| good       | `'AC==0'` |
+| bad        | `&quot;AC==0&quot;` |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
+<thead>
+<tr>
+<th style="text-align: left;">expression</th>
+<th style="text-align: left;">example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">good</td>
+<td style="text-align: left;"><code translate="no" v-pre>'AC==0'</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">bad</td>
+<td style="text-align: left;"><code translate="no" v-pre>&quot;AC==0&quot;</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<ol start="2">
+<li>Individual expressions should not contain spaces across their boolean operators</li>
+</ol>
+<retype-table copy-text="| expression | example       |
+| :--------- | :------------ |
+| good       | `'MAF&gt;0.5'`   |
+| bad        | `'MAF &gt; 0.5'` |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
+<thead>
+<tr>
+<th style="text-align: left;">expression</th>
+<th style="text-align: left;">example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">good</td>
+<td style="text-align: left;"><code translate="no" v-pre>'MAF&gt;0.5'</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">bad</td>
+<td style="text-align: left;"><code translate="no" v-pre>'MAF &gt; 0.5'</code></td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+<p>However, chained expressions can use spaces between each expression</p>
+<ul>
+<li>e.g. <code translate="no" v-pre>'QUAL&lt;=10 || DP&gt;35'</code></li>
+</ul>
+<div id="mini-language-rules-filtering-expression-examples" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">filtering expression examples</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash"># -e to EXCLUDE
-bcftools view -Ob -e 'QUAL &lt;= 10 || DP &gt; 35 || MQBZ &lt; -3 || RPBZ &lt; -3 || RPBZ &gt; 3 || FORMAT/SP &gt; 32 || SCBZ &gt; 3' in.vcf &gt; out.bcf
+bcftools view -Ob -e 'QUAL&lt;=10 | DP&gt;35 | MQBZ&lt;-3 | RPBZ&lt;-3 | RPBZ&gt;3 | FORMAT/SP&gt;32 | SCBZ&gt;3' in.vcf &gt; out.bcf
 
 # -i to INCLUDE, this example would result in the same output as the -e example
-bcftools filter -Ob -i 'QUAL &gt; 10 || DP &lt;= 35 || MQBZ &gt;= -3 || RPBZ &gt;= -3 || RPBZ &lt;= 3 || FORMAT/SP &lt;= 32 || SCBZ &lt;= 3' in.vcf &gt; out.bcf</code></pre>
+bcftools filter -Ob -i 'QUAL&gt;10 | DP&lt;=35 | MQBZ&gt;=-3 | RPBZ&gt;=-3 | RPBZ&lt;=3 | FORMAT/SP&lt;=32 | SCBZ&lt;=3' in.vcf &gt; out.bcf</code></pre>
 </doc-codeblock></div>
-</doc-panel>
 <h2 id="filtering-basics">Filtering Basics</h2>
 <h3 id="genotype-quality-qual">genotype quality (QUAL)</h3>
 <p>You will obviously want higher quality genotype calls to remove false positives. The HTSlib guide suggests at least <code translate="no" v-pre>50</code> (e.g. <code translate="no" v-pre>-i 'QUAL&gt;=50'</code>),
@@ -373,13 +432,13 @@ their variants to produce a set 11,574,426 candidate sites. You should view this
    <doc-step id="removed-sites-with-25x-the-mean-coverage-across-all-samples-130-in-their-case-genotype-quality-score-20-and-a-mapping-quality-score-30" step-number="4">
       <template #title>Removed sites with &gt;2.5x the mean coverage across all samples (130× in their case), genotype quality score &lt; 20, and a mapping quality score &lt; 30:</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter -e 'INFO/DP&gt; 130 | QUAL&lt; 20 | MQ&lt; 30'</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools filter -e 'INFO/DP&gt;130 | QUAL&lt;20 | MQ&lt;30'</code></pre>
 </doc-codeblock></div>
    </doc-step>
    <doc-step id="removed-sites-with-08-missing-genotypes" step-number="5">
       <template #title>Removed sites with &gt;0.8 missing genotypes</template>
 <div class="codeblock-wrapper"><doc-codeblock>
-<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -e ‘F_MISSING &gt; 0.80’</code></pre>
+<pre translate="no" class="language-bash"><code v-pre class="language-bash">bcftools view -e ‘F_MISSING&gt;0.80’</code></pre>
 </doc-codeblock></div>
    </doc-step>
 </doc-steps>
