@@ -159,13 +159,13 @@ for macOS (or Windows), meaning you won't be able to use most of Harpy.
 
 === Download the latest release
 The latest release can be found [here](https://github.com/pdimens/harpy/releases/latest). You will want to download the latest
-tarball, which will be named `harpy.VERISON.tar.gz`. Something like `https://github.com/pdimens/harpy/releases/download/2.5.0/harpy.2.5.0.tar.gz`.
+tarball, which will be named `harpy.VERISON.tar.gz`.
 
 ```bash
 # change the version number to the latest release!
-wget https://github.com/pdimens/harpy/releases/download/2.5.0/harpy.2.5.0.tar.gz
-tar xvfz harpy.2.5.0.tar.gz
-cd harpy.2.5.0
+wget https://github.com/pdimens/harpy/releases/download/4.1.1/harpy.4.1.1.tar.gz
+tar xvfz harpy.4.1.1.tar.gz
+cd harpy.4.1.1
 ```
 
 ==- Install Harpy using `pip`
@@ -193,6 +193,21 @@ All three of `bcftools`, `samtools`, and `htslib` can be installed as [described
 git clone https://github.com/lh3/seqtk.git;
 cd seqtk; make
 ```
+
+Other things you need to install include:
+- [go](https://go.dev/doc/install) needs to be installed to compile some of the ultra-fast binaries bundled with harpy (v4 and above)
+```bash compile harpy utilities
+# compile
+go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
+go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go
+go build -C harpy/utils/standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go
+# make executable
+chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize
+# move to directory on your PATH 
+mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize path/to/bin/
+```
+- [djinn](https://pdimens.github.io/djinn/install/#pip) for some of the conversions
+- [xeus-python](https://github.com/jupyter-xeus/xeus-python#installation) for notebook/report support
 
 ==- ⬆️ updating harpy
 Updating Harpy installed this way would require repeating the steps with a different Harpy version.

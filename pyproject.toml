@@ -13,6 +13,8 @@ license = "GPL-3.0-or-later"
 dependencies = [
     'altair>=6.0.0',
     'click>8.0',
+    'jupyter-book',
+    'notebook',
     'papermill',
     'pandas>=3,<4',
     'pillow',
@@ -45,26 +47,26 @@ channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64"]
 
 [tool.pixi.dependencies]
+altair = ">=6.0.0,<7"
 bcftools = ">=1.23"
 click = ">=8.2"
 conda = ">=24.8"
+djinn = ">=2.4"
+go = ">=1.26.1,<2"
 htslib = "1.23.*"
+jupyter-book = ">=2.1.0,<3"
+pandas = ">=3,<4"
+papermill = ">=2.6.0,<3"
+polars = ">=1.39.2,<2"
+pillow = ">=12.2.0,<13"
 pysam = "0.23.*"
 python = ">=3.11"
 rich-click = ">=1.9.3"
 samtools = ">=1.23"
 seqtk = "*"
-jupyter-book = ">=2.1.0,<3"
-pandas = ">=3,<4"
-altair = ">=6.0.0,<7"
-papermill = ">=2.6.0,<3"
-djinn = ">=2.4"
-xeus-python = ">=0.18.1,<0.19"
-polars = ">=1.39.2,<2"
-vl-convert-python = ">=2.0.0rc1,<3"
 snakemake-minimal = ">=9.19.0,<10"
-go = ">=1.26.1,<2"
-pillow = ">=12.2.0,<13"
+vl-convert-python = ">=2.0.0rc1,<3"
+xeus-python = ">=0.18.1,<0.19"
 
 [tool.pixi.pypi-dependencies]
 harpy = { path = ".", editable = true }
