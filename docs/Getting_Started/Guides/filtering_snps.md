@@ -23,7 +23,7 @@ insights and considerations for SNP/indel filtering. Here are some of the basic 
 ==- using bcftools to filter
 The best and fastest way to filter variants is to use [bcftools](https://samtools.github.io/bcftools/bcftools.html#expressions),
 which has a bit of a learning curve, but its power is unmatched. Filtering can be achieved using either `bcftools view` or `bcftools filter`
-and the filtering expression can either be `-i` to **include** sites or `-e` to **exclude** sites matching the expression: 
+and the filtering expression can either be `-i` to **include** sites or `-e` to **exclude** sites matching the expression. **Use single-quotes to wrap the expression**. 
 ```bash
 # bcftools view approach
 bcftools view -i 'EXPRESSION' input.vcf > output.vcf
@@ -95,11 +95,11 @@ bcftools filter –SnpGap 5
 ```
 >>> Removed non-bialelleics and monomorphic REF/ALT sites:
 ```bash
-bcftools view -m2 -M2 -e “AC==AN || AC==0”
+bcftools view -m2 -M2 -e 'AC==AN || AC==0'
 ```
 >>> Removed sites with >2.5x the mean coverage across all samples (130× in their case), genotype quality score < 20, and a mapping quality score < 30:
 ```bash
-bcftools filter -e “INFO/DP> 130 | QUAL< 20 | MQ< 30”
+bcftools filter -e 'INFO/DP> 130 | QUAL< 20 | MQ< 30'
 ```
 >>> Removed sites with >0.8 missing genotypes
 ```bash
