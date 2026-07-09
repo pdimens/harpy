@@ -5,6 +5,7 @@ common: &common
   - 'harpy/report/**'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
+  - 'pyproject.toml'
 environments: &environments
   - 'harpy/common/environments.py'
   - 'harpy/commands/environments.py'
