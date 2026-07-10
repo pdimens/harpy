@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836842958680">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836963763149">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -45,12 +45,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../../static/logo_navbar.png" />
-    <link href="../../../resources/css/retype.css?v=4.6.0.836842958680" rel="stylesheet">
+    <link href="../../../resources/css/retype.css?v=4.6.0.836963763149" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836842958680" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../../resources/js/config.js?v=4.6.0.836963763149" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836842958680" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836842958680" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../../resources/js/lunr.js?v=4.6.0.836963763149" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../../resources/js/prism.js?v=4.6.0.836963763149" defer></script>
     <script id="mermaid-js" data-cfasync="false" src="../../../resources/js/mermaid.js?v=4.6.0" defer></script>
     <link href="../../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../../resources/js/katex.js?v=4.6.0" defer></script>
@@ -367,11 +367,11 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 | :------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REFERENCE`                      |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Reference assembly for read mapping                                                                     |
 | `INPUTS`                         |                              | [!badge variant=&quot;info&quot; text=&quot;required&quot;] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                      |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `-depth-window` `-w`             |           `50000`            | Interval size (in bp) for depth stats                                                                                                           |
 | `--extra-params` `-x`            |                              | Additional BWA arguments, in quotes                                                                                                             |
+| `--keep-unmapped` `-u`           |            false             | Output unmapped sequences too                                                                                                                   |
 | `--molecule-distance` `-d`       |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
-| `--min-quality` `-q`             |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--keep-unmapped` `-u`           |            false             | Output unmapped sequences too                                                                                                                   |">
+| `--min-quality` `-q`             |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |">
 <div class="table-wrapper clean scrollbar overflow-hidden">
 <table class="compact clean">
 <thead>
@@ -397,14 +397,19 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 </span> Files or directories containing <a href="../../../getting_started/common_options/#input-arguments">input FASTQ files</a></td>
 </tr>
 <tr>
-<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--contigs</code></td>
-<td style="text-align: center;" class="whitespace-nowrap"> </td>
-<td style="text-align: left;"><a href="../../../getting_started/common_options/#--contigs">Contigs to plot</a> in the report</td>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>-depth-window</code> <code translate="no" v-pre>-w</code></td>
+<td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>50000</code></td>
+<td style="text-align: left;">Interval size (in bp) for depth stats</td>
 </tr>
 <tr>
 <td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--extra-params</code> <code translate="no" v-pre>-x</code></td>
 <td style="text-align: center;" class="whitespace-nowrap"> </td>
 <td style="text-align: left;">Additional BWA arguments, in quotes</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
+<td style="text-align: center;" class="whitespace-nowrap">false</td>
+<td style="text-align: left;">Output unmapped sequences too</td>
 </tr>
 <tr>
 <td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--molecule-distance</code> <code translate="no" v-pre>-d</code></td>
@@ -416,11 +421,6 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 <td style="text-align: center;" class="whitespace-nowrap"><code translate="no" v-pre>30</code></td>
 <td style="text-align: left;">Minimum <code translate="no" v-pre>MQ</code> (SAM mapping quality) to pass filtering</td>
 </tr>
-<tr>
-<td style="text-align: left;" class="whitespace-nowrap"><code translate="no" v-pre>--keep-unmapped</code> <code translate="no" v-pre>-u</code></td>
-<td style="text-align: center;" class="whitespace-nowrap">false</td>
-<td style="text-align: left;">Output unmapped sequences too</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -429,11 +429,12 @@ using the <span class="no-link inline-flex align-middle items-center justify-cen
 <p>Regardless of the input linked-read format, the <code translate="no" v-pre>align</code> workflows will standardize the output alignment records
 such that the barcode is contained in the <code translate="no" v-pre>BX:Z</code> tag and barcode validation is in the <code translate="no" v-pre>VX:i</code> tag.</p>
 <h3 id="molecule-distance">Molecule distance</h3>
-<p>The <code translate="no" v-pre>--molecule-distance</code> option is used during the BWA alignment workflow
-to assign alignments a unique Molecular Identifier <code translate="no" v-pre>MI:i</code> tag based on their
-linked-read barcode and the <a href="../../../getting_started/linked_read_data/#barcode-thresholds">distance threshold</a> you specify.
-Set this value to <code translate="no" v-pre>0</code> to skip distance-based deconvolution,
-which may improve detection of very large structural variants.</p>
+<p>The <code translate="no" v-pre>--molecule-distance</code> option is used during the alignment workflow
+to deconvolute alignments with the same barcode that might not have originated
+from the same DNA molecule based on the <a href="../../../getting_started/linked_read_data/#barcode-thresholds">distance threshold</a>
+you specify. This happens <em>during the linked-read stats step</em> to internally split molecules based on this value, but
+<strong>it doesn&#x27;t modify</strong> the barcodes in the output. Set this value to <code translate="no" v-pre>0</code> to skip distance-based deconvolution during the
+this reporting step. Ignored if using <code translate="no" v-pre>--skip-reports</code>.</p>
 <h2 id="quality-filtering">Quality filtering</h2>
 <p>The <code translate="no" v-pre>--min-quality</code> argument filters out alignments below a given <span class="math">MQ</span> threshold. The default, <code translate="no" v-pre>30</code>, keeps alignments
 that are at least 99.9% likely correctly mapped. Set this value to <code translate="no" v-pre>1</code> if you only want alignments removed with
