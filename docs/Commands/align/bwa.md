@@ -1,5 +1,5 @@
 ---
-label: BWA
+label: bwa
 description: Align sequences with BWA-MEM2
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: dot
 order: 5
 ---
 
-# :icon-quote: Map Reads to a reference with BWA MEM
+# :icon-quote: align bwa
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

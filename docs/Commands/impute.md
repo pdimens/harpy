@@ -1,5 +1,5 @@
 ---
-label: Impute
+label: impute
 description: Impute genotypes for linked-read data with STITCH
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: project
 order: 8
 ---
 
-# :icon-project: Impute Genotypes using Sequences
+# :icon-project: impute
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

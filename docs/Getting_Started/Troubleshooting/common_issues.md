@@ -6,12 +6,12 @@ icon: bug
 # :icon-bug: Common Issues
 
 ## imputation or phasing failure
-If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](/Workflows/impute.md) or
-[!badge corners="pill" text="phase"](/Workflows/Phase/phase_snp.md) modules, they will cause both programs to error. We don't know why, but they do.
+If you use `bamutils clipOverlap` on alignments that are used for the [!badge corners="pill" text="impute"](/Commands/impute.md) or
+[!badge corners="pill" text="phase"](/Commands/Phase/phase_snp.md) modules, they will cause both programs to error. We don't know why, but they do.
 
 **Solution**: Do not clip overlapping alignments for bam files you intend to use for
-the [!badge corners="pill" text="impute"](/Workflows/impute.md) or
-[!badge corners="pill" text="phase"](/Workflows/Phase/phase_snp.md) modules. Harpy does not clip overlapping alignments, so
+the [!badge corners="pill" text="impute"](/Commands/impute.md) or
+[!badge corners="pill" text="phase"](/Commands/Phase/phase_snp.md) modules. Harpy does not clip overlapping alignments, so
 alignments produced by Harpy should work just fine.
 
 ## SAM name and ID mismatch

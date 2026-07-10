@@ -1,5 +1,5 @@
 ---
-label: QC
+label: qc
 description: Quality trim haplotagged sequences with fastp
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: codescan-checkmark
 order: 4
 ---
 
-# :icon-codescan-checkmark: Quality Trim Sequences
+# :icon-codescan-checkmark: qc
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

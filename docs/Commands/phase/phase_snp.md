@@ -1,5 +1,5 @@
 ---
-label: Phase SNPs
+label: snp
 description: Phase SNPs and indels into haplotypes with HapCut2
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: dot
 order: 6
 ---
 
-# :icon-stack: Phase SNPs into Haplotypes
+# :icon-stack: phase snp
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

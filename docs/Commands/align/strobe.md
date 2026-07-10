@@ -1,5 +1,5 @@
 ---
-label: Strobe
+label: strobe
 description: Align sequences with strobealign
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: dot
 order: 5
 ---
 
-# :icon-quote: Map Reads to a reference with strobealign
+# :icon-quote: align strobe
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

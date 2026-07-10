@@ -1,5 +1,5 @@
 ---
-label: Preprocess
+label: preprocess
 description: Preprocess raw sequences into haplotag barcoded samples
 category: [linked-read]
 tags: [linked-read]
@@ -7,14 +7,15 @@ icon: versions
 order: 9
 ---
 
-# :icon-versions: Preprocess Raw Sequences
+# :icon-versions: preprocess
+
 Sequences that come off of a sequencer are typically not ready for
 analytical use. If the data hasn't already been separated out by sample,
 you need to do that first. If you're using linked-read data, you then
 need to identify the linked-read barcodes and pull them out of the 
 sequence. Below describes the workflows for the original haplotagging
 protocol published by Meier et _al._ (2021), along with the one we're
-developed at Cornell University (Iqbal et _al._, in prep).
+developing at Cornell University (Iqbal et _al._, in prep).
 
 
 ## gih

@@ -1,5 +1,5 @@
 ---
-label: SNP
+label: snp
 description: Call SNPs and small indels
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: sliders
 order: 2
 ---
 
-# :icon-sliders: Call SNPs and small indels
+# :icon-sliders: snp
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

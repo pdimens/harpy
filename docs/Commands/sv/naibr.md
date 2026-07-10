@@ -1,5 +1,5 @@
 ---
-label: Naibr
+label: naibr
 description: Call structural variants using NAIBR (plus)
 category: [linked-read]
 tags: [linked-read]
@@ -7,7 +7,7 @@ icon: dot
 order: 1
 ---
 
-# :icon-sliders: Call Structural Variants using NAIBR
+# :icon-sliders: sv naibr
 
 ===  :icon-checklist: You will need
 - at least 4 cores/threads available

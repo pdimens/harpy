@@ -1,5 +1,5 @@
 ---
-label: Phase Alignments
+label: bam
 description: Phasing will add PS tags to alignment records using Whatshap
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
@@ -7,7 +7,7 @@ icon: dot
 order: 6
 ---
 
-# :icon-stack: Phase Alignments from Haplotypes
+# :icon-stack: phase bam
 
 ===  :icon-checklist: You will need
 - at least 3 cores/threads available

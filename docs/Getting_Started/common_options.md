@@ -6,11 +6,11 @@ description: Command-line options across harpy workflows
 
 # :icon-list-unordered: Common Harpy Options
 ## Input Arguments
-Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md) or [!badge corners="pill" text="phase"](/Workflows/Phase/phase_snp.md)) follows the format of
+Each of the main Harpy modules (e.g. [!badge corners="pill" text="qc"](/Commands/qc.md) or [!badge corners="pill" text="phase"](/Commands/Phase/phase_snp.md)) follows the format of
 ```bash
 harpy command options arguments
 ```
-where `command` is something like [!badge corners="pill" text="impute"](/Workflows/impute.md) or [!badge corners="pill" text="snp mpileup"](/Workflows/snp.md) and `options` are the runtime parameters,
+where `command` is something like [!badge corners="pill" text="impute"](/Commands/impute.md) or [!badge corners="pill" text="snp mpileup"](/Commands/snp.md) and `options` are the runtime parameters,
 which can include things like `--molecule-distance`, etc. After the options
 is where you provide the input files/directories without flags and following standard BASH expansion
 rules (e.g. wildcards). You can mix and match entire directories, individual files, and wildcard expansions.
@@ -27,7 +27,7 @@ to avoid unexpected behavior.
 !!-warning clashing names
 Given the regex pattern matching that happens under the hood and the isolation of just the sample names for Snakemake rules,
 files in different directories that have the same name (ignoring extensions) will clash. For example, `lane1/sample1.F.fq`
-and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)
+and `lane2/sample1.F.fq` would both derive the sample name `sample1`, which, in a workflow like [!badge corners="pill" text="align"](/Commands/Align/Align.md)
 would both result in `output/sample1.bam`, creating a problem. This also holds true for the same sample name but different extension, such
 as `sample1.F.fq` and `sample1_R1.fq.gz`, which would again derive `sample1` as the sample name and create a naming clash for workflow outputs.
 You will be informed ahead of time of and naming clashes to protect you against this happening. 
@@ -44,7 +44,7 @@ Harpy container hosted on Dockerhub to manage workflow dependencies.
 ## Common command-line options
 Every Harpy module has a series of configuration parameters. These are arguments you need to input
 to configure the module to run on your data, such as the directory with the reads/alignments,
-the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](/Workflows/qc.md)) also share a series of common runtime
+the genome assembly, etc. All main modules (e.g. [!badge corners="pill" text="qc"](/Commands/qc.md)) also share a series of common runtime
 parameters that don't impact the results of the module, but instead control the speed/verbosity/etc.
 of calling the module. These runtime parameters **always have upper-cased short names** and are listed
 in the modules' help strings and can be configured using these arguments:
@@ -76,7 +76,7 @@ tends to be more helpful if you want to either 1. shave off a second or two from
 data through a workflow pretending it's not linked-read data.
 
 ### --contigs
-Some of the workflows (like [!badge corners="pill" text="align"](/Workflows/Align/Align.md)) plot per-contig information in their reports.
+Some of the workflows (like [!badge corners="pill" text="align"](/Commands/Align/Align.md)) plot per-contig information in their reports.
 By default, Harpy will plot up to 30 of the largest contigs. If you are only interested in a specific set of contigs, then you can use `--contigs`
 to have Harpy only create plots for those contigs. **This will only impact plotting for reports**. This can be done by including a file of one-per-line contig names or a comma-separated
 list of contigs (without spaces):
@@ -99,7 +99,7 @@ exceed that number.
 !!!
 
 ### example
-You could call [!badge corners="pill" text="align strobe"](/Workflows/Align/strobe.md) and specify 20 threads with no output to console:
+You could call [!badge corners="pill" text="align strobe"](/Commands/Align/strobe.md) and specify 20 threads with no output to console:
 
 ```bash
 harpy align strobe --threads 20 --quiet 2 genome.fasta samples/trimmedreads

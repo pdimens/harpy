@@ -1,5 +1,5 @@
 ---
-label: Template
+label: template
 icon: repo-clone
 description: Generate extra files for analysis with Harpy
 order: 7
@@ -56,14 +56,14 @@ harpy template hpc-slurm > slurm.yaml
 ```
 ---
 ## impute
-Create a template parameter file for the [!badge corners="pill" text="impute"](/Workflows/impute.md) module. 
+Create a template parameter file for the [!badge corners="pill" text="impute"](/Commands/impute.md) module. 
 The file is formatted correctly and serves as a starting point for using parameters that make sense for your study.
 Typically, one runs STITCH multiple times, exploring how results vary with
 different model parameters. The solution Harpy uses for this is to have the user
 provide a tab-delimited dataframe file where the columns are the 6 STITCH model 
 parameters and the rows are the values for those parameters. To make formatting
 easier, a template file is generated for you, just replace the values and add/remove
-rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Workflows/impute.md)
+rows as necessary. See the section for the [!badge corners="pill" text="impute"](/Commands/impute.md)
 module for details on these parameters.
 
 ```bash usage

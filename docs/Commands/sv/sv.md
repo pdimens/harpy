@@ -1,13 +1,13 @@
 ---
-label: SV
-description: Find structural variants
+label: sv
+description: Inversions, Deletions, Duplications
 ---
 
 # :icon-sliders: Find structural variants
 The [!badge corners="pill" text="snp"](../snp.md) module identifies single nucleotide
 polymorphisms (SNP) and small indels, but you may want to (and should!) leverage the linked-read
 data to identify larger structural variants (SV) like large deletions, duplications, and
-inversions. Harpy provides two linked-read variant callers to do exactly that:
+inversions. Harpy provides two linked-read structural variant callers to do exactly that:
 
 {.compact .clean}
 | Caller        {.whitespace-nowrap} | variants it detects                        | caveats       {.whitespace-nowrap} | link                                                                                                                                                               |

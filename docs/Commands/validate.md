@@ -1,5 +1,5 @@
 ---
-label: Validate
+label: validate
 description: Perform file format checks on linked-read FASTQ/BAM files
 category: [linked-read]
 tags: [linked-read]
@@ -7,7 +7,7 @@ icon: rocket
 order: 5
 ---
 
-# :icon-rocket: Validation checks for input files
+# :icon-rocket: validate
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

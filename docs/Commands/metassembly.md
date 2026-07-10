@@ -1,5 +1,5 @@
 ---
-label: Metassembly
+label: metassembly
 description: Create a metagenome assembly from linked reads
 category: [linked-read]
 tags: [linked-read]
@@ -7,7 +7,7 @@ icon: workflow
 order: 8
 ---
 
-# :icon-workflow: Create a Metagenome Assembly
+# :icon-workflow: metassembly
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available

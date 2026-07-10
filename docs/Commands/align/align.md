@@ -1,5 +1,5 @@
 ---
-label: Align
+label: align
 description: Choosing an aligner
 ---
 # :icon-quote: Align Sequences to a Genome
