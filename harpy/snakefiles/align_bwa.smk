@@ -88,7 +88,7 @@ rule align:
         static = "-m 10 -C -v 2 -T 10" if illumina_old else "-v 2 -T 10 -m 10",
         extra = extra
     threads:
-        4
+        12
     resources:
         tmpdir = lambda wc: f"bwa/{wc.sample}/tmp"
     conda:

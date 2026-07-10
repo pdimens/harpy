@@ -67,7 +67,7 @@ rule align:
         RGsm = lambda wc: f"--rg=SM:{wc.get('sample')}",
         extra = extra
     threads:
-        4
+        12
     resources:
         tmpdir = lambda wc: f"strobealign/{wc.sample}/tmp"
     conda:
