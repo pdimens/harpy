@@ -73,7 +73,7 @@ Given these results, a sensible pooling strategy may be:
 !!!
 
 It would seem natural to use `samtools cat` to combine alignment files
-quickly and easily, but **do not do this**. The [!badge corners="pill" text="harpy sv"](/Workflows/SV/SV.md)
+quickly and easily, but **do not do this**. The [!badge corners="pill" text="harpy sv"](/Commands/SV/SV.md)
 workflows will intelligently concatenate files and will make sure
 every individual will have unique `BX` (or `MI`) values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside

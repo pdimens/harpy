@@ -15,14 +15,14 @@ There is also another consideration for RADseq regarding marking duplicates (des
 ==-
 
 ## Quality Assessment
-Setting `--unlinked` in [!badge corners="pill" text="harpy qc"](/Workflows/qc.md) just ignores calculating/reporting linked-read metrics, the actual QC process doesn't incorporate linked-read data.
+Setting `--unlinked` in [!badge corners="pill" text="harpy qc"](/Commands/qc.md) just ignores calculating/reporting linked-read metrics, the actual QC process doesn't incorporate linked-read data.
 ```bash qc example
 harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz 
 ```
 
 ## Sequence Alignment
-Setting `--unlinked` disables linked-read specific routines in [!badge corners="pill" text="harpy align bwa"](/Workflows/Align/bwa.md)
- and [!badge corners="pill" text="harpy align strobe"](/Workflows/Align/strobe.md). Doing so also ignores `--molecule-distance`.
+Setting `--unlinked` disables linked-read specific routines in [!badge corners="pill" text="harpy align bwa"](/Commands/Align/bwa.md)
+ and [!badge corners="pill" text="harpy align strobe"](/Commands/Align/strobe.md). Doing so also ignores `--molecule-distance`.
 
 ```bash align example
 harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed 
@@ -38,15 +38,15 @@ samtools view -b -h --remove-flags 1024 -o output.bam input.bam
 
 ## Calling SNPs
 The SNP-calling workflows in Harpy don't use linked-read information at all, so you
-would use [!badge corners="pill" text="harpy snp mpileup"](/Workflows/snp.md) or [!badge corners="pill" text="harpy snp freebayes"](/Workflows/snp.md) without any modifications.
+would use [!badge corners="pill" text="harpy snp mpileup"](/Commands/snp.md) or [!badge corners="pill" text="harpy snp freebayes"](/Commands/snp.md) without any modifications.
 
 ```bash snp example
 harpy snp mpileup --regions 100000 --populations data.groups genome.fasta Align/strobe
 ```
 
 ## Impute Genotypes
-Set the value of the third (`usebx`) column of the [parameter file](/Workflows/impute.md/#parameter-file) to `FALSE` to disable 
-the linked-read things in [!badge corners="pill" text="harpy impute"](/Workflows/impute.md).
+Set the value of the third (`usebx`) column of the [parameter file](/Commands/impute.md/#parameter-file) to `FALSE` to disable 
+the linked-read things in [!badge corners="pill" text="harpy impute"](/Commands/impute.md).
 ``` stitch.parameters
 name    model   usebx   bxlimit   k       s       nGen
 model1    diploid   FALSE    50000    10      5       50
@@ -58,7 +58,7 @@ harpy impute -t 10 stitch.parameters data/variants.bcf data/*.bam
 ```
 
 ## Phase Genotypes
-Like most of the other workflows, use `--unlinked` with [!badge corners="pill" text="harpy phase"](/Workflows/Phase/phase_snp.md) to perform phasing without incorporating linked-read barcode
+Like most of the other workflows, use `--unlinked` with [!badge corners="pill" text="harpy phase"](/Commands/Phase/phase_snp.md) to perform phasing without incorporating linked-read barcode
 information. When using this option, the value for `-d`/`--molecule-distance` will be ignored:
 ```bash phase example
 harpy phase -t 10 --unlinked variants.bcf data/*.bam 

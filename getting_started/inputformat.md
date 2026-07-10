@@ -8,7 +8,7 @@ push for all linked-read platforms to adopt [a standard FASTQ format we nickname
 Standard FASTQ files with both old (`/1`) and new (`1:N:ATCG`) CASAVA format are expected to work.
 
 ## FASTQ Read length
-Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](/Workflows/qc.md) module removes reads <30bp.
+Reads must be at least 30 base pairs in length for alignment. By default, the [!badge corners="pill" text="qc"](/Commands/qc.md) module removes reads <30bp.
 
 ## Compression
 Harpy generally doesn't require the FASTQ input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
@@ -18,7 +18,7 @@ Compressed files are expected be compressed with either `gzip` or `bgzip` and en
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
-To that end, for the [!badge corners="pill" text="preprocess"](/Workflows/preprocess.md), [!badge corners="pill" text="qc"](/Workflows/qc.md), and [!badge corners="pill" text="align"](/Workflows/Align/bwa.md) modules, the 
+To that end, for the [!badge corners="pill" text="preprocess"](/Commands/preprocess.md), [!badge corners="pill" text="qc"](/Commands/qc.md), and [!badge corners="pill" text="align"](/Commands/Align/bwa.md) modules, the 
 most common FASTQ naming styles are supported:
 - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - you can mix and match special characters, but that's bad practice and not recommended
