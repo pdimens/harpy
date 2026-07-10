@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light dark">
     <meta name="turbo-root" content="/harpy">
-    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836965023840">
+    <meta name="turbo-cache-control" content="no-cache" data-turbo-track="reload" data-track-token="4.6.0.836966467800">
 
     <!-- See retype.com -->
     <meta name="generator" content="Retype 4.6.0">
@@ -39,12 +39,12 @@
     <script data-cfasync="false">(function(){var cl=document.documentElement.classList,ls=localStorage.getItem("retype_scheme"),hd=cl.contains("dark"),hl=cl.contains("light"),wm=window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches;if(ls==="dark"||(!ls&&wm&&!hd&&!hl)){cl.remove("light");cl.add("dark")}else if(ls==="light"||(!ls&&!wm&&!hd&&!hl)){cl.remove("dark");cl.add("light")}})();</script>
 
     <link id="retype-favicon" rel="icon" href="../../static/logo_navbar.png" />
-    <link href="../../resources/css/retype.css?v=4.6.0.836965023840" rel="stylesheet">
+    <link href="../../resources/css/retype.css?v=4.6.0.836966467800" rel="stylesheet">
 
-    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836965023840" data-turbo-eval="false" defer></script>
+    <script data-cfasync="false" src="../../resources/js/config.js?v=4.6.0.836966467800" data-turbo-eval="false" defer></script>
     <script data-cfasync="false" src="../../resources/js/retype.js?v=4.6.0" data-turbo-eval="false" defer></script>
-    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836965023840" data-turbo-eval="false" defer></script>
-    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836965023840" defer></script>
+    <script id="lunr-js" data-cfasync="false" src="../../resources/js/lunr.js?v=4.6.0.836966467800" data-turbo-eval="false" defer></script>
+    <script id="prism-js" data-cfasync="false" src="../../resources/js/prism.js?v=4.6.0.836966467800" defer></script>
     <link href="../../resources/css/katex.css?v=4.6.0" rel="stylesheet">
     <script id="katex-js" data-cfasync="false" src="../../resources/js/katex.js?v=4.6.0" defer></script>
 </head>
@@ -247,8 +247,9 @@
 </div>
 
 <div id="retype-page-description" class="description-display text-description font-description leading-description mb-description-margin-bottom mt-description-margin-top tracking-description text-transform-description">Resolve barcodes shared by different molecules</div>
-<doc-panel id="you-will-need">
-    <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M3.5 3.75a.25.25 0 0 1 .25-.25h13.5a.25.25 0 0 1 .25.25v10a.75.75 0 0 0 1.5 0v-10A1.75 1.75 0 0 0 17.25 2H3.75A1.75 1.75 0 0 0 2 3.75v16.5c0 .966.784 1.75 1.75 1.75h7a.75.75 0 0 0 0-1.5h-7a.25.25 0 0 1-.25-.25V3.75Z"/><path d="M6.25 7a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Zm-.75 4.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm16.28 4.53a.75.75 0 1 0-1.06-1.06l-4.97 4.97-1.97-1.97a.75.75 0 1 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l5.5-5.5Z"/></g></g></svg> You will need</template>
+<doc-panels expando>
+   <doc-panel id="you-will-need">
+       <template #title><svg xmlns="http://www.w3.org/2000/svg" class="docs-icon" viewBox="0 0 24 24" role="presentation"><g fill="currentColor"><g><path d="M3.5 3.75a.25.25 0 0 1 .25-.25h13.5a.25.25 0 0 1 .25.25v10a.75.75 0 0 0 1.5 0v-10A1.75 1.75 0 0 0 17.25 2H3.75A1.75 1.75 0 0 0 2 3.75v16.5c0 .966.784 1.75 1.75 1.75h7a.75.75 0 0 0 0-1.5h-7a.25.25 0 0 1-.25-.25V3.75Z"/><path d="M6.25 7a.75.75 0 0 0 0 1.5h8.5a.75.75 0 0 0 0-1.5h-8.5Zm-.75 4.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 0 1.5h-4.5a.75.75 0 0 1-.75-.75Zm16.28 4.53a.75.75 0 1 0-1.06-1.06l-4.97 4.97-1.97-1.97a.75.75 0 1 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l5.5-5.5Z"/></g></g></svg> You will need</template>
 <ul>
 <li>paired-end reads from an Illumina sequencer in FASTQ format <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-secondary-text bg-badge-secondary border border-badge-secondary-border h-6 px-2 text-xs rounded-md">
     <span class="docs-emoji mr-2">&#x2764;&#xFE0F;</span>
@@ -313,22 +314,77 @@
 </ul>
 </li>
 </ul>
-</doc-panel>
-<p>Running <span class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border h-6 px-2 text-xs rounded-full">
-    <span>deconvolve</span>
-</span> is <strong>optional</strong>. In the alignment
-workflows (<a href="../align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>align bwa</span>
-</a>
-<a href="../align/strobe/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>align strobe</span>
-</a>), Harpy already uses a distance-based approach to
-deconvolve barcodes and assign <code translate="no" v-pre>MI</code> tags (Molecular Identifier). This workflow uses a reference-free method,
-<a href="https://github.com/RolandFaure/QuickDeconvolution" class="outbound" target="_blank"><span>QuickDeconvolution</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>, which uses k-mers to look at &quot;read clouds&quot; (all reads with the same linked-read barcode)
-and decide which ones likely originate from different molecules. Regardless of whether you run
-this workflow or not, <a href="../align/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>harpy align</span>
-</a> will still perform its own deconvolution.</p>
+   </doc-panel>
+   <doc-panel id="is-deconvoluting-necessary" collapsed>
+       <template #title><span class="docs-emoji">&#x2049;&#xFE0F;</span> Is deconvoluting necessary?</template>
+<p>The importance of doing barcode deconvolution at the FASTQ stage varies based on your goals. This table, by no means
+exhaustive, outlines if you should invest in it:</p>
+<retype-table copy-text="| goal| necessary?                       |
+| :------------------------- | :------------------------------- |
+| alignment                  | no, barcode information not used |
+| assembly                   | yes                              |
+| imputation                 | no, performs  internally         |
+| metassembly                | yes                              |
+| phasing                    | no, performs  internally         |
+| preprocess                 | no, barcodes not yet identified  |
+| qc                         | no, barcode information not used |
+| SNP calling                | no, barcode information not used |
+| SV calling                 | no, performs  internally         |">
+<div class="table-wrapper clean scrollbar overflow-hidden">
+<table class="compact clean">
+<thead>
+<tr>
+<th style="text-align: left;" class="whitespace-nowrap">goal</th>
+<th style="text-align: left;">necessary?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">alignment</td>
+<td style="text-align: left;">no, barcode information not used</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">assembly</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">imputation</td>
+<td style="text-align: left;">no, performs  internally</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">metassembly</td>
+<td style="text-align: left;">yes</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">phasing</td>
+<td style="text-align: left;">no, performs  internally</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">preprocess</td>
+<td style="text-align: left;">no, barcodes not yet identified</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">qc</td>
+<td style="text-align: left;">no, barcode information not used</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">SNP calling</td>
+<td style="text-align: left;">no, barcode information not used</td>
+</tr>
+<tr>
+<td style="text-align: left;" class="whitespace-nowrap">SV calling</td>
+<td style="text-align: left;">no, performs  internally</td>
+</tr>
+</tbody>
+</table>
+</div>
+</retype-table>
+   </doc-panel>
+</doc-panels>
+<p>This workflow uses a reference-free method, <a href="https://github.com/RolandFaure/QuickDeconvolution" class="outbound" target="_blank"><span>QuickDeconvolution</span><svg xmlns="http://www.w3.org/2000/svg" class="retype-outbound-trigger docs-icon ml-1" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><g fill="currentColor"><path d="M15.5 2.25a.75.75 0 0 1 .75-.75h5.5a.75.75 0 0 1 .75.75v5.5a.75.75 0 0 1-1.5 0V4.06l-6.22 6.22a.75.75 0 1 1-1.06-1.06L19.94 3h-3.69a.75.75 0 0 1-.75-.75Z"/><path d="M2.5 4.25c0-.966.784-1.75 1.75-1.75h8.5a.75.75 0 0 1 0 1.5h-8.5a.25.25 0 0 0-.25.25v15.5c0 .138.112.25.25.25h15.5a.25.25 0 0 0 .25-.25v-8.5a.75.75 0 0 1 1.5 0v8.5a1.75 1.75 0 0 1-1.75 1.75H4.25a1.75 1.75 0 0 1-1.75-1.75V4.25Z"/></g></svg></a>,
+which uses k-mers to look at &quot;read clouds&quot; (all reads with the same linked-read barcode) and decide which ones likely originate
+from different molecules. Being a reference-free method, QuickDeconvolution reads all the sequences into memory, so it
+can require quite a bit of RAM. More threads will increase RAM demand.</p>
 <div id="deconvolve-usage" class="codeblock-wrapper"><doc-codeblock>
 <div class="codeblock-title">usage</div>
 <pre translate="no" class="language-bash"><code v-pre class="language-bash">harpy deconvolve OPTIONS... INPUTS...</code></pre>
@@ -391,16 +447,6 @@ this workflow or not, <a href="../align/" class="no-link inline-flex align-middl
 This is how deconvolution methods create unique variants of barcodes to denote that identical barcodes
 do not come from the same original molecules. QuickDeconvolution adds the <code translate="no" v-pre>-0</code> suffix to barcodes it was unable
 to deconvolve.</p>
-<h2 id="harpy-deconvolution-nuances">Harpy Deconvolution Nuances</h2>
-<p>Some of the downstream linked-read tools Harpy uses expect linked read barcodes to either look like the 16-base 10X
-variety or a standard haplotag (AxxCxxBxxDxx). Their pattern-matching would not recognize barcodes deconvoluted with
-hyphens. To remedy this, <code translate="no" v-pre>MI</code> assignment in <a href="../align/bwa/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>align bwa</span>
-</a>
-and <a href="../align/strobe/" class="no-link inline-flex align-middle items-center justify-center font-medium leading-none whitespace-nowrap text-badge-primary-text bg-badge-primary border border-badge-primary-border hover:text-badge-primary-text-hover hover:bg-badge-primary-hover hover:border-badge-primary-border-hover transition-colors duration-200 ease-out h-6 px-2 text-xs rounded-full">
-    <span>align strobe</span>
-</a> will assign the deconvolved (hyphenated) barcode to a <code translate="no" v-pre>DX:Z</code>
-tag and restore the original barcode as the <code translate="no" v-pre>BX:Z</code> tag.</p>
 <div id="retype-backlinks">
     <h2>See also</h2>
 <div class="card-compact-group">
