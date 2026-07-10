@@ -178,6 +178,6 @@ rule barcode_report:
         export IPYTHONDIR=/tmp/ipython-pre-gih
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp}
-        }} 2> {log} > {output.ipynb}
+            harpy-utils process-notebook {output.tmp} > {output.ipynb}
+        }} 2> {log}
         """

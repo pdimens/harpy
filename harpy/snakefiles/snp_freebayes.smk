@@ -170,8 +170,8 @@ rule variant_report:
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} variants.{wildcards.type}
-        }} 2> {log} > {output.ipynb}
+            harpy-utils process-notebook {output.tmp} variants.{wildcards.type} > {output.ipynb}
+        }} 2> {log}
         """
 
 rule all:

@@ -97,8 +97,8 @@ rule barcode_report:
         export IPYTHONDIR=/tmp/ipython-lrstats
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr}
-        }} 2> {log} > {output.ipynb}
+            harpy-utils process-notebook {output.tmp} {params.lr} > {output.ipynb}
+        }} 2> {log}
         """
 
 rule qc_report:

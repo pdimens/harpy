@@ -29,6 +29,8 @@ def process_notebook(notebook, text):
     for line in notebook:
         if line.startswith("Ctrl click to launch"):
             continue
+        if "Starting kernel" in line:
+            continue
         if 'PLACEHOLDER' in line:
             if text:
                 line = line.replace("PLACEHOLDER", text.pop(0))
