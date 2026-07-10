@@ -2,7 +2,7 @@ common: &common
   - 'harpy/common/**'
   - 'harpy/__main__.py'
   - 'harpy/validation/**'
-  - 'harpy/report/**'
+  - 'harpy/report/**/*.py'
   - '.github/workflows/tests.yml'
   - '.github/filters.yml'
   - 'pyproject.toml'
