@@ -39,17 +39,19 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | :-------------------------------- | :--------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------- |
 | `REFERENCE`                       |                              | [!badge variant="info" text="required"] Reference genome for read mapping                                                                       |
 | `INPUTS`                          |                              | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
-| `--contigs`                       |                              | [Contigs to plot](/Getting_Started/common_options.md#--contigs) in the report                                                                   |
+| `-depth-window` `-w`              |           `50000`            | Interval size (in bp) for depth stats                                                                                                           |
 | `--extra-params` `-x`             |                              | Additional stroebealign arguments, in quotes                                                                                                    |
 | `--keep-unmapped` `-u`            |            false             | Output unmapped sequences too                                                                                                                   |
 | `--min-quality` `-d`              |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
 | `--molecule-distance` `-d`        |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
 
 ### Molecule distance
-The `--molecule-distance` option is used during the BWA alignment workflow
-to assign alignments a unique Molecular Identifier `MI:i` tag based on their
- haplotag barcode and the [distance threshold](/Getting_Started/linked_read_data.md#barcode-thresholds) you specify. Set this value to `0` to skip distance-based deconvolution,
-which may improve detection of very large structural variants.
+The `--molecule-distance` option is used during the alignment workflow
+to deconvolute alignments with the same barcode that might not have originated
+from the same DNA molecule based on the [distance threshold](/Getting_Started/linked_read_data.md#barcode-thresholds)
+you specify. This happens _during the linked-read stats step_ to internally split molecules based on this value, but
+**it doesn't modify** the barcodes in the output. Set this value to `0` to skip distance-based deconvolution during the
+this reporting step. Ignored if using `--skip-reports`. 
 
 ## Quality filtering
 The `--min-quality` argument filters out alignments below a given $MQ$ threshold. The default, `30`, keeps alignments
@@ -148,7 +150,7 @@ Align/strobealign
 | :---------------------------------- | :------------------------------------------------------------------------------- |
 | `*.bam`                             | sequence alignments for each sample                                              |
 | `*.bai`                             | sequence alignment indexes for each sample                                       |
-| `logs/*bwa.log`                     | output of strobealign during run                                                 |
+| `logs/*strobe.log`                  | output of strobealign during run                                                 |
 | `logs/*markdup.log`                 | stats provided by `samtools markdup`                                             |
 | `logs/*sort.log`                    | output of `samtools sort`                                                        |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                 |
