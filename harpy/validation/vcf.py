@@ -9,7 +9,6 @@ import pysam.bcftools
 
 from harpy.common.printing import HarpyPrint
 
-
 class VCF():
     '''
     A class to contain and validate a VCF input file.
@@ -22,6 +21,11 @@ class VCF():
         self.biallelic_file: str = ""
         self.contigs: dict[str,int] = {}
         self.print = HarpyPrint(quiet)
+
+        if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
+            pysam.bcftools.index(self.file)
+        if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
+            pysam.bcftools.index("--tbi", self.file)
 
     def get_contigs(self):
         """reads the header of a vcf/bcf file and populate `self.contigs` with the contigs (keys) and their lengths (values)"""
@@ -40,23 +44,18 @@ class VCF():
         if not self.contigs:
             self.get_contigs()
 
-        if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
-            pysam.bcftools.index(self.file)
-        if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
-            pysam.bcftools.index("--tbi", self.file)
-
         bcftools = which("bcftools") or "bcftools"
 
         with open(self.biallelic_file, "w", encoding="utf-8") as f:
             for contig in list(self.contigs.keys()):
+                snpcount = 0
+                keep = False
                 # Use bcftools to count the number of biallelic SNPs in the contig
                 viewcmd = subprocess.Popen(
                     [bcftools, 'view', '-H', '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file],
                     stdout=subprocess.PIPE,
                     text = True
                 )
-                snpcount = 0
-                keep = False
                 while True:
                     # Read the next line of output
                     line = viewcmd.stdout.readline()
