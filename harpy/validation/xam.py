@@ -162,6 +162,7 @@ class XAM():
             if os.path.basename(re_ext.sub("", str(i))) in keeplist:
                 tmp.append(i)
         self.files = tmp
+        self.count = len(tmp)
 
 
             
