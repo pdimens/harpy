@@ -153,3 +153,16 @@ class XAM():
                 if HAPLOTAGGING_RX.search(bx):
                     return "haplotagging"
         return "none"
+
+    def filter(self, keeplist: list[str]):
+        '''Filter self.files by their basenames to keep only those samples in `keeplist`'''
+        tmp = []
+        re_ext = re.compile(r"\.(bam|sam)$", re.IGNORECASE)
+        for i in self.files:
+            if os.path.basename(re_ext.sub("", str(i))) in keeplist:
+                tmp.append(i)
+        self.files = tmp
+        self.count = len(tmp)
+
+
+            
