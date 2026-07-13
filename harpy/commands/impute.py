@@ -65,6 +65,8 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     vcffile = VCF(vcf, workflow.workflow_directory, quiet)
     vcffile.find_biallelic_contigs()
     vcffile.match_samples(alignments.files, vcf_samples)
+    if vcf_samples:
+        alignments.filter(vcffile.samples)
     region = strategy.lower() != "all" and not strategy.lower().startswith("window:")
     window = None
     if region:

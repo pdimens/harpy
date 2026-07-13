@@ -39,7 +39,6 @@ class VCF():
         self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
         if not self.contigs:
             self.get_contigs()
-        to_keep = []
 
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
             pysam.bcftools.index(self.file)
@@ -181,3 +180,8 @@ class VCF():
         else:
             self.print.validation(True)
         return contig, startpos, endpos
+
+    def samplelist(self) -> list[str]:
+        '''return the list of sample names from the vcf file'''
+        with pysam.VariantFile(self.file) as _vcf:
+            return list(_vcf.header.samples)
