@@ -4,9 +4,8 @@ import os
 
 import rich_click as click
 
-from harpy.common.cli_filetypes import FASTQfile, HPCProfile
+from harpy.common.cli_filetypes import FASTQfile, HPCProfile, QCAdapters
 from harpy.common.cli_params import FastpParams, MultiInt, SnakemakeParams
-from harpy.common.file_ops import filepath
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
@@ -15,7 +14,7 @@ from harpy.validation.fastq import FASTQ
 @click.option('-d', '--deduplicate', panel = "Parameters", is_flag = True, default = False, help = 'Identify and remove PCR duplicates')
 @click.option('-x', '--extra-params', panel = "Parameters", type = FastpParams(), help = 'Additional Fastp parameters, in quotes')
 @click.option('-l', '--length', panel = "Parameters", default = "30,150", type=MultiInt(2, minimum=30), show_default = True, help = 'Minimum,Maximum read lengths')
-@click.option('-a', '--trim-adapters', panel = "Parameters", type = str, help = 'Detect and trim adapters')
+@click.option('-a', '--trim-adapters', panel = "Parameters", type = QCAdapters(), help = 'Find and remove adapter sequences')
 @click.option('-U', '--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "QC", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
@@ -36,19 +35,14 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
     Provide the input fastq files and/or directories at the end of the command
     as individual files/folders, using shell wildcards (e.g. `data/acronotus*.fq`), or both.
     Linked-read presence and type is auto-detected, but you may use `-U` to disable the parts
-    of the workflow specific to linked-read data.
+    of the workflow specific to linked-read data. Adapter removal is optional and accepts `auto`
+    for automatic detection, a nucleotide sequence, or a FASTA file of adapters to remove.
 
     **Mandatory QC**
     - low-quality sliding window trim from front to tail
     - poly-G tail removal
     - remove reads < min `--length`
     - trim reads down to max `--length`
-
-    **Optional quality checks**
-    - `-a` remove adapters
-      - accepts `auto` for automatic detection or a `FASTA file` of adapters to remove
-    - `-d` removes optical PCR duplicates
-      - recommended to skip at this step in favor of barcode-assisted deduplication after alignment
     """
     workflow = Workflow("qc", "qc.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
@@ -57,15 +51,7 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
 
     ## checks and validations ##
     fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet)
-    if trim_adapters:
-        if trim_adapters != "auto":
-            if not os.path.isfile(trim_adapters):
-                raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not exist. Please check the spelling or verify the location of the file.")
-            if not os.access(trim_adapters, os.R_OK):
-                raise click.BadParameter(f"--trim-adapters was given {trim_adapters}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.")
-            trim_adapters = filepath(trim_adapters)
-    else:
-        trim_adapters = False
+    trim_adapters = False if not trim_adapters else trim_adapters
 
     workflow.notebooks["skip"] = skip_reports
     workflow.linkedreads["type"] = fastq.lr_type
@@ -77,13 +63,17 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
     if extra_params:
         workflow.param(extra_params, "extra")
 
-    treatment = ", ".join(i for i,j in zip(["deduplicate", "trim adapters"], [deduplicate, trim_adapters]) if j)
+    treatment = []
+    if deduplicate:
+        treatment.append("deduplicate")
+    if trim_adapters:
+        treatment.append("trim adapters")
 
     workflow.info = {
         "Samples": fastq.count,
         "Linked-Read Type": fastq.lr_type,
-        **({"Treatment" : treatment} if treatment else {"Treatment": "None"}),
+        **({"Treatment" : ", ".join(treatment)} if treatment else {"Treatment": "None"}),
         "Output Folder": os.path.relpath(output) + "/",
     }
-
+    
     workflow.initialize(setup)
