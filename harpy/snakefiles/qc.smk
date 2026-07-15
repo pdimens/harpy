@@ -22,12 +22,14 @@ fqlist        = INPUTS
 
 bn_r        = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-if trim_adapters == "auto":
+if not trim_adapters:
+    trim_arg = "--disable_adapter_trimming"
+elif trim_adapters == "auto":
     trim_arg = "--detect_adapter_for_pe"
 elif os.path.isfile(trim_adapters):
     trim_arg = f"--adapter_fasta {trim_adapters}"
 else:
-    trim_arg = "--disable_adapter_trimming"
+    trim_arg = f"--adapter_sequence {trim_adapters}"
 
 def get_fq1(wildcards):
     '''returns a list of fastq files for read 1 based on *wildcards.sample*'''

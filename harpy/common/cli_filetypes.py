@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 import yaml
 
-from harpy.common.file_ops import is_gzip
+from harpy.common.file_ops import is_gzip, filepath
 from harpy.common.printing import HarpyPrint
 
 hp = HarpyPrint()
@@ -296,3 +296,27 @@ class ImputeStrategy(click.ParamType):
                 self.fail(f"Region coordinates must satisfy start >= 1 and end >= start, but got {value}", param, ctx)
 
         return value
+
+class QCAdapters(click.ParamType):
+    name = "qc_adapters"
+    def convert(self, value, param, ctx):
+        nuc = re.compile(r'^[ATCG]+$', re.IGNORECASE)
+
+        if not value or value == "auto":
+            return value
+
+        if os.path.isfile(value):
+            if not os.access(value, os.R_OK):
+                self.fail(f"--trim-adapters was given {value}, but that file does not have read permissions. Please modify the persmissions of the file to grant read access.", param, ctx)
+            return filepath(value)
+
+        elif nuc.match(value.strip()):
+            return value.upper()
+
+        else:
+            raise self.fail(
+                f"{value} was not recognize as \'auto\', an existing file, or a nucleotide sequence. "
+                "If it was intended as a file, that file wasn't found. "
+                "If it was a nucleotide sequence, it must contain only ATCG (case-insensitive) characters.",
+                param, ctx
+            )
