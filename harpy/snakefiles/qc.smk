@@ -104,28 +104,28 @@ rule barcode_report:
         """
 
 rule qc_report:
-    input: 
-        collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames)
+    input:
+        data = collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames),
+        ipynb = f"workflow/fastp_qc.ipynb"
     output:
-        "reports/qc.report.html"
+        tmp = temp("reports/qc.report.tmp.ipynb"),
+        ipynb = "reports/qc.report.ipynb"
     log:
-        "logs/multiqc.log"
+        "logs/qc.report.log"
     params:
-        module = "-m fastp",
-        options = "-n stdout --no-ai --no-version-check --force --quiet --no-data-dir",
-        title = "--title \"QC Summary\"",
-        comment = "--comment \"This report aggregates trimming and quality control metrics reported by fastp.\"",
-        logdir = "reports/data/fastp/"
-    conda:
-        "envs/qc.yaml"
-    container:
-        f"docker://pdimens/harpy:qc_{VERSION}"
-    shell: 
-        "multiqc {params} > {output} 2> {log}"
+        "-p indir " + os.path.abspath("reports/data/fastp")
+    shell:
+        """
+        export IPYTHONDIR=/tmp/ipython-fastp
+        {{
+            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} > {output.ipynb}
+        }} 2> {log}
+        """
 
 rule all:
     default_target: True
     input:
         fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = "reports/barcode.summary.ipynb" if not skip_reports and lr_type != "none" else [],
-        agg_report = "reports/qc.report.html" if not skip_reports else []    
+        agg_report = "reports/qc.report.ipynb" if not skip_reports else []    

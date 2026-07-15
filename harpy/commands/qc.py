@@ -46,7 +46,7 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
     """
     workflow = Workflow("qc", "qc.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
-    workflow.notebook_files = ["qc_bx_stats.ipynb"]
+    workflow.notebook_files = ["qc_bx_stats.ipynb", "fastp_qc.ipynb"]
     workflow.conda = ["qc"]
 
     ## checks and validations ##
