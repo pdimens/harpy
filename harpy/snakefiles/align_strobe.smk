@@ -57,8 +57,8 @@ rule align:
         workflow_geno,
         get_fq,
     output:  
-        bam = temp("strobealign/{sample}/{sample}.strobe.bam"),
-        tmp = temp(directory("strobealign/{sample}/tmp"))
+        bam = temp("strobealign/{sample}.strobe.bam"),
+        tmp = temp(directory("strobealign/{sample}_tmp"))
     log:
         "logs/strobealign/{sample}.strobealign.log"
     params: 
@@ -69,7 +69,7 @@ rule align:
     threads:
         12
     resources:
-        tmpdir = lambda wc: f"strobealign/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"strobealign/{wc.sample}_tmp"
     conda:
         "envs/align.yaml"
     container:
@@ -87,11 +87,11 @@ rule sort:
     retries: 3
     input:
         ref = workflow_geno,
-        bam = "strobealign/{sample}/{sample}.strobe.bam"
+        bam = "strobealign/{sample}.strobe.bam"
     output:
-        bam = temp("sort/{sample}/{sample}.sort.bam"),
+        bam = temp("sort/{sample}.sort.bam"),
         stats = "reports/data/samtools_stats/{sample}.raw.stats",
-        tmp = temp(directory("sort/{sample}/tmp"))
+        tmp = temp(directory("sort/{sample}_tmp"))
     log:
         "logs/sort/{sample}.sort.log"
     params:
@@ -99,7 +99,7 @@ rule sort:
     threads:
         4
     resources:
-        tmpdir = lambda wc: f"sort/{wc.sample}/tmp",
+        tmpdir = lambda wc: f"sort/{wc.sample}_tmp",
         mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
     shell:
         """
@@ -115,11 +115,11 @@ rule mark_duplicates:
     priority: 1
     input:
         fq  = get_fq,
-        bam = "sort/{sample}/{sample}.sort.bam"
+        bam = "sort/{sample}.sort.bam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("markdup/{sample}/tmp"))
+        tmp = temp(directory("markdup/{sample}_tmp"))
     log:
         "logs/markdup/{sample}.markdup.log"
     params:
@@ -128,7 +128,7 @@ rule mark_duplicates:
         unmapped = "-F 4" if not keep_unmapped else "",
         mdthreads = lambda wc, threads: threads - 1
     resources:
-        tmpdir = lambda wc: f"markdup/{wc.sample}/tmp"
+        tmpdir = lambda wc: f"markdup/{wc.sample}_tmp"
     threads:
         4
     shell:
