@@ -64,8 +64,10 @@ rule write_adapters:
         'adapters.fasta'
     params:
         me_seq
-    shell:
-        "harpy-utils known-adapters -m {params} > {output}"
+    run:
+        with open(output[0], 'w') as f:
+            f.write(">Nextera GIH\nCTGTCTCTTATACACATCT\n")
+            #f.write(f">ME Sequence\n{me_seq}\n")
 
 rule pad_barcodes:
     input:
