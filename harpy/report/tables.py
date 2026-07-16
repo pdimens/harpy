@@ -5,7 +5,6 @@ import uuid
 
 from IPython.display import HTML, display
 
-
 class JSFunction:
     """Wraps a raw JS string so it can be injected without JSON quoting."""
     def __init__(self, js):
@@ -14,7 +13,11 @@ class JSFunction:
 class ITable:
     """
     Render a pandas/polars DataFrame as an AG Grid table using self-contained HTML.
-    Works in Jupyter notebooks and static MyST/Jupyter Book pages.
+    Works in Jupyter notebooks, VS Code, and static MyST/Jupyter Book pages.
+
+    Renders inside a same-origin `srcdoc` iframe so embedded <script> tags
+    actually execute (they're inert when injected via innerHTML, which is
+    how notebook frontends normally display HTML output).
 
     Parameters
     ----------
@@ -37,7 +40,6 @@ class ITable:
             for i, col in enumerate(df.columns)
         ]
 
-        # Normalise to list-of-dicts regardless of pandas/polars
         raw = (
             df.to_dicts()
             if hasattr(df, "to_dicts")
@@ -46,24 +48,17 @@ class ITable:
         _uid = uuid.uuid4().hex[:8]
         self.grid_id = f"grid-{_uid}"
         self.grid_ref = f"aggrid_{_uid}"
+        self.iframe_id = f"itable-frame-{_uid}"
 
         if compress and raw:
             self._compressed_payload = self._build_compressed_payload(raw)
-            self.row_data = None          # not used in compressed path
+            self.row_data = None
         else:
             self._compressed_payload = None
             self.row_data = raw
 
     @staticmethod
     def _build_compressed_payload(raw: list[dict]) -> str:
-        """
-        1. Repack row-oriented data into a columnar dict  →  far fewer repeated keys
-        2. JSON-serialise the columnar structure
-        3. gzip compress (level 9)
-        4. base64-encode so it's safe to embed in a <script> string
-
-        Returns the base64 string.
-        """
         cols = list(raw[0].keys())
         columnar = {col: [row[col] for row in raw] for col in cols}
         payload = json.dumps(
@@ -72,11 +67,7 @@ class ITable:
         compressed = gzip.compress(payload, compresslevel=9)
         return base64.b64encode(compressed).decode("ascii")
 
-
     def _serialize_col_defs(self) -> str:
-        '''
-        Column-def serialisation (preserves raw JSFunction values)
-        '''
         parts = []
         for col in self.col_defs:
             field_parts = []
@@ -89,15 +80,8 @@ class ITable:
         return "[" + ", ".join(parts) + "]"
 
     def _row_data_js(self) -> str:
-        """
-        Returns a JS snippet that declares `rowData` as an array of objects.
-
-        Compressed path  → async decompress from embedded base64/gzip string.
-        Uncompressed path → plain JSON literal
-        """
         if self._compressed_payload:
             return f"""
-                // ---------- decompress columnar gzip payload ----------
                 const _b64 = "{self._compressed_payload}";
                 const _binary = Uint8Array.from(atob(_b64), c => c.charCodeAt(0));
                 const _ds = new DecompressionStream("gzip");
@@ -107,94 +91,145 @@ class ITable:
                 const _buf = await new Response(_ds.readable).arrayBuffer();
                 const _pkg = JSON.parse(new TextDecoder().decode(_buf));
 
-                // Reconstruct row-oriented array from columnar structure
                 const _cols = _pkg.cols;
                 const _data = _pkg.data;
                 const rowData = _data[_cols[0]].map((_, i) =>
                     Object.fromEntries(_cols.map(c => [c, _data[c][i]]))
                 );
-                // ------------------------------------------------------
             """
-        # Fallback: raw JSON
         return f"const rowData = {json.dumps(self.row_data, default=str)};"
 
+    def _build_inner_html(self) -> str:
+        """The document that will live inside the iframe's srcdoc."""
+        return f"""<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    html, body {{ margin: 0; padding: 0; }}
+    .ag-theme-quartz, .ag-theme-quartz-dark {{
+        --ag-font-family: sans-serif;
+    }}
+</style>
+</head>
+<body>
+
+<button
+    onclick="(function(){{ var g = window.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: '{self.filename}'}}); }})()"
+    style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
+>
+    Download Table
+</button>
+
+<div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
+
+<script>
+(async function () {{
+
+    await new Promise((resolve, reject) => {{
+        if (typeof agGrid !== "undefined") {{ resolve(); return; }}
+        const s = document.createElement("script");
+        s.src = "https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js";
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+    }});
+
+    {self._row_data_js()}
+
+    const columnDefs = {self._serialize_col_defs()};
+
+    const gridOptions = {{
+        columnDefs: columnDefs,
+        rowData: rowData,
+        defaultColDef: {{
+            sortable: true,
+            filter: true,
+            resizable: true,
+        }},
+        autoSizeStrategy: {{
+            type: "fitCellContents",
+            defaultMaxWidth: 170,
+            defaultMinWidth: 90,
+        }},
+        domLayout: "autoHeight",
+        animateRows: false,
+        pagination: true,
+        paginationPageSize: 20,
+        rowHeight: {self.row_height},
+        headerHeight: {self.header_height},
+    }};
+
+    const container = document.getElementById("{self.grid_id}");
+
+    // srcdoc iframes are same-origin with the parent notebook page, so we
+    // can read the parent's dark-mode class directly instead of guessing.
+    function isParentDark() {{
+        try {{
+            return window.parent.document.documentElement.classList.contains("dark");
+        }} catch (e) {{
+            return document.documentElement.classList.contains("dark");
+        }}
+    }}
+
+    function syncTheme() {{
+        container.setAttribute(
+            "data-ag-theme-mode",
+            isParentDark() ? "dark-blue" : "light"
+        );
+    }}
+
+    function reportHeight() {{
+        const h = document.body.scrollHeight;
+        window.parent.postMessage({{ itableId: "{self.iframe_id}", height: h }}, "*");
+    }}
+
+    requestAnimationFrame(() => {{
+        requestAnimationFrame(() => {{
+            syncTheme();
+            window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
+
+            try {{
+                new MutationObserver(syncTheme).observe(
+                    window.parent.document.documentElement,
+                    {{ attributes: true, attributeFilter: ["class"] }}
+                );
+            }} catch (e) {{ /* cross-origin fallback: no live theme sync */ }}
+
+            new ResizeObserver(reportHeight).observe(document.body);
+            reportHeight();
+        }});
+    }});
+
+}})();
+</script>
+</body>
+</html>"""
+
     def render(self, html: bool = False):
-        """Create the AG-Grid HTML and render it (or return the HTML string)."""
+        """Create the AG-Grid HTML (wrapped in an iframe) and render it."""
+
+        inner_b64 = base64.b64encode(
+            self._build_inner_html().encode("utf-8")
+        ).decode("ascii")
 
         _html = f"""
-        <style>
-            .ag-theme-quartz, .ag-theme-quartz-dark {{
-                --ag-font-family: sans-serif;
-            }}
-        </style>
-
-        <button
-            onclick="(function(){{ var g = window.{self.grid_ref}; if(g) g.exportDataAsCsv({{suppressQuotes: true, fileName: '{self.filename}'}}); }})()"
-            style="margin-bottom: 8px; padding: 4px 12px; cursor: pointer;"
-        >
-            ⤓ Download CSV
-        </button>
-
-        <div id="{self.grid_id}" class="{self.theme}" style="width: 100%; overflow-x: auto"></div>
+        <iframe
+            id="{self.iframe_id}"
+            style="width: 100%; border: none; display: block;"
+            height="60"
+        ></iframe>
 
         <script>
-        (async function () {{
+        (function() {{
+            const _frame = document.getElementById("{self.iframe_id}");
+            _frame.srcdoc = atob("{inner_b64}");
 
-                    /* ── dynamic loader: awaitable, idempotent ── */
-            await new Promise((resolve, reject) => {{
-                if (typeof agGrid !== "undefined") {{ resolve(); return; }}
-                const s = document.createElement("script");
-                s.src = "https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js";
-                s.onload = resolve;
-                s.onerror = reject;
-                document.head.appendChild(s);
+            window.addEventListener("message", function(ev) {{
+                if (ev.data && ev.data.itableId === "{self.iframe_id}") {{
+                    _frame.style.height = (ev.data.height + 20) + "px";
+                }}
             }});
-
-            {self._row_data_js()}
-
-            const columnDefs = {self._serialize_col_defs()};
-
-            const gridOptions = {{
-                columnDefs: columnDefs,
-                rowData: rowData,
-                defaultColDef: {{
-                    sortable: true,
-                    filter: true,
-                    resizable: true,
-                }},
-                autoSizeStrategy: {{
-                    type: "fitCellContents",
-                    defaultMaxWidth: 170,
-                    defaultMinWidth: 90,
-                }},
-                domLayout: "autoHeight",
-                animateRows: false,
-                pagination: true,
-                paginationPageSize: 20,
-                rowHeight: {self.row_height},
-                headerHeight: {self.header_height},
-            }};
-
-            const container = document.getElementById("{self.grid_id}");
-
-            function syncTheme() {{
-                container.setAttribute(
-                    "data-ag-theme-mode",
-                    document.documentElement.classList.contains("dark") ? "dark-blue" : "light"
-                );
-            }}
-
-            requestAnimationFrame(() => {{
-                requestAnimationFrame(() => {{
-                    syncTheme();
-                    window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
-                    new MutationObserver(syncTheme).observe(
-                        document.documentElement,
-                        {{ attributes: true, attributeFilter: ["class"] }}
-                    );
-                }});
-            }});
-
         }})();
         </script>
         """

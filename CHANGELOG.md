@@ -1,3 +1,7 @@
+# New
+## QC
+- replace multiqc report with native harpy report
+
 # Fixes
-## Snakefiles
-- move output notebook within shell to avoid xpython stdout printing error breaking notebooks
+## reports
+- tables now render properly in VScode/Jupyter contexts
