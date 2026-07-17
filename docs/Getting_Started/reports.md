@@ -46,7 +46,7 @@ harpy report <options> DIRECTORY
 
 
 ## Automate a report website
-The report setup and system lends itself well to easily build [a persistent report website](https://pdimens.github.io/RS-degradation/) via GitHub Pages.
+The report setup and system lends itself well to easily build [a persistent report website](https://pdimens.github.io/GIH-experiments/) via GitHub Pages.
 This requires one additional file: a GitHub Actions workflow that is triggered on push events (or whatever
 you configure it to). This can be added using:
 ```bash
