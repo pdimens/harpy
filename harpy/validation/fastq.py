@@ -35,7 +35,7 @@ class FASTQ():
         badfiles = []
 
         #self.illu_old = re.compile(r'/[12]$')
-        self.illu_new = re.compile(r'[12]:[YN]:\d+')
+        self.illu_new = re.compile(r'(?:^|\s)[12]:[YNyn]:\d+:[A-Za-z]+')
         re_ext = re.compile(r"\.(fq|fastq)(?:\.gz)?$", re.IGNORECASE)
         # check if any names will be clashing
         bn_r = r"[\.\_](?:[RF])?(?:[12])?(?:\_00[1-9])*?$"
