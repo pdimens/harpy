@@ -263,10 +263,9 @@ class FastpResults():
 
 def check_tool(name: str, hint: str) -> None:
     if shutil.which(name) is None:
-        #TODO nice informative harpy error goes here
         hp = HarpyPrint()
         hp.error(
-            f"Missing dependency",
+            "Missing dependency",
             f"{name} is not found on the PATH and required to proceed.",
             hint
             )

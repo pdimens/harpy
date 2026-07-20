@@ -17,9 +17,9 @@ FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
 
 
 class ReportStatic():
-    def __init__(self, notebook: str, quiet: bool, intermediate: bool):
+    def __init__(self, notebook: str, quiet: bool, static: bool):
         self.quiet: bool = quiet
-        self.intermediate: bool = intermediate
+        self.static: bool = static
         self.notebook: str = notebook
         self.hp = HarpyPrint()
         self.hp.console.soft_wrap = True
@@ -84,27 +84,30 @@ class ReportStatic():
         nb_path: Path = Path(self.notebook).resolve()
         nb_name = nb_path.stem
         out_path: Path = nb_path.with_name(f"{nb_name}.html")
+            
 
         # Transformed notebook copy lives NEXT TO the original (not in /tmp).
         # It's cleaned up in `finally` and the original file is never modified.
         tmp_nb_path = nb_path.with_name(f".{nb_name}-tmp.ipynb")
         workdir = Path(tempfile.mkdtemp(prefix="nb2html_"))
+        if self.static:
+            intermediate_html = workdir / f"{nb_name}.html"
+        else:
+            intermediate_html = out_path
+
         try:
             nb_json = json.loads(nb_path.read_text(encoding="utf-8"))
             self.render_frontmatter_cell(nb_json)
             tmp_nb_path.write_text(json.dumps(nb_json), encoding="utf-8")
-
-            intermediate_html = workdir / f"{nb_name}.html"
-
             nbconvert_cmd = [
                 "jupyter", "nbconvert", str(tmp_nb_path),
                 "--to", "html",
                 "--embed-images",
                 f"--log-level={self.nbc_log}",
                 "--TagRemovePreprocessor.enabled=True",
-                f"--TagRemovePreprocessor.remove_cell_tags=remove-cell",
-                f"--TagRemovePreprocessor.remove_input_tags=remove-input",
-                f"--TagRemovePreprocessor.remove_all_outputs_tags=remove-output",
+                "--TagRemovePreprocessor.remove_cell_tags=remove-cell",
+                "--TagRemovePreprocessor.remove_input_tags=remove-input",
+                "--TagRemovePreprocessor.remove_all_outputs_tags=remove-output",
                 "--output", intermediate_html.name,
                 "--output-dir", str(workdir),
             ]
@@ -119,18 +122,20 @@ class ReportStatic():
             # nbconvert's HTML has no code-split/dynamically-imported JS, so
             # monolith can reliably inline everything it references (CDN
             # vega-embed, MathJax, fonts, etc.) into one working file.
-            monolith_cmd = ["monolith", str(intermediate_html), "-o", str(out_path)]
-            if self.quiet:
-                monolith_cmd.append('-q')
-            self.run(monolith_cmd)
+            if self.static:
+                monolith_cmd = ["monolith", str(intermediate_html), "-o", str(out_path)]
+                if self.quiet:
+                    monolith_cmd.append('-q')
+                self.run(monolith_cmd)
 
         finally:
             tmp_nb_path.unlink(missing_ok=True)
-            if self.intermediate:
-                if not self.quiet:
-                    self.hp.log(f"Intermediate HTML kept at: {workdir}")
-            else:
-                shutil.rmtree(workdir, ignore_errors=True)
+            shutil.rmtree(workdir, ignore_errors=True)
+            #if self.intermediate:
+            #    if not self.quiet:
+            #        self.hp.log(f"Intermediate HTML kept at: {workdir}")
+            #else:
+                #shutil.rmtree(workdir, ignore_errors=True)
 
         if not self.quiet:
             self.hp.log(f"Done: {out_path}")
