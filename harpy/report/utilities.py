@@ -5,9 +5,11 @@ import pandas as pd
 import polars as pl
 import os
 import json
+import shutil
+import sys
 
 from harpy.common.file_ops import safe_read
-
+from harpy.common.printing import HarpyPrint
 
 class StopExecution(Exception):
     '''An exception type to prematurely end a notebook without it being considered an error'''
@@ -257,3 +259,15 @@ class FastpResults():
         self.gc_curves_after = pl.DataFrame(gc_curves["after"])
         self.gc_curves_r2 = pl.DataFrame(gc_curves_r2["before"])
         self.gc_curves_r2_after = pl.DataFrame(gc_curves_r2["after"])
+
+
+def check_tool(name: str, hint: str) -> None:
+    if shutil.which(name) is None:
+        #TODO nice informative harpy error goes here
+        hp = HarpyPrint()
+        hp.error(
+            f"Missing dependency",
+            f"{name} is not found on the PATH and required to proceed.",
+            hint
+            )
+ 
