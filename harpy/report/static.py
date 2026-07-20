@@ -109,14 +109,14 @@ class ReportStatic():
                 "--TagRemovePreprocessor.remove_input_tags=remove-input",
                 "--TagRemovePreprocessor.remove_all_outputs_tags=remove-output",
                 "--output", intermediate_html.name,
-                "--output-dir", str(workdir),
+                "--output-dir", str(intermediate_html.parent),
             ]
             self.run(nbconvert_cmd)
 
             if not intermediate_html.is_file():
                 self.hp.error(
                     "Missing nbconvert output",
-                    "The expected nbconvert output was not found at {intermediate_html}"
+                    f"The expected nbconvert output was not found at {intermediate_html}"
                 )
 
             # nbconvert's HTML has no code-split/dynamically-imported JS, so
@@ -131,11 +131,6 @@ class ReportStatic():
         finally:
             tmp_nb_path.unlink(missing_ok=True)
             shutil.rmtree(workdir, ignore_errors=True)
-            #if self.intermediate:
-            #    if not self.quiet:
-            #        self.hp.log(f"Intermediate HTML kept at: {workdir}")
-            #else:
-                #shutil.rmtree(workdir, ignore_errors=True)
 
         if not self.quiet:
             self.hp.log(f"Done: {out_path}")

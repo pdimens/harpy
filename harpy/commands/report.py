@@ -144,11 +144,12 @@ def static(notebooks, debug, self_contained):
             "cargo ([green]cargo install monolith[/]) or by downloading and adding "
             "a pre-built binary from [blue]https://github.com/Y2Z/monolith/releases[/] to your PATH."
         )
-    n = len(notebooks[0])
+    all_notebooks = [nb for group in notebooks for nb in group]
+    n = len(all_notebooks)
     if n > 1 :
         print(f"Converting {n} notebooks into HTML files.", file = sys.stderr)
     rs = ReportStatic("", quiet = not debug, static = self_contained)
-    for nb in notebooks[0]:
+    for nb in all_notebooks:
         rs.notebook = nb
         rs.convert()
 
