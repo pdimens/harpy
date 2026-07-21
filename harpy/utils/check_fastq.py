@@ -20,8 +20,7 @@ def check_fastq(platform, input):
     """
     N_READS: int = 0
     NO_BX: int = 0
-    #TODO save NO_VX for a rainy day
-    #NO_VX: int = 0
+    NO_VX: int = 0
     BAD_BX: int = 0
     BAD_SAM_SPEC: int = 0
     BX_NOT_LAST: int = 0
@@ -45,6 +44,10 @@ def check_fastq(platform, input):
                 nonlocal NO_BX
                 NO_BX += 1
                 return
+            else:
+                if 'VX:i:' not in fq_record.comment:
+                    nonlocal NO_VX
+                    NO_VX += 1
             check_samspec(fq_record.comment)
 
     elif platform == "haplotagging":
@@ -54,6 +57,9 @@ def check_fastq(platform, input):
                 nonlocal NO_BX
                 NO_BX += 1
                 return
+            if 'VX:i:' not in fq_record.comment:
+                nonlocal NO_VX
+                NO_VX += 1
             if not barcode.search(fq_record.comment):
                 nonlocal BAD_BX
                 BAD_BX += 1
@@ -80,5 +86,5 @@ def check_fastq(platform, input):
             N_READS += 1
             check_read(entry)
 
-    values = [str(i) for i in [os.path.basename(input), N_READS, NO_BX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
+    values = [str(i) for i in [os.path.basename(input), N_READS, NO_BX, NO_VX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
     sys.stdout.write("\t".join(values) + "\n")
