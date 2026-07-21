@@ -7,7 +7,7 @@ from pysam import FastxFile
 
 
 @click.command(no_args_is_help = True)
-@click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq'], case_sensitive=False))
+@click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq', 'standard'], case_sensitive=False))
 @click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden = True)
 def check_fastq(platform, input):
@@ -20,6 +20,8 @@ def check_fastq(platform, input):
     """
     N_READS: int = 0
     NO_BX: int = 0
+    #TODO save NO_VX for a rainy day
+    #NO_VX: int = 0
     BAD_BX: int = 0
     BAD_SAM_SPEC: int = 0
     BX_NOT_LAST: int = 0
@@ -37,7 +39,15 @@ def check_fastq(platform, input):
         if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):
             BX_NOT_LAST += 1
 
-    if platform == "haplotagging":
+    if platform == "standard":
+        def check_read(fq_record):
+            if 'BX:Z:' not in fq_record.comment:
+                nonlocal NO_BX
+                NO_BX += 1
+                return
+            check_samspec(fq_record.comment)
+
+    elif platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
         def check_read(fq_record):
             if 'BX:Z:' not in fq_record.comment:

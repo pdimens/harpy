@@ -36,7 +36,7 @@ rule concat_results:
     shell:
         """
         {{
-            echo -e "file\talignments\tnameMismatch\tnoMI\tnoBX\tbxNotLast\tbadBX"
+            echo -e "file\trecords\tnameMismatch\tnoMI\tnoBX\tnoVX\tbxNotLast\tbadBX"
             cat {input} | sort -k1
         }} > {output}
         """

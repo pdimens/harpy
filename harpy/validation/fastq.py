@@ -10,6 +10,7 @@ from harpy.common.printing import HarpyPrint
 HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
 STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
 TELLSEQ_RX = re.compile(r':([ATCGN]+)(\s|$)')
+STANDARD_RX = re.compile(r'(?=.*\b(BX:Z:\S+)\b)(?=.*\b(VX:i:[01])\b)')
 
 class FASTQ():
     '''
@@ -24,8 +25,11 @@ class FASTQ():
             self.files = list(chain.from_iterable(filenames))
         else:
             self.files = filenames
+        # bools of whether it has these SAM tags
         self.bx_tag = False
         self.vx_tag = False
+        # is it standard format with BX and VX tags?
+        self.lastq = False
         # determine illumina format
         self.illumina_old = True
         self.print = HarpyPrint(quiet)
@@ -97,7 +101,8 @@ class FASTQ():
                 self.lr_type = self.which_linkedread(fq)
                 if self.lr_type != "none":
                     break
-            self.bx_tag = self.lr_type == "haplotagging"
+            self.bx_tag = self.lr_type in ["haplotagging", "standard"]
+            self.vx_tag = self.lr_type == "standard"
             if not self.nonlink_ok and self.lr_type == "none":
                 self.print.validation(False)
                 self.print.error(
@@ -115,6 +120,9 @@ class FASTQ():
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
         self.print.log("Inputs have BX:Z tag", newline=False)
+        if self.bx_tag:
+            self.print.validation(True)
+            return
         scanned = []
         for i in self.files:
             with pysam.FastxFile(i, persist=False) as fq:
@@ -126,7 +134,7 @@ class FASTQ():
                         self.bx_tag = True
                     if "VX:i" in cmt:
                         self.vx_tag = True
-                    if self.bx_tag or self.vx_tag:
+                    if self.bx_tag: #or self.vx_tag:
                         self.print.validation(True)
                         return
             scanned.append(i)
@@ -141,6 +149,7 @@ class FASTQ():
             )
 
     def detect_illumina_format(self):
+        'Search for the new CASAVA format e.g., 1:N:4324:ATAGAGAC'
         with pysam.FastxFile(self.files[0]) as f:
             for read in f:
                 if read.comment and self.illu_new.search(read.comment):
@@ -197,4 +206,7 @@ class FASTQ():
                     return "stlfr"
                 if TELLSEQ_RX.search(record.name):
                     return "tellseq"
+                m = STANDARD_RX.search(record.comment)
+                if m.group(1) and m.group(2):
+                    return "standard"
         return "none"
