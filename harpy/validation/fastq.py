@@ -206,7 +206,8 @@ class FASTQ():
                     return "stlfr"
                 if TELLSEQ_RX.search(record.name):
                     return "tellseq"
-                m = STANDARD_RX.search(record.comment)
-                if m.group(1) and m.group(2):
-                    return "standard"
+                if record.comment:
+                    m = STANDARD_RX.search(record.comment)
+                    if m and m.group(1) and m.group(2):
+                        return "standard"
         return "none"

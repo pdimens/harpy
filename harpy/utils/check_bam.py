@@ -49,7 +49,7 @@ def check_bam(platform, bamfile):
                 NO_BX += 1
                 continue
             try:
-                bx = record.get_tag("VX")
+                record.get_tag("VX")
             except KeyError:
                 NO_VX += 1
 

@@ -40,26 +40,32 @@ def check_fastq(platform, input):
 
     if platform == "standard":
         def check_read(fq_record):
-            if 'BX:Z:' not in fq_record.comment:
+            comment = fq_record.comment or ""
+            if 'BX:Z:' not in comment:
                 nonlocal NO_BX
                 NO_BX += 1
                 return
             else:
-                if 'VX:i:' not in fq_record.comment:
+                if 'VX:i:' not in comment:
                     nonlocal NO_VX
                     NO_VX += 1
-            check_samspec(fq_record.comment)
+            check_samspec(comment)
 
     elif platform == "haplotagging":
         barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
         def check_read(fq_record):
-            if 'BX:Z:' not in fq_record.comment:
+            comment = fq_record.comment or ""
+            if 'BX:Z:' not in comment:
                 nonlocal NO_BX
                 NO_BX += 1
                 return
-            if 'VX:i:' not in fq_record.comment:
+            if 'VX:i:' not in comment:
                 nonlocal NO_VX
                 NO_VX += 1
+            if not barcode.search(comment):
+                nonlocal BAD_BX
+                BAD_BX += 1
+            check_samspec(comment)
             if not barcode.search(fq_record.comment):
                 nonlocal BAD_BX
                 BAD_BX += 1
