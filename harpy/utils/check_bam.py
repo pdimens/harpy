@@ -54,7 +54,7 @@ def check_bam(platform, bamfile):
                 NO_VX += 1
 
             # do a regex search to find proper barcode pattern in the BX
-            if platform != "standard" and not re.search(bc_pattern, bx):
+            if platform != "standard" and not bc_pattern.search(bx):
                 # malformed BX tag
                 BAD_BX += 1
             # do a search to see if BX:Z: tag is last tag in record

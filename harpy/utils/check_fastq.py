@@ -6,10 +6,107 @@ import click
 from pysam import FastxFile
 
 
-@click.command(no_args_is_help = True)
-@click.argument('platform', required = True, type=click.Choice(['haplotagging','stlfr','tellseq', 'standard'], case_sensitive=False))
-@click.argument('input', required = True, type=click.Path(exists = True, dir_okay=False, resolve_path=True))
-@click.help_option('--help', hidden = True)
+class FormatChecker:
+    """Base class: shared counters + SAM-spec/BX-position validation."""
+    SAMSPEC = re.compile(r'[A-Z][A-Z]:[AifZHB]:')
+    def __init__(self):
+        self.N_READS = 0
+        self.NO_BX = 0
+        self.NO_VX = 0
+        self.BAD_BX = 0
+        self.BAD_SAM_SPEC = 0
+        self.BX_NOT_LAST = 0
+
+    def check_samspec(self, comment):
+        """Validate TAG:TYPE:VALUE format and that BX:Z:, if present, is last."""
+        splithead = comment.split()
+        for tag in splithead:
+            if not self.SAMSPEC.match(tag):
+                self.BAD_SAM_SPEC += 1
+        if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):
+            self.BX_NOT_LAST += 1
+
+    def check_read(self, fq_record):
+        """Platform-specific per-read validation. Must be overridden."""
+        raise NotImplementedError
+
+    def process(self, path):
+        with FastxFile(path, persist=False) as fh:
+            for entry in fh:
+                self.N_READS += 1
+                self.check_read(entry)
+        return self
+
+    def report(self, path):
+        values = [
+            os.path.basename(path),
+            self.N_READS,
+            self.NO_BX,
+            self.NO_VX,
+            self.BAD_BX,
+            self.BAD_SAM_SPEC,
+            self.BX_NOT_LAST,
+        ]
+        return "\t".join(str(v) for v in values)
+
+
+class StandardChecker(FormatChecker):
+    """Generic BX:Z:/VX:i: tag validation, no barcode-format check."""
+    def check_read(self, fq_record):
+        comment = fq_record.comment or ""
+        if 'BX:Z:' not in comment:
+            self.NO_BX += 1
+            return
+        if 'VX:i:' not in comment:
+            self.NO_VX += 1
+        self.check_samspec(comment)
+
+
+class HaplotaggingChecker(FormatChecker):
+    """Haplotagging: BX:Z: comment tag, ACBD-style barcode."""
+    BARCODE_RE = re.compile(r'A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
+    def check_read(self, fq_record):
+        comment = fq_record.comment or ""
+        if 'BX:Z:' not in comment:
+            self.NO_BX += 1
+            return
+        if 'VX:i:' not in comment:
+            self.NO_VX += 1
+        if not self.BARCODE_RE.search(comment):
+            self.BAD_BX += 1
+        self.check_samspec(comment)
+
+
+class StlfrChecker(FormatChecker):
+    """stLFR: barcode embedded in the read name as #n_n_n."""
+    BARCODE_RE = re.compile(r'#\d+_\d+_\d+$')
+    def check_read(self, fq_record):
+        if not self.BARCODE_RE.search(fq_record.name):
+            self.BAD_BX += 1
+        self.check_samspec(fq_record.comment or "")
+
+
+class TellseqChecker(FormatChecker):
+    """TELL-Seq: barcode embedded in the read name as :ATCGN..."""
+    BARCODE_RE = re.compile(r':[ATCGN]+$')
+    def check_read(self, fq_record):
+        if not self.BARCODE_RE.search(fq_record.name):
+            self.BAD_BX += 1
+        self.check_samspec(fq_record.comment or "")
+
+
+PLATFORM_CHECKERS = {
+    "standard": StandardChecker,
+    "haplotagging": HaplotaggingChecker,
+    "stlfr": StlfrChecker,
+    "tellseq": TellseqChecker,
+}
+
+
+@click.command(no_args_is_help=True)
+@click.argument('platform', required=True, type=click.Choice(list(PLATFORM_CHECKERS), case_sensitive=False))
+@click.argument('input', required=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True))
+@click.help_option('--help', hidden=True)
 def check_fastq(platform, input):
     """
     File format validation for FASTQ file
@@ -18,79 +115,6 @@ def check_fastq(platform, input):
     whether BX:Z: is the last tag in the record, and the counts of: total reads,
     reads without BX:Z: tag, reads with incorrect barcode depending on the platform.
     """
-    N_READS: int = 0
-    NO_BX: int = 0
-    NO_VX: int = 0
-    BAD_BX: int = 0
-    BAD_SAM_SPEC: int = 0
-    BX_NOT_LAST: int = 0
-
-    platform = platform.lower()
-    samspec = re.compile(r'[A-Z][A-Z]:[AifZHB]:')
-    def check_samspec(fq_comment):
-        nonlocal BAD_SAM_SPEC, BX_NOT_LAST
-        splithead = fq_comment.split()
-        for i in splithead:
-            # if comments dont start with TAG:TYPE:, invalid SAM spec
-            if not samspec.match(i):
-                BAD_SAM_SPEC += 1
-        # if BX:Z: exists but isn't the last tag, count once per read
-        if any(tag.startswith("BX:Z:") for tag in splithead) and not splithead[-1].startswith("BX:Z:"):
-            BX_NOT_LAST += 1
-
-    if platform == "standard":
-        def check_read(fq_record):
-            comment = fq_record.comment or ""
-            if 'BX:Z:' not in comment:
-                nonlocal NO_BX
-                NO_BX += 1
-                return
-            else:
-                if 'VX:i:' not in comment:
-                    nonlocal NO_VX
-                    NO_VX += 1
-            check_samspec(comment)
-
-    elif platform == "haplotagging":
-        barcode = re.compile(r'A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
-        def check_read(fq_record):
-            comment = fq_record.comment or ""
-            if 'BX:Z:' not in comment:
-                nonlocal NO_BX
-                NO_BX += 1
-                return
-            if 'VX:i:' not in comment:
-                nonlocal NO_VX
-                NO_VX += 1
-            if not barcode.search(comment):
-                nonlocal BAD_BX
-                BAD_BX += 1
-            check_samspec(comment)
-            if not barcode.search(fq_record.comment):
-                nonlocal BAD_BX
-                BAD_BX += 1
-            check_samspec(fq_record.comment)
-
-    elif platform == "stlfr":
-        barcode = re.compile(r'#\d+_\d+_\d+$')
-        def check_read(fq_record):
-            if not barcode.search(fq_record.name):
-                nonlocal BAD_BX
-                BAD_BX += 1
-            check_samspec(fq_record.comment)
-
-    else:
-        barcode = re.compile(r'\:[ATCGN]+$')
-        def check_read(fq_record):
-            if not barcode.search(fq_record.name):
-                nonlocal BAD_BX
-                BAD_BX += 1
-            check_samspec(fq_record.comment)
-
-    with FastxFile(input, persist=False) as fh:
-        for entry in fh:
-            N_READS += 1
-            check_read(entry)
-
-    values = [str(i) for i in [os.path.basename(input), N_READS, NO_BX, NO_VX, BAD_BX, BAD_SAM_SPEC, BX_NOT_LAST]]
-    sys.stdout.write("\t".join(values) + "\n")
+    checker = PLATFORM_CHECKERS[platform.lower()]()
+    checker.process(input)
+    sys.stdout.write(checker.report(input) + "\n")
