@@ -51,7 +51,7 @@ rule concat_results:
     shell:
         """
         {{
-            echo -e "file\treads\tnoBX\tbadBX\tbadSamSpec\tbxNotLast"
+            echo -e "file\treads\tnoBX\tnoVX\tbadBX\tbadSamSpec\tbxNotLast"
             cat {input} | sort -k1
         }} > {output}
         """

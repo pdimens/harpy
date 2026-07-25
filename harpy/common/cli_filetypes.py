@@ -118,6 +118,50 @@ class FASTQfile(click.ParamType):
         else:
             return infiles
 
+class IPYNBfile(click.ParamType):
+    """A CLI class to validate an IPYNB file as input. Checks for file extension and returns the absolute path"""
+    name = "ipynb_file"
+    def __init__(self, dir_ok: bool = True, single: bool = False):
+        super().__init__()
+        self.single = single
+        self.dir_ok = False if single else dir_ok
+        self.re_ext = re.compile(r"\.(ipynb)$", re.IGNORECASE)
+        self.inv_pattern = re.compile(r'[^a-z0-9._-]+', re.IGNORECASE)
+
+    def convert(self, value, param, ctx):
+        infiles = []
+        filepath = Path(value)
+        if not filepath.exists():
+            self.fail(f"{value} was not found.", param, ctx)
+
+        if not filepath.is_dir():
+            _f = filepath.resolve().as_posix()
+            if not self.re_ext.search(_f):
+                self.fail(f"{value} does not end with .ipynb.")
+            infiles.append(_f)
+        else:
+            if filepath.is_dir() and not self.dir_ok:
+                self.fail("Input cannot be a directory", param, ctx)
+            for i in filepath.glob("*"):
+                if i.is_file() and self.re_ext.search(i.name):
+                    infiles.append(i.resolve().as_posix())
+
+        # name and permission validations
+        for _file in infiles:
+            if not os.access(_file, os.R_OK):
+                self.fail(f"Notebook file {_file} does not have user read permission.", param, ctx)
+            #if self.inv_pattern.search(_file):
+            if self.inv_pattern.search(os.path.basename(_file)):
+                self.fail(f"Invalid characters detected in file name {_file}. Valid file names may contain only:\n  - A-Z 0-9 characters (case insensitive)\n  - . (period)\n  - _ (underscore)\n  - - (dash)")
+
+        if len(infiles) < 1:
+            self.fail(f"There were no files ending with .ipynb in {value}.")
+
+        if self.single:
+            return infiles[0]
+        else:
+            return infiles
+
 class VCFfile(click.ParamType):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
     name = "vcf_file"
