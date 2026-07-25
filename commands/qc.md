@@ -32,7 +32,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--deduplicate` `-d`               |                                | Identify and remove PCR duplicates                                                                                                              |
 | `--extra-params` `-x`              |                                | Additional fastp arguments, in quotes                                                                                                           |
 | `--length` `-l`                    |            `30,150`            | [Minimum,Maximum] read lengths                                                                                                                    |
-| `--trim-adapters` `-a`             |                                | Detect and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                            |
+| `--trim-adapters` `-a`             |                                | Find and remove adapter sequences  [!badge variant="secondary" text="recommended"]                                                            |
 
 By default, this workflow will only quality-trim the sequences.
 ### Deduplicate reads
@@ -46,6 +46,7 @@ as the [!badge corners="pill" text="align"](Align/Align.md) workflows use the li
 
 You can opt-in to find and remove adapter content in sequences.
 - accepts `auto` for automatic adapter detection and removal
+- accepts a nucleotide sequence like `ATACGAGA`
 - accepts a FASTA file of adapter sequences
 ``` example FASTA file of adapters
 >Illumina TruSeq Adapter Read 1
