@@ -16,8 +16,9 @@ def check_bam(platform, bamfile):
 
     Specific to linked-read data. Checks if the sample name matches the RG tag,
     whether BX:Z: is the last tag in the record, and the counts of: total alignments,
-    alignments with an MI:i: tag, alignments without BX:Z: tag, incorrect BX:Z: tag. Writes to stdout.
+    alignments without an MI:i tag, a BX:Z tag, a VX:Z tag, incorrect BX:Z tag. Writes to stdout.
     """
+    #TODO this will need to be revised if/when new barcode encodings emerge
     if platform == "haplotagging":
         bc_pattern = re.compile(r'^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
     elif platform == "stlfr":
@@ -26,8 +27,8 @@ def check_bam(platform, bamfile):
         bc_pattern = re.compile(r'^[ATCGN]+')
 
     filename = os.path.basename(bamfile)
-    bam_pattern = re.compile(r"\.[bB][aA][mM]$", flags = re.IGNORECASE)
-    corename = re.sub(bam_pattern, "", filename)
+    bam_pattern = re.compile(r"\.[bBsS][aA][mM]$", flags = re.IGNORECASE)
+    corename = bam_pattern.sub( "", filename)
 
     N_READS   = 0
     NO_BX      = 0
