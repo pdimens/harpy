@@ -1,6 +1,8 @@
 # New
 ## QC
 - replace multiqc report with native harpy report
+## Align
+- coverage depth added to aggregate report for processed alignments 
 
 ## Report
 - harpy reports can be converted to less-nice but functional standalone HTML files

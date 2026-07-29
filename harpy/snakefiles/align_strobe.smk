@@ -224,6 +224,7 @@ rule alignment_report:
     input:
         collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw","filtered"]),
         collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
+        collect("reports/data/coverage/{sample}.regions.bed.gz", sample = samplenames),
         ipynb = f"workflow/samtools_stats.ipynb"
     output:
         tmp = temp("reports/strobealign.summary.tmp.ipynb"),
