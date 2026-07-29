@@ -2,6 +2,8 @@
 ## QC
 - replace multiqc report with native harpy report
 ## Align
+- BWAMEM2 has been replaced with minibwa. Long live BWA!
+  - it's much faster, and takes much less time to index a reference
 - coverage depth added to aggregate report for processed alignments 
 
 ## Report

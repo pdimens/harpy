@@ -1,6 +1,6 @@
 ---
 label: bwa
-description: Align sequences with BWA-MEM2
+description: Align sequences with minibwa
 category: [linked-read, wgs]
 tags: [linked-read, wgs]
 icon: dot
@@ -164,46 +164,49 @@ Align/bwa
 +++ :icon-code-square: BWA parameters
 By default, Harpy runs `bwa` with these parameters (excluding inputs and outputs):
 ```bash
-bwa-mem2 mem -v 2 -T 10 -m 10 -C -R "@RG\tID:samplename\tSM:samplename"
+minibwa map -y -x sr -R "@RG\tID:samplename\tSM:samplename"
 ```
 
 Below is a list of all `bwa-mem2 mem` command line arguments, excluding those Harpy already uses or those made redundant by Harpy's implementation of BWA.
 These are taken directly from the [BWA documentation](https://bio-bwa.sourceforge.net/bwa.shtml).
 ```bwa arguments
-  Algorithm options:
-    -k INT        minimum seed length [19]
-    -w INT        band width for banded alignment [100]
-    -d INT        off-diagonal X-dropoff [100]
-    -r FLOAT      look for internal seeds inside a seed longer than {-k} * FLOAT [1.5]
-    -y INT        seed occurrence for the 3rd round seeding [20]
-    -c INT        skip seeds with more than INT occurrences [500]
-    -D FLOAT      drop chains shorter than FLOAT fraction of the longest overlapping chain [0.50]
-    -W INT        discard a chain if seeded bases shorter than INT [0]
-    -S            skip mate rescue
-    -P            skip pairing; mate rescue performed unless -S also in use
-Scoring options:
-   -A INT        score for a sequence match, which scales options -TdBOELU unless overridden [1]
-   -B INT        penalty for a mismatch [4]
-   -O INT[,INT]  gap open penalties for deletions and insertions [6,6]
-   -E INT[,INT]  gap extension penalty; a gap of size k cost '{-O} + {-E}*k' [1,1]
-   -L INT[,INT]  penalty for 5'- and 3'-end clipping [5,5]
-   -U INT        penalty for an unpaired read pair [17]
-Input/output options:
-   -p            smart pairing (ignoring in2.fq)
-   -H STR/FILE   insert STR to header if it starts with @; or insert lines in FILE [null]
-   -j            treat ALT contigs as part of the primary assembly (i.e. ignore <idxbase>.alt file)
-   -5            for split alignment, take the alignment with the smallest coordinate as primary
-   -q            don't modify mapQ of supplementary alignments
-   -K INT        process INT input bases in each batch regardless of nThreads (for reproducibility) []
-   -h INT[,INT]  if there are <INT hits with score >80% of the max score, output all in XA [5,200]
-   -a            output all alignments for SE or unpaired PE
-   -V            output the reference FASTA header in the XR tag
-   -Y            use soft clipping for supplementary alignments
-   -M            mark shorter split hits as secondary
-   -I FLOAT[,FLOAT[,INT[,INT]]]
-                 specify the mean, standard deviation (10% of the mean if absent), max
-                 (4 sigma from the mean if absent) and min of the insert size distribution.
-                 FR orientation only. [inferred]
+Common:
+    -l NUM           treat reads <NUM as short reads in the default adaptive mode [325]
+    -b STR           output a base alignment tag: cs, ds or MD []
+    --hic            map Hi-C reads; equivalent to option -5P
+    --meth           map *directional* bisulfite sequencing reads
+Mapping:
+    -k INT           min seed length [19]
+    -c NUM           max seed occurrences [250]
+    -g NUM           max gap size, controlling extension and chain breaking [100]
+    -w NUM           bandwidth [100]
+    -W NUM           long bandwidth (for long reads or the adaptive mode) [20000]
+    -m INT           min chaining score [25]
+    -p FLOAT         min secondary-to-primary score ratio [0.5]
+    -N INT           retain at most INT secondary alignments [50]
+    --chain-only     perform chaining only without base alignment
+Alignment:
+    -A INT           matching score [2]
+    -B INT           mismatching openalty [8]
+    -O INT1[,INT2]   gap open penalty [12,23]
+    -E INT1[,INT2]   gap extension penalty [2,1]
+    -s INT           suppress alignment with DP score lower than INT*{-A} [30]
+Paired-end:
+    -P               skip pairing and mate rescue
+    --rescue=INT     mate rescue for up to INT candidates; 0 to skip rescue [10]
+    -I INT[,INT[,INT[,INT]]]
+                     mean, stddev, max and min of isize distribution [inferred]
+Input/Output:
+    -o FILE          output file name [stdout]
+    -u               don't output unmapped reads
+    --outn=NUM       output up to {NUM,-N} secondary alignments [0]
+    --outs=FLOAT     output a secondary hit if score at least FLOAT*bestScore [0.8]
+    --xa=NUM         if <=NUM hits with score >80% of the best hit, output them to XA [5]
+    -Y               use soft clipping for supplementary alignments
+    -H STR           if STR starts with @, insert to header; or insert lines in file STR []
+    -5               take the alignment with the smallest query position as primary
+    -K NUM1[,NUM2]   process NUM1-NUM2 bp of query sequences in a batch [100m,1g]
+    --mmap[=lite]    load the index via memory mapped files (slower mapping) []
 ```
 
 +++

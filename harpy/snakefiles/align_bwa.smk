@@ -42,13 +42,15 @@ rule process_reference:
         genomefile
     output: 
         geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
+        bwa_idx = multiext(workflow_geno, ".fai", ".gzi", ".l2b", ".mbw"),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
         f"{workflow_geno}.preprocess.log"
     params:
         genome_zip
+    threads:
+        workflow.cores
     conda:
         "envs/align.yaml"
     container:
@@ -69,13 +71,13 @@ rule process_reference:
                 samtools faidx --fai-idx {output.fai} {output.geno}
             fi
 
-            bwa-mem2 index {output.geno} 
+            minibwa index -t {threads} {output.geno} 
         }} 2> {log}
         """
 
 rule align:
     input:
-        multiext(workflow_geno, ".0123", ".amb", ".ann", ".bwt.2bit.64", ".pac"),
+        multiext(workflow_geno, ".l2b", ".mbw"),
         ref   = workflow_geno,
         fastq = get_fq
     output:
@@ -85,7 +87,7 @@ rule align:
         "logs/bwa/{sample}.bwa.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        static = "-m 10 -C -v 2 -T 10" if illumina_old else "-v 2 -T 10 -m 10",
+        static = "-x sr -y" if illumina_old else "-x sr",
         extra = extra
     threads:
         12
@@ -99,7 +101,7 @@ rule align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            bwa-mem2 mem -t {threads} {params} {input.ref} {input.fastq} |
+            minibwa map -t {threads} {params} {input.ref} {input.fastq} |
             samtools collate -T {resources.tmpdir} -O -u - 
         }} 2> {log} > {output.bam}
         """
@@ -285,7 +287,7 @@ rule sample_reports:
         export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.sample} BWA-MEM2 {params.lr_type} > {output.ipynb}
+            harpy-utils process-notebook {output.tmp} {wildcards.sample} minibwa {params.lr_type} > {output.ipynb}
         }} 2> {log}
         """
 
