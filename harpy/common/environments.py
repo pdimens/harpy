@@ -20,8 +20,9 @@ class HarpyEnvs():
     def __init__(self):
         self.__environments__: dict = {
         "align" : [
-            "bioconda::minibwa",
+            #"bioconda::arachne",
             "bioconda::bwa",
+            "bioconda::minibwa",
             "bioconda::samtools=1.23",
             "bioconda::seqtk",
             "bioconda::strobealign",
