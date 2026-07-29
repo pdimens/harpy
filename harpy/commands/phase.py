@@ -57,7 +57,7 @@ def bam(vcf, inputs, output, threads, unlinked, vcf_samples, molecule_distance, 
 
     ## checks and validations ##
     alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet, threads = threads)
     vcffile.check_phase()
     vcffile.match_samples(alignments.files, vcf_samples)
     if vcf_samples:
@@ -126,7 +126,7 @@ def snp(vcf, inputs, output, threads, unlinked, min_map_quality, min_base_qualit
 
     ## checks and validations ##
     alignments = XAM(inputs, detect_bc= not unlinked, quiet = quiet)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet = quiet, threads = threads)
     vcffile.match_samples(alignments.files, vcf_samples)
     if contigs:
         vcffile.match_contigs(contigs)

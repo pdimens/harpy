@@ -43,7 +43,7 @@ class XAM():
                 uniqs.add(bn)
                 self.count += 1
             try:
-                with pysam.AlignmentFile(i, 'r', require_index=False):
+                with pysam.AlignmentFile(i, 'r', require_index=False, threads = 2):
                     pass
             except (ValueError, OSError):
                 badfiles.append(i)
@@ -126,7 +126,7 @@ class XAM():
 
     def is_phased(self, file_path: str) -> bool:
         ''' Scan the `file_path` to determine if the file has `PS` or `HP` tags'''
-        with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+        with pysam.AlignmentFile(file_path, require_index=False, threads = 2) as alnfile:
             for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
                 if i > 100:
                     break
@@ -139,7 +139,7 @@ class XAM():
         Scans the first `self.max_records` records of a SAM/BAM file and tries to determine the barcode technology
         Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
         """
-        with pysam.AlignmentFile(file_path, require_index=False) as alnfile:
+        with pysam.AlignmentFile(file_path, require_index=False, threads = 2) as alnfile:
             for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
                 if i > 100:
                     break

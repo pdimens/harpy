@@ -15,3 +15,4 @@
 - constrain CASAVA regex in FASTQ file validation so it doesn't trigger false positives when new CASAVA appears in unexpected places
 - [internal] notebooks no longer a submodule/subdirectory of `harpy.report`
 - utility `check_fastq.py` no longer employs globals, instead uses a sensible class system
+- add multithreading to pre-workflow VCF and XAM file validation and parsing

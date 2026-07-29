@@ -13,7 +13,7 @@ class VCF():
     '''
     A class to contain and validate a VCF input file.
     '''
-    def __init__(self, filename:str, workdir:str, quiet:int = 0):
+    def __init__(self, filename:str, workdir:str, quiet:int = 0, threads: int = 2):
         os.makedirs(workdir, exist_ok = True)
 
         self.file: str = filename
@@ -21,11 +21,12 @@ class VCF():
         self.biallelic_file: str = ""
         self.contigs: dict[str,int] = {}
         self.print = HarpyPrint(quiet)
+        self.threads = threads - 1
 
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
-            pysam.bcftools.index(self.file)
+            pysam.bcftools.index("--threads", self.threads, self.file)
         if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
-            pysam.bcftools.index("--tbi", self.file)
+            pysam.bcftools.index("--threads", self.threads,"--tbi", self.file)
 
     def get_contigs(self):
         """reads the header of a vcf/bcf file and populate `self.contigs` with the contigs (keys) and their lengths (values)"""
@@ -52,7 +53,7 @@ class VCF():
                 keep = False
                 # Use bcftools to count the number of biallelic SNPs in the contig
                 viewcmd = subprocess.Popen(
-                    [bcftools, 'view', '-H', '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file],
+                    [bcftools, 'view', '-H', '--threads', str(self.threads), '-r', str(contig), '-v', 'snps', '-m2', '-M2', '-c', '2', self.file],
                     stdout=subprocess.PIPE,
                     text = True
                 )
@@ -84,7 +85,7 @@ class VCF():
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
         self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
-        with pysam.VariantFile(self.file) as _vcf:
+        with pysam.VariantFile(self.file, threads = self.threads) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)

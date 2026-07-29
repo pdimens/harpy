@@ -62,7 +62,7 @@ def impute(parameters, vcf, inputs, output, strategy, buffer, grid_size, threads
     ## checks and validations ##
     params = ImputeParams(parameters, quiet)
     alignments = XAM(inputs, quiet = quiet)
-    vcffile = VCF(vcf, workflow.workflow_directory, quiet)
+    vcffile = VCF(vcf, workflow.workflow_directory, quiet, threads = threads)
     vcffile.find_biallelic_contigs()
     vcffile.match_samples(alignments.files, vcf_samples)
     if vcf_samples:
