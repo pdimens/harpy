@@ -1,11 +1,13 @@
 
 import os
+import re
 
 import pysam
 
-from harpy.common.file_ops import safe_read
 from harpy.common.printing import HarpyPrint
 
+alphanum = re.compile(r'^[a-zA-Z0-9_\-\|]+$')
+nuc = re.compile(r'+[ACGTURYKMSWBDHVN\-]+$', re.IGNORECASE)
 
 class FASTA():
     '''
@@ -13,68 +15,46 @@ class FASTA():
     '''
     def __init__(self, fasta, quiet:int = 0):
         self.file = fasta
+        self.file_base = os.path.basename(self.file)
         self.print = HarpyPrint(quiet)
         self.print.log("Correct FASTA file format", newline = False)
         # validate fasta file contents
-        line_num = 0
-        seq_id = 0
-        seq = 0
-        last_header = False
-        with safe_read(self.file) as fasta:
-            for line in fasta:
-                line_num += 1
-                if line.startswith(">"):
-                    seq_id += 1
-                    if last_header:
-                        self.print.validation(False)
-                        self.print.error(
-                            "consecutive contig names",
-                            f"All contig names must be followed by at least one line of nucleotide sequences, but two consecutive lines of contig names were detected. This issue was identified at line [bold]{line_num}[/] in [blue]{self.file}[/], but there may be others further in the file.",
-                            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-                        )
-                    else:
-                        last_header = True
-                    if len(line.rstrip()) == 1:
-                        self.print.validation(False)
-                        self.print.error(
-                            "unnamed contigs",
-                            f"All contigs must have an alphanumeric name, but a contig was detected without a name. This issue was identified at line [bold]{line_num}[/] in [blue]{self.file}[/], but there may be others further in the file.",
-                            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-                        )
-                    if line.startswith("> "):
-                        self.print.validation(False)
-                        self.print.error(
-                            "invalid contig names",
-                            f"All contig names must be named [green bold]>contig_name[/], without a space, but a contig was detected with a space between the [green bold]>[/] and contig_name. This issue was identified at line [bold]{line_num}[/] in [blue]{self.file}[/], but there may be others further in the file.",
-                            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-                        )
-                elif line == "\n":
+        with pysam.FastxFile(self.file, persist=False) as fa:
+            for n,record in enumerate(fa, start=1):
+                if not record.name:
                     self.print.validation(False)
                     self.print.error(
-                        "empty lines",
-                        f"Empty lines are not permitted in FASTA files, but one was detected at line [bold]{line_num}[/] in [blue]{self.file}[/]. The scan ended at this error, but there may be others further in the file.",
+                        "missing contig name",
+                        f"All contigs in a FASTA file must have a name in the format [green]>contig_name[/], but record [yellow]{n}[/] doesn't have one. Please verify {self.file_base} is FASTA format.",
                         "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
                     )
-                else:
-                    seq += 1
-                    last_header = False
-        solutiontext = "FASTA files must have at least one contig name followed by sequence data on the next line. Example:\n"
-        solutiontext += "[green]  >contig_name\n  ATACAGGAGATTAGGCA[/]\n"
-        # make sure there is at least one of each
-        if seq_id == 0:
-            self.print.validation(False)
-            self.print.error(
-                "contig names absent",
-                f"No contig names detected in [blue]{self.file}[/].",
-                f"{solutiontext}\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-            )
-        if seq == 0:
-            self.print.validation(False)
-            self.print.error(
-                "sequences absent",
-                f"No sequences detected in [blue]{self.file}[/].",
-                f"{solutiontext}\nSee the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-            )
+                if not alphanum.match(record.name):
+                    self.print.error(
+                        "invalid contig name",
+                        f"All FASTA contig names must be alphanumeric and may contain hyphens (-), pipes (|), or underscores (_), but contig [yellow]{record.name}[/] has invalid characters. Please verify {self.file_base} is FASTA format.",
+                        "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
+                    )
+                if record.quality:
+                    self.print.validation(False)
+                    self.print.error(
+                        "incorrect format",
+                        f"There should be no quality scores in a FASTA file, but one was found for contig [yellow]{record.name}[/]. Please verify {self.file_base} is FASTA format.",
+                        "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
+                    )
+                if not record.sequence:
+                    self.print.validation(False)
+                    self.print.error(
+                        "missing sequence",
+                        f"Contig [yellow]{record.name}[/] doesn't have nucleotides following the name line. Please verify {self.file_base} is FASTA format.",
+                        "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
+                    )
+                elif not nuc.match(record.sequence):
+                    self.print.validation(False)
+                    self.print.error(
+                        "invalid sequence",
+                        f"The sequence for contig [yellow]{record.name}[/] contains invalid nucleotides. Please verify {self.file_base} is FASTA format and DNA nucleotides.",
+                        "The FASTA file spec allows these nucleotide characters: [green]ACGTURYKMSWBDHVN-[/]"
+                    )
         self.print.validation(True)
 
 

@@ -24,9 +24,13 @@ class VCF():
         self.threads = threads - 1
 
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
+            self.print.log("Indexing BCF" , newline=False)
             pysam.bcftools.index("--threads", self.threads, self.file)
+            self.print.validation(True)
         if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
+            self.print.log("Indexing VCF" , newline=False)
             pysam.bcftools.index("--threads", self.threads,"--tbi", self.file)
+            self.print.validation(True)
 
     def get_contigs(self):
         """reads the header of a vcf/bcf file and populate `self.contigs` with the contigs (keys) and their lengths (values)"""
