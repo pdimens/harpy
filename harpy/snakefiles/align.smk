@@ -1,5 +1,4 @@
 import os
-import re
 
 localrules: all
 wildcard_constraints:
@@ -26,7 +25,7 @@ ignore_bx     = lr_type == "none"
 bn 			  = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
 
-aligner = PARAMETERS.get("aligner", "bwa")
+aligner = WORKFLOW.get("name", "align_bwa").split("_")[-1]
 include: f"align_{aligner}.smk"
 
 rule sort:

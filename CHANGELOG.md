@@ -13,12 +13,20 @@
   - this feature is accessed using `harpy report static`
   - to accomodate this, `harpy report` (live report website) is now `harpy report live`
 
+# Changes
+## Align
+- `-d` (molecule distance threshold) has its default restored to 50kb since this value is used exclusively for reporting and does not alter the data
+
+## misc
+- removed FASTA format validation because it can be dreadfully slow with existing tools
+
+
+
 # Fixes
 ## reports
 - tables now render properly in VScode/Jupyter contexts
 
 ## misc
-- removed FASTA format validation because it can be dreadfully slow with existing tools
 - constrain CASAVA regex in FASTQ file validation so it doesn't trigger false positives when new CASAVA appears in unexpected places
 - [internal] notebooks no longer a submodule/subdirectory of `harpy.report`
 - utility `check_fastq.py` no longer employs globals, instead uses a sensible class system

@@ -1,7 +1,6 @@
 import os
 import re
 
-localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
@@ -49,10 +48,10 @@ rule align:
         workflow_geno,
         get_fq,
     output:  
-        bam = temp("strobealign/{sample}.strobe.bam"),
-        tmp = temp(directory("strobealign/{sample}_tmp"))
+        bam = temp("strobe/{sample}.strobe.bam"),
+        tmp = temp(directory("strobe/{sample}_tmp"))
     log:
-        "logs/strobealign/{sample}.strobealign.log"
+        "logs/strobealign/{sample}.strobe.log"
     params: 
         static = "-N 2 -C" if illumina_old else "-N 2",
         RGid = lambda wc: f"--rg-id={wc.get('sample')}",
@@ -61,7 +60,7 @@ rule align:
     threads:
         12
     resources:
-        tmpdir = lambda wc: f"strobealign/{wc.sample}_tmp"
+        tmpdir = lambda wc: f"strobe/{wc.sample}_tmp"
     conda:
         "envs/align.yaml"
     container:

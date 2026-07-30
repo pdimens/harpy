@@ -1,7 +1,6 @@
 import os
 import re
 
-localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 
@@ -11,10 +10,11 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-illumina_old      = PARAMETERS.get("illumina-format-old", False)
-extra 		      = PARAMETERS.get("extra", "") 
-fqlist            = INPUTS["fastq"]
-genomefile 	      = INPUTS["reference"]
+tech         = PARAMETERS.get("technology", "sr") 
+illumina_old = PARAMETERS.get("illumina-format-old", False)
+extra 		 = PARAMETERS.get("extra", "") 
+fqlist       = INPUTS["fastq"]
+genomefile 	 = INPUTS["reference"]
 
 bn 			  = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
@@ -75,7 +75,7 @@ rule align:
         "logs/minimap/{sample}.minimap.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        #TODO: add preconfigured params for seq type
+        tech = f"-x map-{technology}",
         static = "-a --MD -y" if illumina_old else "-a --MD",
         extra = extra
     threads:

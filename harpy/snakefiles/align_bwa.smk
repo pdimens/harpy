@@ -1,7 +1,6 @@
 import os
 import re
 
-localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
 

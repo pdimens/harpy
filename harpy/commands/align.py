@@ -28,7 +28,7 @@ def align():
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
-@click.option('-d', '--molecule-distance', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
+@click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/bwa", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
@@ -54,7 +54,7 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
-    workflow = Workflow("align_bwa", "align_bwa.smk", output, container, clean, quiet)
+    workflow = Workflow("align_bwa", "align.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
     workflow.conda = ["align", "qc"]
@@ -90,7 +90,7 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
 @click.option('-x', '--extra-params', panel = "Parameters", type = StrobeAlignParams(), help = 'Additional strobealign parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
-@click.option('-d', '--molecule-distance', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
+@click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/strobealign", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
@@ -117,7 +117,7 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
     but can be deliberately ignored using `-U`. Setting `--molecule-distance` to `>0` activates
     alignment-distance based barcode deconvolution.
     """
-    workflow = Workflow("align_strobe", "align_strobe.smk", output, container, clean, quiet)
+    workflow = Workflow("align_strobe", "align.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
     workflow.conda = ["align", "qc"]
@@ -154,8 +154,9 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
-@click.option('-d', '--molecule-distance', panel = "Parameters", default = 0, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
+@click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/minimap", show_default=True,  help = 'Output directory name')
+@click.option('-t', '--technology', panel = "Workflow Options", type = click.Choice(["sr", "pb", "ont", "iclr"], case_sensitive=False), default = "sr", show_default=True,  help = 'Sequence type (for minimap presets)')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
@@ -169,7 +170,7 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
-def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
+def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, technology, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
     Align sequences to reference genome using minimap2
 
@@ -189,12 +190,12 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
     fastq = FASTQ(inputs, detect_bc = not unlinked, quiet = quiet)
     fasta = FASTA(reference, quiet = quiet)
 
-    workflow.param("minimap", "aligner")
     workflow.linkedreads["type"] = fastq.lr_type
     workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
     workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
+    workflow.param(technology, "aligner-technology")
     workflow.param(fastq.illumina_old, "illumina-format-old")
     workflow.param(molecule_distance, "distance-threshold")
     workflow.param(min_quality, "min-map-quality")
@@ -206,6 +207,7 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
     workflow.info = {
         "Samples": fastq.count,
         "Linked-Read Type": fastq.lr_type,
+        "Technology": technology,
         "Reference": os.path.basename(reference),
         "Output Folder" : os.path.relpath(output) + "/"
     }
