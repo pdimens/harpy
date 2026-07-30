@@ -11,8 +11,6 @@ from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fastq import FASTQ
 
-
-#TODO update docs link to dedicated pages
 @click.group(options_metavar='')
 @click.help_option('--help', hidden = True)
 def preprocess():
