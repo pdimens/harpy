@@ -188,6 +188,25 @@ class Workflow():
                 f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation.",
                 "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
             )
+        # get complimentary snakefiles for alignment workflows
+        if self.snakefile == "align.smk":
+            # self.name should be 'align_bwa' and such
+            dest_file = os.path.join(self.workflow_directory, f"{self.name}.smk")
+            source_file = resources.files("harpy.snakefiles") / f"{self.name}.smk"
+            try:
+                with (
+                    resources.as_file(source_file) as _source,
+                    open(_source, 'r') as smk_in,
+                    open(dest_file, 'w') as smk_out
+                ):
+                    smk_out.write(f"## SOURCE: Harpy version {self.version}\n" + smk_in.read())
+                    #shutil.copy2(_source, dest_file)
+            except (FileNotFoundError, KeyError):
+                self.print.error(
+                    "snakefile missing",
+                    f"The required snakefile [blue bold]{self.snakefile}[/] was not found in the Harpy installation.",
+                    "There may be an issue with your Harpy installation, which would require reinstalling Harpy. Alternatively, there may be an issue with your conda/mamba environment or configuration."
+                )
 
     def fetch_scripts(self) -> None:
         """

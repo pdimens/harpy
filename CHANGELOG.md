@@ -5,6 +5,8 @@
 - BWAMEM2 has been replaced with minibwa. Long live BWA!
   - it's much faster, and takes much less time to index a reference
 - coverage depth added to aggregate report for processed alignments 
+- minimap2 added back in for long-read compatability
+  - called with `harpy align minimap`
 
 ## Report
 - harpy reports can be converted to less-nice but functional standalone HTML files
@@ -16,7 +18,9 @@
 - tables now render properly in VScode/Jupyter contexts
 
 ## misc
+- removed FASTA format validation because it can be dreadfully slow with existing tools
 - constrain CASAVA regex in FASTQ file validation so it doesn't trigger false positives when new CASAVA appears in unexpected places
 - [internal] notebooks no longer a submodule/subdirectory of `harpy.report`
 - utility `check_fastq.py` no longer employs globals, instead uses a sensible class system
 - add multithreading to pre-workflow VCF and XAM file validation and parsing
+- [internal-ish] the bwa, strobealign, and minimap2 workflows are nearly identical except for the reference preprocessing and alignment, so to minimize redundancy and duplication, those workflows have a single `align.smk` that imports a second snakefile `align_{aligner}.smk` that handles just the preprocessing and direct alignment for those aligners, then hands off to `align.smk` for all the downstream things (dedup, sorting, reports, etc)

@@ -13,7 +13,6 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 illumina_old      = PARAMETERS.get("illumina-format-old", False)
 extra 		      = PARAMETERS.get("extra", "") 
-windowsize        = PARAMETERS.get("depth-windowsize", 50000)
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
@@ -35,15 +34,13 @@ rule process_reference:
         genomefile
     output: 
         geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".fai", ".gzi", ".l2b", ".mbw"),
+        idx = multiext(workflow_geno, ".mmi"),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
         f"{workflow_geno}.preprocess.log"
     params:
         genome_zip
-    threads:
-        workflow.cores
     conda:
         "envs/align.yaml"
     container:
@@ -63,29 +60,28 @@ rule process_reference:
             else
                 samtools faidx --fai-idx {output.fai} {output.geno}
             fi
-
-            minibwa index -t {threads} {output.geno} 
+            minimap2 -d {output.idx} {output.geno} 
         }} 2> {log}
         """
 
 rule align:
     input:
-        multiext(workflow_geno, ".l2b", ".mbw"),
-        ref   = workflow_geno,
+        ref = workflow_geno + ".mmi",
         fastq = get_fq
     output:
-        bam = temp("bwa/{sample}.bwa.bam"),
-        tmp = temp(directory("bwa/{sample}_tmp"))
+        bam = temp("minimap/{sample}.minimap.bam"),
+        tmp = temp(directory("minimap/{sample}_tmp"))
     log:
-        "logs/bwa/{sample}.bwa.log"
+        "logs/minimap/{sample}.minimap.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        static = "-x sr -y" if illumina_old else "-x sr",
+        #TODO: add preconfigured params for seq type
+        static = "-a --MD -y" if illumina_old else "-a --MD",
         extra = extra
     threads:
         12
     resources:
-        tmpdir = lambda wc: f"bwa/{wc.sample}_tmp"
+        tmpdir = lambda wc: f"minimap/{wc.sample}_tmp"
     conda:
         "envs/align.yaml"
     container:
@@ -94,7 +90,7 @@ rule align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            minibwa map -t {threads} {params} {input.ref} {input.fastq} |
+            minimap2 -t {threads} {params} {input} |
             samtools collate -T {resources.tmpdir} -O -u - 
         }} 2> {log} > {output.bam}
         """
