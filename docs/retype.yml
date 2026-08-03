@@ -21,7 +21,7 @@ lastUpdated:
     enabled: true
     source: committer
 branding:
-  label: v4.1
+  label: v4.2
   logo: static/logo_trans.png
   logoDark: static/logo_trans.png
   logoAlign: left

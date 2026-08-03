@@ -43,7 +43,7 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 !!!
 ===
 
-After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
+After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/standard.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using LEVIATHAN. To make sure your data
 will work seemlessly with LEVIATHAN, the alignments in the [input BAM files](/Getting_Started/common_options.md) should **end**
 with a `BX:Z` tag. Use [!badge corners="pill" text="validate bam"](../validate.md) if you want to double-check file

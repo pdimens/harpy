@@ -99,7 +99,7 @@ exceed that number.
 !!!
 
 ### example
-You could call [!badge corners="pill" text="align strobe"](/Commands/Align/strobe.md) and specify 20 threads with no output to console:
+You could call [!badge corners="pill" text="align strobe"](/Commands/Align/standard.md) and specify 20 threads with no output to console:
 
 ```bash
 harpy align strobe --threads 20 --quiet 2 genome.fasta samples/trimmedreads

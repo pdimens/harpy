@@ -40,7 +40,7 @@ from the sample names. A simple fix would be to use underscores (`_`) to differe
 !!!
 ===
 
-After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/bwa.md), you can use those alignment files
+After reads have been aligned, _e.g._ with [!badge corners="pill" text="align bwa"](../Align/standard.md), you can use those alignment files
 (`.bam`) to call structural variants in your data using NAIBR. While our testing shows that
 NAIBR tends to find known inversions that LEVIATHAN misses, the program requires **phased** bam files as input.
 That means the alignments have a `PS` or `HP` tag that indicate which haplotype the read/alignment belongs to.
