@@ -156,7 +156,7 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/minimap", show_default=True,  help = 'Output directory name')
-@click.option('-t', '--technology', panel = "Workflow Options", type = click.Choice(["sr", "pb", "ont", "iclr"], case_sensitive=False), default = "sr", show_default=True,  help = 'Sequence type (for minimap presets)')
+@click.option('-t', '--technology', panel = "Workflow Options", type = click.Choice(["sr", "pb", "hifi", "ont", "iclr"], case_sensitive=False), default = "sr", show_default=True,  help = 'Sequence type (for minimap presets)')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-U','--unlinked', panel = "Parameters", is_flag = True, default = False, help = "Treat input data as not linked reads")
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
@@ -195,7 +195,7 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
     workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
-    workflow.param(technology, "aligner-technology")
+    workflow.param(technology.lower(), "aligner-technology")
     workflow.param(fastq.illumina_old, "illumina-format-old")
     workflow.param(molecule_distance, "distance-threshold")
     workflow.param(min_quality, "min-map-quality")

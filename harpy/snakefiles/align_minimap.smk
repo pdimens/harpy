@@ -75,8 +75,8 @@ rule align:
         "logs/minimap/{sample}.minimap.log"
     params:
         RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
-        tech = f"-x map-{technology}",
-        static = "-a --MD -y" if illumina_old else "-a --MD",
+        tech = f"-ax map-{technology}",
+        static = "--MD -y" if illumina_old else "--MD",
         extra = extra
     threads:
         12
