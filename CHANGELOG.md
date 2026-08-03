@@ -5,7 +5,7 @@
 - BWAMEM2 has been replaced with minibwa. Long live BWA!
   - it's much faster, and takes much less time to index a reference
 - coverage depth added to aggregate report for processed alignments 
-- minimap2 added back in for long-read compatability
+- minimap2 added back in (with extra perks) for long-read compatability
   - called with `harpy align minimap`
 
 ## Report
@@ -32,3 +32,6 @@
 - utility `check_fastq.py` no longer employs globals, instead uses a sensible class system
 - add multithreading to pre-workflow VCF and XAM file validation and parsing
 - [internal-ish] the bwa, strobealign, and minimap2 workflows are nearly identical except for the reference preprocessing and alignment, so to minimize redundancy and duplication, those workflows have a single `align.smk` that imports a second snakefile `align_{aligner}.smk` that handles just the preprocessing and direct alignment for those aligners, then hands off to `align.smk` for all the downstream things (dedup, sorting, reports, etc)
+
+# Documentation
+- the pages for bwa, strobealign, and minimap have been consolidated into a single page bc they are nearly identical
