@@ -45,12 +45,12 @@ def align():
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmapped, extra_params, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
     """
-    Align sequences to reference genome using BWA MEM2
+    Align sequences to reference genome using minibwa
 
     Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
 
-    BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
+    minibwa is the official successor to BWA, a fast, robust, and reliable aligner that does not use barcodes when mapping.
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
