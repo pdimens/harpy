@@ -42,8 +42,8 @@ links:
   icon: static/biotech.png
   target: blank
 - text: LASTQ Standard
-  link: https://pdimens.github.io/lastq/
-  icon: https://pdimens.github.io/lastq/img/logo.png
+  link: https://blinkseq.github.io/lastq/
+  icon: https://blinkseq.github.io/lastq/img/logo.png
   target: blank
 - text: Source
   link: https://github.com/pdimens/harpy
