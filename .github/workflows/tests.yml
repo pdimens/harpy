@@ -190,6 +190,10 @@ jobs:
         run: |
           harpy align bwa --quiet 2 -x "-A 2" test/genome/genome.fasta.gz test/fastq && \
           ls -lh Align/bwa
+      - name: test minimap
+        run: |
+          harpy align minimap --quiet 2 test/genome/genome.fasta.gz test/fastq && \
+          ls -lh Align/minimap
 
   snp:
     needs: changes

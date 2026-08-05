@@ -29,18 +29,18 @@ class Summary:
 
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
-        bwa_static = "-C -v 2" if is_standardized else "-v 2"
+        bwa_static = "-y -x sr" if is_standardized else "-x sr"
         extra   = extra
 
         align = "Sequences were aligned with BWA using:\n"
-        align += f'\tbwa mem {bwa_static} {extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
+        align += f'\tminibwa map {bwa_static} {extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {unmapped} -q {quality}"
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
-        standardization = "Barcodes were standardized to BX + VX format in the aligments using:\n"
+        standardization = "If linked reads, barcodes were standardized to BX + VX format in the aligments using:\n"
         standardization += "\tdjinn-standardize {input.bam} > {output.bam}"
         self.summary.append("The harpy align bwa workflow ran using these parameters:")
         self.summary.append(f"The provided genome: {genomefile}")
@@ -74,7 +74,41 @@ class Summary:
         duplicates += "\tsamtools fixmate |\n"
         duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
-        standardization = "Barcodes were standardized in the aligments using:\n"
+        standardization = "If linked reads, barcodes were standardized in the aligments using:\n"
+        standardization += "\tstandardize-barcodes-sam > {output} < {input}"
+        self.summary.append("The harpy align strobe workflow ran using these parameters:")
+        self.summary.append(f"The provided genome: {genomefile}")
+        self.summary.append(align)
+        if not ignore_bx:
+            self.summary.append(standardization)
+        self.summary.append(duplicates)
+
+    def align_minimap(self):
+        ignore_bx = self.WORKFLOW.get("linkedreads", {}).get("type", 'none') == "none"
+        bx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
+        vx_tag = self.WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
+        tech = self.PARAMETERS.get("aligner-technology", "sr") 
+        is_standardized = bx_tag and vx_tag
+        keep_unmapped = self.PARAMETERS.get("keep-unmapped", False)
+        extra 		= self.PARAMETERS.get("extra", "")
+        genomefile 	= self.INPUTS["reference"]
+        quality = self.PARAMETERS.get("min-map-quality", 30)
+
+        unmapped = "" if keep_unmapped else "-F 4"
+        bx_mode = "--barcode-tag BX" if not ignore_bx else ""
+        tech = "-ax map-" + tech
+        static = "-y --MD" if is_standardized else "--MD"
+        extra = self.PARAMETERS.get("extra", "")
+
+        align = "Sequences were aligned with minimap2 using:\n"
+        align += f"\tminimap2 {tech} {static} -R \"@RG\\tID:SAMPLE\\tSM:SAMPLE\" {extra} genome reads.F.fq reads.R.fq |\n"
+        align += f"\t\tsamtools view -h {unmapped} -q {quality}"
+        duplicates = "Duplicates in the alignments were marked following:\n"
+        duplicates += "\tsamtools collate |\n"
+        duplicates += "\tsamtools fixmate |\n"
+        duplicates += f"\tsamtools sort -T SAMPLE --reference {genomefile} -m 2000M |\n"
+        duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
+        standardization = "If linked reads, barcodes were standardized in the aligments using:\n"
         standardization += "\tstandardize-barcodes-sam > {output} < {input}"
         self.summary.append("The harpy align strobe workflow ran using these parameters:")
         self.summary.append(f"The provided genome: {genomefile}")

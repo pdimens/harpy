@@ -49,9 +49,12 @@ qc: &qc
 align: &align
   - *common
   - *environments
+  - 'harpy/utils/standardize/standardize.go'
   - 'harpy/commands/align.py'
   - 'harpy/snakefiles/align_bwa.smk'
   - 'harpy/snakefiles/align_strobe.smk'
+  - 'harpy/snakefiles/align_minimap.smk'
+  - 'harpy/snakefiles/align.smk'
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_lrstats.ipynb'
   - 'harpy/notebooks/samtools_stats.ipynb'
