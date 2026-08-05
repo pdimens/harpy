@@ -19,10 +19,10 @@ or [!badge corners="pill" text="sv naibr"](../SV/naibr.md), preferably [filtered
 Harpy using the [!badge corners="pill" text="phase"] module:
 
 ```bash usage
-harpy phase OPTIONS... VCF INPUTS...
+harpy phase snp OPTIONS... VCF INPUTS...
 ```
 ```bash example | phase variants using auto-detected linked-read data
-harpy phase --threads 20 Variants/variants.raw.bcf alignments/ 
+harpy phase snp --threads 20 Variants/variants.raw.bcf alignments/ 
 ```
 
 ## :icon-terminal: Running Options
