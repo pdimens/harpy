@@ -34,7 +34,7 @@ rule process_reference:
         genomefile
     output: 
         geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".fai", ".gzi", ".l2b", ".mbw"),
+        bwa_idx = multiext(workflow_geno, ".l2b", ".mbw"),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:

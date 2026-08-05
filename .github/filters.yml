@@ -20,8 +20,8 @@ validate: &validate
   - 'test/bam/**'
   - 'harpy/utils/check_bam.py'
   - 'harpy/utils/check_fastq.py'
-  - 'harpy/report/notebooks/validate_fastq.ipynb'
-  - 'harpy/report/notebooks/validate_bam.ipynb'
+  - 'harpy/notebooks/validate_fastq.ipynb'
+  - 'harpy/notebooks/validate_bam.ipynb'
 deconvolve: &deconvolve
   - *common
   - *environments
@@ -44,15 +44,17 @@ qc: &qc
   - 'harpy/utils/bx_stats_fq.py'
   - 'harpy/validation/fastq.py'
   - 'test/fastq/**'
+  - 'harpy/notebooks/fastp_qc.ipynb'
+  - 'harpy/notebooks/qc_bx_stats.ipynb'
 align: &align
   - *common
   - *environments
   - 'harpy/commands/align.py'
   - 'harpy/snakefiles/align_bwa.smk'
   - 'harpy/snakefiles/align_strobe.smk'
-  - 'harpy/report/notebooks/align_stats.ipynb'
-  - 'harpy/report/notebooks/align_lrstats.ipynb'
-  - 'harpy/report/notebooks/samtools_stats.ipynb'
+  - 'harpy/notebooks/align_stats.ipynb'
+  - 'harpy/notebooks/align_lrstats.ipynb'
+  - 'harpy/notebooks/samtools_stats.ipynb'
   - 'harpy/utils/bx_stats_sam.py'
   - 'harpy/utils/molecule_coverage.py'
   - 'harpy/validation/fasta.py'
@@ -64,7 +66,7 @@ snp: &snp
   - 'harpy/commands/snp.py'
   - 'harpy/snakefiles/snp_mpileup.smk'
   - 'harpy/snakefiles/snp_freebayes.smk'
-  - 'harpy/report/notebooks/bcftools_stats.ipynb'
+  - 'harpy/notebooks/bcftools_stats.ipynb'
   - 'harpy/validation/fasta.py'
   - 'harpy/validation/xam.py'
   - 'test/bam/**'
@@ -73,8 +75,8 @@ impute: &impute
   - *environments
   - 'harpy/commands/impute.py'
   - 'harpy/snakefiles/impute.smk'
-  - 'harpy/report/notebooks/impute.ipynb'
-  - 'harpy/report/notebooks/stitch_collate.ipynb'
+  - 'harpy/notebooks/impute.ipynb'
+  - 'harpy/notebooks/stitch_collate.ipynb'
   - 'harpy/validation/fasta.py'
   - 'harpy/validation/xam.py'
   - 'test/bam/**'
@@ -84,7 +86,7 @@ leviathan: &leviathan
   - *environments
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_leviathan.smk'
-  - 'harpy/report/notebooks/sv.ipynb'
+  - 'harpy/notebooks/sv.ipynb'
   - 'harpy/validation/fasta.py'
   - 'harpy/validation/xam.py'
   - 'test/bam/**'
@@ -93,7 +95,7 @@ naibr: &naibr
   - *environments
   - 'harpy/commands/sv.py'
   - 'harpy/snakefiles/sv_naibr.smk'
-  - 'harpy/report/notebooks/sv.ipynb'
+  - 'harpy/notebooks/sv.ipynb'
   - 'harpy/utils/infer_sv.py'
   - 'harpy/validation/fasta.py'
   - 'harpy/validation/xam.py'
@@ -109,7 +111,7 @@ phase: &phase
   - 'test/bam/**'
   - 'test/vcf/test.bcf'
   - 'test/vcf/test.phased.bcf'
-  - 'harpy/report/notebooks/hapcut.ipynb'
+  - 'harpy/notebooks/hapcut.ipynb'
   - 'harpy/utils/parse_phaseblocks.py'
 assembly: &assembly
   - *common

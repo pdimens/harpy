@@ -34,19 +34,19 @@ class BwaParams(click.ParamType):
     """A class for a click type that validates bwa extra-params."""
     name = "bwa_params"
     def convert(self, value, param, ctx):
-        harpy_options = "-C -v -t -R -T -m".split()
-        valid_options = "-k -w -d -r -y -c -D -W -S -P -A -B -O -E -L -U -p -R -H -j -5 -q -K -h -a -V -Y -M -I".split()
+        harpy_options = "-y -x -R".split()
+        valid_options = "-l -b --hic --meth -k -c -g -w -W -m -p -N --chain-only -A -B -O -E -s -P --rescue -I --outn --outs --xa -Y -H -5 -K --mmap".split()
         opts = 0
-        docs = "https://github.com/bwa-mem2/bwa-mem2"
+        docs = "https://github.com/lh3/minibwa"
         for i in shellsplit(value):
             if i.startswith("-"):
                 opts += 1
                 if i in harpy_options:
-                    self.fail(f"{i} is already used by Harpy when calling bwa-mem2 mem.", param, ctx)
+                    self.fail(f"{i} is already used by Harpy when calling minibwa.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid bwa-mem2 option. See the bwa documentation for a list of available options: {docs}.", param, ctx)
+                    self.fail(f"{i} is not a valid minibwa option. See the minibwa documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
-            self.fail(f"No valid options recognized. Available bwa-mem2 options begin with one dash (e.g. -M). See the bwa-mem2 documentation: {docs}.", param, ctx)
+            self.fail(f"No valid options recognized. See the minibwa documentation: {docs}. Available minibwa options are: {' '.join(valid_options)}", param, ctx)
         return sanitize_shell(value)
 
 class StrobeAlignParams(click.ParamType):
@@ -66,6 +66,25 @@ class StrobeAlignParams(click.ParamType):
                     self.fail(f"{i} is not a valid strobealign option. See the strobealign documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
             self.fail(f"No valid options recognized. Available strobealign options begin with one or two dashes (e.g. --eqx or -L). See the strobealign documentation for a list of available options: {docs}.", param, ctx)
+        return sanitize_shell(value)
+
+class MinimapParams(click.ParamType):
+    """A class for a click type that validates minimap extra-params."""
+    name = "minimap_params"
+    def convert(self, value, param, ctx):
+        harpy_options = "-y --MD -y -a -x -ax".split() 
+        valid_options = "-H -k -w -I -f -g -G -F -r -n -m -X -p -N -A -B -O -E -z -s -u -J -j -L --cs --ds --eqx -Y -K".split()
+        opts = 0
+        docs = "https://github.com/lh3/minimap2"
+        for i in shellsplit(value):
+            if i.startswith("-"):
+                opts += 1
+                if i in harpy_options:
+                    self.fail(f"{i} is already used by Harpy when calling minimap2.", param, ctx)
+                if i not in valid_options:
+                    self.fail(f"{i} is not a valid minimap2 option. See the minibwa documentation for a list of available options: {docs}.", param, ctx)
+        if opts < 1:
+            self.fail(f"No valid options recognized. See the minimap2 documentation: {docs}. Available minibwa options are: {' '.join(valid_options)}", param, ctx)
         return sanitize_shell(value)
 
 class SpadesParams(click.ParamType):

@@ -17,45 +17,11 @@ class FASTA():
         self.file = fasta
         self.file_base = os.path.basename(self.file)
         self.print = HarpyPrint(quiet)
-        #self.print.log("Correct FASTA file format", newline = False)
-        # validate fasta file contents
-        #with pysam.FastxFile(self.file, persist=False) as fa:
-        #    pass
-        #for n,record in enumerate(fa, start=1):
-        #    if not record.name:
-        #        self.print.validation(False)
-        #        self.print.error(
-        #            "missing contig name",
-        #            f"All contigs in a FASTA file must have a name in the format [green]>contig_name[/], but record [yellow]{n}[/] doesn't have one. Please verify {self.file_base} is FASTA format.",
-        #            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-        #        )
-        #    if not alphanum.match(record.name):
-        #        self.print.error(
-        #            "invalid contig name",
-        #            f"All FASTA contig names must be alphanumeric and may contain hyphens (-), pipes (|), or underscores (_), but contig [yellow]{record.name}[/] has invalid characters. Please verify {self.file_base} is FASTA format.",
-        #            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-        #        )
-        #    if record.quality:
-        #        self.print.validation(False)
-        #        self.print.error(
-        #            "incorrect format",
-        #            f"There should be no quality scores in a FASTA file, but one was found for contig [yellow]{record.name}[/]. Please verify {self.file_base} is FASTA format.",
-        #            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-        #        )
-        #    if not record.sequence:
-        #        self.print.validation(False)
-        #        self.print.error(
-        #            "missing sequence",
-        #            f"Contig [yellow]{record.name}[/] doesn't have nucleotides following the name line. Please verify {self.file_base} is FASTA format.",
-        #            "See the FASTA file spec and try again after making the appropriate changes: https://www.ncbi.nlm.nih.gov/genbank/fastaformat/"
-        #        )
-        #    elif not nuc.match(record.sequence):
-        #        self.print.validation(False)
-        #        self.print.error(
-        #            "invalid sequence",
-        #            f"The sequence for contig [yellow]{record.name}[/] contains invalid nucleotides. Please verify {self.file_base} is FASTA format and DNA nucleotides.",
-        #            "The FASTA file spec allows these nucleotide characters: [green]ACGTURYKMSWBDHVN-[/]"
-        #        )
+        try:
+            with pysam.FastxFile(self.file, persist=False) as fa:
+                pass
+        except:
+            self.print.validation(False)
         self.print.validation(True)
 
 
@@ -71,13 +37,12 @@ class FASTA():
             if i not in valid_contigs:
                 bad_names.append(i)
         if bad_names:
-            shortname = os.path.basename(self.file)
             self.print.validation(False)
             self.print.error(
                 "contigs absent",
-                f"Some of the provided contigs were not found in [blue]{shortname}[/]. This will definitely cause plotting errors in the workflow.",
+                f"Some of the provided contigs were not found in [blue]{self.file_base}[/]. This will definitely cause plotting errors in the workflow.",
                 "Check that your contig names are correct, including uppercase and lowercase.",
-                f"Contigs absent in {shortname}",
+                f"Contigs absent in {self.file_base}",
                 ",".join([i for i in bad_names])
             )
         self.print.validation(True)
@@ -131,8 +96,8 @@ class FASTA():
                     if row[0] not in contigs:
                         self.print.error(
                             "missing contig",
-                            f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{os.path.basename(self.file)}[/]). This is the first row triggering this error, but it may not be the only one.",
-                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{os.path.basename(self.file)}[/]",
+                            f"The contig listed at row {idx} ([bold yellow]{row[0]}[/]) is not present in ([blue]{self.file_base}[/]). This is the first row triggering this error, but it may not be the only one.",
+                            f"Check that all the contigs listed in [blue]{os.path.basename(regioninput)}[/] are also present in [blue]{self.file_base}[/]",
                             "Row triggering this error",
                             line
                         )

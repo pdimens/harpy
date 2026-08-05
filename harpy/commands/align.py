@@ -5,7 +5,7 @@ import os
 import rich_click as click
 
 from harpy.common.cli_filetypes import FASTAfile, FASTQfile, HPCProfile
-from harpy.common.cli_params import BwaParams, SnakemakeParams, StrobeAlignParams
+from harpy.common.cli_params import BwaParams, MinimapParams, SnakemakeParams, StrobeAlignParams
 from harpy.common.system_ops import container_ok
 from harpy.common.workflow import Workflow
 from harpy.validation.fasta import FASTA
@@ -23,7 +23,7 @@ def align():
     is carried over to the alignment records.
     """
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/standard/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
@@ -85,7 +85,7 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
 
     workflow.initialize(setup)
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/strobe/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/standard/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
 @click.option('-x', '--extra-params', panel = "Parameters", type = StrobeAlignParams(), help = 'Additional strobealign parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
@@ -149,9 +149,9 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
     workflow.initialize(setup)
 
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/bwa/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/standard/")
 @click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
-@click.option('-x', '--extra-params', panel = "Parameters", type = BwaParams(), help = 'Additional bwa mem parameters, in quotes')
+@click.option('-x', '--extra-params', panel = "Parameters", type = MinimapParams(), help = 'Additional minimap2 parameters, in quotes')
 @click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
 @click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
 @click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
@@ -177,7 +177,7 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
     Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
     files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
 
-    BWA is a fast, robust, and reliable aligner that does not use barcodes when mapping.
+    Minimap2 is an ultra-fast aligner tuned for long reads (e.g., pacbio, nanopore) that does not use barcodes when mapping.
     Presence and type of linked-read data is auto-detected, but can be deliberately ignored using `-U`.
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """

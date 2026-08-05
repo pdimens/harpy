@@ -10,7 +10,7 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-tech         = PARAMETERS.get("technology", "sr") 
+tech         = PARAMETERS.get("aligner-technology", "sr") 
 illumina_old = PARAMETERS.get("illumina-format-old", False)
 extra 		 = PARAMETERS.get("extra", "") 
 fqlist       = INPUTS["fastq"]

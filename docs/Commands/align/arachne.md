@@ -5,6 +5,7 @@ category: [linked-read]
 tags: [linked-read]
 icon: dot
 order: 5
+hidden: true
 ---
 
 # :icon-quote: align with linked-read information

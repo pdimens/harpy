@@ -18,7 +18,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | athena             | [github](https://github.com/abishara/athena_meta), [publication](https://doi.org/10.1038/nbt.4266)                                                                                                                       |
 | bash               | [website](https://www.gnu.org/software/bash/)                                                                                                                                                                            |
 | bcftools           | [github](https://github.com/samtools/bcftools), [website](https://samtools.github.io/bcftools/bcftools.html)                                                                                                             |
-| bwa                | [github](https://github.com/lh3/bwa), [publication](http://arxiv.org/abs/1303.3997)                                                                                                                                      |
+| minimap2           | [github](https://github.com/lh3/minimap2), [publication](https://doi.org/10.1093/bioinformatics/bty191)                                                                                                                  |
 | conda              | [github](https://github.com/conda)                                                                                                                                                                                       |
 | dmox               | [gitlab](https://gitlab.mbb.cnrs.fr/ibonnici/dmox)                                                                                                                                                                       |
 | fastp              | [github](https://github.com/OpenGene/fastp), [publication](https://doi.org/10.1093/bioinformatics/bty560)                                                                                                                |
@@ -29,7 +29,7 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | links              | [github](https://github.com/bcgsc/links), [publication](https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0076-3)                                                                                        |
 | LRez               | [github](https://github.com/morispi/LRez), [publication](https://academic.oup.com/bioinformaticsadvances/article/1/1/vbab022/6375438?login=false)                                                                        |
 | mamba              | [github](https://github.com/mamba-org/mamba)                                                                                                                                                                             |
-| Mimick             | [github](https://github.com/pdimens/mimick), [VISOR/XENIA](https://github.com/davidebolo1993/VISOR/tree/master/VISOR/XENIA)                                                                                              |
+| minibwa            | [github](https://github.com/lh3/minibwa), [preprint](https://arxiv.org/abs/2606.15357)                                                                                                                                   |
 | NAIBR              | [github](https://github.com/raphael-group/NAIBR), [github (fork)](https://github.com/pontushojer/NAIBR) ,[publication](https://doi.org/10.1093/bioinformatics/btx712)                                                    |
 | papermill          | [github](https://github.com/nteract/papermill)                                                                                                                                                                           |
 | python             | [website](https://www.python.org/)                                                                                                                                                                                       |
@@ -51,11 +51,11 @@ Issues with specific tools might warrant a discussion with the authors/developer
 | AG-Grid    |    JavaScript     | [github](https://github.com/ag-grid/ag-grid)                                                          |
 | altair     | Python/JavaScript | [github](https://github.com/vega/altair)                                                              |
 | click      |      Python       | [github](https://github.com/pallets/click)                                                            |
-| pandas     |      Python       | [github](https://github.com/pandas-dev/pandas)                                                        |
-| vega-lite  |    JavaScript     | [github](https://github.com/vega/vega-lite), [publication](https://doi.org/10.1109/tvcg.2016.2599030) |
-| pysam      |      Python       | [github](https://github.com/pysam-developers/pysam)                                                   |
-| numpy      |      Python       | [github](https://github.com/numpy/numpy)                                                              |
-| polars     |    Python/Rust    | [github](https://github.com/pola-rs/polars)                                                           |
 | IPython    |    Python/Rust    | [github](https://github.com/ipython/ipython)                                                          |
+| numpy      |      Python       | [github](https://github.com/numpy/numpy)                                                              |
+| pandas     |      Python       | [github](https://github.com/pandas-dev/pandas)                                                        |
+| polars     |    Python/Rust    | [github](https://github.com/pola-rs/polars)                                                           |
+| pysam      |      Python       | [github](https://github.com/pysam-developers/pysam)                                                   |
 | rich       |      Python       | [github](https://github.com/Textualize/rich)                                                          |
 | rich-click |      Python       | [github](https://github.com/ewels/rich-click)                                                         |
+| vega-lite  |    JavaScript     | [github](https://github.com/vega/vega-lite), [publication](https://doi.org/10.1109/tvcg.2016.2599030) |

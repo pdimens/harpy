@@ -8,7 +8,7 @@ from pysam import FastxFile
 
 class FormatChecker:
     """Base class: shared counters + SAM-spec/BX-position validation."""
-    SAMSPEC = re.compile(r'[A-Z][A-Z]:[AifZHB]:')
+    SAMSPEC = re.compile(r'[A-Za-z][A-Za-z0-9]:[AifZHB]:')
     def __init__(self):
         self.N_READS = 0
         self.NO_BX = 0

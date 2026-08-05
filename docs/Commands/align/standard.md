@@ -41,11 +41,11 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `REFERENCE`                      |                              | [!badge variant="info" text="required"] Reference assembly for read mapping                                                                     |
 | `INPUTS`                         |                              | [!badge variant="info" text="required"] Files or directories containing [input FASTQ files](/Getting_Started/common_options.md#input-arguments) |
 | `-depth-window` `-w`             |           `50000`            | Interval size (in bp) for depth stats                                                                                                           |
-| `--extra-params` `-x`            |                              | Additional BWA arguments, in quotes                                                                                                             |
+| `--extra-params` `-x`            |                              | Additional aligner-specific arguments, in quotes                                                                                                |
 | `--keep-unmapped` `-u`           |            false             | Output unmapped sequences too                                                                                                                   |
 | `--molecule-distance` `-d`       |             `0`              | Base-pair distance threshold to separate molecules given as base pairs, disabled with `0`                                                       |
 | `--min-quality` `-q`             |             `30`             | Minimum `MQ` (SAM mapping quality) to pass filtering                                                                                            |
-| `--technology` `-t`              |             `sr`             | [!badge variant="secondary" text="minimap only"] Sequence type preset [`sr`, `pb`, `hifi`, `ont`, `iclr`]                                     |
+| `--technology` `-t`              |             `sr`             | [!badge variant="secondary" text="minimap only"] Sequence type preset [`sr`, `pb`, `hifi`, `ont`, `iclr`]                                       |
 
 ### Technology
 This option is specific to [!badge corners="pill" text="align minimap"] and ignored otherwise. It configures the aligner for

@@ -181,7 +181,7 @@ rule alignment_report:
         f"logs/reports/{aligner}.report.log"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-bwa-stats
+        export IPYTHONDIR=$(mktemp -d)
         {{
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
@@ -227,7 +227,7 @@ rule linked_read_report:
     shell:
         """
         {{
-            export IPYTHONDIR=/tmp/ipython-bwa.lr
+            export IPYTHONDIR=$(mktemp -d)
             papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
         }} 2> {log}

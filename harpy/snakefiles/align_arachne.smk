@@ -19,6 +19,7 @@ windowsize        = PARAMETERS.get("depth-windowsize", 50000)
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 centromeres 	  = INPUTS.get("centromeres", None)
+lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
 
 bn 			  = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
@@ -39,7 +40,7 @@ rule process_reference:
     output: 
         geno = workflow_geno,
         #TODO THREADS SUPPORT?
-        bwa_idx = multiext(workflow_geno, ".fai", ".gzi", '.amb', '.ann', '.bwt', '.pac', '.sa', '.l2b', '.mbw'),
+        bwa_idx = multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa', '.l2b', '.mbw'),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
@@ -114,7 +115,8 @@ rule arachne_align:
     shell:
         """
         mkdir -p {resources.tmpdir}
-        arachne align -t {threads} {params} {input.ref} {input.fastq} | samtools view -O -l 0 BAM > {output} 2> {log}
+        arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
+            samtools view -l 0 -O BAM - | samtools sort -u > {output} 2> {log}
         """
 
 rule bwa_align:
@@ -188,7 +190,7 @@ rule mark_duplicates:
     log:
         "logs/markdup/{sample}.markdup.log"
     params:
-        bx_mode = "-S --barcode-tag BX" if not ignore_bx else "-S",
+        bx_mode = "-S",
         quality = PARAMETERS.get('min-map-quality', 30),
         unmapped = "-F 4" if not keep_unmapped else "",
         mdthreads = lambda wc, threads: threads - 1
@@ -356,6 +358,6 @@ rule all:
     default_target: True
     input:
         bams = collect("{sample}.bam", sample = samplenames),
-        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
+        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports else [],
         align_report = "reports/bwa.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
-        bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+        bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else []

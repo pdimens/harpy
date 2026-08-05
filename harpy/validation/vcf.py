@@ -17,6 +17,7 @@ class VCF():
         os.makedirs(workdir, exist_ok = True)
 
         self.file: str = filename
+        self.file_base: str = os.path.basename(filename)
         self.workdir: str = workdir
         self.biallelic_file: str = ""
         self.contigs: dict[str,int] = {}
@@ -25,11 +26,11 @@ class VCF():
 
         if self.file.lower().endswith("bcf") and not os.path.exists(f"{self.file}.csi"):
             self.print.log("Indexing BCF" , newline=False)
-            pysam.bcftools.index("--threads", self.threads, self.file)
+            pysam.bcftools.index("--threads", str(self.threads), self.file)
             self.print.validation(True)
         if self.file.lower().endswith("vcf.gz") and not os.path.exists(f"{self.file}.tbi"):
             self.print.log("Indexing VCF" , newline=False)
-            pysam.bcftools.index("--threads", self.threads,"--tbi", self.file)
+            pysam.bcftools.index("--threads", str(self.threads),"--tbi", self.file)
             self.print.validation(True)
 
     def get_contigs(self):
@@ -89,7 +90,7 @@ class VCF():
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
         self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
-        with pysam.VariantFile(self.file, threads = self.threads) as _vcf:
+        with pysam.VariantFile(self.file, threads = str(self.threads)) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)
@@ -120,7 +121,7 @@ class VCF():
             self.print.error(
                 "mismatched inputs",
                 f"There are [bold]{len(missing_samples)}[/] samples found in [blue]{fromthis}[/] that are not in [blue]{inthis}[/]. Terminating Harpy to avoid downstream errors.",
-                f"[blue]{fromthis}[/] cannot contain samples that are absent in [blue]{inthis}[/]. Check the spelling or remove those samples from [blue]{fromthis}[/] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/] to aggregate the sample list from the input files or [blue]{self.file}[/].",
+                f"[blue]{fromthis}[/] cannot contain samples that are absent in [blue]{inthis}[/]. Check the spelling or remove those samples from [blue]{fromthis}[/] or remake the vcf file to include/omit these samples. Alternatively, toggle [green]--vcf-samples[/] to aggregate the sample list from the input files or [blue]{self.file_base}[/].",
                 "The samples causing this error are",
                 ", ".join(sorted(missing_samples)) + "\n"
             )
@@ -137,13 +138,12 @@ class VCF():
             if i not in self.contigs:
                 bad_names.append(i)
         if bad_names:
-            shortname = os.path.basename(self.file)
             self.print.validation(False)
             self.print.error(
                 "contigs absent",
-                f"Some of the provided contigs were not found in [blue]{shortname}[/]. This will definitely cause plotting errors in the workflow.",
+                f"Some of the provided contigs were not found in [blue]{self.file_base}[/]. This will definitely cause plotting errors in the workflow.",
                 "Check that your contig names are correct, including uppercase and lowercase. It's possible that you listed a contig in the genome that isn't in the variant call file due to filtering.",
-                f"Contigs absent in {shortname}",
+                f"Contigs absent in {self.file_base}",
                 ",".join([i for i in bad_names])
             )
         self.print.validation(True)
