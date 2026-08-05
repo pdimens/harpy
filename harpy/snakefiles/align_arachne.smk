@@ -182,7 +182,7 @@ rule mark_duplicates:
         fq  = get_fq,
         bam = "sort/{sample}.sort.bam"
     output:
-        bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
+        bam   = "markdup/{sample}.bam",
         stats = "reports/data/markdup/{sample}.markdup",
         tmp = temp(directory("markdup/{sample}_tmp"))
     log:
@@ -206,31 +206,16 @@ rule mark_duplicates:
         }} 2> {log}
         """
 
-if lr_type != "none" and not (bx_tag and vx_tag):
-    rule standardize:
-        input:
-            "markdup/{sample}.bam"
-        output:
-            "{sample}.bam"
-        log:
-            "logs/{sample}.std.log"
-        threads:
-            2
-        shell:
-            "djinn-standardize --threads {threads} {input} > {output} 2> {log}"
-
 rule combine_alignments:
     input:
-        "markdup/{sample}.bam",
-        "arachne/align/{sample}.arachne.bam"
+        "arachne/align/{sample}.arachne.bam",
+        "markdup/{sample}.bam"
     output:
         "{sample}.bam"
-    params:
-        2
-    threads:
-        3
+    log:
+        "logs/concat/{sample}.concat.log"
     shell:
-        "samtools merge -@ {params} -O BAM {input} > {output}"
+        "samtools cat -o {output} {input} 2> {log}"
 
 rule depth_stats:
     input:
