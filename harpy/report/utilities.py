@@ -259,10 +259,4 @@ class FastpResults():
         self.gc_curves_after = pl.DataFrame(gc_curves["after"])
         self.gc_curves_r2 = pl.DataFrame(gc_curves_r2["before"])
         self.gc_curves_r2_after = pl.DataFrame(gc_curves_r2["after"])
-
-
-def check_tool(name: str) -> bool:
-    if shutil.which(name) is None:
-        return False
-    return True
  

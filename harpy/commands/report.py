@@ -8,12 +8,11 @@ from time import sleep
 import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
-from rich.console import Group
+
 
 from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 from harpy.report.static import ReportStatic
-from harpy.report.utilities import check_tool
 from harpy.common.cli_filetypes import IPYNBfile
 
 @click.group(options_metavar='')
@@ -131,39 +130,13 @@ def static(notebooks, debug, self_contained):
     created in the same directories as their source `.ipynb` files, but will lack the nicer features and
     formatting of a proper MyST-MD website.
     """
-    hp = HarpyPrint()
-    if not check_tool('jupyter'):
-        _table = hp.table()
-        _table.add_column("tool")
-        _table.add_column("installation command", style = "green")
-        _table.add_row('pip', 'pip install -U nbconvert')
-        _table.add_row('conda', 'conda install -c conda-forge nbconvert')
-        _table.add_row('pixi', 'pixi add nbconvert')
-        hp.error(
-            "Missing dependency",
-            "jupyter is not found on the PATH and is required to proceed.",
-            Group("It can be installed with using one of these methods:", _table)   
-        )
-    if self_contained and not check_tool("monolith"):
-        _table = hp.table()
-        _table.add_column("tool")
-        _table.add_column("installation", style = "green")
-        _table.add_row('cargo', 'cargo install monolith')
-        _table.add_row('prebuilt binary', 'add binary to your PATH from https://github.com/Y2Z/monolith/releases')
-        hp.error(
-            "Missing dependency",
-            "Monolith is required to flatten an HTML notebook but was not found on the PATH.",
-            Group("Harpy does not provide it, but it can be installed using:", _table)   
-        )
-
     all_notebooks = [nb for group in notebooks for nb in group]
+    rs = ReportStatic(quiet = not debug, static = self_contained)
     n = len(all_notebooks)
     if n > 1 :
         print(f"Converting {n} notebooks into HTML files.", file = sys.stderr)
-    rs = ReportStatic("", quiet = not debug, static = self_contained)
     for nb in all_notebooks:
-        rs.notebook = nb
-        rs.convert()
+        rs.convert(nb)
 
 report.add_command(live)
 report.add_command(static)
