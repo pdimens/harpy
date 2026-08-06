@@ -13,7 +13,7 @@ were reached, Harpy 4.0 introduced a complete overhaul of the reporting system u
 Jupyter comes several benefits:
 - Code and output are stored in the notebook
 - GitHub, JupyterLab, and VScode (and derivatives) natively render notebooks nicely
-- Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ report webiste
+- Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ [report webiste](https://pdimens.github.io/GIH-experiments/)
 
 !!!
 Complete overhaul is not an overstatement-- all the R code was ported into Python and reformatted for Jupyter format.
