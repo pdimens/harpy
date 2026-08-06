@@ -17,11 +17,13 @@ class FASTA():
         self.file = fasta
         self.file_base = os.path.basename(self.file)
         self.print = HarpyPrint(quiet)
+        self.print.log("Validating input FASTA file", newline=False)
         try:
             with pysam.FastxFile(self.file, persist=False) as fa:
                 pass
-        except:
+        except Exception as e:
             self.print.validation(False)
+            self.print.error("bad FASTA file", e)
         self.print.validation(True)
 
 
