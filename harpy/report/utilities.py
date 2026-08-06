@@ -261,12 +261,8 @@ class FastpResults():
         self.gc_curves_r2_after = pl.DataFrame(gc_curves_r2["after"])
 
 
-def check_tool(name: str, hint: str) -> None:
+def check_tool(name: str) -> bool:
     if shutil.which(name) is None:
-        hp = HarpyPrint()
-        hp.error(
-            "Missing dependency",
-            f"{name} is not found on the PATH and required to proceed.",
-            hint
-            )
+        return False
+    return True
  

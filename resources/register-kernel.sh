@@ -1,4 +1,4 @@
 #! /usr/bin/env bash
 
-python -m ipykernel install --prefix "$CONDA_PREFIX" --name ipython-harpy \
-    --display-name "Python (harpy)" >/dev/null 2>&1
+python -m ipykernel install --prefix "${CONDA_PREFIX:?CONDA_PREFIX is required}" --name ipython-harpy \
+    --display-name "Python (harpy)"
