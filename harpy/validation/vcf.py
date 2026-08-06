@@ -90,7 +90,7 @@ class VCF():
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
         self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
-        with pysam.VariantFile(self.file, threads = str(self.threads)) as _vcf:
+        with pysam.VariantFile(self.file, threads = self.threads) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)

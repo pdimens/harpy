@@ -73,7 +73,7 @@ class MinimapParams(click.ParamType):
     name = "minimap_params"
     def convert(self, value, param, ctx):
         harpy_options = "-y --MD -y -a -x -ax".split() 
-        valid_options = "-H -k -w -I -f -g -G -F -r -n -m -X -p -N -A -B -O -E -z -s -u -J -j -L --cs --ds --eqx -Y -K".split()
+        valid_options = "--secondary -H -k -w -I -f -g -G -F -r -n -m -X -p -N -A -B -O -E -z -s -u -J -j -L --cs --ds --eqx -Y -K".split()
         opts = 0
         docs = "https://github.com/lh3/minimap2"
         for i in shellsplit(value):
@@ -82,9 +82,9 @@ class MinimapParams(click.ParamType):
                 if i in harpy_options:
                     self.fail(f"{i} is already used by Harpy when calling minimap2.", param, ctx)
                 if i not in valid_options:
-                    self.fail(f"{i} is not a valid minimap2 option. See the minibwa documentation for a list of available options: {docs}.", param, ctx)
+                    self.fail(f"{i} is not a valid minimap2 option. See the minimap2 documentation for a list of available options: {docs}.", param, ctx)
         if opts < 1:
-            self.fail(f"No valid options recognized. See the minimap2 documentation: {docs}. Available minibwa options are: {' '.join(valid_options)}", param, ctx)
+            self.fail(f"No valid options recognized. See the minimap2 documentation: {docs}. Available minimap2 options are: {' '.join(valid_options)}", param, ctx)
         return sanitize_shell(value)
 
 class SpadesParams(click.ParamType):

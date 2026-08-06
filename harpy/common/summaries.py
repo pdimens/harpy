@@ -32,13 +32,13 @@ class Summary:
         bwa_static = "-y -x sr" if is_standardized else "-x sr"
         extra   = extra
 
-        align = "Sequences were aligned with BWA using:\n"
+        align = "Sequences were aligned with minibwa using:\n"
         align += f'\tminibwa map {bwa_static} {extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome forward_reads reverse_reads |\n'
         align += f"\tsamtools view -h {unmapped} -q {quality}"
         duplicates = "Duplicates in the alignments were marked following:\n"
         duplicates += "\tsamtools collate |\n"
         duplicates += "\tsamtools fixmate |\n"
-        duplicates += f"\tsamtools sort -T SAMPLE -m 2000M |\n"
+        duplicates += "\tsamtools sort -T SAMPLE -m 2000M |\n"
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
         standardization = "If linked reads, barcodes were standardized to BX + VX format in the aligments using:\n"
         standardization += "\tdjinn-standardize {input.bam} > {output.bam}"
@@ -110,7 +110,7 @@ class Summary:
         duplicates += f"\tsamtools markdup -S {bx_mode} -d 100 (2500 for novaseq)"
         standardization = "If linked reads, barcodes were standardized in the aligments using:\n"
         standardization += "\tstandardize-barcodes-sam > {output} < {input}"
-        self.summary.append("The harpy align strobe workflow ran using these parameters:")
+        self.summary.append("The harpy align minimap workflow ran using these parameters:")
         self.summary.append(f"The provided genome: {genomefile}")
         self.summary.append(align)
         if not ignore_bx:
