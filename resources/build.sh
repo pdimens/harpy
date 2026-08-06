@@ -10,18 +10,16 @@
     mv gih-stagger gih-convert djinn-standardize ${PREFIX}/bin/
 }
 
-## CLI completions
+## activate/deactive processes
 mkdir -p $PREFIX/etc/conda/activate.d
 mkdir -p $PREFIX/etc/conda/deactivate.d
 
-#echo "export JUPYTER_NOTARY_DB=':memory:'" > ${PREFIX}/etc/conda/activate.d/my-package-activate.sh
-#echo "unset JUPYTER_NOTARY_DB" > ${PREFIX}/etc/conda/deactivate.d/my-package-deactivate.sh
 cat > ${PREFIX}/etc/conda/activate.d/harpy-activate.sh <<'EOF'  
 export _HARPY_OLD_JUPYTER_NOTARY_DB="${JUPYTER_NOTARY_DB-__UNSET__}"  
 export JUPYTER_NOTARY_DB=':memory:'
 
 python -m ipykernel install --prefix "$CONDA_PREFIX" --name ipython-harpy \
-    --display-name "Python (harpy)" >/dev/null 2>&1
+    --display-name "Python (harpy)"
 EOF
   
 cat > ${PREFIX}/etc/conda/deactivate.d/harpy-deactivate.sh <<'EOF'  
