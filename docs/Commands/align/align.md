@@ -9,18 +9,18 @@ will need to align them to a reference genome before you can call variants.
 Harpy offers several aligners for this purpose:
 
 {.compact .clean .whitespace-nowrap}
-| aligner                  |     speed     |                    repository                    |                     publication                     |
-|:-------------------------|:-------------:|:------------------------------------------------:|:---------------------------------------------------:|
-| [BWA](bwa.md)            |    fast ⚡     |       [github](https://github.com/lh3/bwa)       |       [paper](http://arxiv.org/abs/1303.3997)       |
-| [strobealign](strobe.md) | super fast ⚡⚡ | [github](https://github.com/ksahlin/strobealign) | [paper](https://doi.org/10.1186/s13059-022-02831-7) |
+| command | aligner     | best for    |                                       repository |                      publication                       |
+| :------ | :---------- | :---------- | -----------------------------------------------: | :----------------------------------------------------: |
+| bwa     | minibwa     | general use |         [github](https://github.com/lh3/minibwa) |       [preprint](https://github.com/lh3/minibwa)       |
+| minimap | minimap2    | long reads  |        [github](https://github.com/lh3/minimap2) | [paper](https://doi.org/10.1093/bioinformatics/bty191) |
+| strobe  | strobealign | speed       | [github](https://github.com/ksahlin/strobealign) |  [paper](https://doi.org/10.1186/s13059-022-02831-7)   |
 
-Neither of these are linked-read aware aligners, but Harpy transfers the barcode information from the sequence headers into the alignments and will
-assign molecule identifiers (`MI:i` SAM tags) based on these barcodes and the [molecule distance threshold](../../Getting_Started/linked_read_data.md#barcode-thresholds).
+Neither of these are linked-read aware aligners, but Harpy transfers the barcode information from the sequence headers into the alignments.
 
 ## Non linked-read WGS data
 Starting with Harpy `v2.x`, you can skip the workflow
 routines that do things specific to linked reads, meaning you can comfortably use
-[!badge corners="pill" text="harpy align bwa"](bwa.md) and [!badge corners="pill" text="harpy align strobe"](strobe.md) to align your WGS sequence data. 
+[!badge corners="pill" text="harpy align bwa"](standard.md) and [!badge corners="pill" text="harpy align strobe"](standard.md) to align your WGS sequence data. 
 - version `2.0-2.7` : `--ignore-bx`
 - version `>2.7` : `--lr-type none`
 - version `>=3.0`: autodetected or forced with `--unlinked`

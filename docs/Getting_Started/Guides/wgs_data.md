@@ -33,8 +33,8 @@ harpy qc --unlinked --trim-adapters auto --min-length 50 data/WGS/sample_*.gz
 ```
 
 ## Sequence Alignment
-Setting `--unlinked` disables linked-read specific routines in [!badge corners="pill" text="harpy align bwa"](/Commands/Align/bwa.md)
- and [!badge corners="pill" text="harpy align strobe"](/Commands/Align/strobe.md). Doing so also ignores `--molecule-distance`.
+Setting `--unlinked` disables linked-read specific routines in [!badge corners="pill" text="harpy align bwa"](/Commands/Align/standard.md)
+ and [!badge corners="pill" text="harpy align strobe"](/Commands/Align/standard.md). Doing so also ignores `--molecule-distance`.
 
 ```bash align example
 harpy align bwa --unlinked --min-quality 25 genome.fasta data/WGS/trimmed 

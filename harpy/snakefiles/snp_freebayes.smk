@@ -169,8 +169,8 @@ rule variant_report:
         export IPYTHONDIR=/tmp/ipython-snp-{wildcards.type}
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} variants.{wildcards.type} > {output.ipynb}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            harpy-utils process-notebook {output.tmp} "Variants ({wildcards.type})" > {output.ipynb}
         }} 2> {log}
         """
 

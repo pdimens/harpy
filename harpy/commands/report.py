@@ -9,10 +9,10 @@ import rich_click as click
 from rich.live import Live
 from rich.panel import Panel
 
+
 from harpy.common.printing import HarpyPrint
 from harpy.report.render import ReportRender
 from harpy.report.static import ReportStatic
-from harpy.report.utilities import check_tool
 from harpy.common.cli_filetypes import IPYNBfile
 
 @click.group(options_metavar='')
@@ -130,28 +130,13 @@ def static(notebooks, debug, self_contained):
     created in the same directories as their source `.ipynb` files, but will lack the nicer features and
     formatting of a proper MyST-MD website.
     """
-    check_tool(
-        "jupyter",
-        "It can be installed with using one of these methods:\npip: [green]pip install -U nbconvert[/]\n"
-        "conda: [green]conda install -c conda-forge nbconvert[/]\n"
-        "pixi: [green]pixi add nbconvert[/]"
-    )
-    if self_contained:
-        check_tool(
-            "monolith",
-            "Monolith is required to flatten an HTML notebook and bundle the Javascript and CSS elements within it. "
-            "Harpy does not provide it, but it can be installed using "
-            "cargo ([green]cargo install monolith[/]) or by downloading and adding "
-            "a pre-built binary from [blue]https://github.com/Y2Z/monolith/releases[/] to your PATH."
-        )
     all_notebooks = [nb for group in notebooks for nb in group]
+    rs = ReportStatic(quiet = not debug, static = self_contained)
     n = len(all_notebooks)
     if n > 1 :
         print(f"Converting {n} notebooks into HTML files.", file = sys.stderr)
-    rs = ReportStatic("", quiet = not debug, static = self_contained)
     for nb in all_notebooks:
-        rs.notebook = nb
-        rs.convert()
+        rs.convert(nb)
 
 report.add_command(live)
 report.add_command(static)

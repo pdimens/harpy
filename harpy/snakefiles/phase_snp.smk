@@ -257,7 +257,7 @@ rule phase_report:
         """
         export IPYTHONDIR=/tmp/ipython-phase
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}
         }} 2> {log}
         """

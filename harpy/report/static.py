@@ -5,6 +5,8 @@ import subprocess
 import tempfile
 from pathlib import Path
 
+from rich.console import Group
+
 from harpy.common.printing import HarpyPrint
 
 try:
@@ -15,15 +17,52 @@ except ImportError:
 
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
 
+def has_nbconvert():
+    hp = HarpyPrint()
+    try:
+        has = subprocess.run(
+            ["jupyter", "nbconvert", "--version"],
+            capture_output=True
+        ).returncode == 0
+    except FileNotFoundError:
+        has = False
+    if not has:
+        _table = hp.table()
+        _table.add_column("tool")
+        _table.add_column("installation command", style = "green")
+        _table.add_row('pip', 'pip install -U nbconvert')
+        _table.add_row('conda', 'conda install -c conda-forge nbconvert')
+        _table.add_row('pixi', 'pixi add nbconvert')
+        hp.error(
+            "Missing dependency",
+            "jupyter nbconvert is not found on the PATH and is required to proceed.",
+            Group("It can be installed using one of these methods:", _table)   
+        )
+
+def has_monolith():
+    if not shutil.which('monolith'):
+        hp = HarpyPrint()
+        _table = hp.table()
+        _table.add_column("tool")
+        _table.add_column("installation", style = "green")
+        _table.add_row('cargo', 'cargo install monolith')
+        _table.add_row('prebuilt binary', 'add binary to your PATH from https://github.com/Y2Z/monolith/releases')
+        hp.error(
+            "Missing dependency",
+            "Monolith is required to flatten an HTML notebook but was not found on the PATH.",
+            Group("Harpy does not provide it, but it can be installed using:", _table)   
+        )
 
 class ReportStatic():
-    def __init__(self, notebook: str, quiet: bool, static: bool):
+    def __init__(self, quiet: bool, static: bool):
         self.quiet: bool = quiet
         self.static: bool = static
-        self.notebook: str = notebook
         self.hp = HarpyPrint()
         self.hp.console.soft_wrap = True
         self.nbc_log = "ERROR" if quiet else 30
+        has_nbconvert()
+        if static:
+            has_monolith()
 
     def render_frontmatter_cell(self, nb: dict) -> None:
         """
@@ -80,8 +119,8 @@ class ReportStatic():
         subprocess.run(cmd, check=True, **kwargs)
 
 
-    def convert(self):
-        nb_path: Path = Path(self.notebook).resolve()
+    def convert(self, notebook: str):
+        nb_path: Path = Path(notebook).resolve()
         nb_name = nb_path.stem
         out_path: Path = nb_path.with_name(f"{nb_name}.html")
             

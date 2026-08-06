@@ -9,7 +9,6 @@ import (
 	"os"
 	"regexp"
 	"runtime"
-	"strconv"
 
 	"github.com/biogo/hts/bam"
 	"github.com/biogo/hts/sam"
@@ -65,44 +64,6 @@ func GetStringTag(r *sam.Record, tag string) (string, bool) {
 	return "", false
 }
 
-func copyHeaderWithPG(src *sam.Header, infile string) (*sam.Header, error) {
-	// Clone the header via marshal/unmarshal
-	b, err := src.MarshalText()
-	if err != nil {
-		return nil, err
-	}
-	dst := &sam.Header{}
-	if err := dst.UnmarshalText(b); err != nil {
-		return nil, err
-	}
-
-	// Build the @PG record
-	pg := sam.NewProgram(
-		"djinn",                     // ID
-		"djinn",                     // name (PN)
-		"djinn standardize "+infile, // command line (CL)
-		lastPGID(src),               // previous PG ID (PP), or "" if none
-		"1.0",                       // version (VN) — set as appropriate
-	)
-
-	if err := dst.AddProgram(pg); err != nil {
-		return nil, err
-	}
-
-	return dst, nil
-}
-
-// lastPGID returns the ID of the last @PG record in the header,
-// which becomes the PP (previous program) of the new entry.
-// Returns "" if there are no existing @PG records.
-func lastPGID(h *sam.Header) string {
-	progs := h.Progs()
-	if len(progs) == 0 {
-		return ""
-	}
-	return strconv.Itoa(progs[len(progs)-1].ID())
-}
-
 func main() {
 	nThreads := flag.Int("threads", 1, "Number of threads for BAM io. No real value beyond ~4-5.")
 	flag.Usage = func() {
@@ -139,14 +100,28 @@ func main() {
 	defer br.Close()
 
 	// ── BAM writer ──────────────────────────────────────────────────────────────
-	newHeader, err := copyHeaderWithPG(br.Header(), infile)
-	if err != nil {
+	hdr := br.Header()
+	progs := hdr.Progs()
+
+	var prev string
+	if len(progs) > 0 {
+		prev = progs[len(progs)-1].UID()
+	}
+
+	pg := sam.NewProgram(
+		"djinn",                     // ID
+		"djinn",                     // name (PN)
+		"djinn standardize "+infile, // command line (CL)
+		prev,                        // previous PG ID (PP), or "" if none
+		"1.0",                       // version (VN) — set as appropriate
+	)
+
+	if err := hdr.AddProgram(pg); err != nil {
 		log.Fatal(err)
 	}
 
 	// WRITES SAM OUTPUT
-	//w, err := sam.NewWriter(os.Stdout, newHeader, sam.FlagDecimal)
-	w, err := bam.NewWriterLevel(os.Stdout, newHeader, 4, writeThread)
+	w, err := bam.NewWriterLevel(os.Stdout, hdr, 4, writeThread)
 	if err != nil {
 		log.Fatal(err)
 	}

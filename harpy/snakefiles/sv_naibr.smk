@@ -205,7 +205,7 @@ rule report:
         """
         export IPYTHONDIR=/tmp/ipython-sv.naibr
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} NAIBR > {output.ipynb}
         }} 2> {log}
         """

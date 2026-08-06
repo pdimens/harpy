@@ -86,4 +86,3 @@ cli.add_command(sv.sv)
 cli.add_command(validate.validate)
 cli.add_command(view.view)
 cli.add_command(template.template)
-

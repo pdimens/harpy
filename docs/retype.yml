@@ -21,7 +21,7 @@ lastUpdated:
     enabled: true
     source: committer
 branding:
-  label: v4.1
+  label: v4.2
   logo: static/logo_trans.png
   logoDark: static/logo_trans.png
   logoAlign: left
@@ -33,17 +33,13 @@ edit:
   base: /
   branch: "docs"
 links:
-- text: Therkildsen Lab
-  link: https://therkildsen-lab.github.io/
-  icon: https://therkildsen-lab.github.io/images/TherkildsenLogo.png
+- text: BLink-seq
+  link: https://blinkseq.github.io/
+  icon: https://blinkseq.github.io/_astro/logo.DGThwx8R_1NHPA4.webp
   target: blank
-- text: Innovation Lab
-  link: https://www.genomicsinnovation.cornell.edu/
-  icon: static/biotech.png
-  target: blank
-- text: LASTQ Standard
-  link: https://pdimens.github.io/lastq/
-  icon: https://pdimens.github.io/lastq/img/logo.png
+- text: LASTQ Format
+  link: https://blinkseq.github.io/lastq/
+  icon: https://blinkseq.github.io/lastq/img/logo.png
   target: blank
 - text: Source
   link: https://github.com/pdimens/harpy
