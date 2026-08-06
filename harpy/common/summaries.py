@@ -96,7 +96,7 @@ class Summary:
 
         unmapped = "" if keep_unmapped else "-F 4"
         bx_mode = "--barcode-tag BX" if not ignore_bx else ""
-        tech = "-ax map-" + tech
+        tech = f"-ax map-{tech}" if tech != "sr" else "-ax map sr"
         static = "-y --MD" if is_standardized else "--MD"
         extra = self.PARAMETERS.get("extra", "")
 
