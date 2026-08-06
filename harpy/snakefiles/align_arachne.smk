@@ -302,7 +302,7 @@ rule alignment_report:
         """
         export IPYTHONDIR=/tmp/ipython-bwa-stats
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}
         }} 2> {log}
         """
@@ -328,7 +328,7 @@ rule sample_reports:
         """
         export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
             harpy-utils process-notebook {output.tmp} {wildcards.sample} minibwa {params.lr_type} > {output.ipynb}
         }} 2> {log}
         """
@@ -349,7 +349,7 @@ rule linked_read_report:
         """
         {{
             export IPYTHONDIR=/tmp/ipython-bwa.lr
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
         }} 2> {log}
         """

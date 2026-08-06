@@ -57,7 +57,7 @@ rule create_report:
         """
         export IPYTHONDIR=/tmp/ipython-validate-xam
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
             harpy-utils process-notebook {output.tmp} {params.lr_platform} > {output.ipynb}
         }} 2> {log}
         """

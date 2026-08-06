@@ -98,7 +98,7 @@ rule barcode_report:
         """
         export IPYTHONDIR=/tmp/ipython-lrstats
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr} > {output.ipynb}
         }} 2> {log}
         """
@@ -118,7 +118,7 @@ rule qc_report:
         """
         export IPYTHONDIR=/tmp/ipython-fastp
         {{
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}
         }} 2> {log}
         """

@@ -66,13 +66,14 @@ samtools = ">=1.23"
 seqtk = "*"
 snakemake-minimal = ">=9.19.0,<10"
 vl-convert-python = ">=2.0.0rc1,<3"
-xeus-python = ">=0.18.1,<0.20"
+ipykernel = ">=7.3.0,<8"
 
 [tool.pixi.pypi-dependencies]
 harpy = { path = ".", editable = true }
 
 [tool.pixi.activation]
 env = { JUPYTER_NOTARY_DB = ":memory:" }
+scripts = ["resources/register-kernel.sh"]
 
 [tool.pixi.tasks]
 build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}

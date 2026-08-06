@@ -262,7 +262,7 @@ rule contig_report:
         export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.{wildcards.contig}
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
@@ -296,7 +296,7 @@ rule impute_reports:
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
-            papermill -k xpython --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
+            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
