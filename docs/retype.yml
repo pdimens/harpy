@@ -37,9 +37,9 @@ links:
   link: https://blinkseq.github.io/
   icon: https://blinkseq.github.io/_astro/logo.DGThwx8R_1NHPA4.webp
   target: blank
-- text: LASTQ Format
-  link: https://blinkseq.github.io/lastq/
-  icon: https://blinkseq.github.io/lastq/img/logo.png
+- text: Therkildsen Lab
+  link: https://therkildsen-lab.github.io/
+  icon: https://therkildsen-lab.github.io/images/TherkildsenLogo.png
   target: blank
 - text: Source
   link: https://github.com/pdimens/harpy
