@@ -22,14 +22,14 @@ developing at Cornell University (Iqbal et _al._, in prep).
 ==- Iqbal et _al._ 
 !!!warning
 The name `gih` is a placeholder and will be replaced with `iqbal202_` in a future release when the
-protocol is officially published.
+protocol is officially published. The preprint can be found [here](https://doi.org/10.64898/2026.08.03.742036)
 !!!
 
 - Barcode configuration: `stagger + 8 + 8 + 8` on read 1
 - Sample identifier: UDIs
 - Facility should demultiplex
 
-The Genomics Innovation Hub at Cornell University has been developing a variant to the Meier/Chan haplotagging chemistry.
+The Genomics Innovation Hub at Cornell University has been developing [BLink-seq](https://blinkseq.github.io), a variant to the Meier/Chan haplotagging chemistry.
 Due to the differences in adapters, barcode design, and barcode position, these data require a different preprocessing approach.
 This design puts linked-read barcodes inline at the beginning of read 1. It begins with a variable-length stagger,
 followed by 3 8bp combinatorial barcodes, with a short spacer between each, followed by an ME sequence. This design
