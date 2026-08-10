@@ -7,7 +7,7 @@ icon: file-binary
 
 ## Linked-Read Format
 Haplotagging, stLFR, TELLseq are valid and recognized. We continue to
-push for all linked-read platforms to adopt [a standard FASTQ format we nicknamed LASTQ](https://pdimens.github.io/lastq/).
+push for all linked-read platforms to adopt [a standard FASTQ format we nicknamed LASTQ](https://blinkseq.github.io/lastq/).
 
 ## Non-linked reads
 Standard FASTQ files with both old (`/1`) and new (`1:N:ATCG`) CASAVA format are expected to work.

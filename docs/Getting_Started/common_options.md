@@ -68,7 +68,7 @@ in the modules' help strings and can be configured using these arguments:
 
 ### --unlinked
 As of version 3.0, Harpy tries to auto-detect the type of data that input FASTQ or BAM files may be: `haplotagging`, `stlfr`, `tellseq`, or `none`.
-The formats for these data and how their barcodes look are described [here](https://pdimens.github.io/lastq/). That means
+The formats for these data and how their barcodes look are described [here](https://blinkseq.github.io/lastq/). That means
 you no longer have to specify linked-read technology, and if you aren't using linked reads, that's fine too ([in most cases](Guides/wgs_data.md)). 
 However, you can force many commands to treat your data as not linked-read using `-U`/`--unlinked`. This toggle skips data type detection
 and circumvents any linked-read specific parts of workflows. Data that is already not linked-read would be detected as such, so this

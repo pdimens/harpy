@@ -44,16 +44,16 @@ but vary in how you get there in terms of cost and bench time. We obviously subs
 
 It's worth describing the obvious differences of the raw (FASTQ) data. Knowing these details might help you 
 make sense of compatibilties/incompatibilities for software, or how you can convert between styles. For more
-information, [read this resource](https://pdimens.github.io/lastq/). **We strongly advocate for using Standard format**.
+information, [read this resource](https://blinkseq.github.io/lastq/). **We strongly advocate for using Standard format**.
 
 {.compact .clean}
 | Type                                                          | Location {.whitespace-nowrap} | Format   | Invalid Encoding {.whitespace-nowrap} | Example                            |
 | :------------------------------------------------------------ | :---------------------------- | :------- | :------------------------------------ | :--------------------------------- |
-| [Standard](https://pdimens.github.io/lastq/)                  | `BX:Z` and `VX:i` tags        | any      | `VX:i:0`                              | `BX:Z:31_442_512 VX:i:1`           |
-| [Haplotagging](https://pdimens.github.io/lastq/haplotagging/) | `BX:Z` tag                    | `ACBD`   | `00` segment                          | `BX:Z:A04C54B96D11`                |
-| [stLFR](https://pdimens.github.io/lastq/stlfr/)               | end of sequence ID            | `#1_2_3` | `0` segment                           | `@A003432423434:1:324#12_432_1`    |
-| [TELLseq](https://pdimens.github.io/lastq/tellseq/)           | end of sequence ID            | `:ATCG`  | `N`                                   | `@A003432423434:1:324:TTACCACGAGG` |
-| [10X](https://pdimens.github.io/lastq/10x/)                   | R1 read                       | `ATCG`   | `N`                                   | `AGGTTGGGTAAGATA...`               |
+| [Standard](https://blinkseq.github.io/lastq/)                  | `BX:Z` and `VX:i` tags        | any      | `VX:i:0`                              | `BX:Z:31_442_512 VX:i:1`           |
+| [Haplotagging](https://blinkseq.github.io/lastq/haplotagging/) | `BX:Z` tag                    | `ACBD`   | `00` segment                          | `BX:Z:A04C54B96D11`                |
+| [stLFR](https://blinkseq.github.io/lastq/stlfr/)               | end of sequence ID            | `#1_2_3` | `0` segment                           | `@A003432423434:1:324#12_432_1`    |
+| [TELLseq](https://blinkseq.github.io/lastq/tellseq/)           | end of sequence ID            | `:ATCG`  | `N`                                   | `@A003432423434:1:324:TTACCACGAGG` |
+| [10X](https://blinkseq.github.io/lastq/10x/)                   | R1 read                       | `ATCG`   | `N`                                   | `AGGTTGGGTAAGATA...`               |
 
 ==- Always usable
 Unlike some other fancy well-touted sample preparation methods (_cough cough mate-pair_), linked-read data **is** whole genome
