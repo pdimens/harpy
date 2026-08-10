@@ -76,7 +76,7 @@ high_ngen   diploid TRUE    50000   15  1   100
 
 ## report
 This command creates the necessary files to configure a repository to build a report website for
-a project repository ([see example](https://github.com/pdimens/RS-degradation)).
+a project repository ([see example](https://pdimens.github.io/GIH-experiments/)).
 It creates `myst.yml` at the project root and the landing page `.report/index.md` if
 they don't already exist. 
 
