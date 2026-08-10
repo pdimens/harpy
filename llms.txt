@@ -38,8 +38,7 @@
 ### align
 
 - [ Align Sequences to a Genome](https://pdimens.github.io/harpy/commands/align/align.md): Choosing an aligner
-- [ align bwa](https://pdimens.github.io/harpy/commands/align/bwa.md): Align sequences with BWA-MEM2
-- [ align strobe](https://pdimens.github.io/harpy/commands/align/strobe.md): Align sequences with strobealign
+- [ align without linked-read information](https://pdimens.github.io/harpy/commands/align/standard.md): Align sequences with minibwa / strobealign /minimap2
 - [ assembly](https://pdimens.github.io/harpy/commands/assembly.md): Create a genome assembly from linked reads
 - [ deconvolve](https://pdimens.github.io/harpy/commands/deconvolve.md): Resolve barcodes shared by different molecules
 - [ preprocess](https://pdimens.github.io/harpy/commands/preprocess.md): Preprocess raw sequences into haplotag barcoded samples

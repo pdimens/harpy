@@ -2,7 +2,7 @@
 
 ## Linked-Read Format
 Haplotagging, stLFR, TELLseq are valid and recognized. We continue to
-push for all linked-read platforms to adopt [a standard FASTQ format we nicknamed LASTQ](https://pdimens.github.io/lastq/).
+push for all linked-read platforms to adopt [a standard FASTQ format we nicknamed LASTQ](https://blinkseq.github.io/lastq/).
 
 ## Non-linked reads
 Standard FASTQ files with both old (`/1`) and new (`1:N:ATCG`) CASAVA format are expected to work.
@@ -18,7 +18,7 @@ Compressed files are expected be compressed with either `gzip` or `bgzip` and en
 Unfortunately, there are many different ways of naming FASTQ files, which makes it 
 difficult to accomodate every wacky iteration currently in circulation.
 While Harpy tries its best to be flexible, there are limitations. 
-To that end, for the [!badge corners="pill" text="preprocess"](/Commands/preprocess.md), [!badge corners="pill" text="qc"](/Commands/qc.md), and [!badge corners="pill" text="align"](/Commands/Align/bwa.md) modules, the 
+To that end, for the [!badge corners="pill" text="preprocess"](/Commands/preprocess.md), [!badge corners="pill" text="qc"](/Commands/qc.md), and [!badge corners="pill" text="align"](/Commands/Align/standard.md) modules, the 
 most common FASTQ naming styles are supported:
 - **sample names**: [!badge variant="success" text="a-z"] [!badge variant="success" text="0-9"] [!badge variant="success" text="."] [!badge variant="success" text="_"] [!badge variant="success" text="-"] [!badge variant="secondary" text="case insensitive"]
     - you can mix and match special characters, but that's bad practice and not recommended
