@@ -15,7 +15,7 @@ illumina_old = PARAMETERS.get("illumina-format-old", False)
 extra 		 = PARAMETERS.get("extra", "") 
 fqlist       = INPUTS["fastq"]
 genomefile 	 = INPUTS["reference"]
-tech_opt     = f"-ax map-{technology}" if technology != "sr" else "-ax map sr"
+tech_opt     = f"-ax map-{technology}" if technology != "sr" else "-ax sr"
 
 bn 			  = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
