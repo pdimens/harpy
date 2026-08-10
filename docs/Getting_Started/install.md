@@ -207,7 +207,6 @@ chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-stand
 mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize path/to/bin/
 ```
 - [djinn](https://pdimens.github.io/djinn/install/#pip) for some of the conversions
-- [xeus-python](https://github.com/jupyter-xeus/xeus-python#installation) for notebook/report support
 
 ==- ⬆️ updating harpy
 Updating Harpy installed this way would require repeating the steps with a different Harpy version.

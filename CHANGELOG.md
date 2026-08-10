@@ -30,12 +30,15 @@
 # Fixes
 ## reports
 - tables now render properly in VScode/Jupyter contexts
+- xeus-python began to hang for unknown reasons and has been replaced with `ipykernel`
 
 ## misc
 - constrain CASAVA regex in FASTQ file validation so it doesn't trigger false positives when new CASAVA appears in unexpected places
 - [internal] notebooks no longer a submodule/subdirectory of `harpy.report`
 - utility `check_fastq.py` no longer employs globals, instead uses a sensible class system
 - add multithreading to pre-workflow VCF and XAM file validation and parsing
+- FASTA validation no longer checks the entire file for formatting b/c it was taking much too long on bigger genomes
+  - still considering alternatives, but is disabled for now
 - [internal-ish] the bwa, strobealign, and minimap2 workflows are nearly identical except for the reference preprocessing and alignment, so to minimize redundancy and duplication, those workflows have a single `align.smk` that imports a second snakefile `align_{aligner}.smk` that handles just the preprocessing and direct alignment for those aligners, then hands off to `align.smk` for all the downstream things (dedup, sorting, reports, etc)
 
 # Documentation

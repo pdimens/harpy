@@ -13,6 +13,7 @@ license = "GPL-3.0-or-later"
 dependencies = [
     'altair>=6.0.0',
     'click>8.0',
+    'ipykernel',
     'jupyter-book',
     'notebook',
     'papermill',
