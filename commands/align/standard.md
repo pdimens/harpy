@@ -171,9 +171,9 @@ Align/{aligner}
 - ignores barcode information (but retains in output) 
 - fast and accurate
 
-The [minibwa](https://github.com/lh3/minibwa) workflow maps all reads against the reference genome. Duplicates are marked using `samtools markdup`.
-The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
-are not used to inform mapping. The `-m` threshold is used for calculating statistics.
+The [bwa](https://github.com/lh3/minibwa) workflow maps all reads against the reference genome using the successor to BWA, `minibwa`.
+Duplicates are marked using `samtools markdup`. The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
+are not used to inform mapping. The `-d` threshold is used for calculating statistics.
 
 +++ :icon-code-square: minbwa parameters
 By default, Harpy runs `minibwa` with these parameters (excluding inputs and outputs):
@@ -221,15 +221,11 @@ Below is a list of all `minibwa map` command line arguments, excluding those Har
 ==- strobealign
 +++ :icon-git-merge: details
 - ignores barcode information (but retains in output) 
-- ultra-fast
 - [as-good-or-better accuracy](https://github.com/ksahlin/strobealign/blob/main/evaluation.md) to BWA MEM for sequences greater than 100bp
     - accuracy may be lower for sequences shorter than 100bp
 
-The [strobealign](https://github.com/lksahlinh3/strobealign) workflow is nearly identical to the BWA workflow,
-the only real difference being how the input genome is indexed and that alignment is performed with
-`strobealign` instead of BWA. Duplicates are marked using `samtools markdup`.
 The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
-are not used to inform mapping. The `-m` threshold is used for alignment molecule assignment.
+are not used to inform mapping. The `-d` threshold is used for alignment molecule assignment.
 
 +++ :icon-code-square: strobealign parameters
 By default, Harpy runs `strobealign` with these parameters (excluding inputs and outputs):
@@ -277,7 +273,7 @@ Below is a list of all `strobealign` command line arguments, excluding those Har
 [Minimap2](https://github.com/lh3/minimap2) is a versatile sequence alignment program that aligns DNA or mRNA sequences against a large reference database.
 For ~10kb noisy reads sequences, minimap2 is tens of times faster than mainstream long-read mappers such as BLASR, BWA-MEM, NGMLR and GMAP.
 The `BX:Z` tags in the read headers are still added to the alignment headers, even though barcodes
-are not used to inform mapping. The `-m` threshold is used for alignment molecule assignment.
+are not used to inform mapping. The `-d` threshold is used for alignment molecule assignment.
 
 +++ :icon-code-square: minimap2 parameters
 By default, Harpy runs `minimap2` with these parameters (excluding inputs and outputs):
