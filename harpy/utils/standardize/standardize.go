@@ -101,20 +101,32 @@ func main() {
 
 	// ── BAM writer ──────────────────────────────────────────────────────────────
 	hdr := br.Header()
-	progs := hdr.Progs()
 
-	var prev string
-	if len(progs) > 0 {
-		prev = progs[len(progs)-1].UID()
+	// add PG to header
+	progs := hdr.Progs()
+	referenced := make(map[string]bool, len(progs))
+	seen := make(map[string]bool, len(progs))
+	for _, p := range progs {
+		if pp := p.Previous(); pp != "" {
+			referenced[pp] = true
+		}
+		seen[p.UID()] = true
 	}
 
-	pg := sam.NewProgram(
-		"djinn",                     // ID
-		"djinn",                     // name (PN)
-		"djinn standardize "+infile, // command line (CL)
-		prev,                        // previous PG ID (PP), or "" if none
-		"1.0",                       // version (VN) — set as appropriate
-	)
+	var prev string
+	for _, p := range progs {
+		if !referenced[p.UID()] {
+			prev = p.UID()
+			break
+		}
+	}
+
+	uid := "djinn"
+	for i := 1; seen[uid]; i++ {
+		uid = fmt.Sprintf("djinn.%d", i)
+	}
+
+	pg := sam.NewProgram(uid, "djinn", cl, prev, "3.0")
 
 	if err := hdr.AddProgram(pg); err != nil {
 		log.Fatal(err)
