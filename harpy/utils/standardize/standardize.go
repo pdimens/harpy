@@ -126,7 +126,7 @@ func main() {
 		uid = fmt.Sprintf("djinn.%d", i)
 	}
 
-	pg := sam.NewProgram(uid, "djinn", cl, prev, "3.0")
+	pg := sam.NewProgram(uid, "djinn", "djinn-standardize "+infile, prev, "3.0")
 
 	if err := hdr.AddProgram(pg); err != nil {
 		log.Fatal(err)
