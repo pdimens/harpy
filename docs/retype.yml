@@ -56,10 +56,6 @@ actions:
     - text: Share page
       action: share-page
       icon: share-android
-    - text: Copy link
-      action: copy-page-link
-      icon: link
-    - type: separator
     - text: View as Markdown
       action: view-page-markdown
       icon: markdown
