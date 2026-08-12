@@ -63,7 +63,7 @@ Feel free to play around with this number if you aren't sure. A larger distance 
 you are allowing the program to be more lenient in assuming two alignments with the
 same barcode originated from the same DNA molecule. Unless you have strong evidence
 in favor of it, a distance above `250000` (250kbp) would probably do more harm than good.
-See [Barcode Thresholds](/Getting_Started/linked_read_data.md#barcode-thresholds) for a more thorough explanation.
+See [Barcode Thresholds](https://blinkseq.github.io/linkedreads/clashing/#barcode-thresholds) for a more thorough explanation.
 
 ---
 ## :icon-git-pull-request: Phasing Workflow

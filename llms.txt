@@ -29,7 +29,6 @@
 - [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
 - [ Input FASTQ Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
 - [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
-- [ Intro to linked-read data](https://pdimens.github.io/harpy/getting_started/linked_read_data.md): What you ought to know about linked reads
 - [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
 - [ Utilities](https://pdimens.github.io/harpy/getting_started/utilities.md): Utilities provided alongside a Harpy installation
 
