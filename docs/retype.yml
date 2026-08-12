@@ -10,6 +10,8 @@ meta:
 footer:
   copyright: "&copy; Copyright {{ year }}. All rights reserved."
 showSidebarFilter: false
+backlinks:
+  enabled: false
 theme:
   base:
     base-link-weight: 500
@@ -49,6 +51,21 @@ links:
   link: https://github.com/pdimens/harpy/issues/new/choose
   icon: bug
   target: blank
+actions:
+  items:
+    - text: Share page
+      action: share-page
+      icon: share-android
+    - text: Copy link
+      action: copy-page-link
+      icon: link
+    - type: separator
+    - text: View as Markdown
+      action: view-page-markdown
+      icon: markdown
+    - text: Print page
+      action: print-page
+      icon: file
 exclude:
   - "src/"
   - "test/"

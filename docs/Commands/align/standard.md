@@ -67,7 +67,7 @@ such that the barcode is contained in the `BX:Z` tag and barcode validation is i
 ### Molecule distance
 The `--molecule-distance` option is used during the alignment workflow
 to deconvolute alignments with the same barcode that might not have originated
-from the same DNA molecule based on the [distance threshold](/Getting_Started/linked_read_data.md#barcode-thresholds)
+from the same DNA molecule based on the [distance threshold](https://blinkseq.github.io/linkedreads/clashing/#barcode-thresholds)
 you specify. This happens _during the linked-read stats step_ to internally split molecules based on this value, but
 **it doesn't modify** the barcodes in the output. Set this value to `0` to skip distance-based deconvolution during the
 this reporting step. Ignored if using `--skip-reports`. 
