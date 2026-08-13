@@ -143,9 +143,10 @@ class XAM():
             for i, record in enumerate(alnfile.fetch(until_eof = True), 1):
                 if i > 100:
                     break
-                if not record.has_tag("BX"):
+                tags = dict(record.get_tags())
+                bx = tags.get("BX")
+                if not bx:
                     continue
-                bx = record.get_tag("BX")
                 if TELLSEQ_RX.search(bx):
                     return "tellseq"
                 if STLFR_RX.search(bx):
