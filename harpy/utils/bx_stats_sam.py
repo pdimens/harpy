@@ -163,11 +163,13 @@ def bx_stats_sam(distance_threshold, input):
             suffix_next.clear()   # per-contig; reset on contig boundary
 
         for read in alnfile.fetch(until_eof=True):
-            if (read.is_unmapped
-                    or read.is_duplicate
-                    or read.is_secondary
-                    or (read.is_supplementary and read.reference_name != read.next_reference_name)
-                    or not read.get_blocks()):
+            if (
+                read.is_unmapped
+                or read.is_duplicate
+                or read.is_secondary
+                or (read.is_supplementary and read.reference_name != read.next_reference_name)
+                or read.cigartuples is None
+                ) :
                 continue
 
             chrom = read.reference_name
@@ -202,8 +204,9 @@ def bx_stats_sam(distance_threshold, input):
 
             # ── barcode lookup ────────────────────────────────────────────
             try:
-                bx = read.get_tag("BX")
-                if read.get_tag("VX") == 0:
+                tags = dict(read.get_tags())
+                bx = tags["BX"]
+                if tags.get("VX") != 1:
                     raise KeyError
             except KeyError:
                 if "invalid" not in clouds:
