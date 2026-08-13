@@ -95,6 +95,22 @@ class ReadCloud:
         self._mol.count   += cnt
         return ""
 
+    def add_supplementary(self, record: AlignedSegment) -> None:
+        """
+        Supplementary alignment of an already-counted fragment. Credits aligned bp
+        (and matching insert length) toward the *current* molecule's coverage without
+        touching count, end, or last_end — so it can't move the molecule boundary or
+        trigger a distance-based split.
+        - no-op if barcode's molecule hasn't started yet (supplementary arrived before its primary in coordinate order) — bp silently dropped.
+        """
+        bp = record.query_alignment_length
+        if not self.valid:
+            self._inv_bp += bp
+            return
+        if self._mol is not None:
+            self._mol.bp     += bp
+            self._mol.insert += insert_size(record)
+
     def flush(self) -> str:
         """Emit whatever is in progress and reset the molecule slot."""
         if not self.valid:
@@ -167,7 +183,6 @@ def bx_stats_sam(distance_threshold, input):
                 read.is_unmapped
                 or read.is_duplicate
                 or read.is_secondary
-                or (read.is_supplementary and read.reference_name != read.next_reference_name)
                 or read.cigartuples is None
                 ) :
                 continue
@@ -185,6 +200,17 @@ def bx_stats_sam(distance_threshold, input):
                 )
                 sys.exit(1)
             last_pos = pos
+
+            if read.is_supplementary:
+                try:
+                    bx = read.get_tag("BX")
+                except KeyError:
+                    continue
+                cloud = clouds.get(bx)
+                if cloud is not None:
+                    cloud.add_supplementary(read)
+                continue  
+
             # ── early eviction ────────────────────────────────────────────
             # Any barcode whose most-recent read ends more than `cutoff` bp
             # behind the current position cannot gain another read to its
