@@ -44,26 +44,22 @@ def check_bam(platform, bamfile):
 
         for record in alnfile.fetch(until_eof=True):
             N_READS += 1
-            try:
-                bx = record.get_tag("BX")
-            except KeyError:
+            _tags = record.get_tags()
+            tags = dict(_tags)
+            bx = tags.get("BX")
+            if not bx:
                 NO_BX += 1
                 continue
-            try:
-                record.get_tag("VX")
-            except KeyError:
+            if tags.get("VX") != 1:
                 NO_VX += 1
-
             # do a regex search to find proper barcode pattern in the BX
             if platform != "standard" and not bc_pattern.search(bx):
                 # malformed BX tag
                 BAD_BX += 1
             # do a search to see if BX:Z: tag is last tag in record
-            if record.get_tags()[-1][0] != 'BX':
+            if _tags[-1][0] != 'BX':
                 BX_NOT_LAST += 1
-            try:
-                record.get_tag("MI")
-            except KeyError:
+            if not tags.get("MI"):
                 NO_MI += 1
 
     values = [str(i) for i in [filename, N_READS, NAME_MISMATCH, NO_MI, NO_BX, NO_VX, BX_NOT_LAST, BAD_BX]]
