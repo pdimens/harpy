@@ -66,7 +66,7 @@ class FASTQ():
             self.print.validation(False)
             self.print.error(
                 "invalid file type",
-                f"[yellow]{len(badfiles)}[/] of the input FASTQ files did not conform to format expectations.",
+                f"[yellow]{len(badfiles)}[/] of the input files did not conform to FASTQ format expectations.",
                 "Please verify that the files listed below are properly formatted FASTQ files.",
                 "Offending Files",
                 ", ".join(badfiles)
