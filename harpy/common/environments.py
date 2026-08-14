@@ -73,8 +73,8 @@ class HarpyEnvs():
         ]
     }
 
-        self.dockerfile: str = """
-FROM ghcr.io/prefix-dev/pixi:0.62.0 AS build
+        self.dockerfile: str = """\
+FROM ghcr.io/prefix-dev/pixi:0.76.2 AS build
 
 # copy source code, pixi.toml and pixi.lock to the container
 WORKDIR /app
@@ -137,11 +137,12 @@ ENTRYPOINT ["/app/entrypoint.sh"]
         if "spades" in envs:
             # post-deployment script
             with open(os.path.join(_out, "spades.post-deploy.sh"), "w", encoding="utf-8") as shellscript:
-                shellscript.write("wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.1.0/SPAdes-4.1.0-Linux.tar.gz\n")
-                shellscript.write("tar -xvzf .spades.tar.gz && rm .spades.tar.gz\n")
-                shellscript.write("mv SPAdes-4.1.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.1.0-Linux/share/* ${CONDA_PREFIX}/share\n")
-                shellscript.write("rm -r SPAdes-4.1.0-Linux\n")
-
+                shellscript.write("""\
+wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.1.0/SPAdes-4.1.0-Linux.tar.gz
+tar -xvzf .spades.tar.gz && rm .spades.tar.gz
+mv SPAdes-4.1.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.1.0-Linux/share/* ${CONDA_PREFIX}/share
+rm -r SPAdes-4.1.0-Linux
+""")
     def prepare_container(self, env):
         '''
         Using the defined environments, create a folder (or series of folders) with a dockerfile
