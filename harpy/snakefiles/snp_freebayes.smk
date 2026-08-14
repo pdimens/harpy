@@ -16,7 +16,8 @@ ploidy 		  = PARAMETERS.get("ploidy", 2)
 extra 	      = PARAMETERS.get("extra", "") 
 bamlist       = INPUTS["alignments"]
 genomefile 	  = INPUTS["reference"]
-regions_input = INPUTS["regions"]
+region_input = INPUTS["regions"]
+keep_invar   = PARAMETERS.get("keep-invariant", False)
 # attempt to get processed, then source, then nothing
 grp          = INPUTS.get("groupings") or {}
 if grp:
@@ -34,16 +35,16 @@ workflow_geno = f"workflow/reference/{bn}"
 samplenames   = {Path(i).stem for i in bamlist}
 sampldict     = dict(zip(bamlist, samplenames))
 
-if os.path.exists(regions_input):
-    with open(regions_input, "r") as reg_in:
+if os.path.exists(region_input):
+    with open(region_input, "r") as reg_in:
         intervals = set()
         for line in reg_in:
             cont,startpos,endpos = line.split()
             intervals.add(f"{cont}:{max(int(startpos),1)}-{int(endpos)}")
     regions = dict(zip(intervals, intervals))
 else:
-    intervals = [regions_input]
-    regions   = {f"{regions_input}" : f"{regions_input}"}
+    intervals = [region_input]
+    regions   = {f"{region_input}" : f"{region_input}"}
 
 rule process_reference:
     input:
@@ -95,6 +96,7 @@ rule call_variants:
         "logs/{part}.freebayes.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
+        invar = "--report-monomorphic" if keep_invar else "",
         ploidy = f"-p {ploidy}",
         static = "--strict-vcf",
         populations = "--populations workflow/sample.groups" if groupings else "",
@@ -106,7 +108,7 @@ rule call_variants:
     shell:
         """
         freebayes -f {input.reference} -L {input.bamlist} {params} 2> {log} |
-            bcftools sort - --output {output.bcf} --write-index 2> /dev/null
+            bcftools sort - --output {output.bcf} -Ou --write-index 2> /dev/null
         """
 
 rule concat_variants:

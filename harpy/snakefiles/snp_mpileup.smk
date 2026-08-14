@@ -17,6 +17,7 @@ mp_extra 	 = PARAMETERS.get("extra", "")
 bamlist      = INPUTS["alignments"]
 genomefile 	 = INPUTS["reference"]
 region_input = INPUTS["regions"]
+keep_invar   = PARAMETERS.get("keep-invariant", False)
 # attempt to get processed, then source, then nothing
 grp          = INPUTS.get("groupings") or {}
 if grp:
@@ -96,12 +97,13 @@ rule call_genotypes:
         bamlist = "workflow/mpileup.input",
         genome  = workflow_geno,
     output: 
-        vcf = temp("call/{part}.vcf"),
+        bcf = temp("regions/{part}.bcf"),
         logfile = temp("logs/mpileup/{part}.mpileup.log")
     log:
         "logs/call/{part}.call.log"
     params:
         region = lambda wc: "-r " + regions[wc.part],
+        invar = "" if keep_invar else "--variants-only",
         annot_mp = "-a AD,ADF,ADR,DP,QS,SP,INFO/FS",
         extra = mp_extra,
         ploidy = f"--ploidy {ploidy}",
@@ -109,25 +111,17 @@ rule call_genotypes:
         groups = "--group-samples workflow/sample.groups" if groupings else "--group-samples -"
     shell:
         """
-        bcftools mpileup --threads {threads} --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
-            bcftools call -o {output.vcf} --multiallelic-caller --variants-only {params.ploidy} {params.annot_call} {params.groups} 2> {log}
+        {{
+            bcftools mpileup --threads {threads} --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
+            bcftools call -o {output.bcf} --multiallelic-caller {params.invar} {params.ploidy} {params.annot_call} {params.groups} |
+            bcftools sort --output {output.bcf} -Ou --write-index {input.bcf}
+        }} 2> {log}
         """
-
-rule sort_variants:
-    input:
-        bcf = temp("call/{part}.vcf")
-    output:
-        bcf = temp("sort/{part}.bcf"),
-        idx = temp("sort/{part}.bcf.csi")
-    log:
-        "logs/sort/{part}.sort.log"
-    shell:
-        "bcftools sort --output {output.bcf} --write-index {input.bcf} 2> {log}"
 
 rule concat_variants:
     input:
-        collect("sort/{part}.bcf.csi", part = intervals),
-        bcf = collect("sort/{part}.bcf", part = intervals)
+        collect("regions/{part}.bcf.csi", part = intervals),
+        bcf = collect("regions/{part}.bcf", part = intervals)
     output:
         concatlist = temp("logs/bcf.files"),
         bcf = "variants.raw.bcf",

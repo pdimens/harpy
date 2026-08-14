@@ -162,20 +162,18 @@ class ITable:
 
     const container = document.getElementById("{self.grid_id}");
 
-    // srcdoc iframes are same-origin with the parent notebook page, so we
-    // can read the parent's dark-mode class directly instead of guessing.
-    function isParentDark() {{
-        try {{
-            return window.parent.document.documentElement.classList.contains("dark");
-        }} catch (e) {{
-            return document.documentElement.classList.contains("dark");
-        }}
+    // Follow the OS/browser-level color scheme preference. (Previously this
+    // checked window.parent.document for a MyST site's "dark" class toggle,
+    // but that only exists when embedded in a MyST site with its toggle
+    // button present — a standalone nbconvert page has no such chrome.)
+    function isDark() {{
+        return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
     }}
 
     function syncTheme() {{
         container.setAttribute(
             "data-ag-theme-mode",
-            isParentDark() ? "dark-blue" : "light"
+            isDark() ? "dark-blue" : "light"
         );
     }}
 
@@ -189,12 +187,10 @@ class ITable:
             syncTheme();
             window.{self.grid_ref} = agGrid.createGrid(container, gridOptions);
 
-            try {{
-                new MutationObserver(syncTheme).observe(
-                    window.parent.document.documentElement,
-                    {{ attributes: true, attributeFilter: ["class"] }}
-                );
-            }} catch (e) {{ /* cross-origin fallback: no live theme sync */ }}
+            if (window.matchMedia) {{
+            window.matchMedia("(prefers-color-scheme: dark)")
+                .addEventListener("change", syncTheme);
+            }}
 
             new ResizeObserver(reportHeight).observe(document.body);
             reportHeight();

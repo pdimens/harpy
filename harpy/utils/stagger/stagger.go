@@ -1,26 +1,10 @@
-// gih-stagger - finds the ME sequence in R1 reads, removes it, adds the
-// appropriate stagger prefix, and writes interleaved unaligned SAM to stdout.
-//
-// Replaces the cutadapt --info-file pipeline entirely. ME detection uses a
-// bounded Hamming scan (≤2 mismatches, N in read matches anything) over the
-// expected ME position window, matching cutadapt -e 0.11 --overlap 19
-// --match-read-wildcards behavior.
-//
-// Usage:
-//
-//	gih-stagger [options] <R1.fastq[.gz]> <R2.fastq[.gz]>
-//
-// Build:
-//
-//	go mod init stagger
-//	go get github.com/biogo/hts@latest
-//	go get github.com/klauspost/pgzip
-//	go build -ldflags="-s -w" -o gih-stagger stagger.go
 package main
 
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
+	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -30,34 +14,26 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/biogo/hts/bam"
 	"github.com/biogo/hts/sam"
 	"github.com/klauspost/pgzip"
 )
 
-const R1flag int = 77
-const R2flag int = 141
-const winStart int = 49
-const samFlags string = "\t*\t0\t255\t*\t*\t0\t0\t"
-const batchSize = 2000 // read pairs per batch
+const R1flag = sam.Paired | sam.Unmapped | sam.MateUnmapped | sam.Read1
+const R2flag = sam.Paired | sam.Unmapped | sam.MateUnmapped | sam.Read2
+const winStart = 49
+const batchSize = 2000
 
 // ── stagger pads ──────────────────────────────────────────────────────────────
 
 var padSeq = [8]string{
-	"TTTTTTT", // plen 0 — default / out-of-window
-	"CCCCCC",  // plen 1
-	"GGGGG",   // plen 2
-	"AAAA",    // plen 3
-	"TTT",     // plen 4
-	"CC",      // plen 5
-	"GG",      // plen 6
-	"",        // plen 7 — no pad needed
+	"TTTTTTT", "CCCCCC", "GGGGG", "AAAA", "TTT", "CC", "GG", "",
 }
 
-// padEntry stores each pad as a fixed [7]byte array with Phred scores
-// pre-converted, alongside its true length n. Workers copy with no allocation.
+// padEntry stores raw Phred qual (not ASCII) since BAM stores raw scores.
 type padEntry struct {
 	seq  [7]byte
-	qual [7]byte // raw Phred scores (40) — not ASCII
+	qual [7]byte
 	n    int
 }
 
@@ -69,19 +45,23 @@ func init() {
 		e.n = len(s)
 		for j, c := range []byte(s) {
 			e.seq[j] = c
-			e.qual[j] = 40 // Phred 40
+			e.qual[j] = 40 // raw Phred 40, no +33 offset — BAM wants raw scores
 		}
 		pads[i] = e
 	}
 }
 
 // ── FASTQ reader ──────────────────────────────────────────────────────────────
+//
+// Each record owns one combined seq+qual allocation (instead of two), and
+// header/plus lines are read via ReadSlice (no throwaway string alloc).
+// Qual is converted to raw Phred (ASCII - 33) in place while copying, since
+// BAM needs raw scores and nothing downstream needs the ASCII form again.
 
 type fastqRecord struct {
-	name    string
-	comment string
-	seq     []byte
-	qual    []byte // ASCII Phred+33
+	name string
+	seq  []byte
+	qual []byte // raw Phred, NOT ASCII+33
 }
 
 type readPair struct {
@@ -94,31 +74,55 @@ func newFastqReader(r io.Reader) *fastqReader {
 	return &fastqReader{r: bufio.NewReaderSize(r, 1<<19)}
 }
 
-func (f *fastqReader) next() (fastqRecord, bool) {
-	header, err := f.r.ReadString('\n')
+// next reads one record. Returns io.EOF on clean end-of-stream (empty read
+// at a record boundary). Any other error means a truncated/malformed record.
+func (f *fastqReader) next() (fastqRecord, error) {
+	header, err := f.r.ReadSlice('\n')
 	if err != nil {
-		return fastqRecord{}, false
+		if err == io.EOF && len(header) == 0 {
+			return fastqRecord{}, io.EOF
+		}
+		return fastqRecord{}, fmt.Errorf("truncated header line: %w", err)
 	}
-	header = strings.TrimRight(header, "\r\n")
 	if len(header) == 0 || header[0] != '@' {
-		return fastqRecord{}, false
+		return fastqRecord{}, fmt.Errorf("malformed header, expected '@', got %q", header)
 	}
-	header = header[1:]
+	header = bytes.TrimRight(header[1:], "\r\n")
+	name := header
+	if i := bytes.IndexByte(header, ' '); i >= 0 {
+		name = header[:i]
+	}
+	nameCopy := string(name)
 
-	var name, comment string
-	if before, after, ok := strings.Cut(header, " "); ok {
-		name, comment = before, after
-	} else {
-		name = header
+	seqLine, err := f.r.ReadSlice('\n')
+	if err != nil {
+		return fastqRecord{}, fmt.Errorf("truncated seq line for %q: %w", nameCopy, err)
+	}
+	seqLine = bytes.TrimRight(seqLine, "\r\n")
+
+	if _, err := f.r.ReadSlice('\n'); err != nil {
+		return fastqRecord{}, fmt.Errorf("truncated '+' line for %q: %w", nameCopy, err)
 	}
 
-	seqLine, _ := f.r.ReadString('\n')
-	seqLine = strings.TrimRight(seqLine, "\r\n")
-	_, _ = f.r.ReadString('\n') // skip '+'
-	qualLine, _ := f.r.ReadString('\n')
-	qualLine = strings.TrimRight(qualLine, "\r\n")
+	qualLine, err := f.r.ReadSlice('\n')
+	if err != nil {
+		return fastqRecord{}, fmt.Errorf("truncated qual line for %q: %w", nameCopy, err)
+	}
+	qualLine = bytes.TrimRight(qualLine, "\r\n")
 
-	return fastqRecord{name: name, comment: comment, seq: []byte(seqLine), qual: []byte(qualLine)}, true
+	if len(seqLine) != len(qualLine) {
+		return fastqRecord{}, fmt.Errorf("seq/qual length mismatch for %q: %d vs %d", nameCopy, len(seqLine), len(qualLine))
+	}
+
+	buf := make([]byte, len(seqLine)+len(qualLine))
+	seq := buf[:len(seqLine)]
+	qual := buf[len(seqLine):]
+	copy(seq, seqLine)
+	for i, q := range qualLine {
+		qual[i] = q - 33
+	}
+
+	return fastqRecord{name: nameCopy, seq: seq, qual: qual}, nil
 }
 
 // ── file helpers ──────────────────────────────────────────────────────────────
@@ -156,10 +160,6 @@ func (mc multiCloser) Close() error {
 
 // ── ME sequence search ────────────────────────────────────────────────────────
 
-// findME searches for the ME sequence using a bounded Hamming scan over
-// positions 44-65, covering the expected ME start range of 51-58 with margin.
-// 'N' in the read matches any base and counts as 0.3 of a mismatch.
-// Returns the 0-based start position of the best match, or -1 if not found.
 func findME(seq, me *[]byte, maxMismatch *float64) int {
 	meLen := len(*me)
 	readLen := len(*seq)
@@ -177,81 +177,48 @@ seqscan:
 				misMatch++
 			}
 			if misMatch > *maxMismatch {
-				//break
 				continue seqscan
 			}
 		}
-		// this code is only reached if a seqscan iteration didn't have misMatch > threshold
 		return pos
 	}
 	return -1
 }
 
-// ── SAM formatting ────────────────────────────────────────────────────────────
-
-// pairedFlag returns the SAM FLAG integer for a paired unmapped read.
-// R1: 0x1|0x4|0x8|0x40 = 77   R2: 0x1|0x4|0x8|0x80 = 141
-func pairedFlag(isRead1 bool) int {
-	if isRead1 {
-		return R1flag
-	}
-	return R2flag
-}
-
-// workerState holds reusable per-goroutine scratch buffers.
-type workerState struct {
-	seqBuf  []byte       // assembled seq (pad + barcode + biological)
-	qualBuf []byte       // assembled qual in ASCII Phred+33
-	outBuf  bytes.Buffer // SAM text accumulator for the whole batch
-}
-
-// writeSAMRecord appends a single SAM record as a text line to ws.outBuf.
-// qual is expected in ASCII Phred+33 (as read from FASTQ).
-// This avoids constructing a sam.Record object entirely for the write path.
-func (ws *workerState) writeSAMRecord(name string, flag int, seq, qual []byte) {
-	ws.outBuf.WriteString(name)
-	ws.outBuf.WriteByte('\t')
-	// write flag as decimal
-	ws.writeInt(flag)
-	// RNAME POS MAPQ CIGAR RNEXT PNEXT TLEN — all * or 0 for uSAM
-	ws.outBuf.WriteString(samFlags)
-	ws.outBuf.Write(seq)
-	ws.outBuf.WriteByte('\t')
-	ws.outBuf.Write(qual)
-	ws.outBuf.WriteByte('\n')
-}
-
-// writeInt writes a non-negative integer to outBuf without allocating.
-func (ws *workerState) writeInt(n int) {
-	if n == 0 {
-		ws.outBuf.WriteByte('0')
-		return
-	}
-	var tmp [10]byte
-	i := len(tmp)
-	for n > 0 {
-		i--
-		tmp[i] = byte('0' + n%10)
-		n /= 10
-	}
-	ws.outBuf.Write(tmp[i:])
-}
-
 // ── worker ────────────────────────────────────────────────────────────────────
+//
+// Builds sam.Record structs directly (no SAM text) and hands them to a
+// shared bam.Writer under one lock per batch. Records are reused across
+// iterations via workerState — only Seq re-packing allocates (sam.NewSeq
+// packs into 4-bit nybbles; unavoidable, it's the BAM wire format).
+
+type workerState struct {
+	seqBuf, qualBuf []byte
+	rec1, rec2      sam.Record
+}
+
+func newWorkerState() *workerState {
+	return &workerState{
+		seqBuf:  make([]byte, 512),
+		qualBuf: make([]byte, 512),
+		rec1:    sam.Record{Ref: nil, Pos: -1, MapQ: 0, MateRef: nil, MatePos: -1},
+		rec2:    sam.Record{Ref: nil, Pos: -1, MapQ: 0, MateRef: nil, MatePos: -1},
+	}
+}
 
 func processBatch(
 	ws *workerState,
 	batch []readPair,
 	me []byte,
 	maxMismatch float64,
-	//minLen int,
-	out io.Writer,
+	bw *bam.Writer,
 	mu *sync.Mutex,
 	discarded *atomic.Int64,
-	//tooShort *atomic.Int64,
 ) error {
 	meLen := len(me)
-	ws.outBuf.Reset()
+
+	mu.Lock()
+	defer mu.Unlock()
 
 	for i := range batch {
 		fq1 := &batch[i].fq1
@@ -273,12 +240,7 @@ func processBatch(
 		pad := &pads[plen]
 		afterStart := mePos + meLen
 		afterSeq := fq1.seq[afterStart:]
-		afterQual := fq1.qual[afterStart:]
-
-		//if len(afterSeq) < minLen {
-		//	tooShort.Add(1)
-		//	continue
-		//}
+		afterQual := fq1.qual[afterStart:] // already raw Phred
 
 		var bcSeq, bcQual []byte
 		if plen == 6 {
@@ -289,7 +251,6 @@ func processBatch(
 			bcQual = fq1.qual[:mePos]
 		}
 
-		// Assemble seq: pad bases + barcode + biological sequence
 		totalLen := pad.n + len(bcSeq) + len(afterSeq)
 		if cap(ws.seqBuf) < totalLen {
 			ws.seqBuf = make([]byte, totalLen)
@@ -302,31 +263,37 @@ func processBatch(
 		n += copy(ws.seqBuf[n:], bcSeq)
 		copy(ws.seqBuf[n:], afterSeq)
 
-		// Assemble qual in ASCII Phred+33:
-		// pad qual is stored as raw Phred (40), so add 33 back for SAM text output.
-		for j := range pad.n {
-			ws.qualBuf[j] = pad.qual[j] + 33 // 40+33 = 73 = 'I'
-		}
+		copy(ws.qualBuf, pad.qual[:pad.n]) // already raw Phred
 		n = copy(ws.qualBuf[pad.n:], bcQual)
 		copy(ws.qualBuf[pad.n+n:], afterQual)
 
-		ws.writeSAMRecord(fq1.name, pairedFlag(true), ws.seqBuf, ws.qualBuf)
-		ws.writeSAMRecord(fq2.name, pairedFlag(false), fq2.seq, fq2.qual)
-	}
+		seq1 := sam.NewSeq(ws.seqBuf)
+		ws.rec1.Name = fq1.name
+		ws.rec1.Flags = R1flag
+		ws.rec1.Seq = seq1
+		ws.rec1.Qual = append(ws.rec1.Qual[:0], ws.qualBuf...)
+		if err := bw.Write(&ws.rec1); err != nil {
+			return err
+		}
 
-	// Single locked write for the entire batch.
-	mu.Lock()
-	_, err := out.Write(ws.outBuf.Bytes())
-	mu.Unlock()
-	return err
+		seq2 := sam.NewSeq(fq2.seq)
+		ws.rec2.Name = fq2.name
+		ws.rec2.Flags = R2flag
+		ws.rec2.Seq = seq2
+		ws.rec2.Qual = append(ws.rec2.Qual[:0], fq2.qual...) // already raw Phred
+		if err := bw.Write(&ws.rec2); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
+
 func main() {
 	meSeq := flag.String("me", "AGATGTGTATAAGAGACAG", "ME sequence to search for")
 	statsfile := flag.String("stats", "stats.txt", "File name for stats output")
 	maxMM := flag.Float64("max-mismatch", 2, "Maximum allowable ME mismatch score")
-	//minLen := flag.Int("min-len", 30, "Discard reads with biological sequence shorter than this")
 	nThreads := flag.Int("threads", 4, "Number of worker threads")
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: gih-stagger [options] <R1.fastq[.gz]> <R2.fastq[.gz]>\n\nOptions:\n")
@@ -341,11 +308,9 @@ func main() {
 	}
 
 	threads := min(max(*nThreads, 1), runtime.NumCPU())
-	runtime.GOMAXPROCS(threads + 1) // +1 for the reader goroutine
+	runtime.GOMAXPROCS(threads + 1)
 
-	// Split decompression block budget evenly between the two input readers.
 	gzBlocks := max(threads/2, 1)
-
 	me := []byte(strings.ToUpper(*meSeq))
 
 	fh1, err := openFastq(args[0], gzBlocks)
@@ -365,9 +330,6 @@ func main() {
 	rdr1 := newFastqReader(fh1)
 	rdr2 := newFastqReader(fh2)
 
-	// Write SAM header then stream records.
-	// sam.NewHeader + sam.NewWriter handles the @HD line; we write no @SQ lines
-	// since all reads are unmapped.
 	header, err := sam.NewHeader(nil, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error creating SAM header: %v\n", err)
@@ -376,39 +338,33 @@ func main() {
 	header.Version = "1.6"
 	header.SortOrder = sam.Unsorted
 
-	outBuf := bufio.NewWriterSize(os.Stdout, 2<<20)
-
-	// Write header via sam.Writer, then use outBuf directly for record lines.
-	headerWriter, err := sam.NewWriter(outBuf, header, sam.FlagDecimal)
+	stdoutBuf := bufio.NewWriterSize(os.Stdout, 2<<20)
+	// gzip.NoCompression -> BGZF container still valid BAM, but store blocks
+	// instead of deflating. wc = compress worker count (irrelevant at level 0
+	// but bam.NewWriterLevel still wants it).
+	bw, err := bam.NewWriterLevel(stdoutBuf, header, gzip.NoCompression, threads)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error creating SAM writer: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Error creating BAM writer: %v\n", err)
 		os.Exit(1)
 	}
-	// sam.NewWriter writes the header on construction; we only needed it for that.
-	_ = headerWriter
 
 	var (
 		mu        sync.Mutex
 		wg        sync.WaitGroup
 		discarded atomic.Int64
-		//tooShort  atomic.Int64
-		total    atomic.Int64
-		writeErr atomic.Value
+		total     atomic.Int64
+		writeErr  atomic.Value
 	)
 	jobs := make(chan []readPair, threads*2)
 
 	for range threads {
 		wg.Go(func() {
-			ws := &workerState{
-				seqBuf:  make([]byte, 512),
-				qualBuf: make([]byte, 512),
-			}
-			ws.outBuf.Grow(batchSize * 300) // pre-size for ~300 bytes/record pair
+			ws := newWorkerState()
 			for batch := range jobs {
 				if writeErr.Load() != nil {
 					continue
 				}
-				if err := processBatch(ws, batch, me, *maxMM /* *minLen*/, outBuf, &mu, &discarded /*, &tooShort */); err != nil {
+				if err := processBatch(ws, batch, me, *maxMM, bw, &mu, &discarded); err != nil {
 					writeErr.Store(err)
 				}
 			}
@@ -417,11 +373,28 @@ func main() {
 
 	batch := make([]readPair, 0, batchSize)
 	for {
-		fq1, ok1 := rdr1.next()
-		fq2, ok2 := rdr2.next()
-		if !ok1 || !ok2 {
-			break
+		fq1, err1 := rdr1.next()
+		fq2, err2 := rdr2.next()
+
+		eof1 := errors.Is(err1, io.EOF)
+		eof2 := errors.Is(err2, io.EOF)
+
+		if eof1 && eof2 {
+			break // clean end on both — expected
 		}
+		if err1 != nil && !eof1 {
+			fmt.Fprintf(os.Stderr, "Error: R1 malformed near pair %d: %v\n", total.Load()+1, err1)
+			os.Exit(1)
+		}
+		if err2 != nil && !eof2 {
+			fmt.Fprintf(os.Stderr, "Error: R2 malformed near pair %d: %v\n", total.Load()+1, err2)
+			os.Exit(1)
+		}
+		if eof1 != eof2 {
+			fmt.Fprintf(os.Stderr, "Error: R1/R2 read count mismatch near pair %d (R1 EOF=%v, R2 EOF=%v)\n", total.Load()+1, eof1, eof2)
+			os.Exit(1)
+		}
+
 		total.Add(1)
 		batch = append(batch, readPair{fq1, fq2})
 		if len(batch) == batchSize {
@@ -429,6 +402,7 @@ func main() {
 			batch = make([]readPair, 0, batchSize)
 		}
 	}
+
 	if len(batch) > 0 {
 		jobs <- batch
 	}
@@ -440,7 +414,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	outBuf.Flush()
+	if err := bw.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error closing BAM writer: %v\n", err)
+		os.Exit(1)
+	}
+	stdoutBuf.Flush()
 
 	file, err := os.Create(*statsfile)
 	if err != nil {
@@ -451,5 +429,4 @@ func main() {
 
 	fmt.Fprintf(file, "Total read pairs processed:           %d\n", total.Load())
 	fmt.Fprintf(file, "Discarded (ME sequence not found):    %d\n", discarded.Load())
-	//fmt.Fprintf(file, "Discarded (post-trim read too short): %d\n", tooShort.Load())
 }

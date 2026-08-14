@@ -35,6 +35,7 @@ def snp():
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
+@click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`_\\<TAB\\>_`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
@@ -51,7 +52,7 @@ def snp():
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def freebayes(reference, inputs, output, threads, populations, ploidy, regions, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def freebayes(reference, inputs, output, threads, populations, ploidy, regions, extra_params, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Call variants using freebayes
 
@@ -95,6 +96,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
         workflow.input("workflow/sample.groups", "groupings:processed")
     workflow.input(alignments.files, "alignments")
     workflow.param(ploidy, "ploidy")
+    workflow.param(keep_invariant, "keep-invariant")
     if extra_params:
         workflow.param(extra_params, "extra")
 
@@ -112,6 +114,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
+@click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
@@ -125,7 +128,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def mpileup(reference, inputs, output, regions, threads, populations, ploidy, extra_params, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def mpileup(reference, inputs, output, regions, threads, populations, ploidy, extra_params, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
     Call variants from using bcftools mpileup
 
@@ -168,6 +171,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
         workflow.input("workflow/sample.groups", "groupings:processed")
     workflow.input(alignments.files, "alignments")
     workflow.param(ploidy, "ploidy")
+    workflow.param(keep_invariant, "keep-invariant")
     if extra_params:
         workflow.param(extra_params, "extra")
 
