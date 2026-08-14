@@ -63,7 +63,7 @@ rule process_reference:
                 # is regular gzipped, needs to be BGzipped
                 seqtk seq {input} | bgzip -c > {output.geno}
             else
-                cp -f {input} {output.geno}
+                ln -s {input} {output.geno}
             fi
             samtools faidx {params} --fai-idx {output.fai} {output.geno}
         }} 2> {log}
@@ -96,7 +96,8 @@ rule call_genotypes:
         "workflow/sample.groups" if groupings else [],
         bamlist = "workflow/mpileup.input",
         genome  = workflow_geno,
-    output: 
+    output:
+        temp("regions/{part}.bcf.csi"),
         bcf = temp("regions/{part}.bcf"),
         logfile = temp("logs/mpileup/{part}.mpileup.log")
     log:
@@ -113,8 +114,8 @@ rule call_genotypes:
         """
         {{
             bcftools mpileup --threads {threads} --fasta-ref {input.genome} --bam-list {input.bamlist} -Ou {params.region} {params.annot_mp} {params.extra} 2> {output.logfile} |
-            bcftools call -o {output.bcf} --multiallelic-caller {params.invar} {params.ploidy} {params.annot_call} {params.groups} |
-            bcftools sort --output {output.bcf} -Ou --write-index {input.bcf}
+            bcftools call --multiallelic-caller {params.invar} {params.ploidy} {params.annot_call} {params.groups} |
+            bcftools sort --output {output.bcf} -Ou --write-index
         }} 2> {log}
         """
 
