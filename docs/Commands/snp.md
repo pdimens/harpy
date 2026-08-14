@@ -69,6 +69,7 @@ In addition to the [!badge variant="info" corners="pill" text="common runtime op
 | `--ploidy` `-n`                  |             `2`              | Ploidy of samples                                                                                                                             |
 | `--populations` `-p`             |                              | Tab-delimited file of sample\<*tab*\>group                                                                                                    |
 | `--regions` `-r`                 |           `50000`            | Regions to call variants on ([see below](#regions))                                                                                           |
+| `--keep-invariant` `-i`          |            false             | Retain invariant/monomorphic loci                                                                                                             |
 
 ### ploidy
 If you are calling haploid or diploid samples, using either `mpileup` or `freebayes` will be comparable. However, if you need to call SNPs in polyploids (ploidy >2),
