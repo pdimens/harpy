@@ -72,7 +72,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     workflow.notebooks["skip"] = skip_reports
 
     workflow.info = {
-        "Barcode Design": "Meier [italic]et al.[/] 2021",
+        "Barcode Design": "Meier et al. 2021",
         "Demultiplex Schema": os.path.basename(schema),
         "Include QX/RX tags" : "Yes" if qx_rx else "No",
         "Output Folder" : os.path.relpath(output) + "/"
@@ -121,7 +121,7 @@ def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, quie
     #workflow.param(min_len, "min-length")
 
     workflow.info = {
-        "Barcode Design": "Iqbal [italic]et al.[/] (in prep)",
+        "Barcode Design": "Iqbal et al. (in prep)",
         "Output Folder": os.path.relpath(output) + "/"
     }
 
