@@ -1,10 +1,6 @@
 # New
-## SNP
-- `-i`/`--keep-invariant` to retain monomorphic sites
+- `harpy view envs`: print versions
 
-## Improvements
-- variant sorting of temporary region-chunks in `snp` workflows now outputs uncompressed BCF, which should see a bit of speedup
-- `preprocess gih` stagger code should be a little leaner with fewer allocations and no BAM->SAM conversion
 
-## Fixes
-- report tables might respect dark mode better. might not. I'm not a web dev :shrug:
+# Fixes
+- `harpy view envs`: simpler logic and print diagnostic text if empty

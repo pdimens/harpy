@@ -2,6 +2,7 @@
 
 import glob
 import os
+import yaml
 
 import rich_click as click
 from rich.tree import Tree
@@ -91,19 +92,11 @@ def envs(program):
         )
     tree = Tree("[bold]Conda Environments")
     for i in files:
-        deps = []
         with open(i, "r") as file:
-            skip = True
-            for line in file:
-                if line.startswith("dependencies"):
-                    skip = False
-                    continue
-                if not skip:
-                    dep = line.split("::")[-1].rstrip()
-                    deps.append(dep.rstrip())
-                    #deps += f" {dep.rstrip()}"
-        stripdeps = [j.split("=")[0] for j in deps]
-        if not program or any([program in j for j in stripdeps]):
+            deps: list[str] = yaml.safe_load(file)['dependencies']
+            for idx in range(len(deps)):
+                deps[idx] = deps[idx].split('::')[1]
+        if not program or any([program in j for j in deps]):
             _subtree = tree.add("[bold]" + i.removesuffix('.yaml'), style = "blue")
             for d in deps:
                 if program:
@@ -113,8 +106,11 @@ def envs(program):
                         _subtree.add(d, style = 'dim default', highlight = False)
                 else:
                     _subtree.add(d, style = 'default', highlight = False)
-
-    hp.print(tree)
+    if tree.children:
+        hp.print(tree)
+    else:
+        hp.print(f"No environments were found that matched [yellow]{program}[/]. Environments checked:")
+        hp.print("  "+"\n  ".join(files))
 
 @click.command(no_args_is_help = False, context_settings={"allow_interspersed_args" : False})
 @click.option("-c", "--choose", is_flag=True, default=False, help = "List logs for user choice")
