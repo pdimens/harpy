@@ -40,7 +40,7 @@ rule sort:
     log:
         "logs/sort/{sample}.sort.log"
     params:
-        sortthreads = lambda wc, threads: threads - 1
+        lambda wc, threads: threads - 1
     threads:
         4
     resources:
@@ -51,8 +51,8 @@ rule sort:
         mkdir -p {resources.tmpdir}
         {{
             samtools fixmate -z on -m -u {input.bam} - |
-            samtools sort -@ {params.sortthreads} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
-            samtools stats -@ {params.sortthreads} -d -x -r {input.ref} {output.bam} > {output.stats} 
+            samtools sort -@ {params} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params} -d -x -r {input.ref} {output.bam} > {output.stats} 
         }} 2> {log}
         """
 

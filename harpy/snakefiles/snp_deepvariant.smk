@@ -92,6 +92,7 @@ rule index_alignments:
     shell:
         "samtools index {input}"
 
+# either vcf or gvcf
 rule call_variants:
     input:
         get_alignments_index,
@@ -99,36 +100,39 @@ rule call_variants:
         f"{workflow_geno}.fai",
         reference = workflow_geno
     output:
-        tvcf = temp("samples/tmp.{sample}.vcf"),
-        bcf = temp("samples/{sample}.bcf"),
-        gvcf = temp("samples/{wc.sample}.gvcf") if keep_invar else [],
-        tgvcf = temp("samples/tmp.{wc.sample}.gvcf") if keep_invar else [],
-        idx = temp("samples/{sample}.bcf.csi")
+        dir("deepvariant/{sample}"),
+        vcf = temp("samples/{sample}.vcf")
     log:
         "logs/{sample}.deepvariant.log"
     params:
         "--model_type=WGS",
         "--use_gpu" if gpu else "",
-        lambda wc: f"--output_gvcf=samples/{wc.sample}.gvcf" if keep_invar else "",
+        lambda wc: "--intermediate_results_dir=deepvariant/{wc.sample}",
         extra = extra,
+        "--output_gvcf=" if keep_invar else "--output_vcf="
     threads:
         4
-    conda:
-        "envs/variants.yaml"
     container:
-        f"docker://pdimens/harpy:variants_{VERSION}"
+        "docker://google/deepvariant:1.10.0"
     shell:
         """
         mkdir -p deepvariant/{wildcards.sample}
-        {{
-            run_deepvariant --ref={input.reference} --reads={input.bam} --output_vcf={output.tvcf} \
-                {params}  --num_shards {threads} --intermediate_results_dir deepvariant/{wildcards.sample}
-
-            bcftools sort --output {output.bcf} -Ou --write-index {output.tvcf} > {output.bcf}
-        }} &> {log}
+        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params}{output.vcf} &> {log}
         """
 
-rule concat_variants:
+rule sort_variants:
+    input:
+        "samples/{sample}.vcf"
+    output:
+        temp("samples/{sample}.bcf.csi"),
+        bcf = temp("samples/{sample}.bcf")
+    threads:
+        2
+    shell:
+        "bcftools sort -Ou --write-index {input} > {output.bcf}"
+
+
+rule concat_samples:
     input:
         collect("samples/{sample}.bcf.csi", part = samplenames),
         bcf = collect("samples/{sample}.bcf", part = samplenames)
@@ -141,12 +145,14 @@ rule concat_variants:
     threads:
         workflow.cores
     params:
-        workflow.cores - 1 
+        workflow.cores - 1
+    resources:
+        mem_mb = 8000
     shell:  
         """
         printf '%s\\n' {input.bcf} > {output.concatlist}
         {{
-            bcftools merge -f {output.concatlist} --threads {params} --naive |
+            bcftools merge -@ {params} --no-version -f {output.concatlist} --max-mem {resources}M |
             bcftools sort - --write-index -Ob -o {output.bcf}
         }} 2> {log}
         """
