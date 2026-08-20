@@ -65,7 +65,7 @@ and your "layer" (modification) is installing a program into it using `sudo apt 
 run particular things with the software you installed into it.
 ===
 
-Harpy is distributed with Bioconda and every conda package in Bioconda has a corresponding Docker BioContainer automatically created and uploaded to Quay.io. You can find it [here](https://biocontainers.pro/tools/harpy)
+Harpy is distributed with Bioconda and every conda package in Bioconda has a corresponding Docker BioContainer automatically created and uploaded to Quay.io. You can find it [here](https://quay.io/repository/biocontainers/harpy)
 
 ## What's the Catch?
 While local conda enviroments at runtime or containers might seem like  foolproof approaches, there are drawbacks.
