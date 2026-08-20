@@ -214,6 +214,68 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
 
     workflow.initialize(setup)
 
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/align/standard/")
+@click.option('-w', '--depth-window', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 50), help = 'Interval size (in bp) for depth stats')
+#@click.option('-x', '--extra-params', panel = "Parameters", type = MinimapParams(), help = 'Additional minimap2 parameters, in quotes')
+@click.option('-u', '--keep-unmapped', panel = "Parameters",  is_flag = True, default = False, help = 'Include unmapped sequences in output')
+@click.option('-q', '--min-quality', panel = "Parameters", default = 30, show_default = True, type = click.IntRange(0, 40, clamp = True), help = 'Minimum mapping quality to output')
+@click.option('-d', '--molecule-distance', panel = "Parameters", default = 50000, show_default = True, type = click.IntRange(min = 0), help = 'Distance cutoff for molecule assignment (bp)')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Align/arachne", show_default=True,  help = 'Output directory name')
+@click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
+@click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
+@click.option('-C', '--container', panel = "Workflow Options",  is_flag = True, default = False, help = 'Use a container instead of conda', callback=container_ok)
+@click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
+@click.option('-Q', '--quiet', panel = "Workflow Options", default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` progress bar, `2` no output')
+@click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
+@click.option('-N', '--setup', panel = "Workflow Options",  is_flag = True, hidden = True, default = False, help = 'Setup the workflow and exit')
+@click.option('-R', '--skip-reports', panel = "Workflow Options",  is_flag = True, show_default = True, default = False, help = 'Don\'t generate HTML reports')
+@click.option('-S', '--snakemake', panel = "Workflow Options", type = SnakemakeParams(), help = 'Additional Snakemake parameters, in quotes')
+@click.help_option('--help', hidden = True)
+@click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
+@click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
+def arachne(reference, inputs, output, depth_window, threads, keep_unmapped, min_quality, molecule_distance, snakemake, skip_reports, quiet, hpc, clean, container, no_temp, setup):
+    #MISSING EXTRA PARAMS, CENTROMERES
+    """
+    Align sequences to reference genome using arachne
+
+    Provide the reference fasta followed by input fastq files and/or directories at the end of the command as individual
+    files/folders, using shell wildcards (e.g. `data/echidna*.fastq.gz`), or both.
+
+    Arachne is the successor to the linked-read barcode-aware aligner Lariant (by 10X Genomics).
+    Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
+    """
+    workflow = Workflow("align_arachne", "align_arachne.smk", output, container, clean, quiet)
+    workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
+    workflow.notebook_files = ["align_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
+    workflow.conda = ["align", "qc"]
+
+    ## checks and validations ##
+    fastq = FASTQ(inputs, detect_bc = True, quiet = quiet)
+    fasta = FASTA(reference, quiet = quiet)
+
+    workflow.linkedreads["type"] = fastq.lr_type
+    workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
+    workflow.notebooks["skip"] = skip_reports
+    workflow.input(fasta.file, "reference")
+    workflow.input(fastq.files, "fastq")
+    workflow.param(fastq.illumina_old, "illumina-format-old")
+    workflow.param(molecule_distance, "distance-threshold")
+    workflow.param(min_quality, "min-map-quality")
+    workflow.param(keep_unmapped, "keep-unmapped")
+    workflow.param(depth_window, "depth-windowsize")
+    #if extra_params:
+    #    workflow.param(extra_params, "extra")
+
+    workflow.info = {
+        "Samples": fastq.count,
+        "Linked-Read Type": fastq.lr_type,
+        "Reference": os.path.basename(reference),
+        "Output Folder" : os.path.relpath(output) + "/"
+    }
+
+    workflow.initialize(setup)
+
 align.add_command(bwa)
 align.add_command(strobe)
 align.add_command(minimap)
+align.add_command(arachne)

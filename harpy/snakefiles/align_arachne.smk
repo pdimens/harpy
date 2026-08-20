@@ -18,6 +18,7 @@ extra 		      = PARAMETERS.get("extra", "")
 windowsize        = PARAMETERS.get("depth-windowsize", 50000)
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
+#TODO add as cli arg
 centromeres 	  = INPUTS.get("centromeres", None)
 lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
 
@@ -40,7 +41,7 @@ rule process_reference:
     output: 
         geno = workflow_geno,
         #TODO THREADS SUPPORT?
-        bwa_idx = multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa', '.l2b', '.mbw'),
+        bwa_idx = multiext(workflow_geno, '.l2b', '.mbw'),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
@@ -70,26 +71,36 @@ rule process_reference:
             fi
 
             minibwa index -t {threads} {output.geno}
-            arachne index -t {threads} {output.geno} 
         }} 2> {log}
         """
 
-rule process_fastq:
+rule arachne_index:
+    input:
+        workflow_geno
+    output:
+        multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
+    log:
+        f"{workflow_geno}.arachne.index.log"
+    shell: 
+        """
+        arachne index {input} 2> {log}
+        """
+
+rule arachne_prep:
     input:
         get_fq
     output:
-        collect("arachne/prep/{{sample}}.{prefix}.{FR}.fq.gz", prefix = ['arachne', 'invalid'], FR = ['R1', 'R2'])
+        temp(collect("arachne/prep/{{sample}}.{prefix}.{FR}.fq.gz", prefix = ['arachne', 'invalid'], FR = ['R1', 'R2']))
     threads:
         4
-    conda:
-        "envs/align.yaml"
-    container:
-        f"docker://pdimens/harpy:align_{VERSION}"
+    log:
+        "logs/preprocess/{sample}.prep.log"
+#    conda:
+#        "envs/align.yaml"
+#    container:
+#        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        """
-        mkdir -p arachne/prep
-        arachne prep -t {threads} arachne/prep/{wildcards.sample} {input}
-        """
+        "arachne prep -t {threads} arachne/prep/{wildcards.sample} {input} 2> {log}"
 
 rule arachne_align:
     input:
@@ -108,10 +119,10 @@ rule arachne_align:
         extra = extra
     threads:
         12
-    conda:
-        "envs/align.yaml"
-    container:
-        f"docker://pdimens/harpy:align_{VERSION}"
+#    conda:
+#        "envs/align.yaml"
+#    container:
+#        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         mkdir -p {resources.tmpdir}
@@ -145,7 +156,7 @@ rule bwa_align:
         """
         mkdir -p {resources.tmpdir}
         {{
-            minibwa map -t {threads} {params} {input.ref} {input.R1} {input.R2} |
+            minibwa map -t {threads} -y {params} {input.ref} {input.R1} {input.R2} |
             samtools collate -T {resources.tmpdir} -O -u - 
         }} 2> {log} > {output.bam}
         """
