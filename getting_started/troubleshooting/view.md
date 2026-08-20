@@ -45,34 +45,36 @@ to only print environments where `SOFTWARE` is found (it also works with partial
 ``` viewing all environments
 harpy view environments
 
-.environments/f5cb053d77e72fca1c7b6463448fd855_
-  - falco=1.2.4
-  - fastp
-  - multiqc=1.28
-  - pysam=0.22
-  - quickdeconvolution
-
-.environments/9f9995de2cc77c81654693b8fb002922_
-  - quarto
-  - r-dt
-  - r-dplyr
-  - r-highcharter
-  - r-magrittr
-  - r-plotly
-  - r-scales
-  - r-tidyr
-  - r-viridislite
-  - r-xml2
-  - r-biocircos
+Conda Environments
+├── .environments/e38c41849c266f1765a6dad2ea0db37a_
+│   ├── bwa
+│   ├── minibwa
+│   ├── minimap2
+│   ├── samtools=1.23
+│   ├── seqtk
+│   ├── strobealign
+│   └── tabix
+├── .environments/4dc2b26a762f0f46c3c195218651080a_
+│   ├── dmox>=0.2
+│   └── pheniqs=2.1
+└── .environments/0ffc3ee8f456a1920afe71babd002bf7_
+    ├── bcftools=1.23
+    ├── freebayes=1.3.9
+    ├── leviathan
+    └── naibr-plus=0.5.4
 ```
 
 ``` searching for a program
 harpy view environments fast
 
-.environments/f5cb053d77e72fca1c7b6463448fd855_
-  - falco=1.2.4
-  → fastp
-  - multiqc=1.28
-  - pysam=0.22
-  - quickdeconvolution
+Conda Environments
+└── .environments/3090e313a5f362f817f7572c06ff912a_
+    ├── click=8.2.1
+    ├── falco=1.2.5
+    ├── fastp <
+    ├── mosdepth
+    ├── multiqc=1.30
+    ├── pysam=0.23
+    ├── quickdeconvolution
+    └── samtools
 ```

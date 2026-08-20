@@ -135,7 +135,8 @@ meaning a single sample should have the same `C` barcode for all of its sequence
 
 ===  :icon-checklist: You will need
 - at least 2 cores/threads available
-- paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
+- **bulk** paired-end reads from an Illumina sequencer in FASTQ format [!badge variant="secondary" icon=":heart:" text="gzipped recommended"]
+  - bulk meaning that sample demultiplexing hasn't been done and the FASTQ files are aggregates of all samples in a run
 ===
 
 ```bash usage
