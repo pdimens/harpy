@@ -226,8 +226,8 @@ rule linked_read_report:
         f"logs/reports/lrstats.report.log"
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-lr-stats
         {{
-            export IPYTHONDIR=/tmp/ipython-lr-stats
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
         }} 2> {log}

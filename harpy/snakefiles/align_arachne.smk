@@ -90,7 +90,7 @@ rule arachne_prep:
     input:
         get_fq
     output:
-        temp(collect("arachne/prep/{{sample}}.{prefix}.{FR}.fq.gz", prefix = ['arachne', 'invalid'], FR = ['R1', 'R2']))
+        temp(collect("arachne-prep/{{sample}}.{prefix}.{FR}.fq.gz", prefix = ['arachne', 'invalid'], FR = ['R1', 'R2']))
     threads:
         4
     log:
@@ -100,23 +100,25 @@ rule arachne_prep:
 #    container:
 #        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        "arachne prep -t {threads} arachne/prep/{wildcards.sample} {input} 2> {log}"
+        "arachne prep -t {threads} arachne-prep/{wildcards.sample} {input} 2> {log}"
 
 rule arachne_align:
     input:
         multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
         ref   = workflow_geno,
-        R1 = "arachne/prep/{sample}.arachne.R1.fq.gz",
-        R2 = "arachne/prep/{sample}.arachne.R2.fq.gz",
+        R1 = "arachne-prep/{sample}.arachne.R1.fq.gz",
+        R2 = "arachne-prep/{sample}.arachne.R2.fq.gz",
         centromeres = centromeres if centromeres else []
     output:
-        temp("arachne/align/{sample}.arachne.bam")
+        temp(directory("align/{sample}_arachne_tmp")),
+        bam = temp("align/{sample}.arachne.bam")
     log:
         "logs/arachne/{sample}.arachne.log"
     params:
-        RG_tag = lambda wc: "-s " + wc.get("sample"),
-        dist = f"-d {molecule_distance}",
-        extra = extra
+        f"-d {molecule_distance}",
+        lambda wc: "-s " + wc.get("sample")
+    resources:
+        tmpdir = lambda wc: f"align/{wc.sample}_arachne_tmp"
     threads:
         12
 #    conda:
@@ -125,20 +127,22 @@ rule arachne_align:
 #        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        mkdir -p {resources.tmpdir}
-        arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
-            samtools view -l 0 -O BAM - | samtools sort -u > {output} 2> {log}
+        {{
+            mkdir -p {resources.tmpdir}
+            arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
+            samtools sort -u > {output.bam}
+        }} 2> {log}
         """
 
 rule bwa_align:
     input:
         multiext(workflow_geno, ".l2b", ".mbw"),
         ref   = workflow_geno,
-        R1 = "arachne/prep/{sample}.invalid.R1.fq.gz",
-        R2 = "arachne/prep/{sample}.invalid.R2.fq.gz"
+        R1 = "arachne-prep/{sample}.invalid.R1.fq.gz",
+        R2 = "arachne-prep/{sample}.invalid.R2.fq.gz"
     output:
-        bam = temp("bwa/{sample}.bwa.bam"),
-        tmp = temp(directory("bwa/{sample}_tmp"))
+        bam = temp("align/{sample}.bwa.bam"),
+        tmp = temp(directory("align/{sample}_bwa_tmp"))
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -147,7 +151,7 @@ rule bwa_align:
     threads:
         12
     resources:
-        tmpdir = lambda wc: f"bwa/{wc.sample}_tmp"
+        tmpdir = lambda wc: f"align/{wc.sample}_bwa_tmp"
     conda:
         "envs/align.yaml"
     container:
@@ -165,7 +169,7 @@ rule sort:
     retries: 3
     input:
         ref = workflow_geno,
-        bam = "bwa/{sample}.bwa.bam"
+        bam = "align/{sample}.bwa.bam"
     output:
         bam = temp("sort/{sample}.sort.bam"),
         stats = "reports/data/samtools_stats/{sample}.raw.stats",
@@ -190,7 +194,6 @@ rule sort:
         """
 
 rule mark_duplicates:
-    priority: 1
     input:
         fq  = get_fq,
         bam = "sort/{sample}.sort.bam"
@@ -219,16 +222,22 @@ rule mark_duplicates:
         }} 2> {log}
         """
 
-rule combine_alignments:
+rule concat_arachne_bwa:
+    priority: 1
     input:
-        "arachne/align/{sample}.arachne.bam",
+        "align/{sample}.arachne.bam",
         "markdup/{sample}.bam"
     output:
         "{sample}.bam"
     log:
         "logs/concat/{sample}.concat.log"
     shell:
-        "samtools cat -o {output} {input} 2> {log}"
+        """
+        {{
+            samtools cat --output-fmt-option level=0 {input} |
+            samtools sort -O BAM
+        }} > {output} 2> {log}
+        """
 
 rule depth_stats:
     input:
@@ -358,8 +367,8 @@ rule linked_read_report:
         f"logs/reports/lrstats.report.log"
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-bwa.lr
         {{
-            export IPYTHONDIR=/tmp/ipython-bwa.lr
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
         }} 2> {log}
