@@ -254,11 +254,9 @@ def arachne(reference, inputs, output, depth_window, threads, keep_unmapped, min
     fasta = FASTA(reference, quiet = quiet)
 
     workflow.linkedreads["type"] = fastq.lr_type
-    workflow.linkedreads["standardized"] = {"BX" : fastq.bx_tag, "VX": fastq.vx_tag}
     workflow.notebooks["skip"] = skip_reports
     workflow.input(fasta.file, "reference")
     workflow.input(fastq.files, "fastq")
-    workflow.param(fastq.illumina_old, "illumina-format-old")
     workflow.param(molecule_distance, "distance-threshold")
     workflow.param(min_quality, "min-map-quality")
     workflow.param(keep_unmapped, "keep-unmapped")
