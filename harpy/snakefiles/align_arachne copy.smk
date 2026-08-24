@@ -111,7 +111,7 @@ rule arachne_align:
         centromeres = centromeres if centromeres else []
     output:
         temp(directory("align/{sample}_arachne_tmp")),
-        bam = "{sample}.bam"
+        bam = temp("align/{sample}.arachne.bam")
     log:
         "logs/arachne/{sample}.arachne.log"
     params:
@@ -132,6 +132,111 @@ rule arachne_align:
             arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
             samtools sort -u > {output.bam}
         }} 2> {log}
+        """
+
+rule bwa_align:
+    input:
+        multiext(workflow_geno, ".l2b", ".mbw"),
+        ref   = workflow_geno,
+        R1 = "arachne-prep/{sample}.invalid.R1.fq.gz",
+        R2 = "arachne-prep/{sample}.invalid.R2.fq.gz"
+    output:
+        bam = temp("align/{sample}.bwa.bam"),
+        tmp = temp(directory("align/{sample}_bwa_tmp"))
+    log:
+        "logs/bwa/{sample}.bwa.log"
+    params:
+        RG_tag = lambda wc: "-R \"@RG\\tID:" + wc.get("sample") + "\\tSM:" + wc.get("sample") + "\"",
+        extra = extra
+    threads:
+        12
+    resources:
+        tmpdir = lambda wc: f"align/{wc.sample}_bwa_tmp"
+    conda:
+        "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
+    shell:
+        """
+        mkdir -p {resources.tmpdir}
+        {{
+            minibwa map -t {threads} -y {params} {input.ref} {input.R1} {input.R2} |
+            samtools collate -T {resources.tmpdir} -O -u - 
+        }} 2> {log} > {output.bam}
+        """
+
+rule sort:
+    retries: 3
+    input:
+        ref = workflow_geno,
+        bam = "align/{sample}.bwa.bam"
+    output:
+        bam = temp("sort/{sample}.sort.bam"),
+        stats = "reports/data/samtools_stats/{sample}.raw.stats",
+        tmp = temp(directory("sort/{sample}_tmp"))
+    log:
+        "logs/sort/{sample}.sort.log"
+    params:
+        sortthreads = lambda wc, threads: threads - 1
+    threads:
+        4
+    resources:
+        tmpdir = lambda wc: f"sort/{wc.sample}_tmp",
+        mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
+    shell:
+        """
+        mkdir -p {resources.tmpdir}
+        {{
+            samtools fixmate -z on -m -u {input.bam} - |
+            samtools sort -@ {params.sortthreads} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params.sortthreads} -d -x -r {input.ref} {output.bam} > {output.stats} 
+        }} 2> {log}
+        """
+
+rule mark_duplicates:
+    input:
+        fq  = get_fq,
+        bam = "sort/{sample}.sort.bam"
+    output:
+        bam   = "markdup/{sample}.bam",
+        stats = "reports/data/markdup/{sample}.markdup",
+        tmp = temp(directory("markdup/{sample}_tmp"))
+    log:
+        "logs/markdup/{sample}.markdup.log"
+    params:
+        bx_mode = "-S",
+        quality = PARAMETERS.get('min-map-quality', 30),
+        unmapped = "-F 4" if not keep_unmapped else "",
+        mdthreads = lambda wc, threads: threads - 1
+    resources:
+        tmpdir = lambda wc: f"markdup/{wc.sample}_tmp"
+    threads:
+        4
+    shell:
+        """
+        mkdir -p {resources.tmpdir}
+        OPT=$(harpy-utils optical-dist-fq {input.fq})
+        {{
+            samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
+            samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
+        }} 2> {log}
+        """
+
+rule concat_arachne_bwa:
+    priority: 1
+    input:
+        "align/{sample}.arachne.bam",
+        "markdup/{sample}.bam"
+    output:
+        "{sample}.bam"
+    log:
+        "logs/concat/{sample}.concat.log"
+    shell:
+        """
+        {{
+            samtools cat --output-fmt-option level=0 {input} |
+            samtools sort -O BAM
+        }} > {output} 2> {log}
         """
 
 rule depth_stats:
