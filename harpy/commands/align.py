@@ -244,7 +244,7 @@ def arachne(reference, inputs, output, depth_window, threads, keep_unmapped, min
     Arachne is the successor to the linked-read barcode-aware aligner Lariant (by 10X Genomics).
     Setting `--molecule-distance` to `>0` activates alignment-distance based barcode deconvolution for reporting only (the barcodes remain unmodified).
     """
-    workflow = Workflow("align_arachne", "align_arachne.smk", output, container, clean, quiet)
+    workflow = Workflow("align_arachne", "align.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["align_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
     workflow.conda = ["align", "qc"]

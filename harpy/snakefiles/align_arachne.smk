@@ -11,16 +11,15 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-skip_reports      = REPORTS.get("skip", False)
 molecule_distance = PARAMETERS.get("distance-threshold", 0)
-keep_unmapped     = PARAMETERS.get("keep-unmapped", False)
-extra 		      = PARAMETERS.get("extra", "") 
-windowsize        = PARAMETERS.get("depth-windowsize", 50000)
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
-#TODO add as cli arg
 centromeres 	  = INPUTS.get("centromeres", None)
-lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
+
+# overwrite what's in align.smk
+bx_tag            = True 
+vx_tag            = True
+ignore_bx         = False
 
 bn 			  = os.path.basename(genomefile)
 workflow_geno = f"workflow/reference/{bn}"
@@ -39,21 +38,18 @@ rule process_reference:
     input:
         genomefile
     output: 
+        multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
         geno = workflow_geno,
-        #TODO THREADS SUPPORT?
-        bwa_idx = multiext(workflow_geno, '.l2b', '.mbw'),
         fai = f"{workflow_geno}.fai",
         gzi = f"{workflow_geno}.gzi" if genome_zip else []
     log:
         f"{workflow_geno}.preprocess.log"
     params:
         genome_zip
-    threads:
-        workflow.cores
-    conda:
-        "envs/align.yaml"
-    container:
-        f"docker://pdimens/harpy:align_{VERSION}"
+    #conda:
+    #    "envs/align.yaml"
+    #container:
+    #    f"docker://pdimens/harpy:align_{VERSION}"
     shell: 
         """
         {{
@@ -61,7 +57,7 @@ rule process_reference:
                 # is regular gzipped, needs to be BGzipped
                 seqtk seq {input} | bgzip -c > {output.geno}
             else
-                cp -f {input} {output.geno}
+                ln -s {input} {output.geno}
             fi
 
             if [ "{params}" = "True" ]; then
@@ -70,27 +66,16 @@ rule process_reference:
                 samtools faidx --fai-idx {output.fai} {output.geno}
             fi
 
-            minibwa index -t {threads} {output.geno}
+            arachne index {output.geno}
         }} 2> {log}
-        """
-
-rule arachne_index:
-    input:
-        workflow_geno
-    output:
-        multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
-    log:
-        f"{workflow_geno}.arachne.index.log"
-    shell: 
-        """
-        arachne index {input} 2> {log}
         """
 
 rule arachne_prep:
     input:
         get_fq
     output:
-        temp(collect("arachne-prep/{{sample}}.arachne.{FR}.fq.gz", FR = ['R1', 'R2']))
+        R1 = temp("arachne-prep/{sample}.R1.fq.gz"),
+        R2 = temp("arachne-prep/{sample}.R2.fq.gz"),
     threads:
         4
     log:
@@ -100,27 +85,31 @@ rule arachne_prep:
 #    container:
 #        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
-        "arachne prep -t {threads} arachne-prep/{wildcards.sample} {input} 2> {log}"
+        """
+        arachne prep -t {threads} arachne-prep/{wildcards.sample} {input} 2> {log}
+        mv arachne-prep/{wildcards.sample}.arachne.R1.fq.gz {output.R1}
+        mv arachne-prep/{wildcards.sample}.arachne.R2.fq.gz {output.R2}
+        """
 
-rule arachne_align:
+rule align:
     input:
         multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
         ref   = workflow_geno,
-        R1 = "arachne-prep/{sample}.arachne.R1.fq.gz",
-        R2 = "arachne-prep/{sample}.arachne.R2.fq.gz",
+        R1 = "arachne-prep/{sample}.R1.fq.gz",
+        R2 = "arachne-prep/{sample}.R2.fq.gz",
         centromeres = centromeres if centromeres else []
     output:
-        temp(directory("align/{sample}_arachne_tmp")),
-        bam = "{sample}.bam"
+        bam = temp("arachne/{sample}.arachne.bam"),
+        tmp = temp(directory("arachne/{sample}_tmp"))
     log:
         "logs/arachne/{sample}.arachne.log"
     params:
         f"-d {molecule_distance}",
         lambda wc: "-s " + wc.get("sample")
-    resources:
-        tmpdir = lambda wc: f"align/{wc.sample}_arachne_tmp"
     threads:
         12
+    resources:
+        tmpdir = lambda wc: f"arachne/{wc.sample}_tmp"
 #    conda:
 #        "envs/align.yaml"
 #    container:
@@ -130,149 +119,6 @@ rule arachne_align:
         {{
             mkdir -p {resources.tmpdir}
             arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
-            samtools sort -u > {output.bam}
-        }} 2> {log}
+            samtools collate -T {resources.tmpdir} -O -u - 
+        }} > {output.bam} 2> {log}
         """
-
-rule depth_stats:
-    input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
-    output: 
-        "reports/data/coverage/{sample}.regions.bed.gz"
-    params:
-        f"-b {windowsize}",
-        "-n --fast-mode"
-    log:
-        "logs/depthstats/{sample}.mosdepth.log"
-    threads:
-        2
-    conda:
-        "envs/qc.yaml"
-    container:
-        f"docker://pdimens/harpy:qc_{VERSION}"
-    shell:
-        """
-        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
-        rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
-        """
-
-rule sample_stats:
-    input:
-        "{sample}.bam"
-    output: 
-        temp("{sample}.bam.bai"),
-        stats = "reports/data/samtools_stats/{sample}.filtered.stats"
-    log:
-        "logs/stats/{sample}.stats.log"
-    threads:
-        2
-    shell:
-        """
-        {{
-            samtools index {input}
-            samtools stats -@ 1 -x -d {input} > {output.stats}
-        }} 2> {log}
-        """
-
-rule molecule_coverage:
-    input:
-        fai = f"{workflow_geno}.fai",
-        stats = "reports/data/lrstats/{sample}.lrstats.gz"
-    output:
-        "reports/data/coverage/{sample}.molcov.gz"
-    log:
-        "logs/stats/{sample}.molstats.log"
-    params:
-        windowsize
-    shell:
-        "harpy-utils molecule-coverage -w {params} {input} 2> {log} | gzip > {output}"
-
-rule molecule_stats:
-    input:
-        "{sample}.bam"
-    output: 
-        "reports/data/lrstats/{sample}.lrstats.gz"
-    log:
-        "logs/molcov/{sample}.molcov.log"
-    params:
-        molecule_distance
-    shell:
-        "harpy-utils bx-stats-sam -d {params} {input} 2> {log} | gzip > {output}"
-
-rule alignment_report:
-    input:
-        collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
-        collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw", "filtered"]),
-        collect("reports/data/coverage/{sample}.regions.bed.gz", sample = samplenames),
-        ipynb = f"workflow/samtools_stats.ipynb"
-    output:
-        tmp = temp("reports/bwa.summary.tmp.ipynb"),
-        ipynb = "reports/bwa.summary.ipynb"
-    params:
-        indir = "-p indir " + os.path.abspath("reports/data")
-    log:
-        f"logs/reports/bwa.report.log"
-    shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-bwa-stats
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
-
-rule sample_reports:
-    input:
-        lrstats = "reports/data/lrstats/{sample}.lrstats.gz",
-        coverage = "reports/data/coverage/{sample}.regions.bed.gz",
-        molcov = "reports/data/coverage/{sample}.molcov.gz",
-        ipynb = f"workflow/align_stats.ipynb"
-    output:
-        tmp = temp("reports/{sample}.tmp.ipynb"),
-        ipynb = "reports/{sample}.ipynb"
-    params:
-        lr_type = lr_type,
-        basedir = "-p basedir " + os.path.abspath("reports/data"),
-        mol_dist = f"-p mol_dist {molecule_distance}",
-        window_size = f"-p windowsize {windowsize}",
-        samplename = lambda wc: "-p samplename " + wc.get("sample"),
-    log:
-        "logs/reports/{sample}.report.log"
-    shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} -p platform {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.sample} minibwa {params.lr_type} > {output.ipynb}
-        }} 2> {log}
-        """
-
-rule linked_read_report:
-    input:
-        collect("reports/data/lrstats/{sample}.lrstats.gz", sample = samplenames),
-        ipynb = f"workflow/align_lrstats.ipynb"
-    output:
-        tmp = temp("reports/linkedreads.summary.tmp.ipynb"),
-        ipynb = "reports/linkedreads.summary.ipynb"
-    params:
-        lr_type = lr_type,
-        indir = "-p indir " + os.path.abspath("reports/data/lrstats")
-    log:
-        f"logs/reports/lrstats.report.log"
-    shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-bwa.lr
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
-        }} 2> {log}
-        """
-
-rule all:
-    default_target: True
-    input:
-        bams = collect("{sample}.bam", sample = samplenames),
-        reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports else [],
-        align_report = "reports/bwa.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
-        bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else []

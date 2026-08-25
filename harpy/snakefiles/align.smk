@@ -10,7 +10,6 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-
 lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
 bx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
 vx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
