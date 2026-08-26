@@ -102,6 +102,31 @@ def package_absent(pkg: str, executor: bool = True) -> bool:
 
     return False
 
+def check_snakemake_hpc(plugin: str):
+    """
+    A modified version of the `package_absent` helper function specific to snakemake HPC configuration options.
+    Returns "" when package exists, otherwise returns a string of the way to install it (conda, mamba, pip, pixi)
+    depending on the environment detected.
+    """
+    # check for conda/mamba
+    if shutil.which("conda") or shutil.which("mamba"):
+        conda_check = is_conda_package_installed(plugin)
+        if conda_check == 0:   # pkg found
+            return ""
+        elif conda_check == 2:  # pkg not found
+            if is_pixi_shell():
+                return f'pixi add {plugin}'
+            else:
+                return 'conda install -c bioconda {plugin}'
+        elif conda_check == 1:
+            return 'mamba install -c bioconda {plugin}'
+        if conda_check in [1,2]:
+            return ""
+
+    if not is_pip_package_installed(plugin):
+        return f'pip install {plugin}'
+    return ""
+
 def container_ok(ctx, param, value) -> bool:
     """
     Check if the system is linux or has apptainer installed

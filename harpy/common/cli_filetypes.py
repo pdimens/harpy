@@ -9,6 +9,7 @@ import yaml
 
 from harpy.common.file_ops import is_gzip, filepath
 from harpy.common.printing import HarpyPrint
+from harpy.common.system_ops import check_snakemake_hpc
 
 hp = HarpyPrint()
 
@@ -241,9 +242,32 @@ class HPCProfile(click.ParamType):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
         with open(value, "r") as file:
             try:
-                yaml.safe_load(file)
+                yml = yaml.safe_load(file)
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
+
+        # CHECKS FOR EXECUTOR AND FILE SYSTEM PLUGINS
+        err: list[str] = []
+        exec = yml.get("executor")
+        if not exec:
+            self.fail("The HPC configuration requires an 'executor' field, e.g., 'executor: slurm'.", param, ctx)
+        _ex = check_snakemake_hpc(f"snakemake-executor-plugin-{exec}")
+        if _ex:
+            err.append(_ex)
+        print(err)
+        storage = yml.get("default-storage-provider")
+        if storage:
+            _ex = check_snakemake_hpc(f"snakemake-storage-plugin-{storage}")
+            if _ex:
+                err.append(_ex)
+        if err:
+            n = len(err)
+            plugins = "1 plugin" if n == 1 else f"{n} plugins"
+            self.fail(f'''\
+The HPC profile provided requires snakemake plugins that were not found in the current environment.\
+To install the missing plugins:
+    {"\n  ".join(err)}\
+''')
         return Path(value).resolve().as_posix()
 
 class DemuxSchema(click.ParamType):
