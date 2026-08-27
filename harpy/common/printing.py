@@ -24,7 +24,8 @@ from rich.text import Text
 from rich.theme import Theme
 
 from harpy import __version__
-
+from .ruleparsing import _Pushback, SnakeRule, format_missing_output_block, _is_separator, format_shell_cmd
+from .ruleparsing import _LOGFILE_NOTFOUND_RE, _HEADER_RE, _KEY_RE, _LOGFILE_HEADER_RE
 
 class PausableTimeElapsedColumn(TimeElapsedColumn):
     """Custom time elapsed column that supports pausing and resuming."""
@@ -223,6 +224,7 @@ class HarpyPrint():
         """
         Prints the input text string as syntax-highlighted SHELL code to stderr
         """
+        text = text.replace("(command exited with non-zero exit code)", "").strip()
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         code = Syntax(text, "sh", background_color='default', dedent=True, code_width=2000, theme = "one-dark")
@@ -298,19 +300,21 @@ class HarpyPrint():
             expand=True
         )
 
-
     def process_sm_errors(self, errtext):
         '''
         final processing of the snakemake stderr text after an error has occured,
-        returns early if ongoing or successful exit, otherwise processess the error text
+        returns early if ongoing or successful exit, otherwise processess the error text.
+        If `isHPC=True`, will print the message: and reason: provided by snakemake, since
+        it may point to an HPC-specific error not in the log file. 
         '''
         self.console.tab_size = 4
         self.console._highlight = False
         #print(errtext)
         #sys.exit()
-        self.errortext = iter(errtext)
+        self.errortext = _Pushback(iter(errtext))
         self.missingoutput = []
         self.console.soft_wrap = True
+        self.rules = []
         # shortcut to FileNotFoundError #
         line = next(self.errortext)
         if line.strip().startswith("FileNotFound"):
@@ -347,6 +351,7 @@ class HarpyPrint():
                     self.missingoutput[-1] += i
                 else:
                     self.missingoutput.append(i)
+
         for i in self.errortext:
             if "Exiting because a job execution failed. Look below for error messages" in i:
                 break
@@ -354,69 +359,138 @@ class HarpyPrint():
             if "(100%) done" in i:
                 break
             if "Error in group" in i:
-                self.rule("[bold]Source of Error", style = "dim")
-                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
+                self.rule("[bold]Source of Error", style="dim")
                 i = next(self.errortext).strip()
             if i.startswith("[") and i.strip().endswith("]"):
-                # this is the [timestamp] line
                 break
-        # error in rule line
+
+        # error in rule line — now populates SnakeRule instead of printing
         for i in self.errortext:
             if "(100%) done" in i:
                 break
             if "RuleException" in i:
                 sys.exit(1)
-            if "Error in rule" in i or "Error in group" in i:
-                #self.print(f"[yellow bold]──── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
-                self.rule(f"[default bold]Triggering Rule[/][yellow bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
-                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
-            elif i.strip().startswith("shell:"):
-                self.format_shell()
+            m = _HEADER_RE.match(i.strip())
+            if m:
+                rule = self._parse_rule_block()
+                rule.name = m.group(1)
+                self.rules.append(rule)
             elif i.startswith("Complete log"):
-                return
+                #return
+                break
             elif i.startswith("WorkflowError"):
-                return
-            else:
-                self.process_error(i)
-        # if there were no log files but there was a MissingOutputException
+                break #return
+
         if self.missingoutput:
-            for i in self.missingoutput:
-                i = i.partition("Waiting at most")[0]
-                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
-                self.print(i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
+            self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
+            self.print(format_missing_output_block(self.missingoutput[0]), style = "red")
+        else:
+            self.print_ruleerror(rule)
 
-
-    def process_error(self, txt):
-        '''interpret rule errors and print them with nice format'''
-        if txt.strip().startswith("Logfile"):
-            if self.missingoutput:
-                _i = self.missingoutput.pop(0)
-                _i = _i.partition("Waiting at most")[0]
-                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
-                self.print(_i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
-            self.print_logfile(txt)
-            return
-        if "snakemake.logging" in txt or "At least one job did not" in txt:
-            return
-        text = txt.removeprefix("    ").rstrip().lstrip()
-        text = text.replace("(check log file(s) for error details)", "")
-        valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
-        _split = text.split(':')
-        if _split[0] == "message":
-            return
-        if len(_split) == 1 or _split[0] not in valid_keys:
-            self.print(f"[red]{escape(text)}", overflow = "ignore", crop = False)
-            return
-        key = _split[0]
-        vals = [i.strip() for i in _split[1].split(",")]
-        if len(vals) == 1:
-            if key == "conda-env":
-                self.print(f"[bold default]{key}: [/][red]" + escape(os.path.relpath(vals[0])))
+    def _parse_rule_block(self) -> SnakeRule:
+        rule = SnakeRule()
+        key = None
+        for line in self.errortext:
+            if not line.strip():
+                continue
+            m = _KEY_RE.match(line)
+            if m:
+                key, val = m.group(1), m.group(2)
+                if key == "jobid":
+                    rule.jobid = int(val)
+                elif key == "input":
+                    rule.input = val
+                elif key == "output":
+                    rule.output = val
+                elif key == "log":
+                    pass
+                    #rule.logfile = rule.logfile or val
+                    #skip in favor of parsing logs later
+                    #rule.logs.append(val)
+                elif key == "message":
+                    rule.message = val
+                elif key == "conda-env":
+                    rule.env = val
+                elif key == "resources":
+                    rule.resources = [r.strip() for r in val.split(",")]
+                elif key == "shell":
+                    rule.cmd = ""
+            elif key == "shell" and line[:1].isspace():
+                rule.cmd += line + "\n"
+            elif line[:1].isspace():
+                continue
             else:
-                self.print(f"[bold default]{key}: [/][red]" + escape("".join(vals)))
-            return
-        self.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
+                self.errortext.push(line)
+                break
+        self._consume_logfile_blocks(rule)
+        rule.cmd = format_shell_cmd(rule.cmd)
+        return rule
 
+    def _consume_logfile_blocks(self, rule: SnakeRule):
+        """Snakemake prints 'Logfile <path>:' + fenced content, or
+        'Logfile <path> ... not found.', right after a rule's error block.
+        Consumes zero or more of these, pushing back the first line that isn't one."""
+        for line in self.errortext:
+            m = _LOGFILE_HEADER_RE.match(line.strip())
+            if m:
+                content = []
+                for j in self.errortext:
+                    if _is_separator(j):
+                        if content:
+                            break  # closing fence
+                        continue  # opening fence
+                    content.append(j)
+
+                logtext = escape(re.sub(r'\n{3,}', '\n\n', "".join(content)).removeprefix("    "))
+                # purge out all unnecessary papermill error text
+                if "papermill.exceptions.PapermillExecutionError:" in logtext:
+                    logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
+                    chunks = logtext.split("\n\n")
+                    filtered = [c for c in chunks if not c.startswith("File ")]
+                    logtext = "\n\n".join(filtered)
+                rule.logs[m.group(1)] = logtext.strip()
+                continue
+            if _LOGFILE_NOTFOUND_RE.match(line.strip()):
+                continue  # path already in rule.logs, nothing to capture
+            self.errortext.push(line)
+            break
+
+    def print_ruleerror(self, rule: SnakeRule):
+        self.rule(f"[default bold]Triggering Rule[/][yellow bold] {rule.name}", style = "yellow")
+
+        self.print("input:", style = "bold default")
+        self.print("  " + rule.input.replace(", ", "\n  "), style = "red")
+
+        self.print("output:", style = "bold default")
+        self.print("  " + rule.output.replace(", ", "\n  "), style = "red")
+
+        if rule.logs:
+            self.print("log:", style = "bold default")
+            for i in rule.logs:
+                _i = i.replace("(check log file(s) for error details)", "").strip()
+                self.print("  " + _i, style = "red")
+
+        if rule.env:
+            env_clean = rule.env.split("/")[:-2]
+            self.print(
+                f"[bold default]conda-env:[/] [red]{'/'.join(env_clean)}[/]"
+            )
+
+        if rule.message != "None":
+            self.print("Message:", style = "bold default")
+            self.print(rule.message, style = "red")
+
+        if rule.cmd:
+            self.print("")
+            self.print("[bold dim]──── ❯ Command Invoked")
+            self.shell(rule.cmd)
+
+        if rule.logs:
+            self.print("")
+
+        for name, content in rule.logs.items():
+            self.print(f"──── 🗎 {name}", style = "bold dim")
+            self.print(content, style = "red")
 
     def format_shell(self):
         '''format the snakemake rule shell command nicely and print it to the console'''
