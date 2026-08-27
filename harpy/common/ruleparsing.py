@@ -23,15 +23,13 @@ class SnakeRule:
     log_contents: dict[str, str] = field(default_factory=dict)
     resources: list[str] = field(default_factory=list)
 
-@dataclass
-class SnakeGroup:
-    groupid: str = ""
-    rules: list[SnakeRule] = field(default_factory=list)
-
 _HEADER_RE = re.compile(r"^(?:Error in rule|Error in group|rule) (\w+):\s*$")
 _KEY_RE = re.compile(r"^\s{4}(\S[\w -]*):\s?(.*)$")
 _LOGFILE_HEADER_RE = re.compile(r"^Logfile (\S+)(?: \(send to storage\))?:\s*$")
 _LOGFILE_NOTFOUND_RE = re.compile(r"^Logfile \S+.*not found\.\s*$")
+_ERROR_RULE_RE = re.compile(
+    r"^\s*Error in rule (\w+):\s*$"
+)
 _KEY_NAMES = {
     "jobid", "input", "output", "log", "message", "conda-env",
     "shell", "external_jobid", "resources", "threads", "jobs",
@@ -119,7 +117,6 @@ class ErrorHandler():
     def __init__(self, err):
         self.errortext = _Pushback(iter(err))
         self.rules: list[SnakeRule] = []
-        self.group: SnakeGroup
         self.missingoutput: list[str] = []
         # printing config
         self.hp= HarpyPrint()
@@ -175,56 +172,88 @@ class ErrorHandler():
                 break
 
         for i in self.errortext:
+            if not line.strip():
+                continue
+
+            if _ERROR_RULE_RE.match(line):
+                self.errortext.push(line)
+                break
+
+            if line.lstrip().startswith("Logfile "):
+                self.errortext.push(line)
+                break
             if "(100%) done" in i:
                 break
+
             if "RuleException" in i:
                 sys.exit(1)
+
             m = _KEY_RE.match(i)
             if m and m.group(1) == "message":
                 gm = _GROUP_MSG_RE.match(m.group(2).strip())
                 if gm:
-                    self.group = self._parse_group_block(gm.group(1))
+                    self._skip_group_block()
                     continue
-            hm = _HEADER_RE.match(i.strip())
+
+            hm = _ERROR_RULE_RE.match(i.strip())
             if hm:
-                rule: SnakeRule = self._parse_rule_block()
+                rule = self._parse_rule_block()
                 rule.name = hm.group(1)
                 self.rules.append(rule)
+                print(rule)
 
             elif i.startswith("Complete log"):
                 break
+
             elif i.startswith("WorkflowError"):
                 break
 
         if self.missingoutput:
             self.hp.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
             self.hp.print(fmt_missing_block(self.missingoutput[0]), style = "red")
-        elif self.group:
-            # The group's `jobs:` section only contains incomplete rule stubs.
-            # Use it to identify which full rule blocks belong to the group.
-            group_jobids = {rule.jobid for rule in self.group.rules}
+        elif len(self.rules) > 1:
+            grp = " → ".join(rule.name for rule in self.rules)
+            self.hp.rule(
+                f"[default bold]Triggering Group[/][yellow bold] {grp}",
+                style="yellow"
+            )
+            for rule in self.rules:
+                self.hp.print(f"\n──── {rule.name}", style = "bold yellow")
+                self.print(rule)
 
-            full_rules = [
-                rule for rule in self.rules
-                if rule.jobid in group_jobids
-            ]
+        elif len(self.rules) == 1:
+            self.hp.rule(
+                f"[default bold]Triggering Rule[/][yellow bold] {self.rules[0].name}",
+                style="yellow"
+            )
+            self.print(self.rules[0])    
 
-            grp = " → ".join(rule.name for rule in full_rules)
-            self.hp.rule(f"[default bold]Triggering Group[/][yellow bold] {grp}", style = "yellow")
-            for i in full_rules:
-                self.print(i)
-        else:
-            self.hp.rule(f"[default bold]Triggering Rule[/][yellow bold] {self.rules[-1].name}", style = "yellow")
-            #self.print(self.rule)
-            self.print(self.rules[-1])
-    
     def _parse_rule_block(self) -> SnakeRule:
-        'Iterate through the error text to pull out job info like id, inputs, outputs, message, etc.'
+        """Parse one complete `Error in rule` block."""
         rule = SnakeRule()
         key = None
+
         for line in self.errortext:
             if not line.strip():
                 continue
+
+            # A new rule / end-of-rule marker.
+            if _ERROR_RULE_RE.match(line):
+                self.errortext.push(line)
+                break
+
+            if line.lstrip().startswith("Logfile "):
+                self.errortext.push(line)
+                break
+
+            if line.lstrip().startswith("Complete log"):
+                self.errortext.push(line)
+                break
+
+            if line.lstrip().startswith("WorkflowError"):
+                self.errortext.push(line)
+                break
+
             m = _KEY_RE.match(line)
             if m:
                 key, val = m.group(1), m.group(2)
@@ -236,9 +265,6 @@ class ErrorHandler():
                     rule.output = val
                 elif key == "log":
                     pass
-                    #rule.logfile = rule.logfile or val
-                    #skip in favor of parsing logs later
-                    #rule.logs.append(val)
                 elif key == "message":
                     rule.message = val
                 elif key == "conda-env":
@@ -249,13 +275,17 @@ class ErrorHandler():
                     rule.cmd = ""
             elif key == "shell" and line[:1].isspace():
                 rule.cmd += line + "\n"
+
             elif line[:1].isspace():
                 continue
+
             else:
                 self.errortext.push(line)
                 break
+
         self._consume_logfile_blocks(rule)
         rule.cmd = fmt_shell_cmd(rule.cmd)
+
         return rule
 
     def _consume_logfile_blocks(self, rule: SnakeRule):
@@ -312,28 +342,36 @@ class ErrorHandler():
                 rule.logs.append(val)
         return rule
 
-    def _parse_group_block(self, groupid: str) -> SnakeGroup:
-        """
-        Called right after a 'message: Error in group <id>' line. Consumes the
-        'jobs:' manifest of rule stubs that follows.
-        """
-        group = SnakeGroup(groupid=groupid)
-        for line in self.errortext:
-            if not line.strip():
-                continue
-            m = _KEY_RE.match(line)
-            if m and m.group(1) == "jobs":
-                continue  # bare 'jobs:' line, entries follow
-            hm = _HEADER_RE.match(line)
-            if hm:
-                stub = self._parse_rule_stub()
-                stub.name = hm.group(1)
-                group.rules.append(stub)
-                continue
-            self.errortext.push(line)
-            break
-        return group
 
+    def _skip_group_block(self):
+        """Skip the incomplete group jobs manifest."""
+        for line in self.errortext:
+            if _ERROR_RULE_RE.match(line):
+                self.errortext.push(line)
+                return
+
+#    def _parse_group_block(self, groupid: str) -> SnakeGroup:
+#        """
+#        Called right after a 'message: Error in group <id>' line. Consumes the
+#        'jobs:' manifest of rule stubs that follows.
+#        """
+#        group = SnakeGroup(groupid=groupid)
+#        for line in self.errortext:
+#            if not line.strip():
+#                continue
+#            m = _KEY_RE.match(line)
+#            if m and m.group(1) == "jobs":
+#                continue  # bare 'jobs:' line, entries follow
+#            hm = _HEADER_RE.match(line)
+#            if hm:
+#                stub = self._parse_rule_stub()
+#                stub.name = hm.group(1)
+#                group.rules.append(stub)
+#                continue
+#            self.errortext.push(line)
+#            break
+#        return group
+#
     def print(self, rule: SnakeRule):
         'Print a nicely formatted Snakemake rule error'
         self.hp.print("input:", style = "bold default")
