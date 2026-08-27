@@ -1,5 +1,6 @@
 """Contains the WorkFlow class"""
 
+from harpy.common.ruleparsing import ErrorHandler
 import importlib.resources as resources
 import os
 import shutil
@@ -353,7 +354,8 @@ class Workflow():
                 self.print.setup_error(sm.exitcode)
             elif sm.exitcode == 3:
                 self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
-            self.print.process_sm_errors(sm.errorlog)
+            ErrorHandler(sm.errorlog).process()
+            #self.print.process_sm_errors(sm.errorlog)
             with open(".harpyerror", 'w') as f:
                 f.write(self.output_directory)
             sys.exit(1)

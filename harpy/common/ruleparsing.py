@@ -184,7 +184,6 @@ class ErrorHandler():
                 break
             if "(100%) done" in i:
                 break
-
             if "RuleException" in i:
                 sys.exit(1)
 
@@ -204,7 +203,6 @@ class ErrorHandler():
 
             elif i.startswith("Complete log"):
                 break
-
             elif i.startswith("WorkflowError"):
                 break
 
@@ -218,7 +216,7 @@ class ErrorHandler():
                 style="yellow"
             )
             for rule in self.rules:
-                self.hp.print(f"\n──── {rule.name}", style = "bold yellow")
+                self.hp.print(f"\n─────── ⏺ {rule.name}", style = "bold yellow")
                 self.print(rule)
 
         elif len(self.rules) == 1:
@@ -229,7 +227,7 @@ class ErrorHandler():
             self.print(self.rules[0])    
 
     def _parse_rule_block(self) -> SnakeRule:
-        """Parse one complete `Error in rule` block."""
+        """Parse one complete Error in rule block."""
         rule = SnakeRule()
         key = None
 
@@ -237,19 +235,18 @@ class ErrorHandler():
             if not line.strip():
                 continue
 
-            # A new rule / end-of-rule marker.
+            # A logfile belongs to this rule. Stop parsing fields and
+            # let _consume_logfile_blocks() handle it.
+            if _LOGFILE_HEADER_RE.match(line.strip()):
+                self.errortext.push(line)
+                break
+            # A new rule means this rule has ended.
             if _ERROR_RULE_RE.match(line):
                 self.errortext.push(line)
                 break
-
-            if line.lstrip().startswith("Logfile "):
-                self.errortext.push(line)
-                break
-
             if line.lstrip().startswith("Complete log"):
                 self.errortext.push(line)
                 break
-
             if line.lstrip().startswith("WorkflowError"):
                 self.errortext.push(line)
                 break
@@ -257,6 +254,7 @@ class ErrorHandler():
             m = _KEY_RE.match(line)
             if m:
                 key, val = m.group(1), m.group(2)
+
                 if key == "jobid":
                     rule.jobid = int(val)
                 elif key == "input":
@@ -264,7 +262,14 @@ class ErrorHandler():
                 elif key == "output":
                     rule.output = val
                 elif key == "log":
-                    pass
+                    # The logfile block below contains the actual contents,
+                    # but retain the path here too.
+                    log = val.replace(
+                        "(check log file(s) for error details)", ""
+                    ).strip()
+                    if log:
+                        rule.logs.append(log)
+
                 elif key == "message":
                     rule.message = val
                 elif key == "conda-env":
@@ -273,6 +278,8 @@ class ErrorHandler():
                     rule.resources = [r.strip() for r in val.split(",")]
                 elif key == "shell":
                     rule.cmd = ""
+
+            #TODO THIS IS CAPTURING THE LOG FILE TOO AND IT SHOULDNT
             elif key == "shell" and line[:1].isspace():
                 rule.cmd += line + "\n"
 
@@ -289,59 +296,55 @@ class ErrorHandler():
         return rule
 
     def _consume_logfile_blocks(self, rule: SnakeRule):
-        """Snakemake prints 'Logfile <path>:' + fenced content, or
-        'Logfile <path> ... not found.', right after a rule's error block.
-        Consumes zero or more of these, pushing back the first line that isn't one."""
+        """Consume zero or more Snakemake Logfile blocks."""
         for line in self.errortext:
             m = _LOGFILE_HEADER_RE.match(line.strip())
+
             if m:
+                logfile = m.group(1)
+
                 content = []
+
                 for j in self.errortext:
                     if is_log_sep(j):
                         if content:
-                            break  # closing fence
-                        continue  # opening fence
+                            break
+                        continue
                     content.append(j)
 
-                logtext = escape(re.sub(r'\n{3,}', '\n\n', "".join(content)).removeprefix("    "))
-                # purge out all unnecessary papermill error text
+                logtext = escape(
+                    re.sub(
+                        r"\n{3,}",
+                        "\n\n",
+                        "".join(content)
+                    ).removeprefix("    ")
+                )
+
+                # Purge unnecessary papermill error text
                 if "papermill.exceptions.PapermillExecutionError:" in logtext:
-                    logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
+                    logtext = logtext.partition(
+                        "papermill.exceptions.PapermillExecutionError:"
+                    )[-1]
+
                     chunks = logtext.split("\n\n")
-                    filtered = [c for c in chunks if not c.startswith("File ")]
+                    filtered = [
+                        c for c in chunks
+                        if not c.startswith("File ")
+                    ]
                     logtext = "\n\n".join(filtered)
-                rule.logs.append(m.group(1))
-                rule.log_contents[m.group(1)] = logtext.strip()
+
+                # Avoid adding the same logfile twice if the `log:` field
+                # was already captured.
+                if logfile not in rule.logs:
+                    rule.logs.append(logfile)
+                rule.log_contents[logfile] = logtext.strip()
                 continue
+
             if _LOGFILE_NOTFOUND_RE.match(line.strip()):
-                continue  # path already in rule.logs, nothing to capture
+                continue
+
             self.errortext.push(line)
             break
-
-    def _parse_rule_stub(self) -> SnakeRule:
-        """Manifest entry inside a group's 'jobs:' list — jobid/output/log only,
-        no shell/input/env. Ends at next 'rule X:' header or first unrecognized line."""
-        rule = SnakeRule()
-        for line in self.errortext:
-            if not line.strip():
-                continue
-            if _HEADER_RE.match(line):
-                self.errortext.push(line)
-                break
-            m = _KEY_RE.match(line)
-            if not m or m.group(1) not in ("jobid", "output", "log"):
-                self.errortext.push(line)
-                break
-            key, val = m.group(1), m.group(2)
-            if key == "jobid":
-                rule.jobid = int(val)
-            elif key == "output":
-                rule.output = val
-            elif key == "log":
-                rule.logfile = val
-                rule.logs.append(val)
-        return rule
-
 
     def _skip_group_block(self):
         """Skip the incomplete group jobs manifest."""
@@ -350,28 +353,6 @@ class ErrorHandler():
                 self.errortext.push(line)
                 return
 
-#    def _parse_group_block(self, groupid: str) -> SnakeGroup:
-#        """
-#        Called right after a 'message: Error in group <id>' line. Consumes the
-#        'jobs:' manifest of rule stubs that follows.
-#        """
-#        group = SnakeGroup(groupid=groupid)
-#        for line in self.errortext:
-#            if not line.strip():
-#                continue
-#            m = _KEY_RE.match(line)
-#            if m and m.group(1) == "jobs":
-#                continue  # bare 'jobs:' line, entries follow
-#            hm = _HEADER_RE.match(line)
-#            if hm:
-#                stub = self._parse_rule_stub()
-#                stub.name = hm.group(1)
-#                group.rules.append(stub)
-#                continue
-#            self.errortext.push(line)
-#            break
-#        return group
-#
     def print(self, rule: SnakeRule):
         'Print a nicely formatted Snakemake rule error'
         self.hp.print("input:", style = "bold default")
@@ -407,5 +388,5 @@ class ErrorHandler():
         #for name, content in rule.logs.items():
         for i in rule.logs:
             self.hp.print(f"──── 🗎 {i}", style = "bold dim")
-            self.hp.print(rule.log_contents[i], style = "red")
+            self.hp.print(rule.log_contents.get(i, "(empty file)"), style = "red")
 
