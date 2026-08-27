@@ -16,9 +16,7 @@ fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
 bn 			  = os.path.basename(genomefile)
-bn            = bn[:-3] if bn.lower().endswith(".gz") else bn
 bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-workflow_geno = f"workflow/reference/{bn}"
 samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d             = dict(zip(samplenames, samplenames))
 
@@ -31,10 +29,10 @@ rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai"
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai"
     log:
-        f"{workflow_geno}.preprocess.log"
+        f"{bn}.preprocess.log"
     shell: 
         """
         {{
@@ -45,7 +43,7 @@ rule process_reference:
 
 rule align:
     input:
-        workflow_geno,
+        "workflow/reference/ref.fa.gz",
         get_fq,
     output:  
         bam = temp("strobe/{sample}.strobe.bam"),

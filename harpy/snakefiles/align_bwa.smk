@@ -17,9 +17,6 @@ fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
 bn 			  = os.path.basename(genomefile)
-workflow_geno = f"workflow/reference/{bn}"
-genome_zip    = True if bn.lower().endswith(".gz") else False
-geno_idx      = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d             = dict(zip(samplenames, samplenames))
@@ -33,14 +30,12 @@ rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        bwa_idx = multiext(workflow_geno, ".l2b", ".mbw"),
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+        geno = "workflow/reference/ref.fa.gz",
+        bwa_idx = multiext("workflow/reference/ref.fa.gz", ".l2b", ".mbw"),
+        fai = "workflow/reference/ref.fa.gz.fai",
+        gzi = "workflow/reference/ref.fa.gz.gzi"
     log:
-        f"{workflow_geno}.preprocess.log"
-    params:
-        genome_zip
+        f"{bn}.preprocess.log"
     threads:
         workflow.cores
     conda:
@@ -50,27 +45,16 @@ rule process_reference:
     shell: 
         """
         {{
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be BGzipped
-                seqtk seq {input} | bgzip -c > {output.geno}
-            else
-                cp -f {input} {output.geno}
-            fi
-
-            if [ "{params}" = "True" ]; then
-                samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
-            else
-                samtools faidx --fai-idx {output.fai} {output.geno}
-            fi
-
+            seqtk seq {input} | bgzip -c > {output.geno}
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
             minibwa index -t {threads} {output.geno} 
         }} 2> {log}
         """
 
 rule align:
     input:
-        multiext(workflow_geno, ".l2b", ".mbw"),
-        ref   = workflow_geno,
+        multiext("workflow/reference/ref.fa.gz", ".l2b", ".mbw"),
+        ref   = "workflow/reference/ref.fa.gz",
         fastq = get_fq
     output:
         bam = temp("bwa/{sample}.bwa.bam"),

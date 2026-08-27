@@ -22,7 +22,6 @@ genomefile 	      = INPUTS["reference"]
 
 ignore_bx     = lr_type == "none"
 bn 			  = os.path.basename(genomefile)
-workflow_geno = f"workflow/reference/{bn}"
 
 aligner = WORKFLOW.get("name", "align_bwa").split("_")[-1]
 include: f"align_{aligner}.smk"
@@ -30,7 +29,7 @@ include: f"align_{aligner}.smk"
 rule sort:
     retries: 3
     input:
-        ref = workflow_geno,
+        ref = "workflow/reference/ref.fa.gz",
         bam = f"{aligner}/{{sample}}.{aligner}.bam"
     output:
         bam = temp("sort/{sample}.sort.bam"),
@@ -141,7 +140,7 @@ rule sample_stats:
 
 rule molecule_coverage:
     input:
-        fai = f"{workflow_geno}.fai",
+        fai = "workflow/reference/ref.fa.gz.fai",
         stats = "reports/data/lrstats/{sample}.lrstats.gz"
     output:
         "reports/data/coverage/{sample}.molcov.gz"

@@ -22,9 +22,6 @@ vx_tag            = True
 ignore_bx         = False
 
 bn 			  = os.path.basename(genomefile)
-workflow_geno = f"workflow/reference/{bn}"
-genome_zip    = True if bn.lower().endswith(".gz") else False
-geno_idx      = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
 d             = dict(zip(samplenames, samplenames))
@@ -38,14 +35,11 @@ rule process_reference:
     input:
         genomefile
     output: 
-        multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
-    log:
-        f"{workflow_geno}.preprocess.log"
-    params:
-        genome_zip
+        multiext("workflow/reference/ref.fa.gz", '.amb', '.ann', '.bwt', '.pac', '.sa'),
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai",
+        gzi = "workflow/reference/ref.fa.gz.gzi"
+        "workflow/reference/ref.fa.gz.preprocess.log"
     #conda:
     #    "envs/align.yaml"
     #container:
@@ -53,19 +47,8 @@ rule process_reference:
     shell: 
         """
         {{
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be BGzipped
-                seqtk seq {input} | bgzip -c > {output.geno}
-            else
-                ln -s {input} {output.geno}
-            fi
-
-            if [ "{params}" = "True" ]; then
-                samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
-            else
-                samtools faidx --fai-idx {output.fai} {output.geno}
-            fi
-
+            seqtk seq {input} | bgzip -c > {output.geno}
+            samtools faidx --gzi-idx {output.gzi} --fai-idx {output.fai} {output.geno}
             arachne index {output.geno}
         }} 2> {log}
         """
@@ -93,8 +76,8 @@ rule arachne_prep:
 
 rule align:
     input:
-        multiext(workflow_geno, '.amb', '.ann', '.bwt', '.pac', '.sa'),
-        ref   = workflow_geno,
+        multiext("workflow/reference/ref.fa.gz, '.amb', '.ann', '.bwt', '.pac', '.sa'),
+        ref   = "workflow/reference/ref.fa.gz,
         R1 = "arachne-prep/{sample}.R1.fq.gz",
         R2 = "arachne-prep/{sample}.R2.fq.gz",
         centromeres = centromeres if centromeres else []
