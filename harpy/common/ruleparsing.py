@@ -165,6 +165,7 @@ class ErrorHandler():
                     self.missingoutput.append(i)
 
         for i in self.errortext:
+            #if 'Exiting because a job execution failed. Look below for error messages' in i:
             if _EXITING_RE.search(i):
                 break
 
