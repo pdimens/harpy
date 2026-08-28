@@ -39,7 +39,7 @@ _HEADER_RE = re.compile(r"^\s*(?:Error in rule|Error in group|rule) (\w+):\s*$")
 _GROUP_MSG_RE = re.compile(r"^Error in group (\S+)$")
 _LATENCY_TRIGGER_RE = re.compile(r"--latency-wait:\s*$")
 _CORRUPTED_TRIGGER_RE = re.compile(r"corrupted:\s*$")
-
+_EXITING_RE = re.compile(r"Exiting because a job execution failed\. Look (?:above|below) for error messages")
 
 def is_log_sep(line: str) -> bool:
     '''
@@ -110,7 +110,6 @@ def fmt_shell_cmd(text: str, indent: str = "    ") -> str:
     return '\n'.join(out)
 
 
-
 class ErrorHandler():
     def __init__(self, err):
         self.errortext = _Pushback(iter(err))
@@ -166,7 +165,7 @@ class ErrorHandler():
                     self.missingoutput.append(i)
 
         for i in self.errortext:
-            if 'Exiting because a job execution failed. Look below for error messages' in i:
+            if _EXITING_RE.search(i):
                 break
 
         # ---------- if it made it this far, it's an error resulting from a job failing
@@ -257,7 +256,7 @@ class ErrorHandler():
 
                 if key == 'jobid':
                     rule.jobid = int(val)
-                elif key == '"input':
+                elif key == 'input':
                     rule.input = val
                 elif key == 'output':
                     rule.output = val
