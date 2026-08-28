@@ -80,7 +80,7 @@ rule pad_barcodes:
         "logs/{sample}.stagger.log"
     params:
         f'--me {me_seq}',
-        f'--max-mismatch {mismatch}',
+        f'--max-mismatch {mismatch}'
     threads:
         3
     shell:
