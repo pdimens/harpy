@@ -17,6 +17,7 @@ EXIT_CODE_RUNTIME_ERROR = 3
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
+_TERMINAL_ERROR_RE = re.compile(r"Exiting because a job execution failed|^WorkflowError:")
 
 class Rule:
     """A class that stores job information with the fields: name, total, ids"""
@@ -127,7 +128,8 @@ class LaunchSnakemake():
 
     def iserror(self) -> bool:
         '''logical check for erroring trigger words in snakemake output'''
-        return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
+        return bool(_TERMINAL_ERROR_RE.search(self.output)) or "MissingOutputException" in self.output
+        #return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
 
     def nextline(self, strip: bool = False):
         """reads the next line of stderr"""
