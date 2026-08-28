@@ -4,6 +4,12 @@
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty
+- more robust snakemake error printing (again)
+  - this time it's a parse-and-gather approach that uses an internal class
+  - it should print scheduler messages on error now
+  - it should print resources on error now
+  - strengthened outputting snakemake missing and syntax errors
+
 
 # internal
 - simplifies summaries logic
