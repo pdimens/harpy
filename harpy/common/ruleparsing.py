@@ -148,8 +148,8 @@ class ErrorHandler():
                         self.hp.print(i.rstrip(), soft_wrap = True, width = 2000, style = 'red')
             return
 
+        # ---------- pick out snakemake exceptions and missingoutput
         if ('Error' in line or 'Exception' in line or 'Missing input files' in line) and not ('RuleException' in line or 'CalledProcessError' in line):
-            #self.rule("[bold]Source of Error", style = "dim")
             self.hp.print(line, highlight=False, soft_wrap = True, end = '', style = 'red')
             for i in self.errortext:
                 self.hp.print(i, highlight = False, soft_wrap = True, end = '', style='red')
@@ -169,6 +169,7 @@ class ErrorHandler():
             if 'Exiting because a job execution failed. Look below for error messages' in i:
                 break
 
+        # ---------- if it made it this far, it's an error resulting from a job failing
         for i in self.errortext:
             if not line.strip():
                 continue
@@ -207,6 +208,7 @@ class ErrorHandler():
         if self.missingoutput:
             self.hp.print('\n[bold dim]──── ⚠ Error Reported by Snakemake')
             self.hp.print(fmt_missing_block(self.missingoutput[0]), style = 'red')
+        
         elif len(self.rules) > 1:
             grp = ' → '.join(rule.name for rule in self.rules)
             self.hp.rule(
