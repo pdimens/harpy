@@ -199,7 +199,6 @@ class HarpyPrint():
         Print a red panel with error text to stderr. To be used in place of onerror: inside a snakefile. Expects the erroring rule printed after it.
         time must be of class datetime
         """
-        #TODO NO LONGER CATCHES SNAKEFILE ERRORS. ADDRESS THAT
         days = _time.days
         seconds = _time.seconds
         hours = seconds // 3600

@@ -49,7 +49,7 @@ rule sort:
         mkdir -p {resources.tmpdir}
         {{
             samtools fixmate -z on -m -u {input.bam} - |
-            samtools sort -@ {params} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools sort -@ {params} -M -T {resources.tmpdir}/{wildcards.sample} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
             samtools stats -@ {params} -d -x -r {input.ref} {output.bam} > {output.stats} 
         }} 2> {log}
         """

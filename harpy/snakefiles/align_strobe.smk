@@ -68,6 +68,6 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             strobealign {params} -t {threads} {input} |
-            samtools collate -T {resources.tmpdir} -O -u -l 0 -
+            samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u -l 0 -
         }} 2> {log} > {output.bam}
         """

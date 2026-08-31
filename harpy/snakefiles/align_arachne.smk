@@ -76,10 +76,10 @@ rule arachne_prep:
 
 rule align:
     input:
-        multiext("workflow/reference/ref.fa.gz, '.amb', '.ann', '.bwt', '.pac', '.sa'),
-        ref   = "workflow/reference/ref.fa.gz,
-        R1 = "arachne-prep/{sample}.R1.fq.gz",
-        R2 = "arachne-prep/{sample}.R2.fq.gz",
+        multiext('workflow/reference/ref.fa.gz', '.amb', '.ann', '.bwt', '.pac', '.sa'),
+        ref   = 'workflow/reference/ref.fa.gz',
+        R1 = 'arachne-prep/{sample}.R1.fq.gz',
+        R2 = 'arachne-prep/{sample}.R2.fq.gz',
         centromeres = centromeres if centromeres else []
     output:
         bam = temp("arachne/{sample}.arachne.bam"),
@@ -102,6 +102,6 @@ rule align:
         {{
             mkdir -p {resources.tmpdir}
             arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
-            samtools collate -T {resources.tmpdir} -O -u - 
+            samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
         }} > {output.bam} 2> {log}
         """

@@ -52,7 +52,7 @@ rule process_reference:
 
 rule align:
     input:
-        ref = "workflow/reference/ref.fa.gz" + ".mmi",
+        ref = "workflow/reference/ref.fa.gz.mmi",
         fastq = get_fq
     output:
         bam = temp("minimap/{sample}.minimap.bam"),
@@ -77,6 +77,6 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             minimap2 -t {threads} {params} {input} |
-            samtools collate -T {resources.tmpdir} -O -u - 
+            samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
         }} 2> {log} > {output.bam}
         """

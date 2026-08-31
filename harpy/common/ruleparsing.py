@@ -277,7 +277,6 @@ class ErrorHandler():
                 elif key == 'shell':
                     rule.cmd = ''
 
-            #TODO THIS IS CAPTURING THE LOG FILE TOO AND IT SHOULDNT
             elif key == 'shell' and line[:1].isspace():
                 if line.lstrip().startswith('Logfile'):
                     #self.errortext.push(line)

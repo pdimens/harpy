@@ -78,6 +78,6 @@ rule align:
         mkdir -p {resources.tmpdir}
         {{
             minibwa map -t {threads} {params} {input.ref} {input.fastq} |
-            samtools collate -T {resources.tmpdir} -O -u - 
+            samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
         }} 2> {log} > {output.bam}
         """
