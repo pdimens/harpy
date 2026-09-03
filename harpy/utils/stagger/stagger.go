@@ -32,9 +32,9 @@ var padSeq = [8]string{
 
 // padEntry stores raw Phred qual (not ASCII) since BAM stores raw scores.
 type padEntry struct {
+	n    int
 	seq  [7]byte
 	qual [7]byte
-	n    int
 }
 
 var pads [8]padEntry

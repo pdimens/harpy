@@ -7,4 +7,4 @@ require (
 	github.com/klauspost/pgzip v1.2.6
 )
 
-require github.com/klauspost/compress v1.18.4 // indirect
+require github.com/klauspost/compress v1.20.0 // indirect
