@@ -133,8 +133,7 @@ rule impute:
         temp(directory("{paramset}/contigs/{contig}/{region}/input")),
         temp(directory("{paramset}/contigs/{contig}/{region}/debug")),
         temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi"),
-        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz"),
-        tmpdir = temp(directory("{paramset}/contigs/{contig}/{region}/tmp"))
+        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz")
     log:
         "{paramset}/logs/{contig}.{region}.stitch.log",
     params:
@@ -154,14 +153,16 @@ rule impute:
         buffer  = lambda wc: f"--buffer={buffer}" if region or window else "",
     threads:
         workflow.cores - 1
+    resources:
+        tmpdir = lambda wc: os.path.join(wc.paramset, "contigs", wc.contig, wc.region, "tmp")
     conda:
         "envs/impute.yaml"
     container:
-        f"docker://pdimens/harpy:impute_{VERSION}"        
+        f"docker://pdimens/harpy:impute_{VERSION}"
     shell:
         """
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
-            mkdir -p {output.tmpdir}
             STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
             tabix {output.vcf}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/{wildcards.region}/plots

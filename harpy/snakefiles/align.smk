@@ -33,8 +33,7 @@ rule sort:
         bam = f"{aligner}/{{sample}}.{aligner}.bam"
     output:
         bam = temp("sort/{sample}.sort.bam"),
-        stats = "reports/data/samtools_stats/{sample}.raw.stats",
-        tmp = temp(directory("sort/{sample}_tmp"))
+        stats = "reports/data/samtools_stats/{sample}.raw.stats"
     log:
         "logs/sort/{sample}.sort.log"
     params:
@@ -46,7 +45,7 @@ rule sort:
         mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
             samtools fixmate -z on -m -u {input.bam} - |
             samtools sort -@ {params} -M -T {resources.tmpdir}/{wildcards.sample} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
@@ -61,8 +60,7 @@ rule mark_duplicates:
         bam = "sort/{sample}.sort.bam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("markdup/{sample}_tmp"))
+        stats = "reports/data/markdup/{sample}.markdup"
     log:
         "logs/markdup/{sample}.markdup.log"
     params:
@@ -76,9 +74,9 @@ rule mark_duplicates:
         4
     shell:
         """
-        mkdir -p {resources.tmpdir}
-        OPT=$(harpy-utils optical-dist-fq {input.fq})
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
+            OPT=$(harpy-utils optical-dist-fq {input.fq})
             samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
             samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log}

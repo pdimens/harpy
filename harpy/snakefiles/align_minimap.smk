@@ -55,8 +55,7 @@ rule align:
         ref = "workflow/reference/ref.fa.gz.mmi",
         fastq = get_fq
     output:
-        bam = temp("minimap/{sample}.minimap.bam"),
-        tmp = temp(directory("minimap/{sample}_tmp"))
+        temp("minimap/{sample}.minimap.bam")
     log:
         "logs/minimap/{sample}.minimap.log"
     params:
@@ -74,9 +73,9 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap 'rm -rf {resources.tmpdir}' 0
         {{
             minimap2 -t {threads} {params} {input} |
             samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
-        }} 2> {log} > {output.bam}
+        }} 2> {log} > {output}
         """

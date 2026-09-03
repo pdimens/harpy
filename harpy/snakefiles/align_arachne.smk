@@ -82,8 +82,7 @@ rule align:
         R2 = 'arachne-prep/{sample}.R2.fq.gz',
         centromeres = centromeres if centromeres else []
     output:
-        bam = temp("arachne/{sample}.arachne.bam"),
-        tmp = temp(directory("arachne/{sample}_tmp"))
+        temp("arachne/{sample}.arachne.bam")
     log:
         "logs/arachne/{sample}.arachne.log"
     params:
@@ -100,8 +99,8 @@ rule align:
     shell:
         """
         {{
-            mkdir -p {resources.tmpdir}
+            mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
             arachne align -t {threads} {params} {input.ref} {input.R1} {input.R2} |
             samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
-        }} > {output.bam} 2> {log}
+        }} > {output} 2> {log}
         """

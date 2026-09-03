@@ -57,8 +57,7 @@ rule align:
         ref   = "workflow/reference/ref.fa.gz",
         fastq = get_fq
     output:
-        bam = temp("bwa/{sample}.bwa.bam"),
-        tmp = temp(directory("bwa/{sample}_tmp"))
+        temp("bwa/{sample}.bwa.bam")
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
@@ -75,9 +74,9 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap 'rm -rf {resources.tmpdir}' 0
         {{
             minibwa map -t {threads} {params} {input.ref} {input.fastq} |
             samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u - 
-        }} 2> {log} > {output.bam}
+        }} 2> {log} > {output}
         """

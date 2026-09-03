@@ -46,8 +46,7 @@ rule align:
         "workflow/reference/ref.fa.gz",
         get_fq,
     output:  
-        bam = temp("strobe/{sample}.strobe.bam"),
-        tmp = temp(directory("strobe/{sample}_tmp"))
+        temp("strobe/{sample}.strobe.bam")
     log:
         "logs/strobealign/{sample}.strobe.log"
     params: 
@@ -65,7 +64,7 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
             strobealign {params} -t {threads} {input} |
             samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u -l 0 -
