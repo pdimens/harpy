@@ -10,6 +10,7 @@
   - it should print resources on error now
   - strengthened outputting snakemake missing and syntax errors
 - `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
+- error printing when using `--container` correctly displays full apptainer invocation
 
 # internal
 - simplifies summaries logic

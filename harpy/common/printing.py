@@ -217,11 +217,14 @@ class HarpyPrint():
         self.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
 
 
-    def shell(self, text, rules: bool = False, style = None) -> None:
+    def shell(self, text, rules: bool = False, style = None, add_quote: bool = False) -> None:
         """
-        Prints the input text string as syntax-highlighted SHELL code to stderr
+        Prints the input text string as syntax-highlighted SHELL code to stderr. If using `add_quote`, adds
+        a single quote ' to the end (intended for use with apptainer commands).
         """
         text = text.replace("(command exited with non-zero exit code)", "").strip()
+        if add_quote:
+            text += "'"
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         code = Syntax(text, "sh", background_color='default', dedent=True, code_width=2000, theme = "one-dark")

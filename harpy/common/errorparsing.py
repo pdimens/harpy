@@ -17,17 +17,21 @@ class SnakeRule:
     message: str = ''
     env: str = ''
     cmd: str = ''
+    apptainerprefix: str = ''
     logs: list[str] = field(default_factory=list)
     log_contents: dict[str, str] = field(default_factory=dict)
     resources: list[str] = field(default_factory=list)
 
-_HEADER_RE = re.compile(r"^(?:Error in rule|Error in group|rule) (\w+):\s*$")
+#_HEADER_RE = re.compile(r"^(?:Error in rule|Error in group|rule) (\w+):\s*$")
 _KEY_RE = re.compile(r"^\s{4}(\S[\w -]*):\s?(.*)$")
+_ERROR_RULE_RE = re.compile(r"^\s*Error in rule (\w+):\s*$")
+_HEADER_RE = re.compile(r"^\s*(?:Error in rule|Error in group|rule) (\w+):\s*$")
+_GROUP_MSG_RE = re.compile(r"^Error in group (\S+)$")
 _LOGFILE_HEADER_RE = re.compile(r"^Logfile (\S+)(?: \(send to storage\))?:\s*$")
 _LOGFILE_NOTFOUND_RE = re.compile(r"^Logfile \S+.*not found\.\s*$")
-_ERROR_RULE_RE = re.compile(
-    r"^\s*Error in rule (\w+):\s*$"
-)
+_LATENCY_TRIGGER_RE = re.compile(r"--latency-wait:\s*$")
+_CORRUPTED_TRIGGER_RE = re.compile(r"corrupted:\s*$")
+#_EXITING_RE = re.compile(r"Exiting because a job execution failed\. Look ")
 _KEY_NAMES = {
     'jobid', 'input', 'output', 'log', 'message', 'conda-env',
     'shell', 'external_jobid', 'resources', 'threads', 'jobs',
@@ -35,11 +39,6 @@ _KEY_NAMES = {
 _KEY_RE = re.compile(
     r"^\s*(" + "|".join(re.escape(k) for k in _KEY_NAMES) + r"):\s?(.*)$"
 )
-_HEADER_RE = re.compile(r"^\s*(?:Error in rule|Error in group|rule) (\w+):\s*$")
-_GROUP_MSG_RE = re.compile(r"^Error in group (\S+)$")
-_LATENCY_TRIGGER_RE = re.compile(r"--latency-wait:\s*$")
-_CORRUPTED_TRIGGER_RE = re.compile(r"corrupted:\s*$")
-_EXITING_RE = re.compile(r"Exiting because a job execution failed\. Look (?:above|below) for error messages")
 
 def is_log_sep(line: str) -> bool:
     '''
@@ -147,6 +146,13 @@ class ErrorHandler():
                         self.hp.print(i.rstrip(), soft_wrap = True, width = 2000, style = 'red')
             return
 
+        if 'singularity image' in line:
+            self.hp.print(line.rstrip(), soft_wrap = True, width = 2000, style = 'red')
+            for i in self.errortext:
+                if i.strip():
+                    self.hp.print(i.rstrip(), soft_wrap = True, width = 2000, style = 'red')
+            return
+
         # ---------- pick out snakemake exceptions and missingoutput
         if ('Error' in line or 'Exception' in line or 'Missing input files' in line) and not ('RuleException' in line or 'CalledProcessError' in line):
             self.hp.print(line, highlight=False, soft_wrap = True, end = '', style = 'red')
@@ -164,27 +170,38 @@ class ErrorHandler():
                 else:
                     self.missingoutput.append(i)
 
+        apptainer_store = ''
         for i in self.errortext:
-            #if 'Exiting because a job execution failed. Look below for error messages' in i:
-            if _EXITING_RE.search(i):
-                break
-
-        # ---------- if it made it this far, it's an error resulting from a job failing
-        for i in self.errortext:
-            if not line.strip():
+            # ------ it was a command that failed in a container?
+            if not i.strip():
                 continue
 
-            if _ERROR_RULE_RE.match(line):
-                self.errortext.push(line)
+            if "Command ' apptainer  exec --home" in i:
+                apptainer_store = i.partition('bash -c')[0] + " bash -c"
+                #continue
+
+            hm = _ERROR_RULE_RE.match(i.strip())
+            if hm:
+                rule = self._parse_rule_block()
+                rule.name = hm.group(1)
+                if apptainer_store:
+                    rule.apptainerprefix = apptainer_store.removeprefix("Command ' ").replace("  ", " ")
+                self.rules.append(rule)
+                # reset in case of next rule
+                apptainer_store = ''
+
+            if i.lstrip().startswith('Logfile '):
+                self.errortext.push(i)
                 break
 
-            if line.lstrip().startswith('Logfile '):
-                self.errortext.push(line)
-                break
             if '(100%) done' in i:
                 break
+
             if 'RuleException' in i:
-                sys.exit(1)
+                #print("ARE WE HITTING THIS EXIT?")
+                break
+                #return
+                #sys.exit(1)
 
             m = _KEY_RE.match(i)
             if m and m.group(1) == 'message':
@@ -192,13 +209,6 @@ class ErrorHandler():
                 if gm:
                     self._skip_group_block()
                     continue
-
-            hm = _ERROR_RULE_RE.match(i.strip())
-            if hm:
-                rule = self._parse_rule_block()
-                rule.name = hm.group(1)
-                self.rules.append(rule)
-                print(rule)
 
             elif i.startswith('Complete log'):
                 break
@@ -224,7 +234,7 @@ class ErrorHandler():
                 f"[default bold]Triggering Rule[/][yellow bold] {self.rules[0].name}",
                 style='yellow'
             )
-            self.print(self.rules[0])    
+            self.print(self.rules[0])
 
     def _parse_rule_block(self) -> SnakeRule:
         '''Parse one complete Error in rule block.'''
@@ -379,9 +389,12 @@ class ErrorHandler():
             self.hp.print(rule.message, style = 'red')
 
         if rule.cmd:
+            
             self.hp.print('')
             self.hp.print("[bold dim]──── ❯ Command Invoked")
-            self.hp.shell(rule.cmd)
+            if rule.apptainerprefix:
+                self.hp.print(rule.apptainerprefix, end = " '")
+            self.hp.shell(rule.cmd, add_quote = bool(rule.apptainerprefix))
 
         if rule.logs:
             self.hp.print('')
