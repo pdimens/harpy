@@ -9,7 +9,7 @@
   - it should print scheduler messages on error now
   - it should print resources on error now
   - strengthened outputting snakemake missing and syntax errors
-
+- `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
 
 # internal
 - simplifies summaries logic

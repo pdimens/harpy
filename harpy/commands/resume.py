@@ -89,11 +89,13 @@ def resume(directory, absolute, direct, threads, clean, quiet):
 
     #container = snakemake_profile["software-deployment-method"] == "apptainer"
     _name = config_extract(harpy_config, "Workflow", "name")
+    _version = config_extract(harpy_config, "Workflow", "harpy-version")
     _allow_noparams = True if "validate" in _name else False
     _dir = snakemake_profile_extract(snakemake_profile, "directory")
     _inputs = config_extract(harpy_config, "Inputs")
 
     workflow = Workflow(_name, "NA", _dir, False, clean, quiet, no_validation=True)
+    workflow.version = _version
     if isinstance(_inputs, list):
         workflow.input(_inputs)
     else:
