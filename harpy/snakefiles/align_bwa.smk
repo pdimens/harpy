@@ -37,7 +37,7 @@ rule process_reference:
     log:
         f"{bn}.preprocess.log"
     threads:
-        workflow.cores
+        4
     conda:
         "envs/align.yaml"
     container:
