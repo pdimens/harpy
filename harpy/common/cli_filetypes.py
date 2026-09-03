@@ -250,19 +250,16 @@ class HPCProfile(click.ParamType):
         err: list[str] = []
         exec = yml.get("executor")
         if not exec:
-            self.fail("The HPC configuration requires an 'executor' field, e.g., 'executor: slurm'.", param, ctx)
+            self.fail("The HPC configuration requires an 'executor' field, e.g., 'executor: slurm'. The executor will also require a plugin to be installed to use it, e.g., 'snakemake-executor-plugin-slurm'", param, ctx)
         _ex = check_snakemake_hpc(f"snakemake-executor-plugin-{exec}")
         if _ex:
             err.append(_ex)
-        print(err)
         storage = yml.get("default-storage-provider")
         if storage:
             _ex = check_snakemake_hpc(f"snakemake-storage-plugin-{storage}")
             if _ex:
-                err.append(_ex)
+                err.append(_ex.lstrip())
         if err:
-            n = len(err)
-            plugins = "1 plugin" if n == 1 else f"{n} plugins"
             self.fail(f'''\
 The HPC profile provided requires snakemake plugins that were not found in the current environment.\
 To install the missing plugins:
