@@ -47,9 +47,7 @@ rule svjeditag:
     container:
         f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
-        """
-        svjedi-tag -v {input.vcf} -r {input.reference} -q {input.fastq} {params}
-        """
+        "svjedi-tag -v {input.vcf} -r {input.reference} -q {input.fastq} {params}"
 
 rule all:
     default_target: True
