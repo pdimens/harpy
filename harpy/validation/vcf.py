@@ -4,15 +4,13 @@ import subprocess
 from pathlib import Path
 from shutil import which
 
-import pysam
+from pysam import VariantFile
 import pysam.bcftools
 
 from harpy.common.printing import HarpyPrint
 
 class VCF():
-    '''
-    A class to contain and validate a VCF input file.
-    '''
+    'A class to contain and validate a VCF input file.'
     def __init__(self, filename:str, workdir:str, quiet:int = 0, threads: int = 2):
         os.makedirs(workdir, exist_ok = True)
 
@@ -35,7 +33,7 @@ class VCF():
 
     def get_contigs(self):
         """reads the header of a vcf/bcf file and populate `self.contigs` with the contigs (keys) and their lengths (values)"""
-        with pysam.VariantFile(self.file) as _vcf:
+        with VariantFile(self.file) as _vcf:
             for _contig,_info in _vcf.header.contigs.items():
                 self.contigs[_contig] = _info.length
 
@@ -66,6 +64,7 @@ class VCF():
                     # Read the next line of output
                     line = viewcmd.stdout.readline()
                     if not line:
+                        viewcmd.terminate()
                         break
                     snpcount += 1
                     # If there are at least 5 biallellic snps, terminate the process
@@ -90,7 +89,7 @@ class VCF():
     def check_phase(self):
         """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
         self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
-        with pysam.VariantFile(self.file, threads = self.threads) as _vcf:
+        with VariantFile(self.file, threads = self.threads) as _vcf:
             formats = list(_vcf.header.formats)
         if 'PS' not in formats and 'HP' not in formats:
             bn = os.path.basename(self.file)
@@ -105,7 +104,7 @@ class VCF():
     def match_samples(self, bamlist: list[str], prioritize_vcf: bool) -> None:
         """Validate that the input VCF file and the samples in the list of BAM files. The directionality of this check is determined by 'prioritize_vcf', which prioritizes the sample list in the vcf file, rather than bamlist."""
         self.print.log("Alignment samples in VCF", newline=False)
-        with pysam.VariantFile(self.file) as _vcf:
+        with VariantFile(self.file) as _vcf:
             vcfsamples = list(_vcf.header.samples)
         filesamples = [Path(i).stem for i in bamlist]
         if prioritize_vcf:
@@ -187,5 +186,20 @@ class VCF():
 
     def samplelist(self) -> list[str]:
         '''return the list of sample names from the vcf file'''
-        with pysam.VariantFile(self.file) as _vcf:
+        with VariantFile(self.file) as _vcf:
             return list(_vcf.header.samples)
+    
+    def is_sv_fmt(self):
+        '''
+        Checks for conformity with SV-style VCF file, meaning it has INFO/SVTYPE and INFO/END.
+        '''
+        self.print.log("VCF has INFO/SVTYPE and INFO/END", newline=False)
+        with VariantFile(self.file) as vcf:
+            info_keys = vcf.header.info.keys()
+        if not ('SVTYPE' in info_keys and 'END' in info_keys):
+            self.print.validation(False)
+            self.print.error(
+                "malformed VCF",
+                f"The VCF file [bold yellow]{os.path.basename(self.file)}[/] is missing the [green]INFO/SVTYPE[/] field" #TODO NEEDS MORE AND BETTER CHECK, IT'S INCOMPLETE
+            )
+        self.print.validation(True)

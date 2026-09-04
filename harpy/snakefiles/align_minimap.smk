@@ -19,13 +19,17 @@ tech_opt     = f"-ax map-{technology}" if technology != "sr" else "-ax sr"
 
 bn 			  = os.path.basename(genomefile)
 bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-d             = dict(zip(samplenames, samplenames))
+bn_re = re.compile(bn_r, flags=re.IGNORECASE)
+fq_by_sample = {}
+for f in fqlist:
+    name = bn_re.sub("", os.path.basename(f), count=1)
+    fq_by_sample.setdefault(name, []).append(f)
+
+samplenames = set(fq_by_sample)
 
 def get_fq(wildcards):
-    # returns a list of fastq files for read 1 based on *wildcards.sample* e.g.
-    r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return sorted(list(filter(r.match, fqlist))[:2])
+    return sorted(fq_by_sample[wildcards.sample])[:2]
+
 
 rule process_reference:
     input:

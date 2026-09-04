@@ -69,7 +69,8 @@ class HarpyEnvs():
             "bioconda::bcftools=1.23",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
-            "bioconda::naibr-plus=0.5.4"
+            "bioconda::naibr-plus=0.5.4",
+            "bioconda::svjedi-tag"
         ]
     }
 

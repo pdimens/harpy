@@ -49,6 +49,28 @@ class FASTA():
             )
         self.print.validation(True)
 
+    def match_contigs_vcf(self, contigs: str, vcffile: str):
+        """Checks whether a list of contigs from a vcf file are present in a fasta file"""
+        self.print.log("CHROM in VCF present in FASTA", newline=False)
+        valid_contigs = []
+        with pysam.FastxFile(self.file, persist=False) as fa:
+            for record in fa:
+                valid_contigs.append(record.name)
+        bad_names = []
+        for i in contigs:
+            if i not in valid_contigs:
+                bad_names.append(i)
+        if bad_names:
+            self.print.validation(False)
+            self.print.error(
+                "contigs absent",
+                f"Some of the contigs in {os.path.basename(vcffile)} were not found in [blue]{self.file_base}[/].",
+                f"Check that your contig names are correct, including uppercase and lowercase. Also make sure that {os.path.basename(vcffile)} was generated from {self.file_base}.",
+                f"Contigs absent in {self.file_base}",
+                ",".join([i for i in bad_names])
+            )
+        self.print.validation(True)
+
     def contigs(self) -> dict:
         """Read the FASTA file to retrieve contig names and lengths"""
         contigs = {}
