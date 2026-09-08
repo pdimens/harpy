@@ -1,5 +1,6 @@
 import json
 import re
+from nbconvert.filters import markdown2html
 import shutil
 import subprocess
 import tempfile
@@ -16,6 +17,46 @@ except ImportError:
 
 
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
+FOOTNOTE_RE = re.compile(r'\[^[0-9]\]:')
+DIRECTIVE = re.compile(
+    r"^:::\{[^}]*\}[^\n]*\n(?:^:.*\n)*(.*?)\n:::\s*$",
+    re.M | re.S,
+)
+OPEN = re.compile(r"^:::\{(\w+)\}")
+
+def _sanitize(md: str) -> str:
+    lines = md.split("\n")
+    n_lines = len(lines)
+    out, i = [], 0
+    while i < n_lines:
+        line = lines[i]
+
+        if line.startswith(":::{dropdown}"):
+            title = line.lstrip().removeprefix(":::{dropdown}").strip()
+            i += 1
+            while i < n_lines and re.match(r"^:\w", lines[i]):  # skip :key: val options
+                i += 1
+            body: list[str] = []
+            while i < n_lines and not lines[i].strip().startswith(":::"):
+                body.append(lines[i]); i += 1
+            i += 1  # skip closing :::
+            out.append(f"<details>\n<summary>{title}</summary>\n{markdown2html('\n'.join(body)).strip()}\n</details>")
+            continue
+
+        m = OPEN.match(line)
+        if m:
+            i += 1
+            while i < n_lines and re.match(r"^:\w", lines[i]):
+                i += 1
+            body = []
+            while i < n_lines and lines[i].strip() != ":::":
+                body.append(lines[i]); i += 1
+            i += 1
+            out.append(f"<aside>\n{chr(10).join(body).strip()}\n</aside>")
+            continue
+
+        out.append(line); i += 1
+    return "\n".join(out)
 
 def has_nbconvert():
     hp = HarpyPrint()
@@ -53,6 +94,7 @@ def has_monolith():
             Group("Harpy does not provide it, but it can be installed using:", _table)   
         )
 
+
 class ReportStatic():
     def __init__(self, quiet: bool, static: bool):
         self.quiet: bool = quiet
@@ -64,7 +106,7 @@ class ReportStatic():
         if static:
             has_monolith()
 
-    def render_frontmatter_cell(self, nb: dict) -> None:
+    def render_frontmatter_cell(self) -> None:
         """
         If the notebook's first cell is a MyST-style YAML frontmatter block,
         replace it with a plain Markdown header (title/subtitle/date) so
@@ -73,7 +115,7 @@ class ReportStatic():
         mystmd/site-only) are silently dropped. Any leftover cell content
         after the frontmatter block is preserved below the header.
         """
-        cells = nb.get("cells", [])
+        cells = self.nb.get("cells", [])
         if not cells:
             return
 
@@ -111,6 +153,22 @@ class ReportStatic():
 
         first["source"] = "\n".join(lines)
         first["cell_type"] = "markdown"
+        self.nb['cells'][0] = first
+
+
+    def sanitize(self, temp_nb_path):
+        '''
+        Sanitize the mystmd-specific content into plain html that will be properly formatted by nbconvert.
+        This includes: dropdowns, footnotes. Serializes to temporary json file `temp_nb_path`.
+        ''' 
+        for i, cell in enumerate(self.nb.get("cells", [])):
+            if cell["cell_type"] == "markdown":
+                src = "".join(cell["source"])
+                cell["source"] = _sanitize(src).splitlines(keepends=True)
+                self.nb['cells'][i] = cell
+        temp_nb_path.write_text(json.dumps(self.nb, indent = 1), encoding="utf-8")
+        #json.dump(self.nb, open(path, "w"), indent=1)
+
 
 
     def run(self, cmd: list[str], **kwargs) -> None:
@@ -135,9 +193,10 @@ class ReportStatic():
             intermediate_html = out_path
 
         try:
-            nb_json = json.loads(nb_path.read_text(encoding="utf-8"))
-            self.render_frontmatter_cell(nb_json)
-            tmp_nb_path.write_text(json.dumps(nb_json), encoding="utf-8")
+            self.nb = json.loads(nb_path.read_text(encoding="utf-8"))
+            self.render_frontmatter_cell()
+            self.sanitize(tmp_nb_path)
+            #tmp_nb_path.write_text(json.dumps(nb_json), encoding="utf-8")
             nbconvert_cmd = [
                 "jupyter", "nbconvert", str(tmp_nb_path),
                 "--to", "html",
@@ -148,7 +207,7 @@ class ReportStatic():
                 "--TagRemovePreprocessor.remove_input_tags=remove-input",
                 "--TagRemovePreprocessor.remove_all_outputs_tags=remove-output",
                 "--output", intermediate_html.name,
-                "--output-dir", str(intermediate_html.parent),
+                "--output-dir", str(intermediate_html.parent)
             ]
             self.run(nbconvert_cmd)
 
