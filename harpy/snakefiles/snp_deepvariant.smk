@@ -20,22 +20,8 @@ region_input = INPUTS["regions"]
 keep_invar   = PARAMETERS.get("keep-invariant", False)
 gpu          = WORKFLOW.get('gpu', False)
 
-# attempt to get processed, then source, then nothing
-grp          = INPUTS.get("groupings") or {}
-if grp:
-    groupings = grp.get("processed", [])
-    if isinstance(groupings, str) and not os.path.isfile(groupings):
-        groupings = grp.get("source", [])
-else:
-    groupings = []
-
 bamdict       = dict(zip(bamlist, bamlist))
 samplenames   = {Path(i).stem for i in bamlist}
-sampldict     = dict(zip(bamlist, samplenames))
-bn                = os.path.basename(genomefile)
-genome_zip        = True if bn.lower().endswith(".gz") else False
-workflow_geno     = f"workflow/reference/{bn}"
-workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 
 if os.path.exists(region_input):
     with open(region_input, "r") as reg_in:
@@ -64,23 +50,16 @@ rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai",
+        gzi = "workflow/reference/ref.fa.gz.gzi"
     log:
-        f"{workflow_geno}.preprocess.log"
-    params:
-        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
+        "workflow/reference.preprocess.log"
     shell: 
         """
         {{
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be BGzipped
-                seqtk seq {input} | bgzip -c > {output.geno}
-            else
-                ln -s {input} {output.geno}
-            fi
-            samtools faidx {params} --fai-idx {output.fai} {output.geno}
+            seqtk seq {input} | bgzip -c > {output.geno}
+            samtools faidx {params} --fai-idx {output.fai} --gzi-idx {output.gzi} {output.geno}
         }} 2> {log}
         """
 
@@ -97,8 +76,8 @@ rule call_variants:
     input:
         get_alignments_index,
         bam = get_alignments,
-        f"{workflow_geno}.fai",
-        reference = workflow_geno
+        "workflow/reference/ref.fa.gz.fai",
+        reference = "workflow/reference/ref.fa.gz"
     output:
         dir("deepvariant/{sample}"),
         vcf = temp("samples/{sample}.vcf")
@@ -159,7 +138,7 @@ rule concat_samples:
 
 rule realign_indels:
     input:
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
         bcf     = "variants.raw.bcf",
         idx     = "variants.raw.bcf.csi"
     output:
@@ -176,8 +155,8 @@ rule realign_indels:
 
 rule variant_report:
     input: 
-        genome  = workflow_geno,
-        ref_idx = f"{workflow_geno}.fai",
+        genome  = "workflow/reference/ref.fa.gz",
+        ref_idx = "workflow/reference/ref.fa.gz.fai",
         bcf     = "variants.{type}.bcf",
         idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"

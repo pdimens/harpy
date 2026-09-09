@@ -28,10 +28,6 @@ else:
     groupings = []
 
 bamdict           = dict(zip(bamlist, bamlist))
-bn                = os.path.basename(genomefile)
-genome_zip        = True if bn.lower().endswith(".gz") else False
-workflow_geno     = f"workflow/reference/{bn}"
-workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 samplenames       = {Path(i).stem for i in bamlist}
 
 if os.path.isfile(region_input):
@@ -48,24 +44,17 @@ else:
 rule process_reference:
     input:
         genomefile
-    output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+    output:
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai",
+        gzi = "workflow/reference/ref.fa.gz.gzi"
     log:
-        f"{workflow_geno}.preprocess.log"
-    params:
-        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
+        "workflow/reference/ref.preprocess.log"
     shell: 
         """
         {{
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be BGzipped
-                seqtk seq {input} | bgzip -c > {output.geno}
-            else
-                ln -s {input} {output.geno}
-            fi
-            samtools faidx {params} --fai-idx {output.fai} {output.geno}
+            seqtk seq {input} | bgzip -c > {output.geno}
+            samtools faidx {params} --fai-idx {output.fai} --gzi-idx {output.gzi} {output.geno}
         }} 2> {log}
         """
 
@@ -92,10 +81,10 @@ rule call_genotypes:
     input:
         bamlist,
         collect("{bam}.bai", bam = bamlist),
-        f"{workflow_geno}.fai",
+        "workflow/reference/ref.fa.gz.fai",
         "workflow/sample.groups" if groupings else [],
         bamlist = "workflow/mpileup.input",
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
     output:
         temp("regions/{part}.bcf.csi"),
         bcf = temp("regions/{part}.bcf"),
@@ -157,7 +146,7 @@ rule concat_logs:
 
 rule realign_indels:
     input:
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
         bcf     = "variants.raw.bcf",
         idx     = "variants.raw.bcf.csi"
     output:
@@ -174,7 +163,7 @@ rule realign_indels:
 
 rule variant_report:
     input: 
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
         bcf     = "variants.{type}.bcf",
         idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"
