@@ -82,8 +82,6 @@ rule sort_bcf:
         bcf = temp("workflow/input/vcf/input.sorted.bcf")
     log:
         "logs/input.sort.log"
-    container:
-        None
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
@@ -92,8 +90,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -113,8 +109,6 @@ rule create_stitch_input:
         idx = "workflow/input/vcf/input.sorted.bcf.csi"
     output:
         "workflow/input/stitch/{contig}.stitch"
-    container:
-        None
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.contig} {input.bcf} |

@@ -49,7 +49,7 @@ rule align:
         "workflow/reference/ref.fa.gz",
         get_fq,
     output:  
-        temp("strobe/{sample}.strobe.bam")
+        temp("strobe/{sample}.strobe.bam", group_jobs = True)
     log:
         "logs/strobealign/{sample}.strobe.log"
     params: 

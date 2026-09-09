@@ -94,7 +94,7 @@ if popdict:
             bam = "workflow/input/{sample}.bam",
             bai = "workflow/input/{sample}.bam.bai"
         output:
-            temp("lrez_index/{sample}.bci")
+            temp("lrez_index/{sample}.bci", group_jobs = True)
         log:
             "logs/lrez_index/{sample}.concat.log"
         threads:
@@ -110,7 +110,7 @@ else:
         input: 
             get_alignments
         output:
-            temp("lrez_index/{sample}.bci")
+            temp("lrez_index/{sample}.bci", group_jobs = True)
         log:
             "logs/process_alignments/{sample}.log"
         threads:

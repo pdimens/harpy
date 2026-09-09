@@ -59,7 +59,7 @@ rule align:
         ref = "workflow/reference/ref.fa.gz.mmi",
         fastq = get_fq
     output:
-        temp("minimap/{sample}.minimap.bam")
+        temp("minimap/{sample}.minimap.bam", group_jobs = True)
     log:
         "logs/minimap/{sample}.minimap.log"
     params:

@@ -101,6 +101,9 @@ rule depth_stats:
         bam = "{sample}.bam"
     output: 
         "reports/data/coverage/{sample}.regions.bed.gz"
+        temp("reports/data/coverage/{sample}.mosdepth.global.dist.txt"),
+        temp("reports/data/coverage/{sample}.mosdepth.summary.txt"),
+        temp("reports/data/coverage/{sample}.mosdepth.dist.txt")
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
@@ -113,10 +116,7 @@ rule depth_stats:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        """
-        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
-        rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
-        """
+        "mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}"
 
 rule sample_stats:
     input:

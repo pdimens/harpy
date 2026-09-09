@@ -61,7 +61,7 @@ rule align:
         ref   = "workflow/reference/ref.fa.gz",
         fastq = get_fq
     output:
-        temp("bwa/{sample}.bwa.bam")
+        temp("bwa/{sample}.bwa.bam", group_jobs = True)
     log:
         "logs/bwa/{sample}.bwa.log"
     params:
