@@ -88,17 +88,36 @@ class VCF():
         self.print.validation(True)
 
     def check_phase(self):
-        """Check to see if the input VCf file is phased or not, determined by the presence of ID=PS or ID=HP tags"""
+        """Validate that the VCF declares and contains usable phasing information."""
         self.print.log("VCF file is phased ([green]PS[/] or [green]HP[/] tags)", newline=False)
         with pysam.VariantFile(self.file, threads = self.threads) as _vcf:
             formats = list(_vcf.header.formats)
-        if 'PS' not in formats and 'HP' not in formats:
+            phase_formats = [tag for tag in ("PS", "HP") if tag in formats]
+            phased_genotypes = 0
+            tagged_genotypes = 0
+            for record in _vcf:
+                for sample in record.samples.values():
+                    genotype = sample.get("GT")
+                    if genotype is not None and getattr(sample, "phased", False):
+                        phased_genotypes += 1
+                    if any(sample.get(tag) not in (None, ".", "") for tag in phase_formats):
+                        tagged_genotypes += 1
+
+        if not phase_formats:
             bn = os.path.basename(self.file)
             self.print.validation(False)
             self.print.error(
                 "vcf not phased",
                 "The input variant file needs to be phased into haplotypes, but no [green]FORMAT/PS[/] or [green]FORMAT/HP[/] fields were found.",
                 f"Phase [bold]{bn}[/] into haplotypes using [blue bold]harpy phase[/] or another manner of your choosing and use the phased vcf file as input. If you are confident this file is phased, then the phasing does not follow standard convention and you will need to make sure the phasing information appears as either [green]FORMAT/PS[/] or [green]FORMAT/HP[/] tags."
+            )
+        if phased_genotypes == 0 or tagged_genotypes == 0:
+            bn = os.path.basename(self.file)
+            self.print.validation(False)
+            self.print.error(
+                "vcf contains no usable phasing",
+                f"The header of [blue]{bn}[/] declares {', '.join(phase_formats)}, but no sample-level phased genotypes and phase tags were found.",
+                "Check that phasing values were written to the sample columns and that the file was not truncated or converted without preserving phasing."
             )
         self.print.validation(True)
 
