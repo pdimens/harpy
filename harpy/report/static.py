@@ -17,12 +17,39 @@ except ImportError:
 
 
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
-FOOTNOTE_RE = re.compile(r'\[^[0-9]\]:')
 DIRECTIVE = re.compile(
     r"^:::\{[^}]*\}[^\n]*\n(?:^:.*\n)*(.*?)\n:::\s*$",
     re.M | re.S,
 )
 OPEN = re.compile(r"^:::\{(\w+)\}")
+REF = re.compile(r"\[\^(\w+)\](?!:)")
+DEF_START = re.compile(r"^\[\^(\w+)\]:\s*(.*)$")
+
+def _sanitize_footnotes(md: str) -> str:
+    '''
+    replace mystmd footnotes ([^text]) with an inline superscript. If there is a superscript
+    definition ([^text]:), it will be given the same superscript + newline
+    '''
+    lines = md.split("\n")
+    out, i = [], 0
+    while i < len(lines):
+        m = DEF_START.match(lines[i])
+        if m:
+            label, rest = m.group(1), m.group(2)
+            i += 1
+            body = [rest] if rest else []
+            while i < len(lines) and (lines[i].startswith("    ") or lines[i].startswith("\t") or lines[i].strip() == ""):
+                if lines[i].strip() == "" and (i + 1 >= len(lines) or not lines[i + 1].startswith(("    ", "\t"))):
+                    break  # trailing blank line, not more indented body
+                body.append(re.sub(r"^(    |\t)", "", lines[i]))
+                i += 1
+            body_txt = "\n".join(body).strip()
+            #print(label, body_txt)
+            out.append(f"<p><sup>{label}</sup>{body_txt}</p>")
+            continue
+        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", lines[i]))
+        i += 1
+    return "\n".join(out)
 
 def _sanitize(md: str) -> str:
     lines = md.split("\n")
@@ -52,11 +79,12 @@ def _sanitize(md: str) -> str:
             while i < n_lines and lines[i].strip() != ":::":
                 body.append(lines[i]); i += 1
             i += 1
-            out.append(f"<aside>\n{chr(10).join(body).strip()}\n</aside>")
+            out.append(f"<aside>\n{markdown2html(chr(10).join(body).strip())}\n</aside>")
             continue
 
-        out.append(line); i += 1
+        out.append(_sanitize_footnotes(line)); i += 1
     return "\n".join(out)
+    #exit(0)
 
 def has_nbconvert():
     hp = HarpyPrint()
@@ -160,16 +188,13 @@ class ReportStatic():
         '''
         Sanitize the mystmd-specific content into plain html that will be properly formatted by nbconvert.
         This includes: dropdowns, footnotes. Serializes to temporary json file `temp_nb_path`.
-        ''' 
+        '''
         for i, cell in enumerate(self.nb.get("cells", [])):
             if cell["cell_type"] == "markdown":
                 src = "".join(cell["source"])
                 cell["source"] = _sanitize(src).splitlines(keepends=True)
                 self.nb['cells'][i] = cell
         temp_nb_path.write_text(json.dumps(self.nb, indent = 1), encoding="utf-8")
-        #json.dump(self.nb, open(path, "w"), indent=1)
-
-
 
     def run(self, cmd: list[str], **kwargs) -> None:
         if not self.quiet:
@@ -182,8 +207,7 @@ class ReportStatic():
         nb_name = nb_path.stem
         out_path: Path = nb_path.with_name(f"{nb_name}.html")
             
-
-        # Transformed notebook copy lives NEXT TO the original (not in /tmp).
+        # Transformed notebook copy lives NEXT TO the original
         # It's cleaned up in `finally` and the original file is never modified.
         tmp_nb_path = nb_path.with_name(f".{nb_name}-tmp.ipynb")
         workdir = Path(tempfile.mkdtemp(prefix="nb2html_"))
@@ -207,7 +231,7 @@ class ReportStatic():
                 "--TagRemovePreprocessor.remove_input_tags=remove-input",
                 "--TagRemovePreprocessor.remove_all_outputs_tags=remove-output",
                 "--output", intermediate_html.name,
-                "--output-dir", str(intermediate_html.parent)
+                "--output-dir", str(intermediate_html.parent),
             ]
             self.run(nbconvert_cmd)
 
