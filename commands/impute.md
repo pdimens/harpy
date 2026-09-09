@@ -36,6 +36,15 @@ You can impute genotypes with Harpy using the [!badge corners="pill" text="imput
 harpy impute OPTIONS... PARAMETERS VCF INPUTS...
 ```
 
+!!! warning "Imputed genotypes are not observed genotypes"
+    Imputation replaces missing genotype calls with model-based estimates. Keep the original VCF
+    unchanged and treat the imputed output as a separate analysis product. Before using it for
+    population-genetic or association analyses, inspect the report's `INFO_SCORE` values and
+    compare the imputed calls with genotypes withheld from the input. Low-quality or poorly
+    supported calls should be filtered or marked as uncertain rather than silently treated as
+    observed data. Harpy reports the imputation parameters and quality summaries, but it cannot
+    determine whether an imputed call is biologically appropriate for your study.
+
 ```bash example | impute only the samples in a vcf file, regardless of how many bams were supplied
 # create a STITCH parameter file
 harpy template impute > stitch.params
