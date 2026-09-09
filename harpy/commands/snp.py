@@ -54,17 +54,16 @@ def snp():
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def freebayes(reference, inputs, output, threads, populations, ploidy, regions, extra_params, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
-    Call SNPs and indels using freebayes
+    Use freebayes to call SNPs and indels
 
     Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/jellyfish*.bam`), or both.
 
-    The `--regions` option specifies what genomic regions to call variants
-    with. If a 1-indexed BED file is provided, variant calling will be parallelized
-    over those regions. If a single region is provided in the format `chrom:start-end`, only
-    that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire reference genome.
+    Regions (`--regions`) to call variants in:
+    a 1-indexed BED file parallelized by region,
+    `chrom:start-end` for a single region, or an integer (default) for parallelizing over
+    fixed-size intervals across the reference genome.
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
@@ -110,7 +109,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
     workflow.initialize(setup)
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
+@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional deepvariant parameters, in quotes')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
@@ -130,17 +129,16 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
 def mpileup(reference, inputs, output, regions, threads, populations, ploidy, extra_params, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
-    Call SNPs and indels using bcftools mpileup
+    Use mpileup to call SNPs and indels
 
     Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/scarab*.bam`), or both.
 
-    The `--regions` option specifies what genomic regions to call variants
-    with. If a 1-indexed BED file is provided, variant calling will be parallelized
-    over those regions. If a single region is provided in the format `chrom:start-end`, only
-    that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire reference genome.
+    Regions (`--regions`) to call variants in:
+    a 1-indexed BED file parallelized by region,
+    `chrom:start-end` for a single region, or an integer (default) for parallelizing over
+    fixed-size intervals across the reference genome.
 
     Optionally specify `--populations` for population-aware variant calling (**harpy template** can create that file).
     """
@@ -186,7 +184,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
 
 
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
-@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
+#@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
@@ -202,21 +200,19 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
 @click.help_option('--help', hidden = True)
 @click.argument('reference', type=FASTAfile(), required = True, nargs = 1)
 @click.argument('inputs', required=True, type=SAMfile(), nargs=-1)
-def deepvariant(reference, inputs, output, regions, threads, extra_params, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
+def deepvariant(reference, inputs, output, regions, threads, keep_invariant, snakemake, skip_reports, quiet, hpc, clean, container, setup, no_temp):
     """
-    Call SNPs and indels using deepvariant
+    Use deepvariant to call SNPs and indels 
 
     Deepvariant is a machine-learning approach to SNP calling and requires that samples be diploid.
-
-    Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
+    It must also run in a container environment. Provide the reference fasta followed by the input alignment (`.bam`) files and/or directories
     at the end of the command as individual files/folders, using shell wildcards
     (e.g. `data/scarab*.bam`), or both.
 
-    The `--regions` option specifies what genomic regions to call variants
-    with. If a 1-indexed BED file is provided, variant calling will be parallelized
-    over those regions. If a single region is provided in the format `chrom:start-end`, only
-    that region will be called. If an integer is provided (default), then Harpy will
-    call variants in parallel for intervals of that size across the entire reference genome.
+    Regions (`--regions`) to call variants in:
+    a 1-indexed BED file parallelized by region,
+    `chrom:start-end` for a single region, or an integer (default) for parallelizing over
+    fixed-size intervals across the reference genome.
     """
     workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
@@ -240,8 +236,6 @@ def deepvariant(reference, inputs, output, regions, threads, extra_params, keep_
     workflow.input(region, "regions")
     workflow.input(alignments.files, "alignments")
     workflow.param(keep_invariant, "keep-invariant")
-    if extra_params:
-        workflow.param(extra_params, "extra")
 
     workflow.info = {
         "Samples" : alignments.count,
@@ -251,6 +245,6 @@ def deepvariant(reference, inputs, output, regions, threads, extra_params, keep_
 
     workflow.initialize(setup)
 
-
+snp.add_command(deepvariant)
 snp.add_command(mpileup)
 snp.add_command(freebayes)

@@ -13,7 +13,6 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 skip_reports  = REPORTS.get("skip", False)
 ploidy 		  = PARAMETERS.get("ploidy", 2)
-extra 	      = PARAMETERS.get("extra", "") 
 bamlist       = INPUTS["alignments"]
 genomefile 	  = INPUTS["reference"]
 region_input = INPUTS["regions"]
@@ -80,15 +79,15 @@ rule call_variants:
         reference = "workflow/reference/ref.fa.gz"
     output:
         dir("deepvariant/{sample}"),
-        vcf = temp("samples/{sample}.vcf")
+        vcf = temp("samples/{sample}.vcf"),
+        gvcf = temp("samples/{sample}.gvcf") if keep_invar else []
     log:
         "logs/{sample}.deepvariant.log"
     params:
         "--model_type=WGS",
         "--use_gpu" if gpu else "",
         lambda wc: "--intermediate_results_dir=deepvariant/{wc.sample}",
-        extra = extra,
-        "--output_gvcf=" if keep_invar else "--output_vcf="
+        lambda wc: "--output_gvcf=samples/{sample}.gvcf" if keep_invar else []
     threads:
         4
     container:
@@ -96,7 +95,7 @@ rule call_variants:
     shell:
         """
         mkdir -p deepvariant/{wildcards.sample}
-        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params}{output.vcf} &> {log}
+        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params} output_vcf={output.vcf} &> {log}
         """
 
 rule sort_variants:
