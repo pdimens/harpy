@@ -43,7 +43,7 @@ class HarpyEnvs():
             "bioconda::athena_meta=1.2"
         ],
         "preprocess": [
-            "bioconda::dmox>=0.2",
+            "bioconda::dmox>=0.3",
             "bioconda::pheniqs=2.1",
         ],
         "phase" : [
