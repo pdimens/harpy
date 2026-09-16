@@ -32,6 +32,7 @@ def preprocess():
 @click.option('-u', '--keep-unknown-samples', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
 @click.option('-b', '--keep-unknown-barcodes', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with unrecognized barcodes')
 @click.option('-s', '--stitch', panel = "Parameters",  is_flag = True, default = False, help = 'Use the bases between segments to demultiplex')
+@click.option('-c', '--stitch-comp', panel = "Parameters",  is_flag = True, default = False, help = 'Allow complementary bases when using `--stitch`')
 @click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
@@ -46,7 +47,7 @@ def preprocess():
 @click.argument('R12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.argument('I12_FQ', required=True, type=FASTQfile(dir_ok= False), nargs=2)
 @click.help_option('--help', hidden = True)
-def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, stitch, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
+def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_unknown_barcodes, stitch, stitch_comp, threads, snakemake, skip_reports, quiet, hpc, clean, container, setup):
     """
     Preprocess FASTQ files haplotagged with the Meier _et al._ 2021 protocol
 
@@ -70,7 +71,8 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
     workflow.param(qx_rx, "qx-rx")
     workflow.param(keep_unknown_barcodes, "barcodes")
     workflow.param(keep_unknown_samples, "samples")
-    workflow.param(stitch, "stitch")
+    workflow.param(stitch, "stitch:base")
+    workflow.param(stitch_comp, "stitch:complementary")
     workflow.notebooks["skip"] = skip_reports
 
     workflow.info = {

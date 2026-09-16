@@ -12,7 +12,8 @@ skip_reports     = REPORTS.get("skip", False)
 qxrx             = PARAMETERS.get("qx-rx", False)
 unknown_samples  = PARAMETERS.get("samples", False)
 unknown_barcodes = PARAMETERS.get("barcodes", False)
-stitch_base      = PARAMETERS.get("stitch", False)
+stitch_base      = PARAMETERS.get("stitch", {}).get("base", False)
+stitch_comp      = PARAMETERS.get("stitch", {}).get("complementary", False)
 schemafile       = INPUTS["schema"]
 
 localrules: all
@@ -77,6 +78,7 @@ rule demultiplex:
         "--undetermined-samples" if unknown_samples else "",
         "--multiple-samples-per-barcode" if duplicates else "",
         "--use-stitch-base --sx" if stitch_base else "",
+        "--allow-complementary-stitch" if stitch_base and stitch_comp else ""
     threads:
         workflow.cores
     conda:
