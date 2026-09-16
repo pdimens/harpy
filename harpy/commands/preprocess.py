@@ -69,8 +69,8 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
         "I2": i12_fq[1][0]
     }
     workflow.param(qx_rx, "qx-rx")
-    workflow.param(keep_unknown_barcodes, "barcodes")
-    workflow.param(keep_unknown_samples, "samples")
+    workflow.param(keep_unknown_barcodes, "unknown-barcodes")
+    workflow.param(keep_unknown_samples, "unknown-samples")
     workflow.param(stitch, "stitch:base")
     workflow.param(stitch_comp, "stitch:complementary")
     workflow.notebooks["skip"] = skip_reports

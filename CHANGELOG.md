@@ -1,7 +1,9 @@
 # New
 - `harpy view envs`: print versions
 - CLI validations for `--hpc`/`-H` to check if the plugins necessary for the configuration are installed
-- `harpy preprocess meier2021` now uses `dmox` v0.3, introducing the `--use-stitch-base` logic via `--stitch`
+- `harpy preprocess meier2021` now uses `dmox` v0.3.1
+  - introduces the `--use-stitch-base` logic via `--stitch`
+  - introduces the `--allow-complementary-stitch` logic via `--stitch-comp`
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty
@@ -13,7 +15,11 @@
 - `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
 - error printing when using `--container` correctly displays full apptainer invocation
 
-# internal
+# Breaking
+- the `dmox` update makes `workflow.yaml` files from previous harpy versions invalid
+  - not technically invalid, but the key absence/mismatch will default to all optional features turned off
+
+# Internal
 - simplifies summaries logic
 - prep arachne workflow
 - replace Golang regexp with coregex for speed/efficiency

@@ -10,8 +10,8 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 skip_reports     = REPORTS.get("skip", False)
 qxrx             = PARAMETERS.get("qx-rx", False)
-unknown_samples  = PARAMETERS.get("samples", False)
-unknown_barcodes = PARAMETERS.get("barcodes", False)
+unknown_samples  = PARAMETERS.get("unknown-samples", False)
+unknown_barcodes = PARAMETERS.get("unknown-barcodes", False)
 stitch_base      = PARAMETERS.get("stitch", {}).get("base", False)
 stitch_comp      = PARAMETERS.get("stitch", {}).get("complementary", False)
 schemafile       = INPUTS["schema"]
