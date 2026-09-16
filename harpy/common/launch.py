@@ -9,6 +9,7 @@ from datetime import datetime
 
 from harpy.common.file_ops import purge_empty_logs
 from harpy.common.printing import HarpyPrint
+from harpy.common.progress import PanelProgress
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_SNAKEFILE_ERROR = 1
@@ -46,7 +47,8 @@ class LaunchSnakemake():
         self.total_active: int = 0
         self.print = printer
         self._setup_bg_signal_handlers()
-        self.progress = self.print.progressbar()
+        self.progress = PanelProgress(console=self.print.console, quiet=quiet).bar()
+        #self.progress = self.print.progressbar()
 
         try:
             self.workflow_setup()
@@ -210,8 +212,8 @@ class LaunchSnakemake():
                     return
                 self.nextline()
             if self.deps:
-                progress = self.print.pulsebar()
-                with self.print.progresspanel(progress, title=self.deploy_text, refresh=8):
+                progress = PanelProgress(self.print.console, self.quiet, title=self.deploy_text).pulse()
+                with progress:
                     _taskid = progress.add_task("[dim]Working...", total=None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -247,7 +249,7 @@ class LaunchSnakemake():
         '''monitors the Snakemake stderr output while jobs are running'''
         if self.is_done():
             return
-        with self.print.progresspanel(self.progress):
+        with self.progress:
             self.task_ids["total_progress"] = self.progress.add_task(
                 "[bold blue]Progress",
                 total=self.job_inventory["total"].total,

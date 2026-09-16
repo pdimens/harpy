@@ -1,77 +1,18 @@
 """Module of pretty-printing for errors and prompts"""
 
 import os
-import re
 import sys
 import time
-from contextlib import nullcontext
 
 from rich import box
 from rich.console import Console, RenderableType
-from rich.live import Live
-from rich.markup import escape
 from rich.panel import Panel
-from rich.progress import (
-    BarColumn,
-    Progress,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
 from rich.syntax import Syntax
 from rich.table import Table
-from rich.text import Text
 from rich.theme import Theme
 
 from harpy import __version__
 
-class PausableTimeElapsedColumn(TimeElapsedColumn):
-    """Custom time elapsed column that supports pausing and resuming."""
-
-    def __init__(self):
-        super().__init__()
-        self.pause_adjustments = {}  # task_id -> total paused time
-        self.pause_start_times = {}  # task_id -> when pause started
-
-    def pause(self, task_id):
-        """Start pausing the timer for a task."""
-        self.pause_start_times[task_id] = time.monotonic()
-
-    def resume(self, task_id):
-        """Resume the timer for a task."""
-        if task_id in self.pause_start_times:
-            pause_duration = time.monotonic() - self.pause_start_times[task_id]
-            self.pause_adjustments[task_id] = self.pause_adjustments.get(task_id, 0) + pause_duration
-            del self.pause_start_times[task_id]
-
-    def render(self, task):
-        """Render the elapsed time, accounting for pauses."""
-        elapsed = task.elapsed
-        _style = "yellow"
-
-        # subtract any paused time
-        if task.id in self.pause_adjustments:
-            elapsed -= self.pause_adjustments[task.id]
-
-        # if currently paused, also subtract time since pause started
-        if task.id in self.pause_start_times:
-            elapsed -= (time.monotonic() - self.pause_start_times[task.id])
-            _style = "dim yellow"
-
-        # don't go negative
-        elapsed = max(0, elapsed)
-
-        # Format the time
-        minutes, seconds = divmod(int(elapsed), 60)
-        hours, minutes = divmod(minutes, 60)
-        days, hours = divmod(hours, 24)
-
-        if days:
-            _days = "day" if days == 1 else "days"
-            _hours = "hour" if hours == 1 else "hours"
-            return Text(f"{days:d} {_days}, {hours:d} {_hours}", style = _style)
-        else:
-            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 
 class HarpyPrint():
     def __init__(self, quiet: int = 0):
@@ -250,52 +191,3 @@ class HarpyPrint():
         if self.quiet == 0:
             self.print(_now, text, highlight=False, end = "\n" if newline else " ")
 
-
-    def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
-        """Returns a nicely formatted live-panel with the progress bar in it"""
-        if self.quiet == 2:
-            return nullcontext()
-        return Live(
-            Panel(
-                progressbar, title = title, border_style="dim"
-            ) if self.quiet != 2 else None,
-            refresh_per_second=refresh,
-            transient= self.quiet > 0,
-            console=self.console
-        )
-
-
-    def progressbar(self) -> Progress:
-        """
-        The pre-configured transient progress bar that workflows and validations use
-        """
-        return Progress(
-            TextColumn("{task.fields[active]}", style="yellow"),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
-            TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if self.quiet == 0 else TaskProgressColumn(style = "blue"),
-            PausableTimeElapsedColumn(),
-            transient = self.quiet > 0,
-            auto_refresh = True,
-            disable = self.quiet == 2,
-            refresh_per_second=2,
-            console= self.console,
-            expand=True
-        )
-
-
-    def pulsebar(self, stderr: bool = False) -> Progress:
-        """
-        The pre-configured transient pulsing progress bar that workflows use, typically for
-        installing the software dependencies/container
-        """
-        return Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width= None, pulse_style = "grey46"),
-            TimeElapsedColumn(),
-            auto_refresh = True,
-            transient = True,
-            disable = self.quiet == 2,
-            console = self.console if stderr else None,
-            expand=True
-        )
