@@ -23,3 +23,5 @@
 - simplifies summaries logic
 - prep arachne workflow
 - replace Golang regexp with coregex for speed/efficiency
+- progressbar logic moved out of HarpyPrint and into `progress.py`
+  - removed the redundant `rich.Live` wrap to the progress bars
