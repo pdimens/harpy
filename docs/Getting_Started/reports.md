@@ -33,16 +33,16 @@ harpy report live <options> DIRECTORY
 ```
 
 {.compact .clean}
-| argument    |   default   | description |
-|:-----------------------|:--------------:|:--------------------------------------------------------|
-| `DIRECTORY` | `.` | Path of where to setup configs and launch server |
-| `--debug` `-d` | | Dump all of jupyterbook's output to the terminal |
-| `--headless` `-h` | |  Run the server in headless mode, with only the content server started |
-| `--md` `-m` | | Also scan for markdown files (`.md`) |
-| `--clear-cache` `-c` |  False | Remove `_build` directory prior to server launch |
-| `--port` `-p` | | Run the application server from the specified port number |
-| `--refresh` `-r` | 0 | Refresh interval, in seconds (disabled with `0`) |
-| `--server-port` `-s` | | Run the content server from the specified port number |
+| argument             | default | description                                                           |
+| :------------------- | :-----: | :-------------------------------------------------------------------- |
+| `DIRECTORY`          |   `.`   | Path of where to setup configs and launch server                      |
+| `--debug` `-d`       |         | Dump all of jupyterbook's output to the terminal                      |
+| `--headless` `-h`    |         | Run the server in headless mode, with only the content server started |
+| `--md` `-m`          |         | Also scan for markdown files (`.md`)                                  |
+| `--clear-cache` `-c` |  False  | Remove `_build` directory prior to server launch                      |
+| `--port` `-p`        |         | Run the application server from the specified port number             |
+| `--refresh` `-r`     |    0    | Refresh interval, in seconds (disabled with `0`)                      |
+| `--server-port` `-s` |         | Run the content server from the specified port number                 |
 
 
 ### Automate a report website
@@ -77,6 +77,7 @@ harpy report static <options> NOTEBOOKS
 | :---------------------- | :-----: | :------------------------------------------------------------ |
 | `NOTEBOOKS`             |         | Paths to ipynb files (expected to already have been executed) |
 | `--debug` `-d`          |  false  | Log process information to stderr                             |
+| `--quiet` `-Q`          |  false  | Don't show the progress bar                                   |
 | `--self-contained` `-s` |  false  | Store all JS and CSS within the output file                   |
 
 ### self contained reports

@@ -130,14 +130,14 @@ def has_monolith():
 
 
 class ReportStatic():
-    def __init__(self, quiet: bool, static: bool):
+    def __init__(self, quiet: bool, self_contained: bool):
         self.quiet: bool = quiet
-        self.static: bool = static
+        self.contained: bool = self_contained
         self.hp = HarpyPrint()
         self.hp.console.soft_wrap = True
         self.nbc_log = "ERROR" if quiet else 30
         has_nbconvert()
-        if static:
+        if self.contained:
             has_monolith()
 
     def render_frontmatter_cell(self) -> None:
@@ -221,7 +221,7 @@ class ReportStatic():
         # It's cleaned up in `finally` and the original file is never modified.
         tmp_nb_path = nb_path.with_name(f".{nb_name}-tmp.ipynb")
         workdir = Path(tempfile.mkdtemp(prefix="nb2html_"))
-        if self.static:
+        if self.contained:
             intermediate_html = workdir / f"{nb_name}.html"
         else:
             intermediate_html = out_path
@@ -254,7 +254,7 @@ class ReportStatic():
             # nbconvert's HTML has no code-split/dynamically-imported JS, so
             # monolith can reliably inline everything it references (CDN
             # vega-embed, MathJax, fonts, etc.) into one working file.
-            if self.static:
+            if self.contained:
                 monolith_cmd = ["monolith", str(intermediate_html), "-o", str(out_path)]
                 if self.quiet:
                     monolith_cmd.append('-q')

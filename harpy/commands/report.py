@@ -118,7 +118,7 @@ def live(directory, debug, md, headless, clear_cache, port, server_port, refresh
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, default = False, help = 'Log process information to stderr')
 @click.option('-s', '--self-contained', is_flag = True, default = False, help = 'Store all JS and CSS within the output file')
-@click.option('-Q', '--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` or `2` no output')
+@click.option('-Q', '--quiet', is_flag = True, default = False, help = 'Do not print the progress bar')
 @click.help_option('--help', hidden = True)
 @click.argument('notebooks', required=True, type=IPYNBfile(), nargs=-1)
 def static(notebooks, debug, quiet, self_contained):
@@ -135,11 +135,9 @@ def static(notebooks, debug, quiet, self_contained):
     all_notebooks = [nb for group in notebooks for nb in group]
     n = len(all_notebooks)
     maxlen = max(len(os.path.basename(i)) for i in all_notebooks)
-    if quiet == 1:
-        quiet += 1
-    rs = ReportStatic(quiet = not debug, static = self_contained)
+    rs = ReportStatic(quiet = not debug, self_contained = self_contained)
 
-    with PanelProgress(console = rs.hp.console, quiet = 0).basic(width=maxlen) as progress:
+    with PanelProgress(console = rs.hp.console, quiet = 2 if quiet else 0).basic(width=maxlen) as progress:
         task_id = progress.add_task(os.path.basename(all_notebooks[0]) , total=n)
         for i,nb in enumerate(all_notebooks):
             rs.convert(nb)
