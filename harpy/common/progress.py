@@ -1,4 +1,5 @@
 """progress.py"""
+from rich.table import Column
 from rich.text import Text
 import time
 from rich.progress import TimeElapsedColumn
@@ -49,6 +50,7 @@ class PanelProgress(Progress):
             super().update(task_id, **kwargs)
 
     def bar(self) -> "PanelProgress":
+        '''A progressbar for tracking snakemake jobs'''
         self.columns = (
             TextColumn("{task.fields[active]}", style="yellow"),
             TextColumn("[progress.description]{task.description}"),
@@ -58,7 +60,19 @@ class PanelProgress(Progress):
         )
         return self
 
+    def basic(self, width = None) -> "PanelProgress":
+        '''A simpler progress bar for tracking a singular task'''
+        self.columns = (
+            TextColumn("[progress.description]{task.description}", table_column=Column(width=width)),
+            BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
+            TaskProgressColumn("{task.completed}/{task.total}", style="blue"),
+            TimeElapsedColumn(),
+        )
+        return self
+
+
     def pulse(self) -> "PanelProgress":
+        '''A pulsing progress bar used for conda/apptainer progress'''
         self.columns = (
             TextColumn("[progress.description]{task.description}"),
             BarColumn(bar_width=None, pulse_style="grey46"),

@@ -3,6 +3,7 @@ import re
 from nbconvert.filters import markdown2html
 import shutil
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -201,11 +202,15 @@ class ReportStatic():
                 self.nb['cells'][i] = cell
         temp_nb_path.write_text(json.dumps(self.nb, indent = 1), encoding="utf-8")
 
-    def run(self, cmd: list[str], **kwargs) -> None:
+    def run(self, cmd: list[str], **kwargs):
         if not self.quiet:
             self.hp.log(' '.join(cmd))
-        subprocess.run(cmd, check=True, **kwargs)
-
+        try:
+            return subprocess.run(cmd, check=True, **kwargs)
+        except KeyboardInterrupt:
+            if not self.quiet:
+                self.hp.rule("[bold]Terminating", style="yellow")
+            sys.exit(1)
 
     def convert(self, notebook: str):
         nb_path: Path = Path(notebook).resolve()
@@ -253,7 +258,21 @@ class ReportStatic():
                 monolith_cmd = ["monolith", str(intermediate_html), "-o", str(out_path)]
                 if self.quiet:
                     monolith_cmd.append('-q')
-                self.run(monolith_cmd)
+                s = self.run(monolith_cmd, capture_output = True, text = True)
+                if s.stdout.strip():
+                    self.hp.log(s.stdout.strip())
+                if s.stderr.strip():
+                    self.hp.log(s.stderr.strip())
+
+        except KeyboardInterrupt:
+            if not self.quiet:
+                self.hp.rule("[bold]Terminating", style="yellow")
+            sys.exit(1)
+
+        except ModuleNotFoundError:
+            if self.quiet:
+                self.hp.rule("[bold]Terminating", style="yellow")
+            sys.exit(1)
 
         finally:
             tmp_nb_path.unlink(missing_ok=True)

@@ -11,6 +11,7 @@ from rich.panel import Panel
 
 
 from harpy.common.printing import HarpyPrint
+from harpy.common.progress import PanelProgress
 from harpy.report.render import ReportRender
 from harpy.report.static import ReportStatic
 from harpy.common.cli_filetypes import IPYNBfile
@@ -117,9 +118,10 @@ def live(directory, debug, md, headless, clear_cache, port, server_port, refresh
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, default = False, help = 'Log process information to stderr')
 @click.option('-s', '--self-contained', is_flag = True, default = False, help = 'Store all JS and CSS within the output file')
+@click.option('-Q', '--quiet', default = 0, type = click.IntRange(0,2,clamp=True), help = '`0` all output, `1` or `2` no output')
 @click.help_option('--help', hidden = True)
 @click.argument('notebooks', required=True, type=IPYNBfile(), nargs=-1)
-def static(notebooks, debug, self_contained):
+def static(notebooks, debug, quiet, self_contained):
     """
     Convert ipynb reports to standalone HTML files
 
@@ -131,12 +133,19 @@ def static(notebooks, debug, self_contained):
     formatting of a proper MyST-MD website.
     """
     all_notebooks = [nb for group in notebooks for nb in group]
-    rs = ReportStatic(quiet = not debug, static = self_contained)
     n = len(all_notebooks)
-    if n > 1 :
-        print(f"Converting {n} notebooks into HTML files.", file = sys.stderr)
-    for nb in all_notebooks:
-        rs.convert(nb)
+    maxlen = max(len(os.path.basename(i)) for i in all_notebooks)
+    if quiet == 1:
+        quiet += 1
+    rs = ReportStatic(quiet = not debug, static = self_contained)
+
+    with PanelProgress(console = rs.hp.console, quiet = 0).basic(width=maxlen) as progress:
+        task_id = progress.add_task(os.path.basename(all_notebooks[0]) , total=n)
+        for i,nb in enumerate(all_notebooks):
+            rs.convert(nb)
+            progress.update(task_id, completed = i, description = os.path.basename(nb))
+        progress.update(task_id, completed = n)
+
 
 report.add_command(live)
 report.add_command(static)
