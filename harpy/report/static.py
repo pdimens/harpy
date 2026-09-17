@@ -43,11 +43,11 @@ def _sanitize_footnotes(md: str) -> str:
                     break  # trailing blank line, not more indented body
                 body.append(re.sub(r"^(    |\t)", "", lines[i]))
                 i += 1
-            body_txt = "\n".join(body).strip()
+            body_txt = markdown2html("\n".join(body).strip())
             #print(label, body_txt)
             out.append(f"<p><sup>{label}</sup>{body_txt}</p>")
             continue
-        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", lines[i]))
+        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", markdown2html(lines[i])))
         i += 1
     return "\n".join(out)
 
