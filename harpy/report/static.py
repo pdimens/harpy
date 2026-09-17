@@ -47,9 +47,9 @@ def _sanitize_footnotes(md: str) -> str:
             #print(label, body_txt)
             out.append(f"<p><sup>{label}</sup>{body_txt}</p>")
             continue
-        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", markdown2html(lines[i])))
+        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", lines[i]))
         i += 1
-    return "\n".join(out)
+    return markdown2html("\n".join(out))
 
 def _sanitize(md: str) -> str:
     lines = md.split("\n")
