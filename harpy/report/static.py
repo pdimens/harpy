@@ -15,7 +15,6 @@ try:
 except ImportError:
     yaml = None
 
-
 FRONTMATTER_RE = re.compile(r"\A---\s*\n(.*?\n)---\s*\n?", re.DOTALL)
 DIRECTIVE = re.compile(
     r"^:::\{[^}]*\}[^\n]*\n(?:^:.*\n)*(.*?)\n:::\s*$",
@@ -25,31 +24,10 @@ OPEN = re.compile(r"^:::\{(\w+)\}")
 REF = re.compile(r"\[\^(\w+)\](?!:)")
 DEF_START = re.compile(r"^\[\^(\w+)\]:\s*(.*)$")
 
-def _sanitize_footnotes(md: str) -> str:
-    '''
-    replace mystmd footnotes ([^text]) with an inline superscript. If there is a superscript
-    definition ([^text]:), it will be given the same superscript + newline
-    '''
-    lines = md.split("\n")
-    out, i = [], 0
-    while i < len(lines):
-        m = DEF_START.match(lines[i])
-        if m:
-            label, rest = m.group(1), m.group(2)
-            i += 1
-            body = [rest] if rest else []
-            while i < len(lines) and (lines[i].startswith("    ") or lines[i].startswith("\t") or lines[i].strip() == ""):
-                if lines[i].strip() == "" and (i + 1 >= len(lines) or not lines[i + 1].startswith(("    ", "\t"))):
-                    break  # trailing blank line, not more indented body
-                body.append(re.sub(r"^(    |\t)", "", lines[i]))
-                i += 1
-            body_txt = markdown2html("\n".join(body).strip())
-            #print(label, body_txt)
-            out.append(f"<p><sup>{label}</sup>{body_txt}</p>")
-            continue
-        out.append(REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", lines[i]))
-        i += 1
-    return markdown2html("\n".join(out))
+
+def _inline_refs(line: str) -> str:
+    return REF.sub(lambda mm: f"<sup>{mm.group(1)}</sup>", line)
+
 
 def _sanitize(md: str) -> str:
     lines = md.split("\n")
@@ -61,13 +39,26 @@ def _sanitize(md: str) -> str:
         if line.startswith(":::{dropdown}"):
             title = line.lstrip().removeprefix(":::{dropdown}").strip()
             i += 1
-            while i < n_lines and re.match(r"^:\w", lines[i]):  # skip :key: val options
+            while i < n_lines and re.match(r"^:\w", lines[i]):
                 i += 1
             body: list[str] = []
             while i < n_lines and not lines[i].strip().startswith(":::"):
                 body.append(lines[i]); i += 1
-            i += 1  # skip closing :::
-            out.append(f"<details>\n<summary>{title}</summary>\n{markdown2html('\n'.join(body)).strip()}\n</details>")
+            i += 1
+            inner = markdown2html(_sanitize("\n".join(body))).strip()
+            out.append(f"<details>\n<summary>{title}</summary>\n{inner}\n</details>")
+            continue
+
+        if line.startswith("```{card}"):
+            title = line.lstrip().removeprefix("```{card}").strip()
+            i += 1
+            body = []
+            while i < n_lines and lines[i].strip() != "```":
+                body.append(lines[i]); i += 1
+            i += 1
+            inner = markdown2html(_sanitize("\n".join(body))).strip()
+            out.append(inner)
+            #out.append(f"<hr>\n{inner}\n")
             continue
 
         m = OPEN.match(line)
@@ -79,12 +70,26 @@ def _sanitize(md: str) -> str:
             while i < n_lines and lines[i].strip() != ":::":
                 body.append(lines[i]); i += 1
             i += 1
-            out.append(f"<aside>\n{markdown2html(chr(10).join(body).strip())}\n</aside>")
+            inner = markdown2html(_sanitize("\n".join(body))).strip()
+            out.append(f"<aside>\n{inner}\n</aside>")
             continue
 
-        out.append(_sanitize_footnotes(line)); i += 1
+        m = DEF_START.match(line)
+        if m:
+            label, rest = m.group(1), m.group(2)
+            i += 1
+            body = [rest] if rest else []
+            while i < n_lines and (lines[i].startswith(("    ", "\t")) or lines[i].strip() == ""):
+                if lines[i].strip() == "" and (i + 1 >= n_lines or not lines[i + 1].startswith(("    ", "\t"))):
+                    break
+                body.append(lines[i].removeprefix("    ").removeprefix("\t"))
+                i += 1
+            out.append(f"<p><sup>{label}</sup></p>")
+            out.append(markdown2html(_sanitize("\n".join(body).strip())).strip())
+            continue
+
+        out.append(_inline_refs(line)); i += 1
     return "\n".join(out)
-    #exit(0)
 
 def has_nbconvert():
     hp = HarpyPrint()
