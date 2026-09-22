@@ -47,7 +47,7 @@ class LaunchSnakemake():
         self.total_active: int = 0
         self.print = printer
         self._setup_bg_signal_handlers()
-        self.progress = PanelProgress(console=self.print.console, quiet=quiet).bar()
+        self.progress = PanelProgress(console=self.print.console, quiet=quiet, transient = quiet==2 ).bar()
         #self.progress = self.print.progressbar()
 
         try:
@@ -149,6 +149,8 @@ class LaunchSnakemake():
 
     def update_finished_progress(self):
         '''Process the stderr output and update the progressbars accordingly'''
+        if self.quiet == 2:
+            return
         completed = int(re.search(r"\d+", self.output).group())
         for job, details in self.job_inventory.items():
             if completed in details.ids:
@@ -212,8 +214,8 @@ class LaunchSnakemake():
                     return
                 self.nextline()
             if self.deps:
-                progress = PanelProgress(self.print.console, self.quiet, title=self.deploy_text).pulse()
-                with progress:
+                #progress = PanelProgress(self.print.console, self.quiet, title=self.deploy_text).pulse()
+                with PanelProgress(self.print.console, self.quiet, title=self.deploy_text, transient=True).pulse() as progress:
                     _taskid = progress.add_task("[dim]Working...", total=None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -224,7 +226,7 @@ class LaunchSnakemake():
                             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else 2
                             break
                         self.nothing_to_do()
-                    progress.stop()
+                    #progress.stop()
             if self.process.poll() or self.exitcode >= 0:
                 return
             self.nothing_to_do()

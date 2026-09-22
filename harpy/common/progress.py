@@ -12,14 +12,13 @@ from rich.progress import Progress
 
 #TODO MAKE PULSEBAR TRANSIENT
 class PanelProgress(Progress):
-    def __init__(self, console: Console, quiet: int, title: str | None = None,
-                 border_style: str = "dim"):
+    def __init__(self, console: Console, quiet: int, title: str | None = None, border_style: str = "dim", transient: bool = False):
         self.quiet = quiet
         self.panel_title = title
         self._border_style = border_style
         super().__init__(
             console=console,
-            transient=quiet > 0,
+            transient=transient,
             disable=quiet == 2,
             auto_refresh=True,
             refresh_per_second=2,
