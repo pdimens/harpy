@@ -43,11 +43,12 @@ rule process_reference:
         geno = "workflow/reference/ref.fa.gz",
         fai = "workflow/reference/ref.fa.gz.fai",
         gzi = "workflow/reference/ref.fa.gz.gzi"
+    log:
         "workflow/reference/ref.fa.gz.preprocess.log"
-    #conda:
-    #    "envs/align.yaml"
-    #container:
-    #    f"docker://pdimens/harpy:align_{VERSION}"
+    conda:
+        "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell: 
         """
         {{

@@ -20,7 +20,7 @@ class HarpyEnvs():
     def __init__(self):
         self.__environments__: dict = {
         "align" : [
-            #"bioconda::arachne",
+            "bioconda::arachne=0.1.1",
             "bioconda::bwa",
             "bioconda::minibwa",
             "bioconda::minimap2",
@@ -52,11 +52,11 @@ class HarpyEnvs():
             "bioconda::whatshap"
         ],
         "qc" : [
-            "conda-forge::click=8.2.1",
+            #"conda-forge::click=8.2.1",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::mosdepth",
-            "bioconda::multiqc=1.30",
+            "bioconda::multiqc=1.35",
             "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution",
             "bioconda::samtools"

@@ -10,7 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.progress import Progress
 
-
+#TODO MAKE PULSEBAR TRANSIENT
 class PanelProgress(Progress):
     def __init__(self, console: Console, quiet: int, title: str | None = None,
                  border_style: str = "dim"):

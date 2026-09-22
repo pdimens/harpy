@@ -100,7 +100,7 @@ rule depth_stats:
         "{sample}.bam.bai",
         bam = "{sample}.bam"
     output: 
-        "reports/data/coverage/{sample}.regions.bed.gz"
+        "reports/data/coverage/{sample}.regions.bed.gz",
         temp("reports/data/coverage/{sample}.mosdepth.global.dist.txt"),
         temp("reports/data/coverage/{sample}.mosdepth.summary.txt"),
         temp("reports/data/coverage/{sample}.mosdepth.region.dist.txt")
