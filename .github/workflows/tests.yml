@@ -90,11 +90,19 @@ jobs:
       - run: pixi run build
       - name: harpy preproc meier2021
         run: |
-          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
+          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
           ls -lh Preproc/meier
+      - name: harpy preproc meier2021 stitch-base
+        run: |
+          harpy preprocess meier2021 -O Preproc/meier-stitch --quiet 2 -s test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
+          ls -lh Preproc/meier-stitch
+      - name: harpy preproc meier2021 stitch-base complementary
+        run: |
+          harpy preprocess meier2021 -O Preproc/meier-stitch-comp --quiet 2 -s -c test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
+          ls -lh Preproc/meier-stitch-comp
       - name: harpy preproc gih
         run: |
-          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih* && \
+          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih/gih* && \
           ls -lh Preproc/gih
 
 
