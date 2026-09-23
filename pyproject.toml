@@ -17,7 +17,6 @@ dependencies = [
     'jupyter-book',
     'notebook',
     'papermill',
-    'pandas>=3,<4',
     'pillow',
     'polars>=1.39.2',
     'pysam>=0.23',
@@ -56,7 +55,6 @@ djinn = ">=2.4"
 go = ">=1.26.5,<2"
 htslib = "1.23.*"
 jupyter-book = ">=2.1.0,<3"
-pandas = ">=3,<4"
 papermill = ">=2.6.0,<3"
 polars = ">=1.39.2,<2"
 pillow = ">=12.2.0,<13"
