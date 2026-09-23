@@ -1,7 +1,8 @@
 ---
-label: Reports
+label: report
 description: The report system in Harpy
 icon: graph
+order: 2
 ---
 
 # :icon-graph: Harpy Reports
@@ -11,7 +12,8 @@ characteristics of data after a given workflow (e.g. alignment or phasing), incl
 figures. The reports were originally written in R/RMarkdown, then ported to Quarto. Once the limits of Quarto
 were reached, Harpy 4.0 introduced a complete overhaul of the reporting system using Jupyter Notebooks. With
 Jupyter comes several benefits:
-- Code and output are stored in the notebook
+- Code is stored in the notebook and can be rerun
+- Outputs are recorded in the notebook
 - GitHub, JupyterLab, and VScode (and derivatives) natively render notebooks nicely
 - Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ [report webiste](https://pdimens.github.io/GIH-experiments/)
 
