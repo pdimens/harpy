@@ -141,7 +141,7 @@ def strobe(reference, inputs, output, unlinked, keep_unmapped, depth_window, thr
 
     workflow.info = {
         "Samples" : fastq.count,
-        "Linked-Read Type" : fastq.lr_type,
+        "Data Format" : fastq.lr_type,
         "Reference" : os.path.basename(reference),
         "Output Folder" : os.path.relpath(output) + "/"
     }
@@ -206,7 +206,7 @@ def minimap(reference, inputs, output, depth_window, unlinked, threads, keep_unm
 
     workflow.info = {
         "Samples": fastq.count,
-        "Linked-Read Type": fastq.lr_type,
+        "Data Format": fastq.lr_type,
         "Technology": technology,
         "Reference": os.path.basename(reference),
         "Output Folder" : os.path.relpath(output) + "/"
@@ -266,7 +266,7 @@ def arachne(reference, inputs, output, depth_window, threads, keep_unmapped, min
 
     workflow.info = {
         "Samples": fastq.count,
-        "Linked-Read Type": fastq.lr_type,
+        "Data Format": fastq.lr_type,
         "Reference": os.path.basename(reference),
         "Output Folder" : os.path.relpath(output) + "/"
     }
