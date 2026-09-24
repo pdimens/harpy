@@ -33,17 +33,21 @@ def plot_depth(contigs, prefix, molcov, coverage):
     _contigs = None
 
     if coverage:
-        tb = pl.read_csv(coverage, separator="\t", has_header=False)
+        try:
+            tb = pl.read_csv(
+                coverage, separator="\t", has_header=False,
+                schema={
+                    "Contig": pl.String,
+                    "Position": pl.Int64,
+                    "Position End": pl.Int64,
+                    "Read Depth": pl.Float64,
+                },
+            )
+        except pl.exceptions.NoDataError:
+            tb = pl.DataFrame()
         if tb.is_empty():
             sys.stderr.write(f"{coverage} is empty\n")
             sys.exit(1)
-
-        tb.columns = [
-            "Contig",
-            "Position",
-            "Position End",
-            "Read Depth",
-        ]
 
         tb = tb.with_columns(pl.col("Read Depth").round(2))
 
@@ -61,18 +65,22 @@ def plot_depth(contigs, prefix, molcov, coverage):
                 sys.exit(1)
 
     if molcov:
-        tbmol = pl.read_csv(molcov, separator="\t", has_header=False)
+        try:
+            tbmol = pl.read_csv(
+                molcov, separator="\t", has_header=False,
+                schema={
+                    "Contig": pl.String,
+                    "Position": pl.Int64,
+                    "Position End": pl.Int64,
+                    "Molecule Depth": pl.Float64,
+                },
+            )
+        except pl.exceptions.NoDataError:
+            tbmol = pl.DataFrame()
 
         if tbmol.is_empty():
             sys.stderr.write(f"{molcov} is empty\n")
             sys.exit(1)
-
-        tbmol.columns = [
-            "Contig",
-            "Position",
-            "Position End",
-            "Molecule Depth",
-        ]
 
         tbmol = tbmol.with_columns(pl.col("Molecule Depth").round(2))
 

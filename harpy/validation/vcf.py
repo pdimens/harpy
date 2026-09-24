@@ -196,10 +196,13 @@ class VCF():
         self.print.log("VCF has INFO/SVTYPE and INFO/END", newline=False)
         with VariantFile(self.file) as vcf:
             info_keys = vcf.header.info.keys()
-        if not ('SVTYPE' in info_keys and 'END' in info_keys):
+        missing = [k for k in ("SVTYPE", "END") if k not in info_keys]
+        if missing:
             self.print.validation(False)
             self.print.error(
                 "malformed VCF",
-                f"The VCF file [bold yellow]{os.path.basename(self.file)}[/] is missing the [green]INFO/SVTYPE[/] field" #TODO NEEDS MORE AND BETTER CHECK, IT'S INCOMPLETE
+                f"The VCF file [bold yellow]{os.path.basename(self.file)}[/] is missing required header field(s): " + ", ".join(f"[green]INFO/{k}[/]" for k in missing),
+                "Provide a structural-variant VCF (e.g., LEVIATHAN or NAIBR output) that declares INFO/SVTYPE and INFO/END in its header."
             )
         self.print.validation(True)
+

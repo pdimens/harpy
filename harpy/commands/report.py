@@ -118,7 +118,7 @@ def live(directory, debug, md, headless, clear_cache, port, server_port, refresh
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, default = False, help = 'Log process information to stderr')
 @click.option('-s', '--self-contained', is_flag = True, default = False, help = 'Store all JS and CSS within the output file')
-@click.option('-Q', '--quiet', is_flag = True, default = False, help = 'Do not print the progress bar')
+@click.option('-Q', '--quiet', is_flag = True, default = False, help = 'Do not print progress')
 @click.help_option('--help', hidden = True)
 @click.argument('notebooks', required=True, type=IPYNBfile(), nargs=-1)
 def static(notebooks, debug, quiet, self_contained):
@@ -140,9 +140,9 @@ def static(notebooks, debug, quiet, self_contained):
     with PanelProgress(console = rs.hp.console, quiet = 2 if quiet else 0).basic(width=maxlen) as progress:
         task_id = progress.add_task(os.path.basename(all_notebooks[0]) , total=n)
         for i,nb in enumerate(all_notebooks):
+            progress.update(task_id, description = os.path.basename(nb))
             rs.convert(nb)
-            progress.update(task_id, completed = i, description = os.path.basename(nb))
-        progress.update(task_id, completed = n)
+            progress.update(task_id, completed = i + 1)
 
 
 report.add_command(live)

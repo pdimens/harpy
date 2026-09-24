@@ -4,7 +4,8 @@ from pathlib import Path
 localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
-
+#TODO ADD REGIONS SUPPORT
+#TODO ADD CONCAT FOR gVCF, ADD gVCF to rule all
 WORKFLOW   = config.get('Workflow') or {}
 PARAMETERS = config.get('Parameters') or {}
 REPORTS    = WORKFLOW.get("reports") or {} 
@@ -86,8 +87,8 @@ rule call_variants:
     params:
         "--model_type=WGS",
         "--use_gpu" if gpu else "",
-        lambda wc: "--intermediate_results_dir=deepvariant/{wc.sample}",
-        lambda wc: "--output_gvcf=samples/{sample}.gvcf" if keep_invar else []
+        lambda wc: f"--intermediate_results_dir=deepvariant/{wc.sample}",
+        lambda wc: f"--output_gvcf=samples/{sample}.gvcf" if keep_invar else []
     threads:
         4
     container:
@@ -107,7 +108,7 @@ rule sort_variants:
     threads:
         2
     shell:
-        "bcftools sort -Ou --write-index {input} > {output.bcf}"
+        "bcftools sort -o {output.bcf} --write-index {input}"
 
 
 rule concat_samples:
@@ -130,8 +131,8 @@ rule concat_samples:
         """
         printf '%s\\n' {input.bcf} > {output.concatlist}
         {{
-            bcftools merge -@ {params} --no-version -f {output.concatlist} --max-mem {resources}M |
-            bcftools sort - --write-index -Ob -o {output.bcf}
+            bcftools merge -@ {params} --no-version -l {output.concatlist} |
+            bcftools sort - --write-index -Ob -o {output.bcf} --max-mem {resources}M 
         }} 2> {log}
         """
 

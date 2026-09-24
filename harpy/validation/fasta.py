@@ -52,14 +52,12 @@ class FASTA():
     def match_contigs_vcf(self, contigs: str, vcffile: str):
         """Checks whether a list of contigs from a vcf file are present in a fasta file"""
         self.print.log("CHROM in VCF present in FASTA", newline=False)
-        valid_contigs = []
+        valid_contigs = set()
         with pysam.FastxFile(self.file, persist=False) as fa:
             for record in fa:
-                valid_contigs.append(record.name)
-        bad_names = []
-        for i in contigs:
-            if i not in valid_contigs:
-                bad_names.append(i)
+                valid_contigs.add(record.name)
+        bad_names = [i for i in contigs if i not in valid_contigs]
+
         if bad_names:
             self.print.validation(False)
             self.print.error(

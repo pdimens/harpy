@@ -6,14 +6,21 @@ from harpy.common.file_ops import naibr_extra
 
 class Summary:
     def __init__(self, version, config: dict):
-        self.summary: list[str] = [f"Harpy Version: {version}"]
+        self.summary: str = ""
+        self.version = version
         self.WORKFLOW    = config.get('Workflow') or {}
         self.PARAMETERS = config.get('Parameters') or {}
         self.INPUTS     = config['Inputs']
 
     def get(self) -> str:
         self.__getattribute__(self.WORKFLOW["name"])()
-        return self.summary + "\nThe Snakemake command invoked:\n\t" + self.WORKFLOW['snakemake']['relative']
+
+        return  (
+            f"Harpy Version: {self.version}\n" +
+            self.summary +
+            "\nThe Snakemake command invoked:\n\t" +
+            self.WORKFLOW['snakemake']['relative']
+        )
 
     def align_bwa(self):
         ignore_bx = self.WORKFLOW.get("linkedreads", {}).get("type", 'none') == "none"
@@ -128,16 +135,12 @@ If linked reads, barcodes were standardized to BX + VX format in the aligments u
         self.summary = f'''The harpy align arachne workflow ran using these parameters:
 The provided genome: {genomefile}
 
-FASTQ files were standardized, sorted by barcode, and filtered for valid barcodes:
+FASTQ files were standardized and sorted by barcode:
     arachne prep prefix reads.F.fq reads.R.fq
 
-Valid-barcoded FASTQ files were aligned with arachne:
+FASTQ files were aligned with arachne:
     arachne align -s samplename {genomefile} reads.valid.F.fq reads.valid.R.fq |
     samtools sort -u > arachne.bam
-
-Invalid-barcoded FASTQ files were aligned with minibwa:
-    minibwa map {extra} -R "@RG\\tID:SAMPLE\\tSM:SAMPLE" genome reads.invalid.F.fq reads.invalid.R.fq  |
-    samtools view -h {unmapped} -q {quality}
 
 Duplicates in the minibwa alignments were marked following:
     samtools collate |
@@ -224,8 +227,9 @@ The interleaved output was split back into forward and reverse reads with seqtk:
         elif window:
             regiontext += f"\t\tbuffer = {buffer}"
 
+        gridparam = ""
         if self.PARAMETERS.get("grid-size", 1) > 1:
-            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get('grid-size', 1)}\n"
+            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get('grid-size', 1)}"
         paramfiletext = "\t".join(open(self.INPUTS["parameters"], "r").readlines())
         self.summary = f'''The harpy impute workflow ran using these parameters:
 

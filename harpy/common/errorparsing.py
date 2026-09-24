@@ -126,7 +126,9 @@ class ErrorHandler():
         returns early if ongoing or successful exit, otherwise processess the error text.
         '''
         # ---------- shortcut to FileNotFoundError
-        line = next(self.errortext)
+        line = next(self.errortext, None)
+        if line is None:
+            return
         if line.strip().startswith("FileNotFound"):
             if "envs/" in line and ".yaml'" in line:
                 self.hp.print('[red]Missing conda environment yaml file:[/][yellow]\n  ' + line.split(':')[-1].replace("'", ''))
@@ -381,8 +383,8 @@ class ErrorHandler():
             )
 
         if rule.resources:
-            for i in rule.resources.split(','):
-                self.hp.print(i.replace('=', ': ').strip(), style = 'red')
+            for i in rule.resources:
+                self.hp.print(i.replace('=', ': '), style = 'red')
 
         if rule.message != "None":
             self.hp.print("Message:", style = 'bold default')

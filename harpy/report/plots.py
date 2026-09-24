@@ -312,12 +312,9 @@ def sv_by_chromosome(
         for i in ["INV", "DEL", "DUP", "BND"]
     ]
 
-    labels = variants["Contig"].unique().to_list()
+    labels = variants["Contig"].unique(maintain_order=True).to_list()
 
-    input_dropdown = alt.binding_select(
-        options=labels,
-        name="Contig: ",
-    )
+    input_dropdown = alt.binding_select(options=labels, name="Contig: ")
 
     selection = alt.selection_point(
         name="chrom_choice",
@@ -326,20 +323,11 @@ def sv_by_chromosome(
         bind=input_dropdown,
     )
 
-    length_param = alt.param(
-        expr='data("data_0")[0].length'
-    )
+    length_param = alt.param(expr='data("data_0")[0].length')
 
-    highlight = alt.selection_point(
-        name="highlight",
-        on="pointerover",
-        empty=False,
-    )
+    highlight = alt.selection_point(name="highlight", on="pointerover", empty=False)
 
-    zoom = alt.selection_interval(
-        bind="scales",
-        encodings=["x"],
-    )
+    zoom = alt.selection_interval(bind="scales", encodings=["x"])
 
     stroke_color = (
         alt.when(highlight)
@@ -391,60 +379,28 @@ def sv_by_chromosome(
                 range=_col,
             ),
             tooltip=[
-                alt.Tooltip(
-                    "Type:N",
-                    title="Variant Type",
-                ),
-                alt.Tooltip(
-                    "Contig:N",
-                    title="Contig",
-                ),
-                alt.Tooltip(
-                    "Start:Q",
-                    title="Start",
-                    format=",",
-                ),
-                alt.Tooltip(
-                    "End:Q",
-                    title="End",
-                    format=",",
-                ),
-                alt.Tooltip(
-                    "var_length:Q",
-                    title="Length",
-                    format=",",
-                ),
-                alt.Tooltip(
-                    "N Samples:Q",
-                    title="# Samples",
-                ),
-                alt.Tooltip(
-                    "Samples:N",
-                    title="Samples",
-                ),
+                alt.Tooltip("Type:N", title="Variant Type"),
+                alt.Tooltip("Contig:N", title="Contig"),
+                alt.Tooltip("Start:Q", title="Start", format=","),
+                alt.Tooltip("End:Q", title="End", format=","),
+                alt.Tooltip("var_length:Q", title="Length", format=","),
+                alt.Tooltip("N Samples:Q", title="# Samples"),
+                alt.Tooltip("Samples:N", title="Samples"),
             ],
             stroke=stroke_color,
         )
-        .add_params(
-            selection,
-            length_param,
-            highlight,
-            zoom,
-        )
+        .add_params(selection, length_param, highlight, zoom)
         .properties(title=dynamic_title)
     )
 
 
-def depth_by_chromosome(
-    records: pl.DataFrame,
-    title: str = "",
-):
+def depth_by_chromosome(records: pl.DataFrame, title: str = ""):
     '''
     Return an Altair chart of alignment depth in `window` bp intervals
     with a chromosome dropdown option that dynamically changes which
     chromosome's depths you see in the plot view.
     '''
-    labels = records["contig"].unique().to_list()
+    labels = records["contig"].unique(maintain_order=True).to_list()
 
     input_dropdown = alt.binding_select(
         options=labels,
@@ -489,11 +445,7 @@ def depth_by_chromosome(
             stroke=stroke_color,
         )
         .transform_filter(selection)
-        .add_params(
-            selection,
-            length_param,
-            highlight,
-        )
+        .add_params(selection, length_param, highlight)
         .properties(title=title)
         .facet(row="key:N")
     )

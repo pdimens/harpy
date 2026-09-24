@@ -38,7 +38,7 @@ rule process_reference:
     shell: 
         """
         {{
-            seqtk seq {input} > {output.geno}
+            seqtk seq {input} | bgzip -c > {output.geno}
             samtools faidx --fai-idx {output.fai} {output.geno}
         }} 2> {log}
         """

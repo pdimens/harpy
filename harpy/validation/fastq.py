@@ -55,7 +55,6 @@ class FASTQ():
                             break
                         if not j.name or not j.quality:
                             raise ValueError
-                        break
             except (ValueError, OSError):
                 badfiles.append(i)
             sans_ext = os.path.basename(re_ext.sub("", str(i)))
@@ -126,10 +125,10 @@ class FASTQ():
             self.print.validation(True)
             return
         scanned = []
-        for i in self.files:
-            with pysam.FastxFile(i, persist=False) as fq:
-                for i,record in enumerate(fq, 1):
-                    if i > self.max_records:
+        for fastq in self.files:
+            with pysam.FastxFile(fastq, persist=False) as fq:
+                for idx,record in enumerate(fq, 1):
+                    if idx > self.max_records:
                         break
                     cmt = record.comment or ""
                     if "BX:Z" in cmt:
@@ -139,7 +138,7 @@ class FASTQ():
                     if self.bx_tag: #or self.vx_tag:
                         self.print.validation(True)
                         return
-            scanned.append(i)
+            scanned.append(os.path.basename(fastq))
         self.print.validation(False)
         if not self.nonlink_ok:
             self.print.error(

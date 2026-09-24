@@ -245,16 +245,15 @@ class HPCProfile(click.ParamType):
                 yml = yaml.safe_load(file)
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
-
         # CHECKS FOR EXECUTOR AND FILE SYSTEM PLUGINS
         err: list[str] = []
-        exec = yml.get("executor")
+        exec = yml.get("executor", None)
         if not exec:
             self.fail("The HPC configuration requires an 'executor' field, e.g., 'executor: slurm'. The executor will also require a plugin to be installed to use it, e.g., 'snakemake-executor-plugin-slurm'", param, ctx)
         _ex = check_snakemake_hpc(f"snakemake-executor-plugin-{exec}")
         if _ex:
             err.append(_ex)
-        storage = yml.get("default-storage-provider")
+        storage = yml.get("default-storage-provider", None)
         if storage:
             _ex = check_snakemake_hpc(f"snakemake-storage-plugin-{storage}")
             if _ex:

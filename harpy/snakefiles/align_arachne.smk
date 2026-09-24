@@ -68,10 +68,10 @@ rule arachne_prep:
         4
     log:
         "logs/preprocess/{sample}.prep.log"
-#    conda:
-#        "envs/align.yaml"
-#    container:
-#        f"docker://pdimens/harpy:align_{VERSION}"
+    conda:
+        "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         arachne prep -t {threads} arachne-prep/{wildcards.sample} {input} 2> {log}
@@ -97,10 +97,10 @@ rule align:
         12
     resources:
         tmpdir = lambda wc: f"arachne/{wc.sample}_tmp"
-#    conda:
-#        "envs/align.yaml"
-#    container:
-#        f"docker://pdimens/harpy:align_{VERSION}"
+    conda:
+        "envs/align.yaml"
+    container:
+        f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
         {{

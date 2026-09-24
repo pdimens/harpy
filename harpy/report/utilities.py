@@ -58,7 +58,8 @@ def binned_histogram(data: pl.Series, bin_size: int|float, normalize: bool = Fal
     Calculates a binned histogram of counts from the input `data` for bins of size `bin_size`
     with columns ['bin','interval','count']. If `normalize=True`, returns a DataFrame with columns ['bin','interval', 'proportion'].
     '''
-    col_max: float | int = int(data.max()) if max_val is None else max_val
+    col_max: float | int = (data.max() or 0) if max_val is None else max_val
+    #col_max: float | int = int(data.max()) if max_val is None else max_val
     bins = np.arange(0, col_max + bin_size, bin_size).round(precision)
     #bins = np.arange(0, col_max + (3 * bin_size), bin_size).round(precision)
 

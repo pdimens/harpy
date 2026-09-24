@@ -95,7 +95,7 @@ def envs(program):
         with open(i, "r") as file:
             deps: list[str] = yaml.safe_load(file)['dependencies']
             for idx in range(len(deps)):
-                deps[idx] = deps[idx].split('::')[1]
+                deps[idx] = deps[idx].split('::', 1)[-1]
         if not program or any([program in j for j in deps]):
             _subtree = tree.add("[bold]" + i.removesuffix('.yaml'), style = "blue")
             for d in deps:

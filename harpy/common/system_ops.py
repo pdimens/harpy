@@ -117,9 +117,9 @@ def check_snakemake_hpc(plugin: str):
             if is_pixi_shell():
                 return f'pixi add {plugin}'
             else:
-                return 'conda install -c bioconda {plugin}'
+                return f'conda install -c bioconda {plugin}'
         elif conda_check == 1:
-            return 'mamba install -c bioconda {plugin}'
+            return f'mamba install -c bioconda {plugin}'
         if conda_check in [1,2]:
             return ""
 

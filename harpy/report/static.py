@@ -258,7 +258,12 @@ class ReportStatic():
                 monolith_cmd = ["monolith", str(intermediate_html), "-o", str(out_path)]
                 if self.quiet:
                     monolith_cmd.append('-q')
-                s = self.run(monolith_cmd, capture_output = True, text = True)
+                #s = self.run(monolith_cmd, capture_output = True, text = True)
+                try:
+                    s = self.run(monolith_cmd, capture_output = True, text = True)
+                except subprocess.CalledProcessError as e:
+                    self.hp.error("monolith failed", (e.stderr or "").strip() or f"monolith exited with code {e.returncode}")
+
                 if s.stdout.strip():
                     self.hp.log(s.stdout.strip())
                 if s.stderr.strip():
@@ -269,10 +274,11 @@ class ReportStatic():
                 self.hp.rule("[bold]Terminating", style="yellow")
             sys.exit(1)
 
-        except ModuleNotFoundError:
-            if self.quiet:
-                self.hp.rule("[bold]Terminating", style="yellow")
-            sys.exit(1)
+        except ModuleNotFoundError as e:
+                    self.hp.error(
+                        "Missing dependency",
+                        f"Converting {nb_path.name} requires the Python module [blue]{e.name}[/], which is not installed."
+                    )
 
         finally:
             tmp_nb_path.unlink(missing_ok=True)
