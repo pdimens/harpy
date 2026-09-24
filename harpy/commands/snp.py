@@ -245,6 +245,6 @@ def deepvariant(reference, inputs, output, regions, threads, keep_invariant, sna
 
     workflow.initialize(setup)
 
-snp.add_command(deepvariant)
+#snp.add_command(deepvariant)
 snp.add_command(mpileup)
 snp.add_command(freebayes)

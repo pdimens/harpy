@@ -5,8 +5,6 @@
   - introduces the `--use-stitch-base` logic via `--stitch`
   - introduces the `--allow-complementary-stitch` logic via `--stitch-comp`
 - `harpy align arachne` adds Arachne linked-read aware aligner (successor to lariat)
-- `harpy snp deepvariant` - call SNPs in high-depth samples using Google's DeepVariant. AI AI AI!!!
-  - this option must use the docker image of the software because of the way DeepVariant is packaged, so `--container` isn't exposed
 
 # Changes
 - some workflows with large temporary files (like `align`) have jobs grouped to prioritize running steps that would:
@@ -31,3 +29,9 @@
 - progressbar logic moved out of `HarpyPrint` class in `printing.py` and into `progress.py`
   - removed the redundant `rich.Live` wrap to the progress bars-- progress bars should be a little snappier
 - swapped pandas for polars (speed!)
+
+
+# Added but not exposed
+- `harpy snp deepvariant` - call SNPs in high-depth samples using Google's DeepVariant. AI AI AI!!!
+  - this option must use the docker image of the software because of the way DeepVariant is packaged, so `--container` isn't exposed
+- this is just internal scaffolding for now. Can be made public with sufficient interest
