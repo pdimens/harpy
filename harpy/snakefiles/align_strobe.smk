@@ -15,9 +15,8 @@ extra 		      = PARAMETERS.get("extra", "")
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
-bn 			  = os.path.basename(genomefile)
-bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-bn_re = re.compile(bn_r, flags=re.IGNORECASE)
+bn 	  = os.path.basename(genomefile)
+bn_re  = re.compile(r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags=re.IGNORECASE)
 fq_by_sample = {}
 for f in fqlist:
     name = bn_re.sub("", os.path.basename(f), count=1)
@@ -71,5 +70,5 @@ rule align:
         {{
             strobealign {params} -t {threads} {input} |
             samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u -l 0 -
-        }} 2> {log} > {output.bam}
+        }} 2> {log} > {output}
         """

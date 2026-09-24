@@ -73,12 +73,12 @@ rule index_alignments:
 # either vcf or gvcf
 rule call_variants:
     input:
-        get_alignments_index,
+        get_align_index,
         bam = get_alignments,
         "workflow/reference/ref.fa.gz.fai",
         reference = "workflow/reference/ref.fa.gz"
     output:
-        dir("deepvariant/{sample}"),
+        directory("deepvariant/{sample}"),
         vcf = temp("samples/{sample}.vcf"),
         gvcf = temp("samples/{sample}.gvcf") if keep_invar else []
     log:
@@ -95,7 +95,7 @@ rule call_variants:
     shell:
         """
         mkdir -p deepvariant/{wildcards.sample}
-        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params} output_vcf={output.vcf} &> {log}
+        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params} --output_vcf={output.vcf} &> {log}
         """
 
 rule sort_variants:

@@ -44,13 +44,12 @@ rule construct_graph:
         f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
         #TODO SCRIPT DIR, FIGURE THAT OUT
-        "python3 script_dir/construct_graph.py -v {input.vcf} -r {input.reference} -o {output} 2> {log}"
+        "python3 script_dir/construct_graph.py -v {input.vcf} -r {input.ref} -o {output} 2> {log}"
 
 rule index_graph:
     input:
         "graph/graph.gfa"
     output:
-        "graph/graph.gaf",
         "graph/graph.giraffe.gbz",
         "graph/graph.shortread.withzip.min",
         "graph/graph.shortread.zipcodes",
@@ -74,6 +73,8 @@ rule map_to_graph:
         dist = "graph/graph.dist",
     output:
         "map/{sample}.gaf"
+    log:
+        "logs/map/{sample}.map.log"
     threads:
         6
     conda:
@@ -91,13 +92,19 @@ rule call_genotypes:
         gfa = "graph/graph.gfa"
     output:
         "{sample}.genotypes.vcf"
+    log:
+        "logs/genotype/{sample}.genotype.log"
     params:
         f"-s {regionsize}",
         f"-i {inaccuracy}",
         f"-d {mindiff}",
         f"-e {proberror[0]} {proberror[1]} {proberror[2]} {proberror[3]}"
+    conda:
+        "envs/variants.yaml"
+    container:
+        f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
-        "python3 scriptdir/predict_genotype.py -a {input.aln} -v {input.vcf} -o {output} -g {input.gfa} {params}"
+        "python3 scriptdir/predict_genotype.py -a {input.aln} -v {input.vcf} -o {output} -g {input.gfa} {params} 2> {log}"
 
 rule all:
     default_target: True

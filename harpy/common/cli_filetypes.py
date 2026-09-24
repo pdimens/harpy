@@ -260,10 +260,11 @@ class HPCProfile(click.ParamType):
             if _ex:
                 err.append(_ex.lstrip())
         if err:
+            _txt = "\n  ".join(err)
             self.fail(f'''\
 The HPC profile provided requires snakemake plugins that were not found in the current environment.\
 To install the missing plugins:
-    {"\n  ".join(err)}\
+    {_txt}\
 ''')
         return Path(value).resolve().as_posix()
 

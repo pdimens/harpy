@@ -187,7 +187,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
 #@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')
-@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/mpileup", show_default=True,  help = 'Output directory name')
+@click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path=True), default = "SNP/deepvariant", show_default=True,  help = 'Output directory name')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(4,999, clamp = True), help = 'Number of threads to use')
 @click.option('-H', '--hpc', panel = "Workflow Options",  type = HPCProfile(), help = 'HPC submission YAML configuration file')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
@@ -214,7 +214,7 @@ def deepvariant(reference, inputs, output, regions, threads, keep_invariant, sna
     `chrom:start-end` for a single region, or an integer (default) for parallelizing over
     fixed-size intervals across the reference genome.
     """
-    workflow = Workflow("snp_mpileup", "snp_mpileup.smk", output, container, clean, quiet)
+    workflow = Workflow("snp_deepvariant", "snp_deepvariant.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
     workflow.notebook_files = ["bcftools_stats.ipynb"]
 

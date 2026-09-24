@@ -225,7 +225,7 @@ The interleaved output was split back into forward and reverse reads with seqtk:
             regiontext += f"\t\tbuffer = {buffer}"
 
         if self.PARAMETERS.get("grid-size", 1) > 1:
-            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get("grid-size", 1)}\n"
+            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get('grid-size', 1)}\n"
         paramfiletext = "\t".join(open(self.INPUTS["parameters"], "r").readlines())
         self.summary = f'''The harpy impute workflow ran using these parameters:
 
@@ -556,6 +556,7 @@ Leviathan was called using:
             extra
         )
 
+        _txt = "\n\t".join([f"{k}={v}" for k,v in argdict.items()])
         self.summary = f'''The harpy sv naibr workflow ran using these parameters:
 The provided reference genome: {genomefile}
 
@@ -563,7 +564,7 @@ naibr variant calling ran using these configurations:
     bam_file=BAMFILE
     prefix=PREFIX
     outdir=Variants/naibr/PREFIX
-    {"\n\t".join([f"{k}={v}" for k,v in argdict.items()])}
+    {_txt}
 '''
 
     def validate_bam(self) -> str:
