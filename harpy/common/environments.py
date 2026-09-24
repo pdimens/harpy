@@ -20,7 +20,7 @@ class HarpyEnvs():
     def __init__(self):
         self.__environments__: dict = {
         "align" : [
-            #"bioconda::arachne",
+            "bioconda::arachne=0.1.1",
             "bioconda::bwa",
             "bioconda::minibwa",
             "bioconda::minimap2",
@@ -43,7 +43,7 @@ class HarpyEnvs():
             "bioconda::athena_meta=1.2"
         ],
         "preprocess": [
-            "bioconda::dmox>=0.2",
+            "bioconda::dmox>=0.3",
             "bioconda::pheniqs=2.1",
         ],
         "phase" : [
@@ -52,11 +52,11 @@ class HarpyEnvs():
             "bioconda::whatshap"
         ],
         "qc" : [
-            "conda-forge::click=8.2.1",
+            #"conda-forge::click=8.2.1",
             "bioconda::falco=1.2.5",
             "bioconda::fastp",
             "bioconda::mosdepth",
-            "bioconda::multiqc=1.30",
+            "bioconda::multiqc=1.35",
             "bioconda::pysam=0.23",
             "bioconda::quickdeconvolution",
             "bioconda::samtools"
@@ -69,12 +69,13 @@ class HarpyEnvs():
             "bioconda::bcftools=1.23",
             "bioconda::freebayes=1.3.9",
             "bioconda::leviathan",
-            "bioconda::naibr-plus=0.5.4"
+            "bioconda::naibr-plus=0.5.4",
+            "bioconda::svjedi-tag"
         ]
     }
 
-        self.dockerfile: str = """
-FROM ghcr.io/prefix-dev/pixi:0.62.0 AS build
+        self.dockerfile: str = """\
+FROM ghcr.io/prefix-dev/pixi:0.76.2 AS build
 
 # copy source code, pixi.toml and pixi.lock to the container
 WORKDIR /app
@@ -137,11 +138,12 @@ ENTRYPOINT ["/app/entrypoint.sh"]
         if "spades" in envs:
             # post-deployment script
             with open(os.path.join(_out, "spades.post-deploy.sh"), "w", encoding="utf-8") as shellscript:
-                shellscript.write("wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.1.0/SPAdes-4.1.0-Linux.tar.gz\n")
-                shellscript.write("tar -xvzf .spades.tar.gz && rm .spades.tar.gz\n")
-                shellscript.write("mv SPAdes-4.1.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.1.0-Linux/share/* ${CONDA_PREFIX}/share\n")
-                shellscript.write("rm -r SPAdes-4.1.0-Linux\n")
-
+                shellscript.write("""\
+wget -O .spades.tar.gz https://github.com/ablab/spades/releases/download/v4.1.0/SPAdes-4.1.0-Linux.tar.gz
+tar -xvzf .spades.tar.gz && rm .spades.tar.gz
+mv SPAdes-4.1.0-Linux/bin/* ${CONDA_PREFIX}/bin && mv SPAdes-4.1.0-Linux/share/* ${CONDA_PREFIX}/share
+rm -r SPAdes-4.1.0-Linux
+""")
     def prepare_container(self, env):
         '''
         Using the defined environments, create a folder (or series of folders) with a dockerfile

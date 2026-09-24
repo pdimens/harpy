@@ -1,78 +1,18 @@
 """Module of pretty-printing for errors and prompts"""
 
 import os
-import re
 import sys
 import time
-from contextlib import nullcontext
 
 from rich import box
 from rich.console import Console, RenderableType
-from rich.live import Live
-from rich.markup import escape
 from rich.panel import Panel
-from rich.progress import (
-    BarColumn,
-    Progress,
-    TaskProgressColumn,
-    TextColumn,
-    TimeElapsedColumn,
-)
 from rich.syntax import Syntax
 from rich.table import Table
-from rich.text import Text
 from rich.theme import Theme
 
 from harpy import __version__
 
-
-class PausableTimeElapsedColumn(TimeElapsedColumn):
-    """Custom time elapsed column that supports pausing and resuming."""
-
-    def __init__(self):
-        super().__init__()
-        self.pause_adjustments = {}  # task_id -> total paused time
-        self.pause_start_times = {}  # task_id -> when pause started
-
-    def pause(self, task_id):
-        """Start pausing the timer for a task."""
-        self.pause_start_times[task_id] = time.monotonic()
-
-    def resume(self, task_id):
-        """Resume the timer for a task."""
-        if task_id in self.pause_start_times:
-            pause_duration = time.monotonic() - self.pause_start_times[task_id]
-            self.pause_adjustments[task_id] = self.pause_adjustments.get(task_id, 0) + pause_duration
-            del self.pause_start_times[task_id]
-
-    def render(self, task):
-        """Render the elapsed time, accounting for pauses."""
-        elapsed = task.elapsed
-        _style = "yellow"
-
-        # subtract any paused time
-        if task.id in self.pause_adjustments:
-            elapsed -= self.pause_adjustments[task.id]
-
-        # if currently paused, also subtract time since pause started
-        if task.id in self.pause_start_times:
-            elapsed -= (time.monotonic() - self.pause_start_times[task.id])
-            _style = "dim yellow"
-
-        # don't go negative
-        elapsed = max(0, elapsed)
-
-        # Format the time
-        minutes, seconds = divmod(int(elapsed), 60)
-        hours, minutes = divmod(minutes, 60)
-        days, hours = divmod(hours, 24)
-
-        if days:
-            _days = "day" if days == 1 else "days"
-            _hours = "hour" if hours == 1 else "hours"
-            return Text(f"{days:d} {_days}, {hours:d} {_hours}", style = _style)
-        else:
-            return Text(f"{hours:d}:{minutes:02d}:{seconds:02d}", style = _style)
 
 class HarpyPrint():
     def __init__(self, quiet: int = 0):
@@ -218,10 +158,14 @@ class HarpyPrint():
         self.print("The workflow stopped due to an error. See the information Snakemake reported below.\n")
 
 
-    def shell(self, text, rules: bool = False, style = None) -> None:
+    def shell(self, text, rules: bool = False, style = None, add_quote: bool = False) -> None:
         """
-        Prints the input text string as syntax-highlighted SHELL code to stderr
+        Prints the input text string as syntax-highlighted SHELL code to stderr. If using `add_quote`, adds
+        a single quote ' to the end (intended for use with apptainer commands).
         """
+        text = text.replace("(command exited with non-zero exit code)", "").strip()
+        if add_quote:
+            text += "'"
         if rules:
             self.console.rule("Shell Code", style = 'dim')
         code = Syntax(text, "sh", background_color='default', dedent=True, code_width=2000, theme = "one-dark")
@@ -247,216 +191,3 @@ class HarpyPrint():
         if self.quiet == 0:
             self.print(_now, text, highlight=False, end = "\n" if newline else " ")
 
-
-    def progresspanel(self, progressbar: Progress, title: str|None = None, refresh: int = 2):
-        """Returns a nicely formatted live-panel with the progress bar in it"""
-        if self.quiet == 2:
-            return nullcontext()
-        return Live(
-            Panel(
-                progressbar, title = title, border_style="dim"
-            ) if self.quiet != 2 else None,
-            refresh_per_second=refresh,
-            transient= self.quiet > 0,
-            console=self.console
-        )
-
-
-    def progressbar(self) -> Progress:
-        """
-        The pre-configured transient progress bar that workflows and validations use
-        """
-        return Progress(
-            TextColumn("{task.fields[active]}", style="yellow"),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=None, complete_style="yellow", finished_style="dim blue"),
-            TaskProgressColumn("{task.completed}/{task.total}", style = "blue") if self.quiet == 0 else TaskProgressColumn(style = "blue"),
-            PausableTimeElapsedColumn(),
-            transient = self.quiet > 0,
-            auto_refresh = True,
-            disable = self.quiet == 2,
-            refresh_per_second=2,
-            console= self.console,
-            expand=True
-        )
-
-
-    def pulsebar(self, stderr: bool = False) -> Progress:
-        """
-        The pre-configured transient pulsing progress bar that workflows use, typically for
-        installing the software dependencies/container
-        """
-        return Progress(
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width= None, pulse_style = "grey46"),
-            TimeElapsedColumn(),
-            auto_refresh = True,
-            transient = True,
-            disable = self.quiet == 2,
-            console = self.console if stderr else None,
-            expand=True
-        )
-
-
-    def process_sm_errors(self, errtext):
-        '''
-        final processing of the snakemake stderr text after an error has occured,
-        returns early if ongoing or successful exit, otherwise processess the error text
-        '''
-        self.console.tab_size = 4
-        self.console._highlight = False
-        #print(errtext)
-        #sys.exit()
-        self.errortext = iter(errtext)
-        self.missingoutput = []
-        self.console.soft_wrap = True
-        # shortcut to FileNotFoundError #
-        line = next(self.errortext)
-        if line.strip().startswith("FileNotFound"):
-            if "envs/" in line and ".yaml'" in line:
-                self.print("[red]Missing conda environment yaml file:[/][yellow]\n  " + line.split(":")[-1].replace("'", ""))
-            else:
-                self.print(line.strip(), style = "red")
-            return
-        # pick out conda-env errors
-        if "Could not create conda" in line:
-            for i in self.errortext:
-                if "To search for alternate" in i:
-                    break
-                if i.strip():
-                    if i.lstrip().startswith("-"):
-                        self.print(i.rstrip(), soft_wrap = True, width = 2000, style = "bold red")
-                    else:
-                        self.print(i.rstrip(), soft_wrap = True, width = 2000, style = "red")
-            return
-
-        if ("Error" in line or "Exception" in line or "Missing input files" in line) and not ("RuleException" in line or "CalledProcessError" in line):
-            #self.rule("[bold]Source of Error", style = "dim")
-            self.print(line, highlight=False, soft_wrap = True, end = "", style = "red")
-            for i in self.errortext:
-                self.print(i, highlight = False, soft_wrap = True, end = "", style="red")
-            return
-
-        if "but some output files are missing" in line:
-            self.missingoutput.append(line)
-            for i in self.errortext:
-                if "Shutting down, this might" in i:
-                    break
-                elif "but some output files are missing" not in i:
-                    self.missingoutput[-1] += i
-                else:
-                    self.missingoutput.append(i)
-        for i in self.errortext:
-            if "Exiting because a job execution failed. Look below for error messages" in i:
-                break
-        for i in self.errortext:
-            if "(100%) done" in i:
-                break
-            if "Error in group" in i:
-                self.rule("[bold]Source of Error", style = "dim")
-                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
-                i = next(self.errortext).strip()
-            if i.startswith("[") and i.strip().endswith("]"):
-                # this is the [timestamp] line
-                break
-        # error in rule line
-        for i in self.errortext:
-            if "(100%) done" in i:
-                break
-            if "RuleException" in i:
-                sys.exit(1)
-            if "Error in rule" in i or "Error in group" in i:
-                #self.print(f"[yellow bold]──── Triggering Rule[/][bold] {i.strip().split()[-1].removesuffix(':')}[/]")
-                self.rule(f"[default bold]Triggering Rule[/][yellow bold] {i.strip().split()[-1].removesuffix(':')}", style = "yellow")
-                #self.print("[yellow bold]" + i.strip(), overflow = "ignore", crop = False)
-            elif i.strip().startswith("shell:"):
-                self.format_shell()
-            elif i.startswith("Complete log"):
-                return
-            elif i.startswith("WorkflowError"):
-                return
-            else:
-                self.process_error(i)
-        # if there were no log files but there was a MissingOutputException
-        if self.missingoutput:
-            for i in self.missingoutput:
-                i = i.partition("Waiting at most")[0]
-                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
-                self.print(i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
-
-
-    def process_error(self, txt):
-        '''interpret rule errors and print them with nice format'''
-        if txt.strip().startswith("Logfile"):
-            if self.missingoutput:
-                _i = self.missingoutput.pop(0)
-                _i = _i.partition("Waiting at most")[0]
-                self.print("\n[bold dim]──── ⚠ Error Reported by Snakemake")
-                self.print(_i, highlight = False, soft_wrap=True, width = 2000, style = "red", end = "")
-            self.print_logfile(txt)
-            return
-        if "snakemake.logging" in txt or "At least one job did not" in txt:
-            return
-        text = txt.removeprefix("    ").rstrip().lstrip()
-        text = text.replace("(check log file(s) for error details)", "")
-        valid_keys = ["jobid","input","output","log","conda-env","container","shell","wildcards", "affected files"]
-        _split = text.split(':')
-        if _split[0] == "message":
-            return
-        if len(_split) == 1 or _split[0] not in valid_keys:
-            self.print(f"[red]{escape(text)}", overflow = "ignore", crop = False)
-            return
-        key = _split[0]
-        vals = [i.strip() for i in _split[1].split(",")]
-        if len(vals) == 1:
-            if key == "conda-env":
-                self.print(f"[bold default]{key}: [/][red]" + escape(os.path.relpath(vals[0])))
-            else:
-                self.print(f"[bold default]{key}: [/][red]" + escape("".join(vals)))
-            return
-        self.print(f"[bold default]{key}: [/]\n  [red]" + escape("\n  ".join(vals)))
-
-
-    def format_shell(self):
-        '''format the snakemake rule shell command nicely and print it to the console'''
-        text = ""
-        for i in self.errortext:
-            if "(command exited" in i:
-                break
-            text += i
-        self.print("")
-        self.print("[bold dim]──── ❯ Command Invoked")
-        self.shell(text.strip("\n"))
-
-
-    def print_logfile(self, errline):
-        '''process and print the contents of a logfile in the snakemake error log'''
-        merged_text = ""
-        _log = errline.rstrip().split()[1]
-        self.print("")
-        self.print(f"[bold dim]──── 🗎 {_log.rstrip(':')}")
-        if "empty file" in errline:
-            self.print(f"{_log.replace(':','')} is empty\n", style = "dim")
-            _ = next(self.errortext)
-            return
-        if "not found" in errline:
-            self.print(f"{_log} was not found\n", style = "red")
-            _ = next(self.errortext)
-            return
-        lines = 0
-        for i in self.errortext:
-            if lines == 2:
-                break
-            if "====" in i:
-                lines += 1
-                continue
-            merged_text += i
-        logtext = escape(re.sub(r'\n{3,}', '\n\n', merged_text).removeprefix("    "))
-        # purge out all unnecessary papermill error text
-        if "papermill.exceptions.PapermillExecutionError:" in logtext:
-            logtext = logtext.partition("papermill.exceptions.PapermillExecutionError:")[-1]
-            chunks = logtext.split("\n\n")
-            filtered = [c for c in chunks if not c.startswith("File ")]
-            logtext = "\n\n".join(filtered)
-        self.print("[red]" + logtext, overflow = "ignore", crop = False)
-        _ = next(self.errortext)

@@ -82,8 +82,6 @@ rule sort_bcf:
         bcf = temp("workflow/input/vcf/input.sorted.bcf")
     log:
         "logs/input.sort.log"
-    container:
-        None
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
@@ -92,8 +90,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -113,8 +109,6 @@ rule create_stitch_input:
         idx = "workflow/input/vcf/input.sorted.bcf.csi"
     output:
         "workflow/input/stitch/{contig}.stitch"
-    container:
-        None
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.contig} {input.bcf} |
@@ -133,8 +127,7 @@ rule impute:
         temp(directory("{paramset}/contigs/{contig}/{region}/input")),
         temp(directory("{paramset}/contigs/{contig}/{region}/debug")),
         temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi"),
-        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz"),
-        tmpdir = temp(directory("{paramset}/contigs/{contig}/{region}/tmp"))
+        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz")
     log:
         "{paramset}/logs/{contig}.{region}.stitch.log",
     params:
@@ -154,14 +147,16 @@ rule impute:
         buffer  = lambda wc: f"--buffer={buffer}" if region or window else "",
     threads:
         workflow.cores - 1
+    resources:
+        tmpdir = lambda wc: os.path.join(wc.paramset, "contigs", wc.contig, wc.region, "tmp")
     conda:
         "envs/impute.yaml"
     container:
-        f"docker://pdimens/harpy:impute_{VERSION}"        
+        f"docker://pdimens/harpy:impute_{VERSION}"
     shell:
         """
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
-            mkdir -p {output.tmpdir}
             STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
             tabix {output.vcf}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/{wildcards.region}/plots

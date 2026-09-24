@@ -15,41 +15,40 @@ extra 		      = PARAMETERS.get("extra", "")
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
-bn 			  = os.path.basename(genomefile)
-bn            = bn[:-3] if bn.lower().endswith(".gz") else bn
-bn_r          = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
-workflow_geno = f"workflow/reference/{bn}"
-samplenames   = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
-d             = dict(zip(samplenames, samplenames))
+bn 	  = os.path.basename(genomefile)
+bn_re  = re.compile(r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags=re.IGNORECASE)
+fq_by_sample = {}
+for f in fqlist:
+    name = bn_re.sub("", os.path.basename(f), count=1)
+    fq_by_sample.setdefault(name, []).append(f)
+
+samplenames = set(fq_by_sample)
 
 def get_fq(wildcards):
-    # returns a list of fastq files for reads 1 and 2 based on *wildcards.sample* e.g.
-    r = re.compile(fr".*/({re.escape(wildcards.sample)}){bn_r}", flags = re.IGNORECASE)
-    return sorted(list(filter(r.match, fqlist))[:2])
+    return sorted(fq_by_sample[wildcards.sample])[:2]
 
 rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai"
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai"
     log:
-        f"{workflow_geno}.preprocess.log"
+        f"{bn}.preprocess.log"
     shell: 
         """
         {{
-            seqtk seq {input} > {output.geno}
+            seqtk seq {input} | bgzip -c > {output.geno}
             samtools faidx --fai-idx {output.fai} {output.geno}
         }} 2> {log}
         """
 
 rule align:
     input:
-        workflow_geno,
+        "workflow/reference/ref.fa.gz",
         get_fq,
     output:  
-        bam = temp("strobe/{sample}.strobe.bam"),
-        tmp = temp(directory("strobe/{sample}_tmp"))
+        temp("strobe/{sample}.strobe.bam", group_jobs = True)
     log:
         "logs/strobealign/{sample}.strobe.log"
     params: 
@@ -67,9 +66,9 @@ rule align:
         f"docker://pdimens/harpy:align_{VERSION}"
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
             strobealign {params} -t {threads} {input} |
-            samtools collate -T {resources.tmpdir} -O -u -l 0 -
-        }} 2> {log} > {output.bam}
+            samtools collate -T {resources.tmpdir}/{wildcards.sample} -O -u -l 0 -
+        }} 2> {log} > {output}
         """

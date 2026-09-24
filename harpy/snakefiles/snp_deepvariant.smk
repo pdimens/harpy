@@ -4,7 +4,8 @@ from pathlib import Path
 localrules: all
 wildcard_constraints:
     sample = r"[a-zA-Z0-9._-]+"
-
+#TODO ADD REGIONS SUPPORT
+#TODO ADD CONCAT FOR gVCF, ADD gVCF to rule all
 WORKFLOW   = config.get('Workflow') or {}
 PARAMETERS = config.get('Parameters') or {}
 REPORTS    = WORKFLOW.get("reports") or {} 
@@ -13,29 +14,14 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
 skip_reports  = REPORTS.get("skip", False)
 ploidy 		  = PARAMETERS.get("ploidy", 2)
-extra 	      = PARAMETERS.get("extra", "") 
 bamlist       = INPUTS["alignments"]
 genomefile 	  = INPUTS["reference"]
 region_input = INPUTS["regions"]
 keep_invar   = PARAMETERS.get("keep-invariant", False)
 gpu          = WORKFLOW.get('gpu', False)
 
-# attempt to get processed, then source, then nothing
-grp          = INPUTS.get("groupings") or {}
-if grp:
-    groupings = grp.get("processed", [])
-    if isinstance(groupings, str) and not os.path.isfile(groupings):
-        groupings = grp.get("source", [])
-else:
-    groupings = []
-
 bamdict       = dict(zip(bamlist, bamlist))
 samplenames   = {Path(i).stem for i in bamlist}
-sampldict     = dict(zip(bamlist, samplenames))
-bn                = os.path.basename(genomefile)
-genome_zip        = True if bn.lower().endswith(".gz") else False
-workflow_geno     = f"workflow/reference/{bn}"
-workflow_geno_idx = f"{workflow_geno}.gzi" if genome_zip else f"{workflow_geno}.fai"
 
 if os.path.exists(region_input):
     with open(region_input, "r") as reg_in:
@@ -64,23 +50,16 @@ rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai",
-        gzi = f"{workflow_geno}.gzi" if genome_zip else []
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai",
+        gzi = "workflow/reference/ref.fa.gz.gzi"
     log:
-        f"{workflow_geno}.preprocess.log"
-    params:
-        f"--gzi-idx {workflow_geno}.gzi" if genome_zip else ""
+        "workflow/reference.preprocess.log"
     shell: 
         """
         {{
-            if (file {input} | grep -q compressed ) ;then
-                # is regular gzipped, needs to be BGzipped
-                seqtk seq {input} | bgzip -c > {output.geno}
-            else
-                ln -s {input} {output.geno}
-            fi
-            samtools faidx {params} --fai-idx {output.fai} {output.geno}
+            seqtk seq {input} | bgzip -c > {output.geno}
+            samtools faidx {params} --fai-idx {output.fai} --gzi-idx {output.gzi} {output.geno}
         }} 2> {log}
         """
 
@@ -92,43 +71,47 @@ rule index_alignments:
     shell:
         "samtools index {input}"
 
+# either vcf or gvcf
 rule call_variants:
     input:
-        get_alignments_index,
+        get_align_index,
         bam = get_alignments,
-        f"{workflow_geno}.fai",
-        reference = workflow_geno
+        "workflow/reference/ref.fa.gz.fai",
+        reference = "workflow/reference/ref.fa.gz"
     output:
-        tvcf = temp("samples/tmp.{sample}.vcf"),
-        bcf = temp("samples/{sample}.bcf"),
-        gvcf = temp("samples/{wc.sample}.gvcf") if keep_invar else [],
-        tgvcf = temp("samples/tmp.{wc.sample}.gvcf") if keep_invar else [],
-        idx = temp("samples/{sample}.bcf.csi")
+        directory("deepvariant/{sample}"),
+        vcf = temp("samples/{sample}.vcf"),
+        gvcf = temp("samples/{sample}.gvcf") if keep_invar else []
     log:
         "logs/{sample}.deepvariant.log"
     params:
         "--model_type=WGS",
         "--use_gpu" if gpu else "",
-        lambda wc: f"--output_gvcf=samples/{wc.sample}.gvcf" if keep_invar else "",
-        extra = extra,
+        lambda wc: f"--intermediate_results_dir=deepvariant/{wc.sample}",
+        lambda wc: f"--output_gvcf=samples/{sample}.gvcf" if keep_invar else []
     threads:
         4
-    conda:
-        "envs/variants.yaml"
     container:
-        f"docker://pdimens/harpy:variants_{VERSION}"
+        "docker://google/deepvariant:1.10.0"
     shell:
         """
         mkdir -p deepvariant/{wildcards.sample}
-        {{
-            run_deepvariant --ref={input.reference} --reads={input.bam} --output_vcf={output.tvcf} \
-                {params}  --num_shards {threads} --intermediate_results_dir deepvariant/{wildcards.sample}
-
-            bcftools sort --output {output.bcf} -Ou --write-index {output.tvcf} > {output.bcf}
-        }} &> {log}
+        run_deepvariant --ref={input.reference} --reads={input.bam} --num_shards={threads} {params} --output_vcf={output.vcf} &> {log}
         """
 
-rule concat_variants:
+rule sort_variants:
+    input:
+        "samples/{sample}.vcf"
+    output:
+        temp("samples/{sample}.bcf.csi"),
+        bcf = temp("samples/{sample}.bcf")
+    threads:
+        2
+    shell:
+        "bcftools sort -o {output.bcf} --write-index {input}"
+
+
+rule concat_samples:
     input:
         collect("samples/{sample}.bcf.csi", part = samplenames),
         bcf = collect("samples/{sample}.bcf", part = samplenames)
@@ -141,19 +124,21 @@ rule concat_variants:
     threads:
         workflow.cores
     params:
-        workflow.cores - 1 
+        workflow.cores - 1
+    resources:
+        mem_mb = 8000
     shell:  
         """
         printf '%s\\n' {input.bcf} > {output.concatlist}
         {{
-            bcftools merge -f {output.concatlist} --threads {params} --naive |
-            bcftools sort - --write-index -Ob -o {output.bcf}
+            bcftools merge -@ {params} --no-version -l {output.concatlist} |
+            bcftools sort - --write-index -Ob -o {output.bcf} --max-mem {resources}M 
         }} 2> {log}
         """
 
 rule realign_indels:
     input:
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
         bcf     = "variants.raw.bcf",
         idx     = "variants.raw.bcf.csi"
     output:
@@ -170,8 +155,8 @@ rule realign_indels:
 
 rule variant_report:
     input: 
-        genome  = workflow_geno,
-        ref_idx = f"{workflow_geno}.fai",
+        genome  = "workflow/reference/ref.fa.gz",
+        ref_idx = "workflow/reference/ref.fa.gz.fai",
         bcf     = "variants.{type}.bcf",
         idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"

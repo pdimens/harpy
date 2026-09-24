@@ -69,8 +69,7 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     hp.notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-#TODO FIX EPILOG
-@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/#reports")
+@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/commands/template/#report")
 @click.option('-a', '--action', is_flag = True, default = False, help = 'Add a report-building GitHub Action to the repository')
 @click.option('-u', '--update', is_flag = True, default = False, help = 'Scan the git project for reports and update `myst.yml`')
 @click.help_option('--help', hidden = True)

@@ -28,12 +28,7 @@ else:
     groupings = []
 
 bamdict       = dict(zip(bamlist, bamlist))
-bn            = os.path.basename(genomefile)
-genome_zip    = bn.lower().endswith(".gz")
-bn            = bn[:-3] if genome_zip else bn
-workflow_geno = f"workflow/reference/{bn}"
 samplenames   = {Path(i).stem for i in bamlist}
-sampldict     = dict(zip(bamlist, samplenames))
 
 if os.path.exists(region_input):
     with open(region_input, "r") as reg_in:
@@ -50,10 +45,10 @@ rule process_reference:
     input:
         genomefile
     output: 
-        geno = workflow_geno,
-        fai = f"{workflow_geno}.fai"
+        geno = "workflow/reference/ref.fa.gz",
+        fai = "workflow/reference/ref.fa.gz.fai"
     log:
-        f"{workflow_geno}.preprocess.log"
+        "workflow/reference/ref.preprocess.log"
     shell: 
         """
         {{
@@ -86,8 +81,8 @@ rule call_variants:
         bamlist,
         collect("{bam}.bai", bam = bamlist),
         "workflow/sample.groups" if groupings else [],
-        f"{workflow_geno}.fai",
-        reference = workflow_geno,
+        "workflow/reference/ref.fa.gz.fai",
+        reference = "workflow/reference/ref.fa.gz",
         bamlist  = "workflow/freebayes.input"
     output:
         bcf = temp("regions/{part}.bcf"),
@@ -136,7 +131,7 @@ rule concat_variants:
 
 rule realign_indels:
     input:
-        genome  = workflow_geno,
+        genome  = "workflow/reference/ref.fa.gz",
         bcf     = "variants.raw.bcf",
         idx     = "variants.raw.bcf.csi"
     output:
@@ -153,8 +148,8 @@ rule realign_indels:
 
 rule variant_report:
     input: 
-        genome  = workflow_geno,
-        ref_idx = f"{workflow_geno}.fai",
+        genome  = "workflow/reference/ref.fa.gz",
+        ref_idx = "workflow/reference/ref.fa.gz.fai",
         bcf     = "variants.{type}.bcf",
         idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"

@@ -78,8 +78,8 @@ rule isolate_sample:
     input: 
         variantfile
     output:
-        vcf = temp("workflow/input/original/{sample}.bcf"),
-        csi = temp("workflow/input/original/{sample}.bcf.csi")
+        vcf = temp("workflow/input/original/{sample}.bcf", group_jobs = True),
+        csi = temp("workflow/input/original/{sample}.bcf.csi", group_jobs = True)
     shell:
         "bcftools view -Ob -W -s {wildcards.sample} -o {output.vcf} {input}"
 

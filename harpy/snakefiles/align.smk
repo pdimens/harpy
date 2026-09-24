@@ -10,7 +10,6 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-
 lr_type           = WORKFLOW.get("linkedreads", {}).get("type", 'none')
 bx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("BX", False)
 vx_tag            = WORKFLOW.get("linkedreads", {}).get("standardized", {}).get("VX", False)
@@ -23,7 +22,6 @@ genomefile 	      = INPUTS["reference"]
 
 ignore_bx     = lr_type == "none"
 bn 			  = os.path.basename(genomefile)
-workflow_geno = f"workflow/reference/{bn}"
 
 aligner = WORKFLOW.get("name", "align_bwa").split("_")[-1]
 include: f"align_{aligner}.smk"
@@ -31,16 +29,15 @@ include: f"align_{aligner}.smk"
 rule sort:
     retries: 3
     input:
-        ref = workflow_geno,
+        ref = "workflow/reference/ref.fa.gz",
         bam = f"{aligner}/{{sample}}.{aligner}.bam"
     output:
         bam = temp("sort/{sample}.sort.bam"),
-        stats = "reports/data/samtools_stats/{sample}.raw.stats",
-        tmp = temp(directory("sort/{sample}_tmp"))
+        stats = "reports/data/samtools_stats/{sample}.raw.stats"
     log:
         "logs/sort/{sample}.sort.log"
     params:
-        sortthreads = lambda wc, threads: threads - 1
+        lambda wc, threads: threads - 1
     threads:
         4
     resources:
@@ -48,11 +45,11 @@ rule sort:
         mem_mb_per_thread = lambda wc, attempt: 3000 // attempt
     shell:
         """
-        mkdir -p {resources.tmpdir}
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
             samtools fixmate -z on -m -u {input.bam} - |
-            samtools sort -@ {params.sortthreads} -M -T {resources.tmpdir} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
-            samtools stats -@ {params.sortthreads} -d -x -r {input.ref} {output.bam} > {output.stats} 
+            samtools sort -@ {params} -M -T {resources.tmpdir}/{wildcards.sample} -o {output.bam} -u -l 0 -m {resources.mem_mb_per_thread}M -
+            samtools stats -@ {params} -d -x -r {input.ref} {output.bam} > {output.stats} 
         }} 2> {log}
         """
 
@@ -63,8 +60,7 @@ rule mark_duplicates:
         bam = "sort/{sample}.sort.bam"
     output:
         bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
-        stats = "reports/data/markdup/{sample}.markdup",
-        tmp = temp(directory("markdup/{sample}_tmp"))
+        stats = "reports/data/markdup/{sample}.markdup"
     log:
         "logs/markdup/{sample}.markdup.log"
     params:
@@ -78,9 +74,9 @@ rule mark_duplicates:
         4
     shell:
         """
-        mkdir -p {resources.tmpdir}
-        OPT=$(harpy-utils optical-dist-fq {input.fq})
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
+            OPT=$(harpy-utils optical-dist-fq {input.fq})
             samtools view -h -u -q {params.quality} {params.unmapped} {input.bam} |
             samtools markdup -@ {params.mdthreads} -T {resources.tmpdir} {params.bx_mode} -d $OPT -f {output.stats} - {output.bam}
         }} 2> {log}
@@ -104,7 +100,10 @@ rule depth_stats:
         "{sample}.bam.bai",
         bam = "{sample}.bam"
     output: 
-        "reports/data/coverage/{sample}.regions.bed.gz"
+        "reports/data/coverage/{sample}.regions.bed.gz",
+        temp("reports/data/coverage/{sample}.mosdepth.global.dist.txt"),
+        temp("reports/data/coverage/{sample}.mosdepth.summary.txt"),
+        temp("reports/data/coverage/{sample}.mosdepth.region.dist.txt")
     params:
         f"-b {windowsize}",
         "-n --fast-mode"
@@ -117,10 +116,7 @@ rule depth_stats:
     container:
         f"docker://pdimens/harpy:qc_{VERSION}"
     shell:
-        """
-        mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}
-        rm -f reports/data/coverage/{wildcards.sample}.mosdepth* reports/data/coverage/{wildcards.sample}*.csi
-        """
+        "mosdepth {params} -t 1 reports/data/coverage/{wildcards.sample} {input.bam} 2> {log}"
 
 rule sample_stats:
     input:
@@ -142,7 +138,7 @@ rule sample_stats:
 
 rule molecule_coverage:
     input:
-        fai = f"{workflow_geno}.fai",
+        fai = "workflow/reference/ref.fa.gz.fai",
         stats = "reports/data/lrstats/{sample}.lrstats.gz"
     output:
         "reports/data/coverage/{sample}.molcov.gz"
@@ -226,8 +222,8 @@ rule linked_read_report:
         f"logs/reports/lrstats.report.log"
     shell:
         """
+        export IPYTHONDIR=/tmp/ipython-lr-stats
         {{
-            export IPYTHONDIR=/tmp/ipython-lr-stats
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
         }} 2> {log}
