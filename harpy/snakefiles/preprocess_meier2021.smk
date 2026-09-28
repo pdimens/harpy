@@ -77,7 +77,7 @@ rule demultiplex:
         "--undetermined-barcodes" if unknown_barcodes else "",
         "--undetermined-samples" if unknown_samples else "",
         "--multiple-samples-per-barcode" if duplicates else "",
-        "--use-stitch-base --sx" if stitch_base else "",
+        "--use-stitch-base --sx true" if stitch_base else "",
         "--allow-complementary-stitch" if stitch_base and stitch_comp else ""
     threads:
         workflow.cores
@@ -86,12 +86,10 @@ rule demultiplex:
     container:
         f"docker://pdimens/harpy:preprocess_{VERSION}"
     shell:
-        """
-        dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} \
-        --ref-a {input.segment_a} --ref-b {input.segment_b} --ref-c {input.segment_c} \
-        --ref-d {input.segment_d} --schema {input.schema} \
-        --n-writers {threads} {params} 2> {log}
-        """
+        "dmox --i1 {input.I1} --i2 {input.I2} --r1 {input.R1} --r2 {input.R2} "
+        "--ref-a {input.segment_a} --ref-b {input.segment_b} --ref-c {input.segment_c} "
+        "--ref-d {input.segment_d} --schema {input.schema} "
+        "--n-writers {threads} {params} 2> {log}"
 
 rule assess_quality:
     input:

@@ -286,27 +286,59 @@ class DemuxSchema(click.ParamType):
         samples = set()
         duplicates = False
         segment_pattern = re.compile(r'^[A-D]\d{2}$')
+        bases = ['A','T','C','G']
+        is_stitch: bool = False
+        with open(filepath, 'r') as file:
+            for line in file:
+                _splitline = line.rstrip().split()
+                if len(_splitline) == 2:
+                   break
+                if len(_splitline) == 3:
+                    is_stitch = True
+                    break
+                # never broke, doesn't have 2 or 2 cols
+                hp.error(
+                    "incorrect schema format",
+                    f"Schema file [blue]{os.path.basename(value)}[/] has no valid rows. Under default workflows, the rows should have two columns in the format sample<tab>segment, e.g. [green]sample_01[/][dim]<tab>[/][green]C75[/]. "
+                    "If using base-stitching, then a 3-column format is expected: e.g., [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/]."    
+                )
         with open(filepath, 'r') as file:
             for line in file:
                 try:
-                    sample, segment_id = line.rstrip().split()
+                    _splitline = line.rstrip().split()
+                    if is_stitch:
+                        sample, segment_id, stitch_base = _splitline
+                        if stitch_base not in bases:
+                            hp.error(
+                                "invalid schema format",
+                                f"A 3-column format was detected, suggesting you intend to use base stitching, however the third column value is not one of the ATCG bases.",
+                                "When using base stitching, the sample rows of the schema format must be in the format [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/].",
+                                "Line causing the error",
+                                line
+                            )
+                    else:
+                        sample, segment_id = _splitline
                     if not segment_pattern.match(segment_id):
                         hp.error(
                             "invalid segment format",
                             f"Segment ID [green]{segment_id}[/] does not follow the expected format.",
-                            "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design."
+                            "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/]"
+                            ", e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with "
+                            "a workflow appropriate for your data design.",
+                            "Line causing the error",
+                            line
                         )
                     code_letters.add(segment_id[0])
                     if sample in samples:
                         duplicates = True
                     samples.add(sample)
-                    if segment_id in segment_ids:
+                    if segment_id in segment_ids and not is_stitch:
                         hp.error(
                             "ambiguous segment ID",
                             "An ID segment must only be associated with a single sample.",
                             "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/] cannot identify both [green]sample_01[/] and [green]sample_2[/]. In other words, a segment can only appear once.",
-                            "The segment triggering this error is",
-                            segment_id
+                            "Line causing the error",
+                            line
                         )
                     else:
                         segment_ids.add(segment_id)
