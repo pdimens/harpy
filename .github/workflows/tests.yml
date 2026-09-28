@@ -94,11 +94,11 @@ jobs:
           ls -lh Preproc/meier
       - name: harpy preproc meier2021 stitch-base
         run: |
-          harpy preprocess meier2021 -O Preproc/meier-stitch --quiet 2 -s test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
+          harpy preprocess meier2021 -O Preproc/meier-stitch --quiet 2 -s test/preproc/meier2021/stitch/stitch.schema test/preproc/meier2021/stitch/multiplex.stitch.R* test/preproc/meier2021/stitch/multiplex.stitch.I* && \
           ls -lh Preproc/meier-stitch
       - name: harpy preproc meier2021 stitch-base complementary
         run: |
-          harpy preprocess meier2021 -O Preproc/meier-stitch-comp --quiet 2 -s -c test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
+          harpy preprocess meier2021 -O Preproc/meier-stitch-comp --quiet 2 -s -c test/preproc/meier2021/stitch_complementary/stitch.comp.schema test/preproc/meier2021/stitch_complementary/multiplex.stitch.comp.R* test/preproc/meier2021/stitch_complementary/multiplex.stitch.comp.I* && \
           ls -lh Preproc/meier-stitch-comp
       - name: harpy preproc gih
         run: |
