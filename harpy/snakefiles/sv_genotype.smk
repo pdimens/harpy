@@ -43,8 +43,10 @@ rule construct_graph:
     container:
         f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
-        #TODO SCRIPT DIR, FIGURE THAT OUT
-        "python3 script_dir/construct_graph.py -v {input.vcf} -r {input.ref} -o {output} 2> {log}"
+        """
+        SVJEDI_DIR="$(python3 -c 'import svjedi_tag, os; print(os.path.dirname(svjedi_tag.__file__))')"
+        python3 $SVJEDI_DIR/predict_genotype.py -v {input.vcf} -r {input.ref} -o {output} 2> {log}"
+        """
 
 rule index_graph:
     input:
@@ -104,7 +106,10 @@ rule call_genotypes:
     container:
         f"docker://pdimens/harpy:variants_{VERSION}"
     shell:
-        "python3 scriptdir/predict_genotype.py -a {input.aln} -v {input.vcf} -o {output} -g {input.gfa} {params} 2> {log}"
+        """
+        SVJEDI_DIR="$(python3 -c 'import svjedi_tag, os; print(os.path.dirname(svjedi_tag.__file__))')"
+        python3 $SVJEDI_DIR/predict_genotype.py -a {input.aln} -v {input.vcf} -o {output} -g {input.gfa} {params} 2> {log}
+        """
 
 rule all:
     default_target: True
