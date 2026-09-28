@@ -229,7 +229,7 @@ The interleaved output was split back into forward and reverse reads with seqtk:
 
         gridparam = ""
         if self.PARAMETERS.get("grid-size", 1) > 1:
-            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get('grid-size', 1)}"
+            gridparam = f"\n\t\tgridWindowSize = {self.PARAMETERS.get('grid-size', 1)},"
         paramfiletext = "\t".join(open(self.INPUTS["parameters"], "r").readlines())
         self.summary = f'''The harpy impute workflow ran using these parameters:
 
