@@ -45,7 +45,7 @@ rule construct_graph:
     shell:
         """
         SVJEDI_DIR="$(python3 -c 'import svjedi_tag, os; print(os.path.dirname(svjedi_tag.__file__))')"
-        python3 $SVJEDI_DIR/predict_genotype.py -v {input.vcf} -r {input.ref} -o {output} 2> {log}"
+        python3 $SVJEDI_DIR/predict_genotype.py -v {input.vcf} -r {input.ref} -o {output} 2> {log}
         """
 
 rule index_graph:
