@@ -68,7 +68,7 @@ rule demultiplex:
         segment_d = "workflow/segment_D.bc",
         schema = schemafile
     output:
-        collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2])
+        collect("samples/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2])
     log:
         "logs/dmox.log"
     params:
@@ -95,7 +95,7 @@ rule demultiplex:
 
 rule assess_quality:
     input:
-        "{sample}.R{FR}.fq.gz"
+        "samples/{sample}.R{FR}.fq.gz"
     output: 
         "reports/data/{sample}.R{FR}.fastqc"
     log:
@@ -145,5 +145,5 @@ rule quality_report:
 rule all:
     default_target: True
     input:
-        fq = collect("{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
+        fq = collect("samples/{sample}.R{FR}.fq.gz", sample = samplenames, FR = [1,2]),
         reports = "reports/preprocess.QA.html" if not skip_reports else []
