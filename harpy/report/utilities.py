@@ -34,7 +34,7 @@ def last_line(filename: str) -> str:
             last_line = line
         return last_line.strip()
 
-def nxx_polars(lengths: list[int] | pl.Series, X: int = 50) -> int:
+def nxx(lengths: list[int] | pl.Series, X: int = 50) -> int:
     '''
     Calculate and return the NX value of a list of numbers, where `X` is
     the kind of NX value you want. For example, `X=50` would return the `N50`.

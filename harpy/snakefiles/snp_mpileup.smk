@@ -168,7 +168,7 @@ rule variant_report:
         idx     = "variants.{type}.bcf.csi",
         ipynb  = "workflow/bcftools_stats.ipynb"
     output:
-        data = temp("reports/data/variants.{type}.stats"),
+        data = "reports/data/variants.{type}.stats",
         tmp = temp("reports/variants.{type}.tmp.ipynb"),
         ipynb = temp("reports/variants.{type}.ipynb")
     log:
