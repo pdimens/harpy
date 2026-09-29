@@ -13,6 +13,7 @@
 - the `dmox` update makes `workflow.yaml` files from previous harpy versions invalid
   - not technically invalid, but the key absence/mismatch will default to all optional features turned off, which may be unintended
 - fastq validation is now limited to 100 records, which should see a significant validation speedup
+- `bx-stats-sam` correctly names the column `fragments`, was formerly `reads`
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty

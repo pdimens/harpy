@@ -248,4 +248,4 @@ def genotype(vcf, reference, inputs, output, region_size, inaccuracy, min_diff, 
 
 sv.add_command(leviathan)
 sv.add_command(naibr)
-sv.add_command(genotype)
+#sv.add_command(genotype)    #disabled for now until Melody makes some outstanding fixes
