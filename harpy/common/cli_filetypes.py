@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 
 import click
-import yaml
+from click.shell_completion import CompletionItem
 
 from harpy.common.file_ops import is_gzip, filepath
 from harpy.common.printing import HarpyPrint
@@ -13,7 +13,15 @@ from harpy.common.system_ops import check_snakemake_hpc
 
 hp = HarpyPrint()
 
-class SAMfile(click.ParamType):
+class FileCompletion(click.ParamType):
+    """
+    Base for the file-like types below: click can't complete anything for a custom ParamType,
+    so hand shell completion over to the shell's own filename completion.
+    """
+    def shell_complete(self, ctx, param, incomplete):
+        return [CompletionItem(incomplete, type = "file")]
+
+class SAMfile(FileCompletion):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
     name = "bam_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
@@ -57,7 +65,7 @@ class SAMfile(click.ParamType):
         else:
             return infiles
 
-class FASTAfile(click.ParamType):
+class FASTAfile(FileCompletion):
     """A CLI class to validate a FASTA file as input. Checks for presence, format, and returns the absolute path"""
     name = "fasta_file"
 
@@ -74,7 +82,7 @@ class FASTAfile(click.ParamType):
 
         return filepath.resolve().as_posix()
 
-class FASTQfile(click.ParamType):
+class FASTQfile(FileCompletion):
     """
     A CLI class to validate a FASTQ file as input. Checks for presence, format, and returns the absolute path.
     Setting single to True returns a str, otherwise returns a list.
@@ -119,7 +127,7 @@ class FASTQfile(click.ParamType):
         else:
             return infiles
 
-class IPYNBfile(click.ParamType):
+class IPYNBfile(FileCompletion):
     """A CLI class to validate an IPYNB file as input. Checks for file extension and returns the absolute path"""
     name = "ipynb_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
@@ -163,7 +171,7 @@ class IPYNBfile(click.ParamType):
         else:
             return infiles
 
-class VCFfile(click.ParamType):
+class VCFfile(FileCompletion):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
     name = "vcf_file"
     def __init__(self, gzip_ok: bool = True):
@@ -186,7 +194,7 @@ class VCFfile(click.ParamType):
         else:
             return _file
 
-class PopulationFile(click.ParamType):
+class PopulationFile(FileCompletion):
     name = "populations_file"
 
     def convert(self, value, param, ctx):
@@ -197,7 +205,7 @@ class PopulationFile(click.ParamType):
             self.fail(f"Sample grouping file {value} does not have read permission.", param, ctx)
         return filepath.resolve().as_posix()
 
-class InputFile(click.ParamType):
+class InputFile(FileCompletion):
     """A class for a click type that verifies that a file exists and that it has an expected extension. Returns the absolute path"""
     name = "input_file"
     def __init__(self, filetype, gzip_ok):
@@ -230,7 +238,7 @@ class InputFile(click.ParamType):
             self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
         return Path(value).resolve().as_posix()
 
-class HPCProfile(click.ParamType):
+class HPCProfile(FileCompletion):
     """A class for a click type which accepts a file with a snakemake HPC profile. Does validations to make sure it's the config file and not the directory."""
     name = "hpc_profile"
     def convert(self, value, param, ctx):
@@ -240,6 +248,8 @@ class HPCProfile(click.ParamType):
             self.fail(f"{value} is a directory, but input should be a yaml file.", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
+        import yaml
+
         with open(value, "r") as file:
             try:
                 yml = yaml.safe_load(file)
@@ -267,7 +277,7 @@ To install the missing plugins:
 ''')
         return Path(value).resolve().as_posix()
 
-class DemuxSchema(click.ParamType):
+class DemuxSchema(FileCompletion):
     """A class for a click type that accepts a demultiplex schema and performs validation"""
     name = "demultiplex_schema"
 
@@ -394,7 +404,7 @@ class ImputeStrategy(click.ParamType):
 
         return value
 
-class QCAdapters(click.ParamType):
+class QCAdapters(FileCompletion):
     name = "qc_adapters"
     def convert(self, value, param, ctx):
         nuc = re.compile(r'^[ATCG]+$', re.IGNORECASE)

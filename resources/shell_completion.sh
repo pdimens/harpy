@@ -1,6 +1,16 @@
-_shell=$(ps -p $$ -o comm= 2>/dev/null || basename "$SHELL")
-case "$_shell" in
-  bash) source "$CONDA_PREFIX/share/harpy/complete.bash" ;;
-  zsh)  source "$CONDA_PREFIX/share/harpy/complete.zsh"  ;;
-  fish) source "$CONDA_PREFIX/share/harpy/complete.fish" ;;
+# Sourced on activation of the harpy environment (conda activate.d / pixi activation script).
+# Enables tab-completion for harpy in bash and zsh using the scripts that are written to
+# $CONDA_PREFIX/share/harpy/ when harpy is built (see generate_completion.sh).
+# Only does anything in interactive shells, and silently skips if the scripts are missing.
+case $- in
+  *i*)
+    _harpy_completion_dir="${CONDA_PREFIX-}/share/harpy"
+    if [ -n "${BASH_VERSION-}" ] && [ -f "${_harpy_completion_dir}/complete.bash" ]; then
+      . "${_harpy_completion_dir}/complete.bash"
+    elif [ -n "${ZSH_VERSION-}" ] && [ -f "${_harpy_completion_dir}/complete.zsh" ] && type compdef >/dev/null 2>&1; then
+      # compdef only exists if the user has initialized zsh completion (compinit)
+      . "${_harpy_completion_dir}/complete.zsh"
+    fi
+    unset _harpy_completion_dir
+    ;;
 esac

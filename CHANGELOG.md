@@ -5,8 +5,15 @@
   - introduces the `--use-stitch-base` logic via `--stitch`
   - introduces the `--allow-complementary-stitch` logic via `--stitch-comp`
 - `harpy align arachne` adds Arachne linked-read aware aligner (successor to lariat)
+- tab-completion for `harpy` in bash, zsh, and fish
+  - the completion scripts are generated during the conda/pixi build and enabled automatically when the environment is activated, no user setup required
+  - file-like arguments (FASTQ, FASTA, BAM, VCF, HPC profiles, etc.) defer to the shell's own file completion
+  - adds the hidden `harpy completion` command that prints the script for a given shell (used by the build)
 
 # Changes
+- much faster CLI startup: `harpy --version` and `harpy --help` go from ~2s to ~0.2s
+  - the subcommands of `harpy` and `harpy-utils` are now imported only when they are run
+  - heavy imports (e.g. `nbconvert`, `pysam`, `yaml`) moved out of module scope into the functions that need them
 - some workflows with large temporary files (like `align`) have jobs grouped to prioritize running steps that would:
   1. remove the temporary file sooner
   2. if running on an HPC, reduces the need to copy temp files between nodes

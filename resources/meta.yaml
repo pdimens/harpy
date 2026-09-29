@@ -29,6 +29,9 @@ requirements:
     - pip
     - setuptools-scm >=8
     - go
+    # needed to run `harpy completion` during the build
+    - click >=8.2
+    - rich-click >=1.9.3
   run:
     - altair >=6.0
     - bcftools >=1.23
@@ -54,6 +57,10 @@ test:
   commands:
     - "snakemake --version"
     - "harpy --version"
+    - "test -s ${PREFIX}/share/harpy/complete.bash"
+    - "test -s ${PREFIX}/share/harpy/complete.zsh"
+    - "test -s ${PREFIX}/share/harpy/complete.fish"
+    - "test -f ${PREFIX}/etc/conda/activate.d/harpy-completion.sh"
 
 about:
   home: "https://github.com/pdimens/harpy"

@@ -409,6 +409,12 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
+      - name: lazy CLI and shell completion
+        run: |
+          python test/cli/check_lazy_cli.py && \
+          test -s $CONDA_PREFIX/share/harpy/complete.bash && \
+          test -s $CONDA_PREFIX/share/harpy/complete.zsh && \
+          test -s $CONDA_PREFIX/share/harpy/complete.fish
       - name: template impute
         run: harpy template impute
       - name: template groupings

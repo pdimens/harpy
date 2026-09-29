@@ -1,5 +1,9 @@
 {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
 
+## shell completion scripts (bash, zsh, fish), written to share/harpy/ and sourced on activation.
+## Done before the Go step below, which leaves the working directory in harpy/utils
+bash resources/generate_completion.sh "${PREFIX}" "{{ PYTHON }}"
+
 ## build Go binaries
 {
     cd harpy/utils
@@ -13,6 +17,9 @@
 ## activate/deactive processes
 mkdir -p $PREFIX/etc/conda/activate.d
 mkdir -p $PREFIX/etc/conda/deactivate.d
+
+cp "${SRC_DIR}/resources/shell_completion.sh" "${PREFIX}/etc/conda/activate.d/harpy-completion.sh"
+cp "${SRC_DIR}/resources/shell_completion.fish" "${PREFIX}/etc/conda/activate.d/harpy-completion.fish"
 
 cat > ${PREFIX}/etc/conda/activate.d/harpy-activate.sh <<'EOF'  
 export _HARPY_OLD_JUPYTER_NOTARY_DB="${JUPYTER_NOTARY_DB-__UNSET__}"  
