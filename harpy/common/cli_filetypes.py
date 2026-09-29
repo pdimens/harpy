@@ -1,5 +1,6 @@
 """Module with python-click types for command-line level validations of inputs"""
 
+from multiprocessing.sharedctypes import Value
 import os
 import re
 from pathlib import Path
@@ -307,7 +308,16 @@ class DemuxSchema(click.ParamType):
                 try:
                     _splitline = line.rstrip().split()
                     if is_stitch:
-                        sample, segment_id, stitch_base = _splitline
+                        try:
+                            sample, segment_id, stitch_base = _splitline
+                        except ValueError:
+                            hp.error(
+                                "invalid schema format",
+                                f"A 3-column format was necessary but not detected at a row.",
+                                "When using base stitching, the sample rows of the schema format must be in the format [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/].",
+                                "Line causing the error",
+                                line
+                            )
                         if stitch_base not in bases:
                             hp.error(
                                 "invalid schema format",
