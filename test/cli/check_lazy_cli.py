@@ -9,12 +9,15 @@ Checks for the lazily-loaded CLI and shell completion. Run with plain python (no
 """
 
 import inspect
+import re
 import subprocess
 import sys
+from pathlib import Path
 
 import click
 from click.shell_completion import ShellComplete
 
+ROOT = Path(__file__).resolve().parents[2]
 FAILED = []
 
 def check(condition: bool, message: str) -> None:
@@ -68,6 +71,13 @@ check(("file", "") in complete(["align", "bwa"], ""), "completion of file-like a
 for shell in ("bash", "zsh", "fish"):
     out = subprocess.run([sys.executable, "-m", "harpy", "completion", shell], capture_output=True, text=True)
     check(out.returncode == 0 and "_HARPY_COMPLETE" in out.stdout, f"`harpy completion {shell}` prints a completion script")
+
+# --- the conda recipe only has build.sh, so it carries its own copy of the activation hooks
+build_sh = (ROOT / "resources" / "build.sh").read_text()
+for marker, resource in (("EOF_COMPLETION_SH", "shell_completion.sh"), ("EOF_COMPLETION_FISH", "shell_completion.fish")):
+    match = re.search(rf"<<'{marker}'\n(.*?)\n{marker}\n", build_sh, re.S)
+    check(bool(match) and match.group(1).strip() == (ROOT / "resources" / resource).read_text().strip(),
+          f"resources/build.sh embeds an identical copy of resources/{resource}")
 
 if FAILED:
     print(f"\n{len(FAILED)} check(s) failed")
