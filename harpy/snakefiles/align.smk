@@ -236,3 +236,7 @@ rule all:
         reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
         align_report = f"reports/{aligner}.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
         bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
+    run:
+        for i in ["markdup", "tmp"]:
+            if os.path.isdir(i) and len(os.listdir(i))==0:
+                os.rmdir(i)
