@@ -178,6 +178,7 @@ rule alignment_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-align-stats
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
@@ -202,6 +203,7 @@ rule sample_reports:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.papermill} {params.samplename}
             harpy-utils process-notebook {output.tmp} {wildcards.sample} {params.placeholders} > {output.ipynb}
@@ -223,6 +225,7 @@ rule linked_read_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-lr-stats
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}

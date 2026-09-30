@@ -164,6 +164,7 @@ rule variant_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-snp-{wildcards.type}
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}

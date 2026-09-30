@@ -178,6 +178,7 @@ rule barcode_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-pre-gih
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}

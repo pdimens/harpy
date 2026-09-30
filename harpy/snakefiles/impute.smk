@@ -255,6 +255,7 @@ rule contig_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.{wildcards.contig}
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
@@ -288,6 +289,7 @@ rule impute_reports:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.rpt
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}

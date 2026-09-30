@@ -256,6 +256,7 @@ rule phase_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-phase
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}
