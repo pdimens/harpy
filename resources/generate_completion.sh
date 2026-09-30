@@ -1,9 +1,9 @@
 #! /usr/bin/env bash
-# Writes harpy's tab-completion scripts for bash, zsh, and fish into <prefix>/share/ at the
+# Writes the tab-completion scripts for harpy, harpy-utils, and hv for bash, zsh, and fish into <prefix>/share/ at the
 # standard locations each shell searches for completions:
-#   share/bash-completion/completions/harpy
-#   share/zsh/site-functions/_harpy
-#   share/fish/vendor_completions.d/harpy.fish
+#   share/bash-completion/completions/<program>
+#   share/zsh/site-functions/_<program>
+#   share/fish/vendor_completions.d/<program>.fish
 # The activation hooks (shell_completion.sh / .fish) make the shells look there.
 #
 # usage: generate_completion.sh [PREFIX] [PYTHON]
@@ -15,6 +15,8 @@ PREFIX_DIR="${1:-${CONDA_PREFIX:?Error: no PREFIX given and no active conda/pixi
 PYTHON_BIN="${2:-python}"
 
 mkdir -p "${PREFIX_DIR}/share/bash-completion/completions" "${PREFIX_DIR}/share/zsh/site-functions" "${PREFIX_DIR}/share/fish/vendor_completions.d"
-"${PYTHON_BIN}" -m harpy completion bash > "${PREFIX_DIR}/share/bash-completion/completions/harpy"
-"${PYTHON_BIN}" -m harpy completion zsh  > "${PREFIX_DIR}/share/zsh/site-functions/_harpy"
-"${PYTHON_BIN}" -m harpy completion fish > "${PREFIX_DIR}/share/fish/vendor_completions.d/harpy.fish"
+for program in harpy harpy-utils hv; do
+    "${PYTHON_BIN}" -m harpy completion bash "${program}" > "${PREFIX_DIR}/share/bash-completion/completions/${program}"
+    "${PYTHON_BIN}" -m harpy completion zsh  "${program}" > "${PREFIX_DIR}/share/zsh/site-functions/_${program}"
+    "${PYTHON_BIN}" -m harpy completion fish "${program}" > "${PREFIX_DIR}/share/fish/vendor_completions.d/${program}.fish"
+done

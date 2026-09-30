@@ -71,7 +71,7 @@ harpy
 ```
 
 !!!info tab-completion
-Tab-completion for `harpy` (bash, zsh, and fish) is enabled automatically whenever the environment is activated, there is nothing to set up.
+Tab-completion for `harpy`, `harpy-utils`, and `hv` (bash, zsh, and fish) is enabled automatically whenever the environment is activated, there is nothing to set up.
 It relies on each shell's own completion system being enabled: for bash, the `bash-completion` package (present on most Linux systems), and for zsh, `compinit` in your `~/.zshrc` (most setups already have it).
 !!!
 

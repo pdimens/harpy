@@ -42,11 +42,15 @@ for entrypoint in ("harpy.__main__", "harpy.utils"):
     leaked = sorted(m for m in mods if m.split(".")[0] in BANNED or any(m.startswith(b + ".") or m == b for b in BANNED))
     check(not leaked, f"importing {entrypoint} imports no command modules or heavy dependencies" + (f" (leaked: {leaked[:5]})" if leaked else ""))
 
+mods = imported_after("import harpy.commands.view")
+leaked = sorted(m for m in mods if m.split(".")[0] in ("pysam", "nbconvert", "polars", "numpy"))
+check(not leaked, "importing harpy.commands.view (hv) imports no heavy dependencies" + (f" (leaked: {leaked[:5]})" if leaked else ""))
+
 # --- manifests match the real commands
 from harpy.__main__ import cli, COMMANDS
 import harpy.utils
 
-for group, manifest, has_help in ((cli, COMMANDS, True), (harpy.utils.cli, harpy.utils.COMMANDS, False)):
+for group, manifest, has_help in ((cli, COMMANDS, True), (harpy.utils.cli, harpy.utils.COMMANDS, True)):
     ctx = click.Context(group)
     for name, spec in manifest.items():
         real = group.resolve_command(ctx, [name])[1]
@@ -70,9 +74,28 @@ check({"bwa", "strobe", "minimap"} <= {v for _, v in complete(["align"], "")}, "
 check("--threads" in {v for _, v in complete(["align", "bwa"], "--th")}, "completion offers options")
 check(("file", "") in complete(["align", "bwa"], ""), "completion of file-like arguments defers to the shell")
 
-for shell in ("bash", "zsh", "fish"):
-    out = subprocess.run([sys.executable, "-m", "harpy", "completion", shell], capture_output=True, text=True)
-    check(out.returncode == 0 and "_HARPY_COMPLETE" in out.stdout, f"`harpy completion {shell}` prints a completion script")
+import harpy.commands.view
+
+def complete_for(group, program, args, incomplete):
+    comp = ShellComplete(group, {}, program, f"_{program}_COMPLETE".replace("-", "_").upper())
+    return [(i.type, i.value) for i in comp.get_completions(args, incomplete)]
+
+utils_values = [v for _, v in complete_for(harpy.utils.cli, "harpy-utils", [], "")]
+check("check-fastq" in utils_values and "plot-depth" in utils_values, "harpy-utils completion offers subcommands")
+check("optical-dist-fq" not in utils_values, "harpy-utils completion doesn't offer hidden subcommands")
+check([v for _, v in complete_for(harpy.utils.cli, "harpy-utils", [], "check-b")] == ["check-bam"], "harpy-utils completion narrows by prefix")
+check(not any(m.split(".")[0] in ("pysam", "polars", "numpy") for m in imported_after(
+    "from click.shell_completion import ShellComplete; import harpy.utils as u; "
+    "list(ShellComplete(u.cli, {}, 'harpy-utils', '_HARPY_UTILS_COMPLETE').get_completions([], ''))")),
+    "listing harpy-utils subcommands doesn't import their modules")
+hv_values = [v for _, v in complete_for(harpy.commands.view.view, "hv", [], "")]
+check({"config", "log"} <= set(hv_values), "hv completion offers its subcommands")
+
+for program in ("harpy", "harpy-utils", "hv"):
+    for shell in ("bash", "zsh", "fish"):
+        out = subprocess.run([sys.executable, "-m", "harpy", "completion", shell, program], capture_output=True, text=True)
+        var = f"_{program}_COMPLETE".replace("-", "_").upper()
+        check(out.returncode == 0 and var in out.stdout, f"`harpy completion {shell} {program}` prints a script using {var}")
 
 # --- the conda recipe only has build.sh, so it carries its own copy of the activation hooks
 build_sh = (ROOT / "resources" / "build.sh").read_text()

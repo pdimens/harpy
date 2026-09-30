@@ -5,10 +5,10 @@
   - introduces the `--use-stitch-base` logic via `--stitch`
   - introduces the `--allow-complementary-stitch` logic via `--stitch-comp`
 - `harpy align arachne` adds Arachne linked-read aware aligner (successor to lariat)
-- tab-completion for `harpy` in bash, zsh, and fish
+- tab-completion for `harpy`, `harpy-utils`, and `hv` in bash, zsh, and fish
   - the completion scripts are generated during the conda/pixi build, installed where each shell looks for them, and enabled automatically when the environment is activated (conda, `pixi shell`), no user setup required
   - file-like arguments (FASTQ, FASTA, BAM, VCF, HPC profiles, etc.) defer to the shell's own file completion
-  - adds the hidden `harpy completion` command that prints the script for a given shell (used by the build)
+  - adds the hidden `harpy completion <shell> [program]` command that prints the script for a given shell and program (used by the build)
 
 # Changes
 - much faster CLI startup: `harpy --version` and `harpy --help` go from ~2s to ~0.2s

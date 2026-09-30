@@ -1,10 +1,12 @@
 {{ PYTHON }} -m pip install . --no-deps --no-build-isolation --no-cache-dir -vvv
 
-## shell completion scripts (bash, zsh, fish), installed where each shell looks for them
+## shell completion scripts (bash, zsh, fish) for harpy, harpy-utils, and hv, installed where each shell looks for them
 mkdir -p ${PREFIX}/share/bash-completion/completions ${PREFIX}/share/zsh/site-functions ${PREFIX}/share/fish/vendor_completions.d
-{{ PYTHON }} -m harpy completion bash > ${PREFIX}/share/bash-completion/completions/harpy
-{{ PYTHON }} -m harpy completion zsh > ${PREFIX}/share/zsh/site-functions/_harpy
-{{ PYTHON }} -m harpy completion fish > ${PREFIX}/share/fish/vendor_completions.d/harpy.fish
+for _program in harpy harpy-utils hv; do
+    {{ PYTHON }} -m harpy completion bash ${_program} > ${PREFIX}/share/bash-completion/completions/${_program}
+    {{ PYTHON }} -m harpy completion zsh ${_program} > ${PREFIX}/share/zsh/site-functions/_${_program}
+    {{ PYTHON }} -m harpy completion fish ${_program} > ${PREFIX}/share/fish/vendor_completions.d/${_program}.fish
+done
 
 ## build Go binaries
 {
@@ -23,7 +25,7 @@ mkdir -p $PREFIX/etc/conda/deactivate.d
 ## Keep these two hooks identical to resources/shell_completion.{sh,fish} (checked by test/cli/check_lazy_cli.py)
 cat > ${PREFIX}/etc/conda/activate.d/harpy-completion.sh <<'EOF_COMPLETION_SH'
 # Sourced on activation of the harpy environment (conda activate.d / pixi activation script).
-# Enables tab-completion for harpy (bash, zsh, fish) from the scripts installed under $CONDA_PREFIX/share.
+# Enables tab-completion for harpy, harpy-utils, and hv (bash, zsh, fish) from the scripts installed under $CONDA_PREFIX/share.
 #
 # Some tools (`pixi shell`) run activation scripts in a subprocess and only keep the environment
 # variables they set, so code that registers completions here can't be relied upon. Instead,
@@ -45,17 +47,25 @@ fi
 case $- in
   *i*)
     if [ -n "${BASH_VERSION-}" ]; then
-      if [ -f "${_harpy_share}/bash-completion/completions/harpy" ]; then
-        . "${_harpy_share}/bash-completion/completions/harpy"
-      fi
+      for _harpy_program in harpy harpy-utils hv; do
+        if [ -f "${_harpy_share}/bash-completion/completions/${_harpy_program}" ]; then
+          . "${_harpy_share}/bash-completion/completions/${_harpy_program}"
+        fi
+      done
+      unset _harpy_program
     elif [ -n "${ZSH_VERSION-}" ]; then
       # compinit (and therefore compdef) normally isn't set up until ~/.zshrc runs, after this,
       # so register right before the first prompt instead.
       _harpy_completion_zsh() {
         add-zsh-hook -d precmd _harpy_completion_zsh
         unset -f _harpy_completion_zsh
-        if type compdef >/dev/null 2>&1 && [ -f "${CONDA_PREFIX-}/share/zsh/site-functions/_harpy" ]; then
-          . "${CONDA_PREFIX}/share/zsh/site-functions/_harpy"
+        if type compdef >/dev/null 2>&1; then
+          for _harpy_program in harpy harpy-utils hv; do
+            if [ -f "${CONDA_PREFIX-}/share/zsh/site-functions/_${_harpy_program}" ]; then
+              . "${CONDA_PREFIX}/share/zsh/site-functions/_${_harpy_program}"
+            fi
+          done
+          unset _harpy_program
         fi
       }
       autoload -Uz add-zsh-hook && add-zsh-hook precmd _harpy_completion_zsh
