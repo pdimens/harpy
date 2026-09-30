@@ -355,7 +355,10 @@ class Workflow():
             elif sm.exitcode == 3:
                 self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
             #print("".join(sm.errorlog))
-            ErrorHandler(sm.errorlog).process()
+            if self.hpc:
+                self.print.print("Harpy cannot reliably process Snakemake output when run in HPC mode, please see the snakemake log to understand what the error was." ,style = 'red')
+            else:
+                ErrorHandler(sm.errorlog).process()
             with open(".harpyerror", 'w') as f:
                 f.write(self.output_directory)
             sys.exit(1)
