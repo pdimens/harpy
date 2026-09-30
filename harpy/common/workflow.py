@@ -354,7 +354,6 @@ class Workflow():
                 self.print.setup_error(sm.exitcode)
             elif sm.exitcode == 3:
                 self.print.on_error(last_sm_log(self.output_directory), datetime.now() - self.start_time)
-            #print("".join(sm.errorlog))
             if self.hpc:
                 # the line snakemake was on when the error was detected isn't in errorlog, but may be the "Error in rule" header
                 if not ErrorHandler(([sm.output] if sm.output else []) + sm.errorlog).process_hpc(self.output_directory):

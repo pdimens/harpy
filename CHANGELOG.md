@@ -22,16 +22,16 @@
 - fastq validation is now limited to 100 records, which should see a significant validation speedup
 
 # Fixes
-- workflow errors when running with an HPC scheduler (`--hpc`) now show what can be found in snakemake's output: the failing rule, snakemake's message, the scheduler's job ID, and the contents of the job's log files (including the scheduler's own log for slurm, lsf, and googlebatch)
-  - log files snakemake didn't print (it stops at the first missing one, which hides the scheduler log when a job died before writing its own) are read from disk
-  - falls back to the previous message if nothing useful is found
 - `harpy view envs`: simpler logic and print diagnostic text if empty
 - more robust snakemake error printing (again)
   - this time it's a parse-and-gather approach that uses an internal class
   - strengthened outputting snakemake missing and syntax errors
+  - workflow errors when running with an HPC scheduler (`--hpc`) now show what can be found in snakemake's output: the failing rule, snakemake's message, the scheduler's job ID, and the contents of the job's log files (including the scheduler's own log for slurm, lsf, and googlebatch)
+    - log files snakemake didn't print (it stops at the first missing one, which hides the scheduler log when a job died before writing its own) are read from disk
+    - falls back to the previous message if nothing useful is found
 - `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
 - error printing when using `--container` correctly displays full apptainer-prefixed shell call
-
+- mitigated possibility of concurrent notebooks clashing when running on HPC
 
 # Internal
 - simplified summaries logic
@@ -41,7 +41,9 @@
 - swapped pandas for polars (speed!)
 
 
-# Added but not exposed
+# Added but not exposed yet
 - `harpy snp deepvariant` - call SNPs in high-depth samples using Google's DeepVariant. AI AI AI!!!
   - this option must use the docker image of the software because of the way DeepVariant is packaged, so `--container` isn't exposed
 - this is just internal scaffolding for now. Can be made public with sufficient interest
+- `harpy sv genotype` - adds support for genotyping known sv breakpoints. 
+  - this will be made public after a outstanding Issues/PRs are resolved
