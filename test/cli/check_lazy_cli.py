@@ -9,9 +9,11 @@ Checks for the lazily-loaded CLI and shell completion. Run with plain python (no
 """
 
 import inspect
+import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import click
@@ -78,6 +80,17 @@ for marker, resource in (("EOF_COMPLETION_SH", "shell_completion.sh"), ("EOF_COM
     match = re.search(rf"<<'{marker}'\n(.*?)\n{marker}\n", build_sh, re.S)
     check(bool(match) and match.group(1).strip() == (ROOT / "resources" / resource).read_text().strip(),
           f"resources/build.sh embeds an identical copy of resources/{resource}")
+
+# --- the activation hook must never export FPATH: an FPATH in the environment replaces zsh's whole
+# function path (and pixi re-applies it after ~/.zshrc), which breaks oh-my-zsh, prompts, etc.
+hook = ROOT / "resources" / "shell_completion.sh"
+env = {k: v for k, v in os.environ.items() if k not in ("FPATH", "XDG_DATA_DIRS")}
+with tempfile.TemporaryDirectory() as prefix:
+    (Path(prefix) / "share").mkdir()
+    probe = subprocess.run(["bash", "-c", f'CONDA_PREFIX={prefix} . {hook}; echo "FPATH=${{FPATH-unset}}"; echo "XDG=${{XDG_DATA_DIRS-unset}}"'],
+                           capture_output=True, text=True, env=env)
+check("FPATH=unset" in probe.stdout, "activation hook does not export FPATH")
+check(f"XDG=/usr/local/share:/usr/share:{prefix}/share" in probe.stdout, "activation hook adds the environment to XDG_DATA_DIRS")
 
 if FAILED:
     print(f"\n{len(FAILED)} check(s) failed")

@@ -3,18 +3,16 @@
 #
 # Some tools (`pixi shell`) run activation scripts in a subprocess and only keep the environment
 # variables they set, so code that registers completions here can't be relied upon. Instead,
-# point the shells' own completion lookup at this environment via environment variables:
+# point the shells' own completion lookup at this environment via an environment variable:
 #   XDG_DATA_DIRS: bash-completion (bash) and fish look for completions in <dir>/... for each entry
-#   FPATH:         zsh looks for completion functions (_harpy) in each entry, once compinit runs
+# Do NOT set FPATH for zsh: it isn't needed (pixi adds share/zsh/site-functions to fpath and runs compinit
+# by itself), and an exported FPATH replaces zsh's whole function path (including what ~/.zshrc and
+# frameworks like oh-my-zsh add), which breaks the shell.
 _harpy_share="${CONDA_PREFIX-}/share"
 if [ -d "${_harpy_share}" ]; then
   case ":${XDG_DATA_DIRS-}:" in
     *":${_harpy_share}:"*) ;;
     *) export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:${_harpy_share}" ;;
-  esac
-  case ":${FPATH-}:" in
-    *":${_harpy_share}/zsh/site-functions:"*) ;;
-    *) export FPATH="${_harpy_share}/zsh/site-functions${FPATH:+:${FPATH}}" ;;
   esac
 fi
 
@@ -27,8 +25,8 @@ case $- in
         . "${_harpy_share}/bash-completion/completions/harpy"
       fi
     elif [ -n "${ZSH_VERSION-}" ]; then
-      # compinit (and therefore compdef) normally isn't set up until ~/.zshrc runs, after this.
-      # If it isn't available yet, FPATH above covers it; otherwise register before the first prompt.
+      # compinit (and therefore compdef) normally isn't set up until ~/.zshrc runs, after this,
+      # so register right before the first prompt instead.
       _harpy_completion_zsh() {
         add-zsh-hook -d precmd _harpy_completion_zsh
         unset -f _harpy_completion_zsh
