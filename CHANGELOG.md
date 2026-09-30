@@ -22,6 +22,9 @@
 - fastq validation is now limited to 100 records, which should see a significant validation speedup
 
 # Fixes
+- workflow errors when running with an HPC scheduler (`--hpc`) now show what can be found in snakemake's output: the failing rule, snakemake's message, the scheduler's job ID, and the contents of the job's log files (including the scheduler's own log for slurm, lsf, and googlebatch)
+  - log files snakemake didn't print (it stops at the first missing one, which hides the scheduler log when a job died before writing its own) are read from disk
+  - falls back to the previous message if nothing useful is found
 - `harpy view envs`: simpler logic and print diagnostic text if empty
 - more robust snakemake error printing (again)
   - this time it's a parse-and-gather approach that uses an internal class

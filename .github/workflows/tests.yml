@@ -415,6 +415,8 @@ jobs:
           test -s $CONDA_PREFIX/share/harpy/complete.bash && \
           test -s $CONDA_PREFIX/share/harpy/complete.zsh && \
           test -s $CONDA_PREFIX/share/harpy/complete.fish
+      - name: HPC error reporting
+        run: python test/cli/check_hpc_errors.py
       - name: template impute
         run: harpy template impute
       - name: template groupings
