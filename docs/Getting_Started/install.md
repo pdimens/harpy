@@ -72,7 +72,7 @@ harpy
 
 !!!info tab-completion
 Tab-completion for `harpy` (bash, zsh, and fish) is enabled automatically whenever the environment is activated, there is nothing to set up.
-For zsh, this requires that completion is initialized in your `~/.zshrc` (`autoload -Uz compinit && compinit`), which most zsh setups already do.
+It relies on each shell's own completion system being enabled: for bash, the `bash-completion` package (present on most Linux systems), and for zsh, `compinit` in your `~/.zshrc` (most setups already have it).
 !!!
 
 +++ 🌟 Pixi
@@ -132,7 +132,7 @@ pixi run harpy
 ```
 
 !!!info tab-completion
-Tab-completion is enabled when you activate the environment with `pixi shell` (bash and zsh). Global installations (`pixi global`) do not activate an environment, so they do not have tab-completion.
+Tab-completion works the same way when you activate the environment with `pixi shell` (see the requirements above). Global installations (`pixi global`) do not activate an environment, so they do not have tab-completion.
 !!!
 
 +++ 📦 Containers

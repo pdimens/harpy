@@ -6,7 +6,7 @@
   - introduces the `--allow-complementary-stitch` logic via `--stitch-comp`
 - `harpy align arachne` adds Arachne linked-read aware aligner (successor to lariat)
 - tab-completion for `harpy` in bash, zsh, and fish
-  - the completion scripts are generated during the conda/pixi build and enabled automatically when the environment is activated, no user setup required
+  - the completion scripts are generated during the conda/pixi build, installed where each shell looks for them, and enabled automatically when the environment is activated (conda, `pixi shell`), no user setup required
   - file-like arguments (FASTQ, FASTA, BAM, VCF, HPC profiles, etc.) defer to the shell's own file completion
   - adds the hidden `harpy completion` command that prints the script for a given shell (used by the build)
 
