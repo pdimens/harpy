@@ -238,7 +238,6 @@ rule contig_report:
         ipynb = "workflow/stitch_collate.ipynb"
     output:
         stats = "{paramset}/reports/data/contigs/{contig}.stats",
-        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
         ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
@@ -254,12 +253,9 @@ rule contig_report:
         extra   = f"-p extra {stitch_extra}"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.{wildcards.contig}
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
+            harpy-utils run-notebook {params} {input.ipynb} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
 
@@ -273,7 +269,6 @@ rule impute_reports:
     output:
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = temp("{paramset}/reports/data/impute.infoscore"),
-        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb"),
         ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
@@ -287,14 +282,12 @@ rule impute_reports:
         ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
         extra   = f"-p extra {stitch_extra}"
     shell:
+
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.rpt
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.paramset} > {output.ipynb}
+            harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
 

@@ -168,22 +168,14 @@ rule alignment_report:
         collect("reports/data/coverage/{sample}.regions.bed.gz", sample = samplenames),
         ipynb = f"workflow/samtools_stats.ipynb"
     output:
-        tmp = temp(f"reports/{aligner}.summary.tmp.ipynb"),
-        ipynb = f"reports/{aligner}.summary.ipynb"
+        f"reports/{aligner}.summary.ipynb"
     params:
-        lr_type = lr_type,
+        lr = lr_type,
         indir = "-p indir " + os.path.abspath("reports/data")
     log:
         f"logs/reports/{aligner}.report.log"
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-align-stats
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule sample_reports:
     input:
@@ -192,8 +184,7 @@ rule sample_reports:
         molcov = "reports/data/coverage/{sample}.molcov.gz",
         ipynb = f"workflow/align_stats.ipynb"
     output:
-        tmp = temp("reports/{sample}.tmp.ipynb"),
-        ipynb = "reports/{sample}.ipynb"
+        "reports/{sample}.ipynb"
     params:
         placeholders = f'{aligner} {lr_type}',
         papermill = f'-p platform {lr_type} -p basedir {os.path.abspath("reports/data")} -p mol_dist {molecule_distance} -p windowsize {windowsize}',
@@ -201,36 +192,21 @@ rule sample_reports:
     log:
         "logs/reports/{sample}.report.log"
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.sample}.rpt
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.papermill} {params.samplename}
-            harpy-utils process-notebook {output.tmp} {wildcards.sample} {params.placeholders} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.papermill} {params.samplename} {input.ipynb} {wildcards.sample} {params.placeholders} > {output} 2> {log}"
 
 rule linked_read_report:
     input:
         collect("reports/data/lrstats/{sample}.lrstats.gz", sample = samplenames),
         ipynb = f"workflow/align_lrstats.ipynb"
     output:
-        tmp = temp("reports/linkedreads.summary.tmp.ipynb"),
-        ipynb = "reports/linkedreads.summary.ipynb"
+        "reports/linkedreads.summary.ipynb"
     params:
-        lr_type = lr_type,
+        lr = lr_type,
         indir = "-p indir " + os.path.abspath("reports/data/lrstats")
     log:
         f"logs/reports/lrstats.report.log"
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-lr-stats
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr_type} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule all:
     default_target: True

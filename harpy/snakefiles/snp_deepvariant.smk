@@ -170,11 +170,9 @@ rule variant_report:
         lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-snp-{wildcards.type}
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} "Variants ({wildcards.type})" > {output.ipynb}
+            harpy-utils run-notebook {params} {input.ipynb} "Variants ({wildcards.type})" > {output.ipynb}
         }} 2> {log}
         """
 

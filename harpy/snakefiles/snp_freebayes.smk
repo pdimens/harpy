@@ -155,7 +155,6 @@ rule variant_report:
         ipynb  = "workflow/bcftools_stats.ipynb"
     output:
         data = temp("reports/data/variants.{type}.stats"),
-        tmp =  temp("reports/variants.{type}.tmp.ipynb"),
         ipynb = "reports/variants.{type}.ipynb"
     log:
         "logs/variants.{type}.report.log"
@@ -163,12 +162,9 @@ rule variant_report:
         lambda wc: "-p infile " + os.path.abspath(f"reports/data/variants.{wc.type}.stats")
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-snp-{wildcards.type}
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} "Variants ({wildcards.type})" > {output.ipynb}
+            harpy-utils run-notebook {params} {input.ipynb} "Variants ({wildcards.type})" > {output.ipynb}
         }} 2> {log}
         """
 

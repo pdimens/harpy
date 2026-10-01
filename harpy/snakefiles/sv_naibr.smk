@@ -202,14 +202,7 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-sv.naibr
-        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} NAIBR > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook {params} {input.ipynb} NAIBR > {output} 2> {log}"
 
 rule all:
     default_target: True
