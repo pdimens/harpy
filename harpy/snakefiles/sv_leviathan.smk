@@ -94,7 +94,7 @@ if popdict:
             bam = "workflow/input/{sample}.bam",
             bai = "workflow/input/{sample}.bam.bai"
         output:
-            temp("lrez_index/{sample}.bci")
+            temp("lrez_index/{sample}.bci", group_jobs = True)
         log:
             "logs/lrez_index/{sample}.concat.log"
         threads:
@@ -110,7 +110,7 @@ else:
         input: 
             get_alignments
         output:
-            temp("lrez_index/{sample}.bci")
+            temp("lrez_index/{sample}.bci", group_jobs = True)
         log:
             "logs/process_alignments/{sample}.log"
         threads:
@@ -220,8 +220,7 @@ rule report:
         stats = collect("{var}.bedpe", var = ['inversions', 'deletions', 'duplications', 'breakends']),
         ipynb = "workflow/sv.ipynb"
     output:
-        tmp = temp("reports/leviathan.summary.tmp.ipynb"),
-        ipynb = "reports/leviathan.summary.ipynb"
+        "reports/leviathan.summary.ipynb"
     log:
         "logs/report.log"
     params:
@@ -229,13 +228,7 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-leviathan
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} LEVIATHAN > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} LEVIATHAN > {output} 2> {log}"
 
 rule all:
     default_target: True

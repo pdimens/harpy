@@ -3,15 +3,17 @@ import sys
 import warnings
 
 import click
+import polars as pl
 
-warnings.filterwarnings('ignore', category=UserWarning, module='altair')
+warnings.filterwarnings("ignore", category=UserWarning, module="altair")
 
-@click.command(no_args_is_help = True)
-@click.option("-m", "--molcov", type=click.Path(exists = True, dir_okay=False, resolve_path=True), help = "molecule coverage file, such as that produced by harpy align or the molecule-coverage script")
-@click.option("-c", "--coverage", type=click.Path(exists = True, dir_okay=False, resolve_path=True), help = "alignment coverage file, such as that produced by harpy align or mosdepth")
-@click.option("-p", "--prefix", default = "sample", type=str, help="Output filename prefix")
-@click.argument("contigs", nargs = -1, type = str)
-@click.help_option('--help', hidden = True)
+
+@click.command(no_args_is_help=True)
+@click.option("-m", "--molcov", type=click.Path( exists=True, dir_okay=False, resolve_path=True), help="molecule coverage file, such as that produced by harpy align or the molecule-coverage script")
+@click.option("-c", "--coverage", type=click.Path(exists=True,dir_okay=False,resolve_path=True), help="alignment coverage file, such as that produced by harpy align or mosdepth")
+@click.option( "-p", "--prefix", default="sample", type=str, help="Output filename prefix")
+@click.argument("contigs", nargs=-1, type=str)
+@click.help_option("--help", hidden=True)
 def plot_depth(contigs, prefix, molcov, coverage):
     """
     Plot histograms of alignment and/or molecule depths
@@ -20,64 +22,120 @@ def plot_depth(contigs, prefix, molcov, coverage):
     - contigs: name(s) of contigs to plot, space-separated (default = 30 largest)
     """
     if not molcov and not coverage:
-        sys.stderr.write(f"At least one of `-c` or `-m` need to be provided\n")
+        sys.stderr.write(
+            "At least one of `-c` or `-m` need to be provided\n"
+        )
         sys.exit(1)
-    # moved here to reduce import lag when using CLI
-    import pandas as pd
 
+    # Moved here to reduce import lag when using CLI
     from harpy.report.plots import depthplot
-    from harpy.report.theme import palette
 
     _contigs = None
+
     if coverage:
-        tb = pd.read_table(coverage, header = None)
-        if len(tb) == 0:
+        try:
+            tb = pl.read_csv(
+                coverage, separator="\t", has_header=False,
+                schema={
+                    "Contig": pl.String,
+                    "Position": pl.Int64,
+                    "Position End": pl.Int64,
+                    "Read Depth": pl.Float64,
+                },
+            )
+        except pl.exceptions.NoDataError:
+            tb = pl.DataFrame()
+        if tb.is_empty():
             sys.stderr.write(f"{coverage} is empty\n")
             sys.exit(1)
-        else:
-            tb.columns = ["Contig", "Position", "Position End", "Read Depth"]
-            tb['Read Depth'] = tb['Read Depth'].round(2)
-        _contigs = set(tb['Contig'])
+
+        tb = tb.with_columns(pl.col("Read Depth").round(2))
+
+        _contigs = set(tb["Contig"].unique().to_list())
+
         if contigs:
             missing = set(contigs) - _contigs
             if missing:
-                missing_str = '\n'.join(missing)
-                sys.stderr.write(f"Requested contigs were not found in {os.path.relpath(coverage)}:\n{missing_str}\n")
+                missing_str = "\n".join(missing)
+                sys.stderr.write(
+                    f"Requested contigs were not found in "
+                    f"{os.path.relpath(coverage)}:\n"
+                    f"{missing_str}\n"
+                )
                 sys.exit(1)
 
     if molcov:
-        tbmol = pd.read_table(molcov, sep = '\t', header = None)
-        if len(tbmol) == 0:
+        try:
+            tbmol = pl.read_csv(
+                molcov, separator="\t", has_header=False,
+                schema={
+                    "Contig": pl.String,
+                    "Position": pl.Int64,
+                    "Position End": pl.Int64,
+                    "Molecule Depth": pl.Float64,
+                },
+            )
+        except pl.exceptions.NoDataError:
+            tbmol = pl.DataFrame()
+
+        if tbmol.is_empty():
             sys.stderr.write(f"{molcov} is empty\n")
             sys.exit(1)
-        else:
-            tbmol.columns = ["Contig", "Position", "Position End", "Molecule Depth"]
-            tbmol['Molecule Depth'] = tbmol['Molecule Depth'].round(2)
-            if not _contigs:
-                _contigs = set(tbmol['Contig'])
-                if contigs:
-                    missing = set(contigs) - _contigs
-                    if missing:
-                        sys.stderr.write(f"Requested contigs were not found in {os.path.relpath(molcov)}:\n{'\n'.join(missing)}\n")
-                        sys.exit(1)
+
+        tbmol = tbmol.with_columns(pl.col("Molecule Depth").round(2))
+
+        if not _contigs:
+            _contigs = set(tbmol["Contig"].unique().to_list())
+
+            if contigs:
+                missing = set(contigs) - _contigs
+                if missing:
+                    missing_str = "\n".join(missing)
+                    sys.stderr.write(
+                        f"Requested contigs were not found in "
+                        f"{os.path.relpath(molcov)}:\n"
+                        f"{missing_str}\n"
+                    )
+                    sys.exit(1)
 
     if coverage and molcov:
-        tb = tb.merge(tbmol, on= ["Contig", "Position", "Position End"])
+        tb = tb.join(
+            tbmol,
+            on=["Contig", "Position", "Position End"],
+            how="inner",
+        )
     elif molcov and not coverage:
         tb = tbmol
-    if molcov:
-        del tbmol
 
     if not contigs:
-        contigs = tb.groupby('Contig')['Position'].max().nlargest(30).index.tolist()
+        contigs = (
+            tb.group_by("Contig")
+            .agg(
+                pl.col("Position").max()
+            )
+            .sort("Position", descending=True)
+            .head(30)["Contig"]
+            .to_list()
+        )
 
-    tb = tb[tb['Contig'].isin(contigs)].reset_index()
-    tb['Genomic Interval (bp)'] = [f"{i}-{j}" for i,j in zip(tb['Position'], tb['Position End'])]
+    tb = (
+        tb.filter(pl.col("Contig").is_in(contigs))
+        .with_columns(
+            pl.concat_str(
+                [pl.col("Position"), pl.col("Position End")],
+                separator="-",
+            ).alias("Genomic Interval (bp)")
+        )
+    )
 
     outdir = os.path.dirname(prefix)
     if outdir and not os.path.isdir(outdir):
         os.makedirs(outdir, exist_ok=True)
 
-    grouped = tb.groupby('Contig')
-    for name, group in grouped:
-        depthplot(group, name).save(f'{prefix}.{name}.depth.html')
+    for name, group in tb.partition_by("Contig", as_dict=True).items():
+        # partition_by(as_dict=True) returns tuple keys
+        name = name[0]
+
+        depthplot(group, name).save(
+            f"{prefix}.{name}.depth.html"
+        )

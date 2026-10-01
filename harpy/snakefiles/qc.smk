@@ -87,41 +87,27 @@ rule barcode_report:
         data = collect("reports/data/{sample}.bxcount", sample = samplenames),
         ipynb = f"workflow/qc_bx_stats.ipynb"
     output:
-        tmp = temp("reports/barcode.summary.tmp.ipynb"),
-        ipynb = "reports/barcode.summary.ipynb"
+        "reports/barcode.summary.ipynb"
     log:
         "logs/barcode.report.log"
     params:
         indir = "-p indir " + os.path.abspath("reports/data"),
         lr = lr_type
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-lrstats
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule qc_report:
     input:
         data = collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames),
         ipynb = f"workflow/fastp_qc.ipynb"
     output:
-        tmp = temp("reports/qc.report.tmp.ipynb"),
-        ipynb = "reports/qc.report.ipynb"
+        "reports/qc.report.ipynb"
     log:
         "logs/qc.report.log"
     params:
         "-p indir " + os.path.abspath("reports/data/fastp")
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-fastp
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} > {output} 2> {log}"
 
 rule all:
     default_target: True

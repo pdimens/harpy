@@ -11,7 +11,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import pysam
 from click import echo_via_pager
 from pygments import highlight
 from pygments.formatters import get_formatter_by_name
@@ -183,6 +182,8 @@ def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1)
                 for startpos,endpos in zip(starts, ends):
                     fout.write(f"{contig}\t{startpos}\t{endpos}\n")
         return
+
+    import pysam
 
     with pysam.FastxFile(input, persist = False) as FA, open(output, "w") as fout:
         for record in FA:

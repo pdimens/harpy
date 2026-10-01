@@ -84,7 +84,7 @@ rule concat_groups:
     input: 
         bamfiles = lambda wc: collect("{samples}", samples = popdict[wc.sample]) 
     output:
-        bam = temp("workflow/input/{sample}.bam"),
+        bam = temp("workflow/input/{sample}.bam", group_jobs = True),
         bai = temp("workflow/input/{sample}.bam.bai")
     log:
         "logs/concat_groups/{sample}.concat.log"
@@ -193,8 +193,7 @@ rule report:
         stats = collect("{var}.bedpe", var = ['inversions', 'deletions', 'duplications']),
         ipynb = "workflow/sv.ipynb"
     output:
-        tmp = temp("reports/naibr.summary.tmp.ipynb"),
-        ipynb = "reports/naibr.summary.ipynb"
+        "reports/naibr.summary.ipynb"
     log:
         "logs/report.log"
     params:
@@ -202,13 +201,7 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-sv.naibr
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} NAIBR > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} NAIBR > {output} 2> {log}"
 
 rule all:
     default_target: True

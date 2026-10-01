@@ -112,11 +112,11 @@ func newFastqWriter(path string, readnum string, level, threads int) (*fastqWrit
 		f.Close()
 		return nil, err
 	}
-	gz.SetConcurrency(2<<20, threads)
+	gz.SetConcurrency(1<<20, threads)
 	return &fastqWriter{
 		f:   f,
 		gz:  gz,
-		buf: bufio.NewWriterSize(gz, 2<<20),
+		buf: bufio.NewWriterSize(gz, 1<<20),
 		dir: readnum,
 	}, nil
 }
@@ -141,18 +141,27 @@ func (fw *fastqWriter) close() error {
 // qual is raw Phred scores (0-40) as stored in sam.Record — +33 applied inline.
 // bufio only flushes to pgzip when its 1MB buffer is full, so no intermediate
 // per-record copy is needed.
+const AT byte = '@'
+const tabSep byte = '\t'
+const newline byte = '\n'
+const plus string = "\n+\n"
+
+var BXTAG = []byte{'B', 'X', ':', 'Z', ':'}
+var VXTAG = []byte{'V', 'X', ':', 'i', ':'}
+
 func (fw *fastqWriter) writeRecord(name string, bxTag string, vxTag int, seq []byte, qual []uint8) error {
 	w := errWriter{buf: fw.buf}
-	w.writeString("@")
+	w.writeByte(AT)
 	w.writeString(name)
 	w.writeString(fw.dir)
-	w.writeString("\tVX:i:")
+	w.writeByte(tabSep)
+	w.write(VXTAG)
 	w.writeInt(vxTag)
-	w.writeString("\tBX:Z:")
+	w.write(BXTAG)
 	w.writeString(bxTag)
-	w.writeByte('\n')
+	w.writeByte(newline)
 	w.write(seq)
-	w.writeString("\n+\n")
+	w.writeString(plus)
 	if w.err != nil {
 		return w.err
 	}
@@ -311,7 +320,7 @@ func main() {
 	var corrected int
 	var qcfail int
 
-	set := make(map[string]struct{}, 1_000_000)
+	set := make(map[string]struct{}, 4_000_000)
 	for {
 		rec, err := br.Read()
 		if err != nil {
