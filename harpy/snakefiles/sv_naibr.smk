@@ -193,8 +193,7 @@ rule report:
         stats = collect("{var}.bedpe", var = ['inversions', 'deletions', 'duplications']),
         ipynb = "workflow/sv.ipynb"
     output:
-        tmp = temp("reports/naibr.summary.tmp.ipynb"),
-        ipynb = "reports/naibr.summary.ipynb"
+        "reports/naibr.summary.ipynb"
     log:
         "logs/report.log"
     params:

@@ -282,7 +282,6 @@ rule impute_reports:
         ngen    = lambda wc: f"-p ngen {stitch_params[wc.paramset]['ngen']}",
         extra   = f"-p extra {stitch_extra}"
     shell:
-
         """
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
