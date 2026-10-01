@@ -169,8 +169,8 @@ class LaunchSnakemake():
                 self.pending_jobs = set()
                 self.pending_attributed = bool(_ERROR_HEADER_RE.match(line.strip()))
                 self.awaiting_jobid = self.pending_attributed
-                return self.process.poll() not in (None, 0) and self._confirm_failure()
-            return self.process.poll() not in (None, 0)
+                return self._exited_with_error(line) and self._confirm_failure()
+            return self._exited_with_error(line)
 
         self.pending_error.append(line)
         if _ERROR_HEADER_RE.match(line.strip()):
@@ -188,9 +188,18 @@ class LaunchSnakemake():
                 self.pending_error = None
                 self.error_line = ""
                 return False
-        if line.startswith(_FAILED_MARKERS) or self.process.poll() not in (None, 0):
+        if line.startswith(_FAILED_MARKERS) or self._exited_with_error(line):
             return self._confirm_failure()
         return False
+
+    def _exited_with_error(self, line: str) -> bool:
+        '''
+        Whether snakemake has exited with an error, and all of its output has been read. The exit code alone isn't a verdict:
+        snakemake can exit while there is still output in the pipe, e.g. when this is slower than snakemake is, and what is
+        left can decide the outcome (a job being retried, the last progress updates).
+        '''
+        # at the end of the output the process is done or about to be, so wait for its exit code rather than poll (which can still say None)
+        return not line and self.process.wait() != 0
 
     def _confirm_failure(self) -> bool:
         '''A pending error turned out to be a failure: hand its text over as if the first error line had stopped monitoring'''
@@ -341,10 +350,10 @@ class LaunchSnakemake():
                     break
                 # while an error is pending, its text (error blocks, log contents) is also going through here, so be strict
                 pending = self.pending_error is not None
-                if (_ALL_DONE_RE.match(self.output) if pending else "(100%) done" in self.output) or self.output.startswith("Nothing to be") or self.process.poll() == 0:
+                if (_ALL_DONE_RE.match(self.output) if pending else "(100%) done" in self.output) or self.output.startswith("Nothing to be"):
                     self.exitcode = EXIT_CODE_SUCCESS
                     break
-                if self.output.startswith("Complete log") or self.process.poll():
+                if self.output.startswith("Complete log") or self._exited_with_error(self.output):
                     self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                     break
                 # (group error blocks list their rules, indented, in the same way group jobs are started)
