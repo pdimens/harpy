@@ -5,6 +5,8 @@ import sys
 import tempfile
 from datetime import datetime
 
+from papermill.cli import _resolve_type
+
 import click
 import papermill as pm
 from traitlets.config import Config
@@ -47,14 +49,21 @@ def run_notebook(kernel, params, notebook, text):
     run-notebook -k ipython-harpy -p indir path input.ipynb arg1 arg2... > output.ipynb
     """
     # ponytail: IPC sockets avoid the TCP port race between concurrent kernels on one node
-    with tempfile.TemporaryDirectory() as tmpdir, \
-         tempfile.NamedTemporaryFile("r", suffix=".ipynb") as tmp:
+    with tempfile.TemporaryDirectory() as tmpdir, tempfile.NamedTemporaryFile("r", suffix=".ipynb") as tmp:
         os.environ.setdefault("JUPYTER_RUNTIME_DIR", os.path.join(tmpdir, "rt"))
         os.environ.setdefault("IPYTHONDIR", os.path.join(tmpdir, "ipy"))
         c = Config()
         c.KernelManager.transport = "ipc"
+        # absolute per-run socket path; default "kernel-ipc" is relative to CWD (shared, Lustre)
+        c.KernelManager.ip = os.path.join(tmpdir, "kernel")
         pm.execute_notebook(
-            notebook, tmp.name, parameters=dict(params), kernel_name=kernel,
-            progress_bar=False, log_output=False, config=c,
+            input_path = notebook,
+            output_path = tmp.name,
+            parameters = {k: _resolve_type(v) for k, v in params},
+            kernel_name = kernel,
+            start_timeout = 120,
+            progress_bar = False,
+            log_output = False,
+            config= c ,
         )
         _process(tmp, text)
