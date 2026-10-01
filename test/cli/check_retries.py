@@ -15,6 +15,7 @@ import os
 import re
 import sys
 import tempfile
+import time
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -30,26 +31,34 @@ def check(condition: bool, message: str) -> None:
     if not condition:
         FAILED.append(message)
 
-# LaunchSnakemake stops reading as soon as the process has exited, so a process that exits right after writing everything
-# (instead of when snakemake would, after its output has been read) can make it lose the last lines. How many depends on
-# how fast the consumer is: slow when rich renders for a terminal (TTY_COMPATIBLE=1, as in CI), so stay alive for a bit.
+# The replay process writes everything and exits at once, which is what snakemake does relative to a slow reader:
+# LaunchSnakemake has to read what is left in the pipe, not decide from the process having exited.
 REPLAY = '''
-import sys, time
+import sys
 sys.stderr.write(open(sys.argv[1]).read())
 sys.stderr.flush()
-time.sleep(1.5)
 sys.exit(int(sys.argv[2]))
 '''
 
+class SlowReader(LaunchSnakemake):
+    """
+    A LaunchSnakemake that is slow once jobs are running, like when rendering progress on a slow terminal or a busy machine.
+    Only then: snakemake takes seconds to start, which is plenty for the setup output to be read, so that isn't where it falls behind.
+    """
+    def nextline(self, strip: bool = False):
+        if self.task_ids:
+            time.sleep(0.004)
+        super().nextline(strip)
+
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 
-def run(tmp: str, lines: list[str], exit_code: int, quiet: int = 2) -> LaunchSnakemake:
+def run(tmp: str, lines: list[str], exit_code: int, quiet: int = 2, launcher=LaunchSnakemake) -> LaunchSnakemake:
     """Run LaunchSnakemake on a process that prints `lines` to stderr and exits with `exit_code`"""
     replay, output = os.path.join(tmp, "replay.py"), os.path.join(tmp, "stderr.txt")
     Path(replay).write_text(REPLAY)
     Path(output).write_text("".join(lines))
     with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-        return LaunchSnakemake(f"{sys.executable} {replay} {output} {exit_code}", tmp, quiet, HarpyPrint())
+        return launcher(f"{sys.executable} {replay} {output} {exit_code}", tmp, quiet, HarpyPrint())
 
 def fixture(name: str) -> list[str]:
     return (FIXTURES / name).read_text().splitlines(keepends=True)
@@ -92,6 +101,16 @@ with tempfile.TemporaryDirectory() as tmp:
     # ---- recorded: no retries at all, which is how it was before
     sm = run(tmp, fixture("no_retries_failure.err"), 1)
     check(sm.exitcode == 3 and blocks(sm) == 1 and not sm.retries, "recorded: a failure without retries is a failure straight away")
+
+    # ---- a reader that is slower than snakemake: snakemake has exited by the time most of the output is read
+    sm = run(tmp, lines, 0, quiet=1, launcher=SlowReader)
+    done = {name: (sm.progress.tasks[task].completed, sm.progress.tasks[task].total) for name, task in sm.task_ids.items()}
+    check(sm.exitcode == 0 and done["flaky"] == (1, 1) and done["steady"] == (1, 1), "slow reader: the progress bar still completes after snakemake has exited")
+    check(sm.retries == {1: 1}, "slow reader: the retry is still noted")
+    sm = run(tmp, fixture("retries_exhausted.err"), 1, launcher=SlowReader)
+    check(sm.exitcode == 3 and blocks(sm) == 1 and sm.retries == {1: 2}, "slow reader: a failure is still reported once, for the last attempt, not for every attempt")
+    sm = run(tmp, PRELUDE + ["[t]\n", "localrule flaky:\n", "    output: out/flaky.txt\n", "    jobid: 1\n", "Killed\n"], 137, launcher=SlowReader)
+    check(sm.exitcode == 3, "slow reader: snakemake dying with an error and no error text is a failure")
 
     # ---- scheduler plugins: a failed job, then the restart (the first error line is the "Error in rule" header itself)
     def error_block(jobid: int, rule: str = "flaky") -> list[str]:
