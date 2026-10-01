@@ -12,6 +12,7 @@ formats of snakemake's scheduler and of the scheduler plugins.
 
 import io
 import os
+import re
 import sys
 import tempfile
 from contextlib import redirect_stderr, redirect_stdout
@@ -29,12 +30,18 @@ def check(condition: bool, message: str) -> None:
     if not condition:
         FAILED.append(message)
 
+# LaunchSnakemake stops reading as soon as the process has exited, so a process that exits right after writing everything
+# (instead of when snakemake would, after its output has been read) can make it lose the last lines. How many depends on
+# how fast the consumer is: slow when rich renders for a terminal (TTY_COMPATIBLE=1, as in CI), so stay alive for a bit.
 REPLAY = '''
-import sys
+import sys, time
 sys.stderr.write(open(sys.argv[1]).read())
 sys.stderr.flush()
+time.sleep(1.5)
 sys.exit(int(sys.argv[2]))
 '''
+
+ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 
 def run(tmp: str, lines: list[str], exit_code: int, quiet: int = 2) -> LaunchSnakemake:
     """Run LaunchSnakemake on a process that prints `lines` to stderr and exits with `exit_code`"""
@@ -79,7 +86,7 @@ with tempfile.TemporaryDirectory() as tmp:
     handler = ErrorHandler(sm.errorlog)
     handler.hp.console.file = io.StringIO()
     handler.process()
-    text = handler.hp.console.file.getvalue()
+    text = ANSI.sub("", handler.hp.console.file.getvalue())  # rich styles each part of a line when it thinks it's a terminal
     check("Triggering Rule never" in text and "Triggering Group" not in text, "recorded: the parser reports one failing rule, not a chain of attempts")
 
     # ---- recorded: no retries at all, which is how it was before

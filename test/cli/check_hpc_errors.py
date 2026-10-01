@@ -9,12 +9,14 @@ googlebatch, and cluster-generic executor plugins. Real output from `cluster-gen
 
 import io
 import os
+import re
 import sys
 import tempfile
 
 from harpy.common.errorparsing import ErrorHandler, read_tail, scrape_hpc_errors
 
 FAILED = []
+ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 
 def check(condition: bool, message: str) -> None:
     print(f"{'ok  ' if condition else 'FAIL'} {message}")
@@ -27,7 +29,7 @@ def printed(lines, directory=".", **kwargs) -> tuple[bool, str]:
     handler.hp.console.file = io.StringIO()
     handler.hp.console.width = 120
     result = handler.process_hpc(directory, **kwargs)
-    return result, handler.hp.console.file.getvalue()
+    return result, ANSI.sub("", handler.hp.console.file.getvalue())  # rich styles parts of a line when it thinks it's a terminal
 
 SEP = "=" * 60
 
