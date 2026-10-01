@@ -53,7 +53,7 @@ rule create_report:
     log:
         "logs/report.log"
     shell:
-        "harpy-utils run-notebook {params.infile} {input.ipynb} {params.lr} > {output} 2> {log"
+        "harpy-utils run-notebook -k ipython-harpy {params.infile} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule all:
     default_target: True

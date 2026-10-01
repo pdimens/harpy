@@ -164,7 +164,7 @@ rule variant_report:
         """
         {{
             bcftools stats -s "-" --fasta-ref {input.genome} {input.bcf} > {output.data} 
-            harpy-utils run-notebook {params} {input.ipynb} "Variants ({wildcards.type})" > {output.ipynb}
+            harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} "Variants ({wildcards.type})" > {output.ipynb}
         }} 2> {log}
         """
 

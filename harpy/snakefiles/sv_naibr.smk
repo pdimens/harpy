@@ -202,7 +202,7 @@ rule report:
         f"-p faidx " + os.path.abspath(f"{workflow_geno}.fai"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        "harpy-utils run-notebook {params} {input.ipynb} NAIBR > {output} 2> {log}"
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} NAIBR > {output} 2> {log}"
 
 rule all:
     default_target: True

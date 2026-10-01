@@ -61,15 +61,14 @@ rule create_report:
         data = "validate.fastq.tsv",
         ipynb = "workflow/validate_fastq.ipynb"
     output:
-        tmp = temp("validate.fastq.tmp.ipynb"),
-        ipynb = "validate.fastq.ipynb"
+        "validate.fastq.ipynb"
     params:
         lr = lr_platform,
         infile = "-p infile " + os.path.abspath("validate.fastq.tsv")
     log:
         "logs/report.log"
     shell:
-        "harpy-utils run-notebook {params.infile} {output.tmp} {params.lr} > {output} 2> {log}"
+        "harpy-utils run-notebook -k ipython-harpy {params.infile} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule all:
     default_target: True
