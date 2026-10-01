@@ -71,6 +71,7 @@ rule create_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-validate-fastq
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
             harpy-utils process-notebook {output.tmp} {params.lr_platform} > {output.ipynb}

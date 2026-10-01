@@ -20,7 +20,7 @@ class HarpyEnvs():
     def __init__(self):
         self.__environments__: dict = {
         "align" : [
-            "bioconda::arachne=0.1.1",
+            "bioconda::arachne=0.2",
             "bioconda::bwa",
             "bioconda::minibwa",
             "bioconda::minimap2",
@@ -75,7 +75,7 @@ class HarpyEnvs():
     }
 
         self.dockerfile: str = """\
-FROM ghcr.io/prefix-dev/pixi:0.76.2 AS build
+FROM ghcr.io/prefix-dev/pixi:0.81.0 AS build
 
 # copy source code, pixi.toml and pixi.lock to the container
 WORKDIR /app

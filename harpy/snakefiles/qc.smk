@@ -97,6 +97,7 @@ rule barcode_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-lrstats
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
             harpy-utils process-notebook {output.tmp} {params.lr} > {output.ipynb}
@@ -117,6 +118,7 @@ rule qc_report:
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-fastp
+        export JUPYTER_RUNTIME_DIR=$(mktemp -d)
         {{
             papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
             harpy-utils process-notebook {output.tmp} > {output.ipynb}

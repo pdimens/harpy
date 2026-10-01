@@ -15,7 +15,7 @@ extra 		      = PARAMETERS.get("extra", "")
 fqlist            = INPUTS["fastq"]
 genomefile 	      = INPUTS["reference"]
 
-bn 	  = os.path.basename(genomefile)
+bn 	   = os.path.basename(genomefile)
 bn_re  = re.compile(r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$", flags=re.IGNORECASE)
 fq_by_sample = {}
 for f in fqlist:

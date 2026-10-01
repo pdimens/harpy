@@ -29,6 +29,8 @@ requirements:
     - pip
     - setuptools-scm >=8
     - go
+    - click >=8.2
+    - rich-click >=1.9.3
   run:
     - altair >=6.0
     - bcftools >=1.23

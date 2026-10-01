@@ -1,6 +1,5 @@
 import json
 import re
-from nbconvert.filters import markdown2html
 import shutil
 import subprocess
 import sys
@@ -31,6 +30,9 @@ def _inline_refs(line: str) -> str:
 
 
 def _sanitize(md: str) -> str:
+    # deferred: nbconvert takes ~1s to import and is only needed to render reports
+    from nbconvert.filters import markdown2html
+
     lines = md.split("\n")
     n_lines = len(lines)
     out, i = [], 0

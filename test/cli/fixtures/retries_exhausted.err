@@ -1,0 +1,142 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-10-01 12:23:08
+  Workflow ID: 01aa6c44-27b5-4d0d-9545-5d4aba2f1dd0
+  Platform: Linux-6.18.44-fc-v50-x86_64-with-glibc2.39
+  Host: vm
+  User: root
+  Snakemake version: 9.27.0
+  Python version: 3.11.15 (main, Mar  3 2026, 09:26:23) [GCC 13.3.0]
+  Command: /work/venv/bin/snakemake out/never.txt out/steady.txt -s Snakefile.retry --cores 2 --retries 2 --show-failed-logs --quiet reason
+  Snakefile: /work/Snakefile.retry
+  Base directory: /work
+  Run directory: /work
+  Working directory: /work
+  Config file(s): []
+  Config MD5: 99914b932bd37a50b983c5e7c90ae93b
+
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job       count
+------  -------
+never         1
+steady        1
+total         2
+
+Select jobs to execute...
+Execute 2 jobs...
+
+[Thu Oct  1 12:23:08 2026]
+localrule never:
+    output: out/never.txt
+    log: logs/never.log
+    jobid: 1
+    resources: tmpdir=/tmp
+[Thu Oct  1 12:23:08 2026]
+localrule steady:
+    output: out/steady.txt
+    jobid: 0
+    resources: tmpdir=/tmp
+RuleException:
+CalledProcessError in file "/work/Snakefile.retry", line 25:
+Command 'set -euo pipefail;  
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1' returned non-zero exit status 1.
+[Thu Oct  1 12:23:08 2026]
+Error in rule never:
+    message: None
+    jobid: 1
+    output: out/never.txt
+    log: logs/never.log (check log file(s) for error details)
+    shell:
+        
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1
+        
+        (command exited with non-zero exit code)
+Logfile logs/never.log:
+========================
+Error: this always fails
+========================
+Trying to restart job 1.
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Oct  1 12:23:08 2026]
+localrule never:
+    output: out/never.txt
+    log: logs/never.log
+    jobid: 1
+    resources: tmpdir=/tmp
+RuleException:
+CalledProcessError in file "/work/Snakefile.retry", line 25:
+Command 'set -euo pipefail;  
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1' returned non-zero exit status 1.
+[Thu Oct  1 12:23:08 2026]
+Error in rule never:
+    message: None
+    jobid: 1
+    output: out/never.txt
+    log: logs/never.log (check log file(s) for error details)
+    shell:
+        
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1
+        
+        (command exited with non-zero exit code)
+Logfile logs/never.log:
+========================
+Error: this always fails
+========================
+Trying to restart job 1.
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Oct  1 12:23:08 2026]
+localrule never:
+    output: out/never.txt
+    log: logs/never.log
+    jobid: 1
+    resources: tmpdir=/tmp
+RuleException:
+CalledProcessError in file "/work/Snakefile.retry", line 25:
+Command 'set -euo pipefail;  
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1' returned non-zero exit status 1.
+[Thu Oct  1 12:23:08 2026]
+Error in rule never:
+    message: None
+    jobid: 1
+    output: out/never.txt
+    log: logs/never.log (check log file(s) for error details)
+    shell:
+        
+        mkdir -p out logs
+        echo "Error: this always fails" >> logs/never.log
+        exit 1
+        
+        (command exited with non-zero exit code)
+Logfile logs/never.log:
+========================
+Error: this always fails
+========================
+[Thu Oct  1 12:23:11 2026]
+Finished jobid: 0 (Rule: steady)
+1 of 2 steps (50%) done
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error messages
+Complete log(s): /work/.snakemake/log/2026-10-01T122308.466396.snakemake.log
+Elapsed time: 0:00:03.112409
+WorkflowError:
+At least one job did not complete successfully.

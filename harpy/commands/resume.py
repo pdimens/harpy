@@ -73,7 +73,6 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     - the `workflow/profile.yaml` file
     - the `workflow/workflow.yaml` file
     - `workflow/envs/*.yaml` file(s) if using conda
-    - `workflow/hpc/config.yaml` if using HPC
     """
     CONFIG_FILE = os.path.join(directory, "workflow", "workflow.yaml")
     PROFILE_FILE = os.path.join(directory, "workflow", "profile.yaml")
@@ -135,11 +134,6 @@ def resume(directory, absolute, direct, threads, clean, quiet):
         workflow.profile = snakemake_profile
         workflow.write_snakemake_profile()
 
-    workflow.info = {
-        "Workflow" : "harpy " + workflow.name.replace("_", " "),
-        "Output Folder" : directory + "/"
-    }
-
     if direct:
         if absolute:
             _ = os.system(workflow.snakemake_cmd_absolute)
@@ -147,6 +141,16 @@ def resume(directory, absolute, direct, threads, clean, quiet):
             _ = os.system(workflow.snakemake_cmd_relative)
         if _ > 0:
             sys.exit(1)
-    else:
-        workflow.onstart(rule = False)
-        workflow.launch(absolute)
+        sys.exit(0)
+
+    # doesn't matter what it says, just needs to be something or None
+    # keeps consistent parsing of error messages at the end
+    workflow.hpc = snakemake_profile.get("executor", None)
+
+    workflow.info = {
+        "Workflow" : "harpy " + workflow.name.replace("_", " "),
+        "Output Folder" : directory + "/"
+    }
+
+    workflow.onstart(rule = False)
+    workflow.launch(absolute)

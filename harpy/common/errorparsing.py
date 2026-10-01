@@ -1,6 +1,7 @@
 
 from harpy.common.printing import HarpyPrint
 from dataclasses import dataclass, field
+import os
 import re
 import sys
 
@@ -29,6 +30,12 @@ _HEADER_RE = re.compile(r"^\s*(?:Error in rule|Error in group|rule) (\w+):\s*$")
 _GROUP_MSG_RE = re.compile(r"^Error in group (\S+)$")
 _LOGFILE_HEADER_RE = re.compile(r"^Logfile (\S+)(?: \(send to storage\))?:\s*$")
 _LOGFILE_NOTFOUND_RE = re.compile(r"^Logfile \S+.*not found\.\s*$")
+_LOGFILE_NOTFOUND_PATH_RE = re.compile(r"^Logfile (\S+).*not found\.\s*$")
+_LOGFILE_EMPTY_RE = re.compile(r"^Logfile (\S+): empty file\s*$")
+_LOGFILE_BINARY_RE = re.compile(r"^Logfile (\S+) is not a text file\.\s*$")
+_LOG_LIST_RE = re.compile(r"^\s{4}log:\s*(.+?)(?:\s*\(check log file\(s\) for error details\))?\s*$")
+_MESSAGE_RE = re.compile(r"^\s{4}message:\s*(.*)$")
+_EXTERNAL_JOBID_RE = re.compile(r"^\s{4}external_jobid:\s*(.+?)\s*$")
 _LATENCY_TRIGGER_RE = re.compile(r"--latency-wait:\s*$")
 _CORRUPTED_TRIGGER_RE = re.compile(r"corrupted:\s*$")
 #_EXITING_RE = re.compile(r"Exiting because a job execution failed\. Look ")
@@ -46,6 +53,98 @@ def is_log_sep(line: str) -> bool:
     '''
     s = line.strip()
     return len(s) >= 3 and set(s) == {'='}
+
+@dataclass
+class HPCErrors:
+    '''What could be scraped from the snakemake output of a failed workflow run with a scheduler (executor) plugin'''
+    rules: list[str] = field(default_factory=list)
+    messages: list[str] = field(default_factory=list)
+    jobids: list[str] = field(default_factory=list)
+    # log file path -> contents, or None if snakemake reported it couldn't read the file
+    logs: dict[str, str | None] = field(default_factory=dict)
+    # every log file path listed on a `log:` line (rule logs, then scheduler logs), in order of appearance
+    listed: list[str] = field(default_factory=list)
+
+    def __bool__(self) -> bool:
+        return bool(self.rules or self.messages or self.jobids or self.logs or self.listed)
+
+
+def scrape_hpc_errors(lines) -> HPCErrors:
+    '''
+    Best-effort extraction of the useful bits of snakemake's error output when jobs were run by a
+    scheduler plugin (slurm, lsf, googlebatch, cluster-generic, ...). The output of these is too varied and
+    interleaved to parse as a structured rule block, so this doesn't try: it only picks out the things that
+    look the same regardless of the plugin, ignoring everything else (including where they appear):
+
+    - `Error in rule X:` names and `message:` lines
+    - `external_jobid:` (the scheduler's job ID)
+    - `Logfile PATH:` blocks, where snakemake prints the contents of the failed job's log files. These
+      include the scheduler's own log when the plugin provides one, which plugins do by handing it to snakemake
+      as an auxiliary log.
+    - `log:` lines, for the paths of every log file involved. Snakemake stops printing log contents at the first
+      file it can't find, and the rule's own log comes before the scheduler's, so a job that died before writing
+      its own log (out of memory, never started, etc.) is exactly when the scheduler log doesn't get printed
+    - `Logfile PATH ... not found.` (path only)
+
+    Duplicates are dropped, since the same failure is often reported more than once.
+    '''
+    found = HPCErrors()
+    text = [line.rstrip("\n") for line in lines]
+    i = 0
+    while i < len(text):
+        line = text[i].strip()
+        i += 1
+        if (m := _ERROR_RULE_RE.match(line)):
+            if m.group(1) not in found.rules:
+                found.rules.append(m.group(1))
+        elif (m := _MESSAGE_RE.match(text[i - 1])):
+            msg = m.group(1).strip()
+            if msg and msg != "None" and msg not in found.messages:
+                found.messages.append(msg)
+        elif (m := _EXTERNAL_JOBID_RE.match(text[i - 1])):
+            if m.group(1) not in found.jobids:
+                found.jobids.append(m.group(1))
+        elif (m := _LOG_LIST_RE.match(text[i - 1])):
+            for path in (x.strip() for x in m.group(1).split(", ")):
+                if path and path not in found.listed:
+                    found.listed.append(path)
+        elif (m := _LOGFILE_HEADER_RE.match(line)):
+            # contents sit between two lines of ====, which is the same as "everything until the second one"
+            content: list[str] = []
+            while i < len(text):
+                if is_log_sep(text[i]):
+                    i += 1
+                    if content:
+                        break
+                    continue
+                content.append(text[i])
+                i += 1
+            body = "\n".join(content).strip()
+            # if the same file shows up more than once, keep the fullest copy
+            if len(body) >= len(found.logs.get(m.group(1)) or ""):
+                found.logs[m.group(1)] = body
+        elif (m := _LOGFILE_EMPTY_RE.match(line)):
+            found.logs.setdefault(m.group(1), "")
+        elif (m := _LOGFILE_NOTFOUND_PATH_RE.match(line) or _LOGFILE_BINARY_RE.match(line)):
+            found.logs.setdefault(m.group(1), None)
+    return found
+
+
+def read_tail(path: str, lines: int = 30, max_bytes: int = 65536) -> str | None:
+    '''Last `lines` lines of a text file (reading at most its last `max_bytes` bytes), or None if it can\'t be read'''
+    try:
+        with open(path, "rb") as f:
+            f.seek(0, 2)
+            size = f.tell()
+            f.seek(max(size - max_bytes, 0))
+            data = f.read()
+        rows = data.decode("utf-8", errors = "replace").splitlines()
+        if size > max_bytes:
+            rows = rows[1:]  # the first line is probably cut off
+        return "\n".join(rows[-lines:]).strip()
+    except OSError:
+        return None
+
 
 class _Pushback:
     '''
@@ -237,6 +336,48 @@ class ErrorHandler():
                 style='yellow'
             )
             self.print(self.rules[0])
+
+    def process_hpc(self, directory: str = ".", tail: int = 30, max_logs: int = 4) -> bool:
+        '''
+        Print what `scrape_hpc_errors` could find in the snakemake output of a workflow run with a scheduler
+        plugin, showing the last `tail` lines of up to `max_logs` log files. Log files that were listed but
+        that snakemake didn't print are read from disk, with relative paths resolved against `directory` (the
+        directory snakemake ran in). Returns False (and prints nothing) if there was nothing useful to show.
+        '''
+        found = scrape_hpc_errors(self.errortext)
+        if not found:
+            return False
+        # listed logs come first, in order, then any others snakemake printed
+        logs: dict[str, str | None] = {path: found.logs.get(path) for path in found.listed}
+        for path, body in found.logs.items():
+            logs.setdefault(path, body)
+        for path, body in logs.items():
+            if body is None:
+                logs[path] = read_tail(path if os.path.isabs(path) else os.path.join(directory, path), tail)
+        found.logs = logs
+        self.hp.print('\n[bold dim]──── ⚠ Error Reported by Snakemake [dim](HPC mode, best effort)')
+        if found.rules:
+            self.hp.print("rule: " + ", ".join(found.rules), style = 'red')
+        if found.jobids:
+            self.hp.print("scheduler job: " + ", ".join(found.jobids), style = 'red')
+        for msg in found.messages:
+            self.hp.print(f"message: {msg}", style = 'red', soft_wrap = True, width = 2000, highlight = False)
+        for n, (path, body) in enumerate(found.logs.items()):
+            if n >= max_logs:
+                self.hp.print(f"\n[dim]...and {len(found.logs) - max_logs} more log file(s), see the snakemake log", highlight = False)
+                break
+            self.hp.print(f"\n──── 🗎 {path}", style = 'bold dim', highlight = False)
+            if body is None:
+                self.hp.print("(snakemake could not read this file, it may not exist yet or the filesystem hasn't caught up)", style = 'dim')
+            elif not body:
+                self.hp.print("(empty file)", style = 'red')
+            else:
+                rows = body.splitlines()
+                if len(rows) > tail:
+                    self.hp.print(f"[dim]... {len(rows) - tail} earlier line(s) not shown, see the file", highlight = False)
+                    rows = rows[-tail:]
+                self.hp.print(escape("\n".join(rows)), style = 'red', soft_wrap = True, width = 2000, highlight = False)
+        return True
 
     def _parse_rule_block(self) -> SnakeRule:
         '''Parse one complete Error in rule block.'''
