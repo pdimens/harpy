@@ -255,7 +255,7 @@ rule contig_report:
         """
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
-            harpy-utils run-notebook {params} {input.ipynb} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
+            harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
 
