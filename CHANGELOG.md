@@ -29,6 +29,9 @@
   - workflow errors when running with an HPC scheduler (`--hpc`) now show what can be found in snakemake's output: the failing rule, snakemake's message, the scheduler's job ID, and the contents of the job's log files (including the scheduler's own log for slurm, lsf, and googlebatch)
     - log files snakemake didn't print (it stops at the first missing one, which hides the scheduler log when a job died before writing its own) are read from disk
     - falls back to the previous message if nothing useful is found
+- jobs that fail and are retried by snakemake (`retries:` in HPC profiles, or `--retries` in `--snakemake`) no longer stop the progress bar or make the workflow report a failure
+  - a failure is only reported once snakemake gives up on the job. Previously the first error ended monitoring (and a workflow that went on to succeed was reported as failed)
+  - only the error of the final attempt is passed to the error parser, instead of one for every attempt
 - `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
 - error printing when using `--container` correctly displays full apptainer-prefixed shell call
 - mitigated possibility of concurrent notebooks clashing when running on HPC
