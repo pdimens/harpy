@@ -43,6 +43,9 @@
 - progressbar logic moved out of `HarpyPrint` class in `printing.py` and into `progress.py`
   - removed the redundant `rich.Live` wrap to the progress bars-- progress bars should be a little snappier
 - swapped pandas for polars (speed!)
+- hidden command `harpy-utils process-notebook` replaced with `harpy-utils run-notebook`, which combines a nuanced
+python-API call to `papermill` with the post-processing that was previously covered by `process-notebook`. 
+  - functionally, this means the command line interface is cleaner in workflows, and the kernel engine can be declared to be IPC instead of TCP, which works better for concurrency.
 
 
 # Added but not exposed yet
