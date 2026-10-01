@@ -411,10 +411,13 @@ jobs:
       - run: pixi run build
       - name: lazy CLI and shell completion
         run: |
-          python test/cli/check_lazy_cli.py && \
-          test -s $CONDA_PREFIX/share/harpy/complete.bash && \
-          test -s $CONDA_PREFIX/share/harpy/complete.zsh && \
-          test -s $CONDA_PREFIX/share/harpy/complete.fish
+          python test/cli/check_lazy_cli.py
+          # `pixi run build` installs the completion scripts where each shell looks for them
+          for program in harpy harpy-utils hv; do
+            test -s "$CONDA_PREFIX/share/bash-completion/completions/$program"
+            test -s "$CONDA_PREFIX/share/zsh/site-functions/_$program"
+            test -s "$CONDA_PREFIX/share/fish/vendor_completions.d/$program.fish"
+          done
       - name: HPC error reporting
         run: python test/cli/check_hpc_errors.py
       - name: job retries
