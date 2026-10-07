@@ -11,10 +11,10 @@ import click
 import papermill as pm
 from traitlets.config import Config
 
+UID = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
 
 def _process(lines, text):
     _date = datetime.now().strftime('%Y-%m-%d')
-    uid = ''.join(random.choices(string.ascii_letters + string.digits, k=15))
     text = list(text)
     for line in lines:
         if line.startswith("Ctrl click to launch") or "Starting kernel" in line:
@@ -29,7 +29,7 @@ def _process(lines, text):
         elif "injected-parameters" in line:
             line = line.replace('"injected-parameters"', '"injected-parameters",\n"remove-cell"')
         if "placeholder" in line:
-            line = line.replace("placeholder", uid)
+            line = line.replace("placeholder", UID)
         sys.stdout.write(line)
 
 
@@ -49,7 +49,8 @@ def run_notebook(kernel, params, notebook, text):
     run-notebook -k ipython-harpy -p indir path input.ipynb arg1 arg2... > output.ipynb
     """
     # ponytail: IPC sockets avoid the TCP port race between concurrent kernels on one node
-    with tempfile.TemporaryDirectory() as tmpdir, tempfile.NamedTemporaryFile("r", suffix=".ipynb") as tmp:
+    tempfile.tempdir = f".harpyreports/{UID}"
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir, tempfile.NamedTemporaryFile("r", suffix=".ipynb") as tmp:
         os.environ.setdefault("JUPYTER_RUNTIME_DIR", os.path.join(tmpdir, "rt"))
         os.environ.setdefault("IPYTHONDIR", os.path.join(tmpdir, "ipy"))
         c = Config()
