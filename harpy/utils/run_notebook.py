@@ -4,6 +4,7 @@ import string
 import sys
 import tempfile
 from datetime import datetime
+from papermill.cli import _resolve_type
 
 import click
 import papermill as pm
@@ -62,7 +63,7 @@ def run_notebook(kernel, params, notebook, text):
         pm.execute_notebook(
             input_path = notebook,
             output_path = tmp.name,
-            parameters = {k: pm.cli._resolve_type(v) for k, v in params},
+            parameters = {k: _resolve_type(v) for k, v in params},
             kernel_name = kernel,
             start_timeout = 120,
             progress_bar = False,
