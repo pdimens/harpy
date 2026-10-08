@@ -44,7 +44,7 @@ class VCF():
         """
         self.print.log("Finding contigs with ≥ 5 biallelic SNPs", newline=False)
 
-        self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).resolve().as_posix()
+        self.biallelic_file = Path(os.path.join(self.workdir, os.path.basename(self.file) + ".biallelic")).absolute().as_posix()
         if not self.contigs:
             self.get_contigs()
 

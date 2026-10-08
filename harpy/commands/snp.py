@@ -77,7 +77,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
     fasta = FASTA(reference, quiet = quiet)
     fasta.validate_region(regions)
 
-    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).absolute().as_posix()
     if isinstance(regions, int):
         genomic_windows(reference, region, regions, 1)
     elif os.path.exists(regions):
@@ -151,7 +151,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
     fasta = FASTA(reference, quiet = quiet)
     fasta.validate_region(regions)
 
-    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).absolute().as_posix()
     if isinstance(regions, int):
         genomic_windows(reference, region, regions, 1)
     elif os.path.exists(regions):
@@ -223,7 +223,7 @@ def deepvariant(reference, inputs, output, regions, threads, keep_invariant, sna
     fasta = FASTA(reference, quiet = quiet)
     fasta.validate_region(regions)
 
-    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).resolve().as_posix()
+    region = Path(os.path.join(workflow.workflow_directory, "regions.snp")).absolute().as_posix()
     if isinstance(regions, int):
         genomic_windows(reference, region, regions, 0)
     elif os.path.exists(regions):

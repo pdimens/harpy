@@ -39,7 +39,7 @@ class SAMfile(FileCompletion):
             self.fail(f"{value} was not found.", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with the accepted extensions for alignment files: .bam/.sam (case insensitive).")
             infiles.append(_f)
@@ -48,7 +48,7 @@ class SAMfile(FileCompletion):
                 self.fail("Alignment input cannot be a directory", param, ctx)
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         # name and permission validations
         for _file in infiles:
@@ -81,7 +81,7 @@ class FASTAfile(FileCompletion):
         if not re_ext.search(value):
             self.fail(f"File {value} does not have any of the recognized [case insensitive] FASTA file extensions (.fa, .fas, .fasta, .fna, .ffn, .frn). Gzipping (.gz) is also permitted.", param, ctx)
 
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
 class FASTQfile(FileCompletion):
     """
@@ -105,14 +105,14 @@ class FASTQfile(FileCompletion):
             self.fail("FASTQ input cannot be a directory", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with the accepted extensions for FASTQ files: .fq[.gz]/.fastq[.gz] (case insensitive).")
-            infiles.append(filepath.resolve().as_posix())
+            infiles.append(filepath.absolute().as_posix())
         else:
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         for _file in infiles:
             if not os.access(_file, os.R_OK):
@@ -145,7 +145,7 @@ class IPYNBfile(FileCompletion):
             self.fail(f"{value} was not found.", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with .ipynb.")
             infiles.append(_f)
@@ -154,7 +154,7 @@ class IPYNBfile(FileCompletion):
                 self.fail("Input cannot be a directory", param, ctx)
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         # name and permission validations
         for _file in infiles:
@@ -182,7 +182,7 @@ class VCFfile(FileCompletion):
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
-        _file = filepath.resolve().as_posix()
+        _file = filepath.absolute().as_posix()
         if not filepath.exists():
             self.fail(f"Variant call format file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
@@ -204,7 +204,7 @@ class PopulationFile(FileCompletion):
             self.fail(f"Sample grouping file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"Sample grouping file {value} does not have read permission.", param, ctx)
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
 class InputFile(FileCompletion):
     """A class for a click type that verifies that a file exists and that it has an expected extension. Returns the absolute path"""
@@ -237,7 +237,7 @@ class InputFile(FileCompletion):
                 self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
         if not valid and self.gzip_ok:
             self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
-        return Path(value).resolve().as_posix()
+        return Path(value).absolute().as_posix()
 
 class HPCProfile(FileCompletion):
     """A class for a click type which accepts a file with a snakemake HPC profile. Does validations to make sure it's the config file and not the directory."""
@@ -276,7 +276,7 @@ The HPC profile provided requires snakemake plugins that were not found in the c
 To install the missing plugins:
     {_txt}\
 ''')
-        return Path(value).resolve().as_posix()
+        return Path(value).absolute().as_posix()
 
 class DemuxSchema(FileCompletion):
     """A class for a click type that accepts a demultiplex schema and performs validation"""
@@ -377,7 +377,7 @@ class DemuxSchema(FileCompletion):
             )
         if duplicates:
             hp.notice("Sample names appear more than once, assuming this was intentional")
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
 class ImputeStrategy(click.ParamType):
     name = "impute_strategy"

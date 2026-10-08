@@ -36,6 +36,7 @@
 - `harpy resume` no longer overwrites the harpy version of `workflow.yaml`
 - error printing when using `--container` correctly displays full apptainer-prefixed shell call
 - mitigated possibility of concurrent notebooks clashing when running on HPC
+- input file handling now respects symlinks instead of resolving to their targets
 
 # Internal
 - simplified summaries logic

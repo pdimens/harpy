@@ -422,7 +422,7 @@ class SNPRegion(click.ParamType):
                             self.fail(f"{value} is formatted incorrectly at line {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
                     if start > end:
                         self.fail(f"The interval start position is greater than the interval end position at row {idx}. This is the first row triggering this error, but it may not be the only one.", param, ctx)
-            return Path(value).resolve().as_posix()
+            return Path(value).absolute().as_posix()
         try:
             _,positions = value.split(":")
         except ValueError:

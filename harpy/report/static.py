@@ -215,7 +215,7 @@ class ReportStatic():
             sys.exit(1)
 
     def convert(self, notebook: str):
-        nb_path: Path = Path(notebook).resolve()
+        nb_path: Path = Path(notebook).absolute()
         nb_name = nb_path.stem
         out_path: Path = nb_path.with_name(f"{nb_name}.html")
             
