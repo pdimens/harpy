@@ -139,37 +139,33 @@ graph LR
 The default output directory is `Align/{aligner}` with the folder structure below.
 `Sample1` is a generic sample name for demonstration purposes. The resulting folder also includes a `workflow` directory
 (not shown) with workflow-relevant runtime files and information.
-```
-Align/{aligner}
-├── Sample1.bam
-├── Sample1.bam.bai
-├── logs
-│   ├── sample1.arachne.log
-│   ├── sample1.markdup.log
-│   │── sample1.sort.log
-└── reports
-    ├── barcodes.summary.ipynb
-    ├── {aligner}.stats.ipynb
-    ├── Sample1.ipynb
-    └── data
-        ├── lrstats
-        │   └── Sample1.lrstats.gz
-        └── coverage
-            ├── Sample1.molcov.gz
-            └── Sample1.cov.gz
+
+{.list-icon}
+- :icon-file-directory: Align/{aligner}
+  - :icon-file-directory: aligned
+    - :icon-file: Sample1.bam
+  - :icon-file-directory: logs
+  - :icon-file-directory: reports
+    - :icon-file-directory: data
+      - :icon-file-directory: lrsats
+      - :icon-file-directory: coverage
+    - :icon-file: barcodes.summary.ipynb
+    - :icon-file: {aligner}.summary.ipynb
+    - :icon-file: Sample1.ipynb
+    - :icon-file: barcodes.summary.ipynb
+    - :icon-file: barcodes.summary.ipynb
+
+
 ```
 {.compact}
 | item    {.whitespace-nowrap}        | description                                                                            |
 | :---------------------------------- | :------------------------------------------------------------------------------------- |
-| `*.bam`                             | sequence alignments for each sample                                                    |
-| `*.bai`                             | sequence alignment indexes for each sample                                             |
-| `logs/*{aligner}.log`                 | output of arachne during run                                                           |
-| `logs/*markdup.log`                 | stats provided by `samtools markdup` _for invalid-barcoded reads_                      |
-| `logs/*sort.log`                    | output of `samtools sort`                                                              |
+| `aligned/*.bam`                     | sequence alignments for each sample                                                    |
+| `aligned/*.bai`                     | sequence alignment indexes for each sample                                             |
 | `reports/`                          | various counts/statistics/reports relating to sequence alignment                       |
 | `reports/barcodes.summary.ipynb`    | report summarizing barcode-specific metrics across all samples                         |
-| `reports/{aligner}.summary.ipynb`     | report summarizing `samtools stats` of raw and processed alignments across all samples |
-| `reports/Sample1.ipynb`             | report summarizing BX tag metrics and alignment coverage                          |
+| `reports/{aligner}.summary.ipynb`   | report summarizing `samtools stats` of raw and processed alignments across all samples |
+| `reports/Sample1.ipynb`             | report summarizing BX tag metrics and alignment coverage                               |
 | `reports/data/coverage/*.cov.gz`    | output from mosdepth, used for reports                                                 |
 | `reports/data/coverage/*.molcov.gz` | molecular coverage stats, used for reports                                             |
 | `reports/data/lrstats`              | tabular data containing the information used to generate the BX stats in reports       |
