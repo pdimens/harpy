@@ -34,7 +34,7 @@ rule process_reference:
         geno = "workflow/reference/ref.fa.gz",
         fai = "workflow/reference/ref.fa.gz.fai"
     log:
-        f"{bn}.preprocess.log"
+        "logs/reference.preprocess.log"
     shell: 
         """
         {{

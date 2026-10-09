@@ -44,7 +44,7 @@ rule process_reference:
         fai = "workflow/reference/ref.fa.gz.fai",
         gzi = "workflow/reference/ref.fa.gz.gzi"
     log:
-        "workflow/reference/ref.fa.gz.preprocess.log"
+        "logs/reference.preprocess.log"
     conda:
         "envs/align.yaml"
     container:
