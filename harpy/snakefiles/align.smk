@@ -216,7 +216,7 @@ rule all:
         align_report = f"reports/{aligner}.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
         bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []
     run:
-        for i in ['markdup', 'tmp', 'sort']:
+        for i in ['markdup', 'tmp', 'sort', aligner]:
             try:
                 os.rmdir(i)
             except (OSError, FileNotFoundError):
