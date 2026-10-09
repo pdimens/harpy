@@ -59,7 +59,7 @@ rule mark_duplicates:
         fq  = get_fq,
         bam = "sort/{sample}.sort.bam"
     output:
-        bam   = "{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
+        bam   = "aligned/{sample}.bam" if lr_type == "none" or (bx_tag and vx_tag) else temp("markdup/{sample}.bam"),
         stats = "reports/data/markdup/{sample}.markdup"
     log:
         "logs/markdup/{sample}.markdup.log"
@@ -87,7 +87,7 @@ if lr_type != "none" and not (bx_tag and vx_tag):
         input:
             "markdup/{sample}.bam"
         output:
-            "{sample}.bam"
+            "aligned/{sample}.bam"
         log:
             "logs/{sample}.std.log"
         threads:
@@ -97,8 +97,8 @@ if lr_type != "none" and not (bx_tag and vx_tag):
 
 rule depth_stats:
     input:
-        "{sample}.bam.bai",
-        bam = "{sample}.bam"
+        "aligned/{sample}.bam.bai",
+        bam = "aligned/{sample}.bam"
     output: 
         "reports/data/coverage/{sample}.regions.bed.gz",
         temp("reports/data/coverage/{sample}.mosdepth.global.dist.txt"),
@@ -120,9 +120,9 @@ rule depth_stats:
 
 rule sample_stats:
     input:
-        "{sample}.bam"
+        "aligned/{sample}.bam"
     output: 
-        temp("{sample}.bam.bai"),
+        temp("aligned/{sample}.bam.bai"),
         stats = "reports/data/samtools_stats/{sample}.filtered.stats"
     log:
         "logs/stats/{sample}.stats.log"
@@ -151,7 +151,7 @@ rule molecule_coverage:
 
 rule molecule_stats:
     input:
-        "{sample}.bam"
+        "aligned/{sample}.bam"
     output: 
         "reports/data/lrstats/{sample}.lrstats.gz"
     log:
@@ -211,7 +211,7 @@ rule linked_read_report:
 rule all:
     default_target: True
     input:
-        bams = collect("{sample}.bam", sample = samplenames),
+        bams = collect("aligned/{sample}.bam", sample = samplenames),
         reports = collect("reports/{sample}.ipynb", sample = samplenames) if not skip_reports and not ignore_bx else [],
         align_report = f"reports/{aligner}.summary.ipynb" if (not skip_reports and len(samplenames) > 1) else [],
         bx_report = "reports/linkedreads.summary.ipynb" if (not skip_reports and not ignore_bx and len(samplenames) > 1) else []

@@ -47,8 +47,8 @@ rule fastp:
         fw   = get_fq1,
         rv   = get_fq2
     output:
-        fw   = "{sample}.R1.fq.gz",
-        rv   = "{sample}.R2.fq.gz",
+        fw   = "processed/{sample}.R1.fq.gz",
+        rv   = "processed/{sample}.R2.fq.gz",
         html = "reports/{sample}.html",
         json = "reports/data/fastp/{sample}.fastp.json"
     log:
@@ -72,7 +72,7 @@ rule fastp:
 
 rule barcode_stats:
     input:
-        "{sample}.R1.fq.gz"
+        "processed/{sample}.R1.fq.gz"
     output: 
         temp("reports/data/{sample}.bxcount")
     log:
@@ -112,6 +112,6 @@ rule qc_report:
 rule all:
     default_target: True
     input:
-        fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        fq = collect("processed/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = "reports/barcode.summary.ipynb" if not skip_reports and lr_type != "none" else [],
         agg_report = "reports/qc.report.ipynb" if not skip_reports else []    

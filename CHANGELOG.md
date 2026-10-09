@@ -21,6 +21,11 @@
   - not technically invalid, but the key absence/mismatch will default to all optional features turned off, which may be unintended
 - fastq validation is now limited to 100 records, which should see a significant validation speedup
 - `bx-stats-sam` correctly names the column `fragments`, was formerly `reads`
+- workflows that typically output many files now output them into a subdirectory for neatness. This should make it much easier to interrogate output directories without being hit with a wall of filenames
+  - `qc`: final fastq outputs in `<outdir>/processed`
+  - `align`: final BAM outputs in `<outdir>/aligned`
+  - `phase bam`: final outputs in `<outdir>/phased`
+  - **a breaking change if your workflows expect output files to be in `<outdir>`**
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty
