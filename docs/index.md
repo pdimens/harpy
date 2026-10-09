@@ -16,10 +16,12 @@ program. Harpy employs both well known and niche programs to take raw linked-rea
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
 Feel free to open an [Issue](https://github.com/pdimens/harpy/issues/new/choose) or begin a [Discussion](https://github.com/pdimens/harpy/discussions) on GitHub.
 
-[!card icon= ":heart:" title="Harpy is friendly" text="Drawing on the lessons of its predecessors and contemporaries, we strive to minimize the commonplace **struggle** of bioinformatics, inasmuch as we can." layout="compact"](javascript:void(0))
-[!card icon= ":keyboard:" title="Harpy is hackable" text="Harpy's commands expose the most common and consequential arguments of the key software it will be running, but the workflows are also 100% hackable." layout="compact"](javascript:void(0))
-[!card icon= ":bento:" title="Harpy is modular" text="We believe in the 'pause and assess' approach between data processing steps, which is why there is such a robust report system." layout="compact"](javascript:void(0))
-[!card icon= ":computer:" title="Harpy is not for analysis" text="Harpy leverages linked-read data to get you as far as genotypes or assemblies, without making assumptions about whether it will be used for popgen, biomed, etc." layout="compact"](javascript:void(0))
+<center><strong>Harpy is...</strong></center>
+
+[!card icon= ":heart:" title="friendly" layout="signal" text="Drawing on the lessons of its predecessors and contemporaries, Harpy strives to minimize the usual **struggle** of bioinformatics, inasmuch as it can."](javascript:void(0))
+[!card icon= ":bento:" title="modular" layout="signal" text="We subscribe to 'stop and assess' over a monolithic 'press play, do everything' approach, which is why there is such a robust report system."](javascript:void(0))
+[!card icon= ":keyboard:" title="hackable"  layout="signal" text="Harpy's commands expose the most common and consequential arguments of the key software it will be running, but the workflows are also 100% hackable."](javascript:void(0))
+[!card icon= ":computer:" title="not for analysis" layout="signal" text="Harpy leverages linked-read data to get you as far as genotypes, haplotypes, or assemblies, and makes no assumptions about whether it will be used for popgen, biomed, etc."](javascript:void(0))
 
 ## Commands
 Harpy is modular, meaning you can use different parts of it independent from each other. Need to only align reads?

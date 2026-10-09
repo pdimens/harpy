@@ -3,24 +3,35 @@
 import rich_click as click
 
 from harpy import __version__
-from harpy.commands import (
-    align,
-    assembly,
-    deconvolve,
-    diagnose,
-    environments,
-    impute,
-    phase,
-    preprocess,
-    qc,
-    report,
-    resume,
-    snp,
-    sv,
-    template,
-    validate,
-    view,
-)
+from harpy.common.lazy_group import LazyGroup, LazySpec
+
+class RichLazyGroup(LazyGroup, click.RichGroup):
+    """Lazily-importing group with rich-click help formatting"""
+
+# Subcommands are imported only when run. The help text (first paragraph of each command's docstring)
+# and hidden flag are repeated here so the top-level `--help` and shell completion can list them
+# without importing anything. test/test_lazy_cli.py checks that this stays in sync with the commands.
+COMMANDS = {
+    "align":        LazySpec("harpy.commands.align:align", "Align sequences to a reference genome"),
+    "assembly":     LazySpec("harpy.commands.assembly:assembly", "Assemble linked reads into a genome"),
+    "completion":   LazySpec("harpy.commands.completion:completion", "Print the shell completion script", hidden = True),
+    "containerize": LazySpec("harpy.commands.environments:containerize", "Configure the harpy container", hidden = True),
+    "deconvolve":   LazySpec("harpy.commands.deconvolve:deconvolve", "Resolve barcode sharing in unrelated molecules"),
+    "deps":         LazySpec("harpy.commands.environments:deps", "Locally install workflow dependencies"),
+    "diagnose":     LazySpec("harpy.commands.diagnose:diagnose", "Attempt to resolve workflow errors"),
+    "impute":       LazySpec("harpy.commands.impute:impute", "Impute variant genotypes from alignments"),
+    "metassembly":  LazySpec("harpy.commands.assembly:metassembly", "Assemble linked reads into a metagenome"),
+    "phase":        LazySpec("harpy.commands.phase:phase", "Phase SNPs or alignments"),
+    "preprocess":   LazySpec("harpy.commands.preprocess:preprocess", "Remove inline barcodes from raw FASTQs"),
+    "qc":           LazySpec("harpy.commands.qc:qc", "FASTQ adapter removal, quality filtering, etc."),
+    "report":       LazySpec("harpy.commands.report:report", "Render ipynb reports"),
+    "resume":       LazySpec("harpy.commands.resume:resume", "Continue an incomplete Harpy workflow"),
+    "snp":          LazySpec("harpy.commands.snp:snp", "Call SNPs and small indels from alignments"),
+    "sv":           LazySpec("harpy.commands.sv:sv", "Call inversions, deletions, and duplications from alignments"),
+    "template":     LazySpec("harpy.commands.template:template", "Create files and HPC configs for workflows"),
+    "validate":     LazySpec("harpy.commands.validate:validate", "File format checks for linked-read data"),
+    "view":         LazySpec("harpy.commands.view:view", "View a workflow's components"),
+}
 
 config = click.RichHelpConfiguration(
     max_width=80,
@@ -37,7 +48,7 @@ config = click.RichHelpConfiguration(
     options_table_help_sections = ["required", "help", "default"]
 )
 
-@click.group(options_metavar='')
+@click.group(cls = RichLazyGroup, lazy_commands = COMMANDS, options_metavar='')
 @click.rich_config(config)
 @click.version_option(__version__, prog_name="harpy", hidden = True)
 @click.command_panel(
@@ -67,22 +78,5 @@ def cli():
     **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
     """
 
-# main program
-cli.add_command(align.align)
-cli.add_command(assembly.assembly)
-cli.add_command(assembly.metassembly)
-cli.add_command(deconvolve.deconvolve)
-cli.add_command(preprocess.preprocess)
-cli.add_command(diagnose.diagnose)
-cli.add_command(environments.containerize)
-cli.add_command(environments.deps)
-cli.add_command(impute.impute)
-cli.add_command(phase.phase)
-cli.add_command(qc.qc)
-cli.add_command(report.report)
-cli.add_command(resume.resume)
-cli.add_command(snp.snp)
-cli.add_command(sv.sv)
-cli.add_command(validate.validate)
-cli.add_command(view.view)
-cli.add_command(template.template)
+if __name__ == "__main__":
+    cli()

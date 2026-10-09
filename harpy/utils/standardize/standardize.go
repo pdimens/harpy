@@ -7,11 +7,11 @@ import (
 	"io"
 	"log"
 	"os"
-	"regexp"
 	"runtime"
 
 	"github.com/biogo/hts/bam"
 	"github.com/biogo/hts/sam"
+	regexp "github.com/coregx/coregex"
 )
 
 var invalid = regexp.MustCompile("(?:N|[ABCD]00|^0_|_0_|_0$)")

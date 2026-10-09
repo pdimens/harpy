@@ -80,7 +80,7 @@ rule pad_barcodes:
         "logs/{sample}.stagger.log"
     params:
         f'--me {me_seq}',
-        f'--max-mismatch {mismatch}',
+        f'--max-mismatch {mismatch}'
     threads:
         3
     shell:
@@ -169,17 +169,10 @@ rule barcode_report:
         me = collect("reports/data/{sample}.MEstats", sample = samplenames),
         ipynb = "workflow/preproc_stats.ipynb"
     output:
-        tmp = temp("reports/performance.tmp.ipynb"),
-        ipynb = "reports/performance.ipynb"
+        "reports/performance.ipynb"
     log:
         "logs/performance.report.log"
     params:
         indir = "-p indir " + os.path.abspath("reports/data/")
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-pre-gih
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook {params.indir} {input.ipynb} > {output} 2> {log}"

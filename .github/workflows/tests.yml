@@ -90,11 +90,19 @@ jobs:
       - run: pixi run build
       - name: harpy preproc meier2021
         run: |
-          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/samples.schema test/preproc/multiplex.R* test/preproc/multiplex.I* && \
+          harpy preprocess meier2021 -O Preproc/meier --quiet 2 test/preproc/meier2021/samples.schema test/preproc/meier2021/multiplex.R* test/preproc/meier2021/multiplex.I* && \
           ls -lh Preproc/meier
+      - name: harpy preproc meier2021 stitch-base
+        run: |
+          harpy preprocess meier2021 -O Preproc/meier-stitch --quiet 2 -s test/preproc/meier2021/stitch/stitch.schema test/preproc/meier2021/stitch/multiplex.stitch.R* test/preproc/meier2021/stitch/multiplex.stitch.I* && \
+          ls -lh Preproc/meier-stitch
+      - name: harpy preproc meier2021 stitch-base complementary
+        run: |
+          harpy preprocess meier2021 -O Preproc/meier-stitch-comp --quiet 2 -s -c test/preproc/meier2021/stitch_complementary/stitch.comp.schema test/preproc/meier2021/stitch_complementary/multiplex.stitch.comp.R* test/preproc/meier2021/stitch_complementary/multiplex.stitch.comp.I* && \
+          ls -lh Preproc/meier-stitch-comp
       - name: harpy preproc gih
         run: |
-          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih* && \
+          harpy preprocess gih -O Preproc/gih --quiet 2 test/preproc/gih/gih* && \
           ls -lh Preproc/gih
 
 
@@ -401,6 +409,19 @@ jobs:
           cache: false
           activate-environment: true
       - run: pixi run build
+      - name: lazy CLI and shell completion
+        run: |
+          python test/cli/check_lazy_cli.py
+          # `pixi run build` installs the completion scripts where each shell looks for them
+          for program in harpy harpy-utils hv; do
+            test -s "$CONDA_PREFIX/share/bash-completion/completions/$program"
+            test -s "$CONDA_PREFIX/share/zsh/site-functions/_$program"
+            test -s "$CONDA_PREFIX/share/fish/vendor_completions.d/$program.fish"
+          done
+      - name: HPC error reporting
+        run: python test/cli/check_hpc_errors.py
+      - name: job retries
+        run: python test/cli/check_retries.py
       - name: template impute
         run: harpy template impute
       - name: template groupings

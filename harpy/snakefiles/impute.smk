@@ -82,8 +82,6 @@ rule sort_bcf:
         bcf = temp("workflow/input/vcf/input.sorted.bcf")
     log:
         "logs/input.sort.log"
-    container:
-        None
     shell:
         "bcftools sort -Ob --write-index -o {output.bcf} {input} 2> {log}"
 
@@ -92,8 +90,6 @@ rule index_alignments:
         lambda wc: bamdict[wc.bam]
     output:
         "{bam}.bai"
-    container:
-        None
     shell:
         "samtools index {input}"
 
@@ -113,8 +109,6 @@ rule create_stitch_input:
         idx = "workflow/input/vcf/input.sorted.bcf.csi"
     output:
         "workflow/input/stitch/{contig}.stitch"
-    container:
-        None
     shell:
         """
         bcftools view --types snps -M2 --regions {wildcards.contig} {input.bcf} |
@@ -133,8 +127,7 @@ rule impute:
         temp(directory("{paramset}/contigs/{contig}/{region}/input")),
         temp(directory("{paramset}/contigs/{contig}/{region}/debug")),
         temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz.tbi"),
-        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz"),
-        tmpdir = temp(directory("{paramset}/contigs/{contig}/{region}/tmp"))
+        vcf = temp("{paramset}/contigs/{contig}/{region}/{contig}.{region}.vcf.gz")
     log:
         "{paramset}/logs/{contig}.{region}.stitch.log",
     params:
@@ -154,14 +147,16 @@ rule impute:
         buffer  = lambda wc: f"--buffer={buffer}" if region or window else "",
     threads:
         workflow.cores - 1
+    resources:
+        tmpdir = lambda wc: os.path.join(wc.paramset, "contigs", wc.contig, wc.region, "tmp")
     conda:
         "envs/impute.yaml"
     container:
-        f"docker://pdimens/harpy:impute_{VERSION}"        
+        f"docker://pdimens/harpy:impute_{VERSION}"
     shell:
         """
+        mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
         {{
-            mkdir -p {output.tmpdir}
             STITCH.R --nCores={threads} --bamlist={input.bamlist} --posfile={input.infile} {params}
             tabix {output.vcf}
             cd {wildcards.paramset}/contigs/{wildcards.contig}/{wildcards.region}/plots
@@ -243,7 +238,6 @@ rule contig_report:
         ipynb = "workflow/stitch_collate.ipynb"
     output:
         stats = "{paramset}/reports/data/contigs/{contig}.stats",
-        tmp = temp("{paramset}/reports/{contig}.{paramset}.tmp.ipynb"),
         ipynb = "{paramset}/reports/{contig}.{paramset}.ipynb"
     log:
         logfile = "{paramset}/logs/reports/{contig}.stitch.log"
@@ -259,11 +253,9 @@ rule contig_report:
         extra   = f"-p extra {stitch_extra}"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.{wildcards.contig}
         {{
             bcftools stats -s "-" {input.vcf} > {output.stats}
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
+            harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} {wildcards.contig} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
 
@@ -277,7 +269,6 @@ rule impute_reports:
     output:
         comparison = "{paramset}/reports/data/impute.compare.stats",
         infoscore = temp("{paramset}/reports/data/impute.infoscore"),
-        tmp = temp("{paramset}/reports/{paramset}.summary.tmp.ipynb"),
         ipynb = "{paramset}/reports/{paramset}.summary.ipynb"
     log:
         "{paramset}/logs/reports/imputestats.log"
@@ -292,12 +283,10 @@ rule impute_reports:
         extra   = f"-p extra {stitch_extra}"
     shell:
         """
-        export IPYTHONDIR=/tmp/ipython-{wildcards.paramset}.rpt
         {{
             bcftools stats -s "-" {input.orig} {input.impute} | grep \"GCTs\" > {output.comparison}
             bcftools query -f '%CHROM\\t%POS\\t%INFO/INFO_SCORE\\n' {input.impute} > {output.infoscore}
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} {wildcards.paramset} > {output.ipynb}
+            harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} {wildcards.paramset} > {output.ipynb}
         }} 2> {log}
         """
 

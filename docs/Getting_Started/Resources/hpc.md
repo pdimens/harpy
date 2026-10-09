@@ -30,7 +30,7 @@ executor: slurm
 default-resources:
     slurm_account: "accountname"
     mem_mb_per_cpu: 1800
-    runtime: "90m"
+    time: "0:12:00"
 
 latency-wait: 5
 default-storage-provider: fs
@@ -55,6 +55,42 @@ harpy qc -a auto --hpc hpc/slurm.yaml data/porcupine
 In addition to the config file, you will need to install the executor plugins you intend to use. This is done with
 e.g. `conda install bioconda::snakemake-executor-plugin-slurm` and ` conda install bioconda::snakemake-storage-plugin-fs ` or their
 Pixi equivalents with e.g. `pixi add snakemake-executor-plugin-slurm`.
+
+The Snakemake framework also allows you to overwrite Harpy's internal workflow defaults
+in the event your dataset needs more (or less) resources. For example, you can change the
+number of threads for a rule, how much memory it should be allocated, etc. Here is a real-world example from an `align` run:
+
+```yaml
+__use_yte__: true
+executor: slurm
+default-resources:
+    slurm_account: "accountname"
+    mem_mb_per_cpu: 1800
+    time: "0:12:00"
+
+set-resources:
+  preprocess_reference:
+    mem_mb: 64000
+    threads: 1
+    tmpdir: "/tmp"
+
+  align:
+    mem_mb: 32000
+    threads: 8
+
+  standardize_barcodes:
+    mem_mb: 24000
+    threads: 1
+
+  mark_duplicates:
+    mem_mb: 120000 
+    threads: 8
+    tmpdir: "/tmp" 
+
+jobs: 100
+latency-wait: 60
+retries: 1
+```
 
 ### Configuration templates
 This configuration stuff is a lot of congitive burden in addition to just trying to process your data, so you can use

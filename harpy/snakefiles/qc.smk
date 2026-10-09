@@ -47,8 +47,8 @@ rule fastp:
         fw   = get_fq1,
         rv   = get_fq2
     output:
-        fw   = "{sample}.R1.fq.gz",
-        rv   = "{sample}.R2.fq.gz",
+        fw   = "processed/{sample}.R1.fq.gz",
+        rv   = "processed/{sample}.R2.fq.gz",
         html = "reports/{sample}.html",
         json = "reports/data/fastp/{sample}.fastp.json"
     log:
@@ -72,7 +72,7 @@ rule fastp:
 
 rule barcode_stats:
     input:
-        "{sample}.R1.fq.gz"
+        "processed/{sample}.R1.fq.gz"
     output: 
         temp("reports/data/{sample}.bxcount")
     log:
@@ -87,45 +87,31 @@ rule barcode_report:
         data = collect("reports/data/{sample}.bxcount", sample = samplenames),
         ipynb = f"workflow/qc_bx_stats.ipynb"
     output:
-        tmp = temp("reports/barcode.summary.tmp.ipynb"),
-        ipynb = "reports/barcode.summary.ipynb"
+        "reports/barcode.summary.ipynb"
     log:
         "logs/barcode.report.log"
     params:
         indir = "-p indir " + os.path.abspath("reports/data"),
         lr = lr_type
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-lrstats
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} {params.lr} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule qc_report:
     input:
         data = collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames),
         ipynb = f"workflow/fastp_qc.ipynb"
     output:
-        tmp = temp("reports/qc.report.tmp.ipynb"),
-        ipynb = "reports/qc.report.ipynb"
+        "reports/qc.report.ipynb"
     log:
         "logs/qc.report.log"
     params:
         "-p indir " + os.path.abspath("reports/data/fastp")
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-fastp
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} > {output} 2> {log}"
 
 rule all:
     default_target: True
     input:
-        fq = collect("{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
+        fq = collect("processed/{sample}.{FR}.fq.gz", FR = ["R1", "R2"], sample = samplenames),
         bx_report = "reports/barcode.summary.ipynb" if not skip_reports and lr_type != "none" else [],
         agg_report = "reports/qc.report.ipynb" if not skip_reports else []    

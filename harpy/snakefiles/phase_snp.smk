@@ -78,8 +78,8 @@ rule isolate_sample:
     input: 
         variantfile
     output:
-        vcf = temp("workflow/input/original/{sample}.bcf"),
-        csi = temp("workflow/input/original/{sample}.bcf.csi")
+        vcf = temp("workflow/input/original/{sample}.bcf", group_jobs = True),
+        csi = temp("workflow/input/original/{sample}.bcf.csi", group_jobs = True)
     shell:
         "bcftools view -Ob -W -s {wildcards.sample} -o {output.vcf} {input}"
 
@@ -246,21 +246,14 @@ rule phase_report:
         data = "reports/blocks.summary.gz",
         ipynb = "workflow/hapcut.ipynb"
     output:
-        tmp = temp("reports/phase.tmp.ipynb"),
-        ipynb = "reports/phase.ipynb"
+        "reports/phase.ipynb"
     log:
         "logs/report.log"
     params:
         "-p blockfile " + os.path.abspath("reports/blocks.summary.gz"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-phase
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} > {output} 2> {log}"
 
 rule all:
     default_target: True

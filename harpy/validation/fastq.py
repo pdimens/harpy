@@ -20,7 +20,7 @@ class FASTQ():
     ["none", "haplotagging", "stlfr", "tellseq"]. The nonlinked_ok option controls whether
     the detection of "none" linked-read types is permissible, otherwise throwing an error.
     '''
-    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:int = 0, maxrec = 100):
+    def __init__(self, filenames, detect_bc:bool = False, nonlinked_ok:bool = True, quiet:int = 0, maxrec: int = 100):
         if any(isinstance(i, list) for i in filenames):
             self.files = list(chain.from_iterable(filenames))
         else:
@@ -34,9 +34,9 @@ class FASTQ():
         self.illumina_old = True
         self.print = HarpyPrint(quiet)
         self.lr_type = "none"
-        self.nonlink_ok = nonlinked_ok
-        self.max_records = maxrec
-        badfiles = []
+        self.nonlink_ok: bool = nonlinked_ok
+        self.max_records: int = maxrec
+        badfiles: list[str] = []
 
         #self.illu_old = re.compile(r'/[12]$')
         self.illu_new = re.compile(r'(?:^|\s)[12]:[YNyn]:\d+:[A-Za-z]+')
@@ -50,10 +50,11 @@ class FASTQ():
         for i in self.files:
             try:
                 with pysam.FastxFile(i, persist=False) as f:
-                    for j in f:
+                    for cnt,j in enumerate(f):
+                        if cnt > self.max_records:
+                            break
                         if not j.name or not j.quality:
                             raise ValueError
-                        break
             except (ValueError, OSError):
                 badfiles.append(i)
             sans_ext = os.path.basename(re_ext.sub("", str(i)))
@@ -66,8 +67,8 @@ class FASTQ():
             self.print.validation(False)
             self.print.error(
                 "invalid file type",
-                f"[yellow]{len(badfiles)}[/] of the input FASTQ files did not conform to format expectations.",
-                "Please verify that the files listed below are properly formatted FASTQ files."
+                f"[yellow]{len(badfiles)}[/] of the input files did not conform to FASTQ format expectations.",
+                "Please verify that the files listed below are properly formatted FASTQ files.",
                 "Offending Files",
                 ", ".join(badfiles)
             )
@@ -116,7 +117,7 @@ class FASTQ():
 
     def has_bx_tag(self):
         """
-        Parse the max_records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
+        Parse the first X records in a list of fastq files to verify if they have BX tag (standard format). Returns as soon as the first BX tag is found.
         If a BX:Z: tag is present, updates self.bx_tag to True
         """
         self.print.log("Inputs have BX:Z tag", newline=False)
@@ -124,10 +125,10 @@ class FASTQ():
             self.print.validation(True)
             return
         scanned = []
-        for i in self.files:
-            with pysam.FastxFile(i, persist=False) as fq:
-                for i,record in enumerate(fq, 1):
-                    if i > self.max_records:
+        for fastq in self.files:
+            with pysam.FastxFile(fastq, persist=False) as fq:
+                for idx,record in enumerate(fq, 1):
+                    if idx > self.max_records:
                         break
                     cmt = record.comment or ""
                     if "BX:Z" in cmt:
@@ -137,7 +138,7 @@ class FASTQ():
                     if self.bx_tag: #or self.vx_tag:
                         self.print.validation(True)
                         return
-            scanned.append(i)
+            scanned.append(os.path.basename(fastq))
         self.print.validation(False)
         if not self.nonlink_ok:
             self.print.error(
@@ -158,7 +159,7 @@ class FASTQ():
 
     def bc_or_bx(self, tag: str) -> None:
         """
-        Parse the first 50 records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
+        Parse the first X records of a list of fastq files to verify that they have BX/BC tag, and only one of those two types per file
         """
         self.print.log("Inputs have BX:Z or BC:Z tags", newline=False)
         primary = "BX:Z" if tag == "BX" else "BC:Z"
@@ -193,21 +194,21 @@ class FASTQ():
 
     def which_linkedread(self, fastq: str) -> str:
         """
-        Scans the first 100 records of a FASTQ file and tries to determine the barcode technology
-        Returns one of: "haplotagging", "stlfr", "tellseq", or "none"
+        Scans the first X records of a FASTQ file and tries to determine the barcode technology
+        Returns one of: "haplotagging", "stlfr", "tellseq", "standard", or "none"
         """
         with pysam.FastxFile(fastq, persist=False) as fq:
             for i,record in enumerate(fq, 1):
                 if i > self.max_records:
                     break
-                if record.comment and HAPLOTAGGING_RX.search(record.comment):
-                    return "haplotagging"
-                if STLFR_RX.search(record.name):
-                    return "stlfr"
-                if TELLSEQ_RX.search(record.name):
-                    return "tellseq"
                 if record.comment:
                     m = STANDARD_RX.search(record.comment)
                     if m and m.group(1) and m.group(2):
                         return "standard"
+                    if HAPLOTAGGING_RX.search(record.comment):
+                        return "haplotagging"
+                if STLFR_RX.search(record.name):
+                    return "stlfr"
+                if TELLSEQ_RX.search(record.name):
+                    return "tellseq"
         return "none"
