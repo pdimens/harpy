@@ -148,9 +148,9 @@ def resume(directory, absolute, direct, threads, clean, quiet):
     workflow.hpc = snakemake_profile.get("executor", None)
 
     workflow.info = {
-        "Workflow" : "harpy " + workflow.name.replace("_", " "),
+        #"Workflow" : "harpy " + workflow.name.replace("_", " "),
         "Output Folder" : directory + "/"
     }
 
-    workflow.onstart(rule = False)
+    workflow.onstart()
     workflow.launch(absolute)
