@@ -147,6 +147,7 @@ rule realign_indels:
         "bcftools norm --threads {threads} {params} -o {output.bcf} -f {input.genome} {input.bcf} 2> {log}"    
 
 rule variant_report:
+    retries: 1
     input: 
         genome  = "workflow/reference/ref.fa.gz",
         ref_idx = "workflow/reference/ref.fa.gz.fai",

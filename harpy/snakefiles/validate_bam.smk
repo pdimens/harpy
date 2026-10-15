@@ -42,6 +42,7 @@ rule concat_results:
         """
 
 rule create_report:
+    retries: 1
     input:
         data = "validate.bam.tsv",
         ipynb = "workflow/validate_bam.ipynb"

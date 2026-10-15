@@ -83,6 +83,7 @@ rule barcode_stats:
         "harpy-utils bx-stats-fq {params} {input} > {output} 2> {log}"
 
 rule barcode_report:
+    retries: 1
     input:
         data = collect("reports/data/{sample}.bxcount", sample = samplenames),
         ipynb = f"workflow/qc_bx_stats.ipynb"
@@ -97,6 +98,7 @@ rule barcode_report:
         "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule qc_report:
+    retries: 1
     input:
         data = collect("reports/data/fastp/{sample}.fastp.json", sample = samplenames),
         ipynb = f"workflow/fastp_qc.ipynb"

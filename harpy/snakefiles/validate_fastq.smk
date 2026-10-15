@@ -57,6 +57,7 @@ rule concat_results:
         """
 
 rule create_report:
+    retries: 1
     input:
         data = "validate.fastq.tsv",
         ipynb = "workflow/validate_fastq.ipynb"

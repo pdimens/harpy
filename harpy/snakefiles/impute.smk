@@ -231,6 +231,7 @@ rule extract_original_region:
         "bcftools view -Ob --write-index {params} -o {output.bcf} {input.orig}"
 
 rule contig_report:
+    retries: 1
     input:
         lambda wc: collect(f"{wc.paramset}/contigs/{wc.contig}/{{region}}/plots", region = contigs[wc.contig].regions),
         "{paramset}/contigs/{contig}/{contig}.bcf.csi",
@@ -260,6 +261,7 @@ rule contig_report:
         """
 
 rule impute_reports:
+    retries: 1
     input:
         "{paramset}/{paramset}.bcf.csi",
         "workflow/input/vcf/input.sorted.bcf.csi" if not region else "workflow/input/vcf/region.bcf.csi",

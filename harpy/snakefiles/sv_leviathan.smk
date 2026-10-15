@@ -215,6 +215,7 @@ rule aggregate_variants:
                             _ = breakends.write(line)
 
 rule report:
+    retries: 1
     input: 
         faidx = f"{workflow_geno}.fai",
         stats = collect("{var}.bedpe", var = ['inversions', 'deletions', 'duplications', 'breakends']),

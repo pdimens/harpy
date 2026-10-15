@@ -163,6 +163,7 @@ rule quality_report:
         "multiqc --config workflow/multiqc.yaml {params} > {output} 2> {log}"
 
 rule barcode_report:
+    retries: 1
     input:
         counts = collect("reports/data/{sample}.bxcount", sample = samplenames),
         stats = collect("reports/data/{sample}.BXstats", sample = samplenames),

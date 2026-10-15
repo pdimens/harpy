@@ -242,6 +242,7 @@ rule summarize_blocks:
         """
 
 rule phase_report:
+    retries: 1
     input:
         data = "reports/blocks.summary.gz",
         ipynb = "workflow/hapcut.ipynb"

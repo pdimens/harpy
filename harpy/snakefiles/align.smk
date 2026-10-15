@@ -162,6 +162,7 @@ rule molecule_stats:
         "harpy-utils bx-stats-sam -d {params} {input} 2> {log} | gzip > {output}"
 
 rule alignment_report:
+    retries: 1
     input:
         collect("reports/data/markdup/{sample}.markdup", sample = samplenames),
         collect("reports/data/samtools_stats/{sample}.{data}.stats", sample = samplenames, data = ["raw", "filtered"]),
@@ -178,6 +179,7 @@ rule alignment_report:
         "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule sample_reports:
+    retries: 1
     input:
         lrstats = "reports/data/lrstats/{sample}.lrstats.gz",
         coverage = "reports/data/coverage/{sample}.regions.bed.gz",
@@ -195,6 +197,7 @@ rule sample_reports:
         "harpy-utils run-notebook -k ipython-harpy {params.papermill} {params.samplename} {input.ipynb} {wildcards.sample} {params.placeholders} > {output} 2> {log}"
 
 rule linked_read_report:
+    retries: 1
     input:
         collect("reports/data/lrstats/{sample}.lrstats.gz", sample = samplenames),
         ipynb = f"workflow/align_lrstats.ipynb"

@@ -45,6 +45,7 @@
 
 # Internal
 - simplified summaries logic
+- report functions have 1 retry built in (mostly for HPC contexts)
 - harpy-utils: replace Golang `regexp` with `coregex` for speed/efficiency
 - progressbar logic moved out of `HarpyPrint` class in `printing.py` and into `progress.py`
   - removed the redundant `rich.Live` wrap to the progress bars-- progress bars should be a little snappier
