@@ -32,7 +32,7 @@ def preprocess():
 @click.option('-u', '--keep-unknown-samples', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with recognized barcodes but don\'t match any sample in the schema')
 @click.option('-b', '--keep-unknown-barcodes', panel = "Parameters",  is_flag = True, default = False, help = 'Keep a separate file of reads with unrecognized barcodes')
 @click.option('-s', '--stitch', panel = "Parameters",  is_flag = True, default = False, help = 'Use the bases between segments to demultiplex')
-@click.option('-c', '--stitch-comp', hidden=True, panel = "Parameters",  is_flag = True, default = False, help = 'Allow complementary bases when using `--stitch`')
+@click.option('-c', '--stitch-comp', panel = "Parameters",  is_flag = True, default = False, help = 'Allow complementary bases when using `--stitch`')
 @click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
