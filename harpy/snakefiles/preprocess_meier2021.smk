@@ -78,7 +78,7 @@ rule demultiplex:
         "--undetermined-samples" if unknown_samples else "",
         "--multiple-samples-per-barcode" if duplicates else "",
         "--use-stitch-base --sx true" if stitch_base else "",
-        "--allow-complementary-stitch" if stitch_base and stitch_comp else ""
+        #"--allow-complementary-stitch" if stitch_base and stitch_comp else ""
     threads:
         workflow.cores
     conda:
