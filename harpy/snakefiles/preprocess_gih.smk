@@ -176,4 +176,4 @@ rule barcode_report:
     params:
         indir = "-p indir " + os.path.abspath("reports/data/")
     shell:
-        "harpy-utils run-notebook {params.indir} {input.ipynb} > {output} 2> {log}"
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} > {output} 2> {log}"
