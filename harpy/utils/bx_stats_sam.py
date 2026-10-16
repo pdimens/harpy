@@ -9,6 +9,10 @@ from pysam import AlignedSegment, AlignmentFile
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
+SKIP_FLAGS = 0x4 | 0x100 | 0x400   # unmapped | secondary | duplicate
+SUPPLEMENTARY = 0x800
+
+
 def insert_size(rec: AlignedSegment) -> int:
     if rec.is_paired:
         return rec.query_alignment_length if rec.is_supplementary else max(0, rec.template_length)
@@ -50,6 +54,7 @@ class ReadCloud:
                  "_inv_bp", "_inv_count")
 
     def __init__(self, barcode: str, chromosome: str, valid: bool = True, initial_suffix: int = 0, cutoff: int = 0):
+        # ponytail: chromosome fixed per cloud — all clouds are flushed on contig change
         self.barcode    = barcode
         self.chromosome = chromosome
         self.suffix     = initial_suffix
@@ -65,7 +70,6 @@ class ReadCloud:
         otherwise returns "". The gap is measured against the previous read's
         end (not the molecule max-end), matching the original deconvolve() semantics.
         """
-        self.chromosome = record.reference_name
         bp  = record.query_alignment_length
         ins = insert_size(record)
         cnt = int(not record.is_paired or record.is_read1)
@@ -138,9 +142,10 @@ class ReadCloud:
 
 @click.command(no_args_is_help=True, context_settings={"allow_interspersed_args": False})
 @click.option('-d', '--distance-threshold', default=0, show_default=True, type=click.IntRange(min=0, max_open=True), help='Distance threshold for splitting molecules sharing a barcode')
+@click.option('-t', '--threads', default=1, show_default=True, type=click.IntRange(min=1), help='Threads for BAM decompression')
 @click.argument('input', required=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True))
 @click.help_option('--help', hidden=True)
-def bx_stats_sam(distance_threshold, input):
+def bx_stats_sam(distance_threshold, threads, input):
     """
     Linked-read metrics from alignment files
 
@@ -152,13 +157,14 @@ def bx_stats_sam(distance_threshold, input):
     coverage (%) based on aligned bases, molecule coverage (%) based on total inferred
     insert length. Input file *must be coordinate sorted*.
     """
-    write = sys.stdout.write   # local binding avoids repeated attribute lookup
+    # local binding avoids repeated attribute lookup
+    write = sys.stdout.write   
     write(
-        "contig\tmolecule\treads\tstart\tend\tlength_inferred\t"
+        "contig\tmolecule\tfragments\tstart\tend\tlength_inferred\t"
         "aligned_bp\tinsert_len\tcoverage_bp\tcoverage_inserts\n"
     )
 
-    with AlignmentFile(input, require_index=False) as alnfile:
+    with AlignmentFile(input, require_index=False, threads=threads) as alnfile:
         clouds: dict[str, ReadCloud] = {}
         # Persists the suffix counter across early evictions so that if a barcode
         # reappears later on the same contig its molecule numbering continues.
@@ -166,11 +172,11 @@ def bx_stats_sam(distance_threshold, input):
         # Min-heap of (last_end, bx). Entries go stale when a cloud is updated;
         # lazy deletion handles this cheaply.
         evict_heap: list[tuple[int, str]] = []
-        last_contig: Optional[str] = None
+        last_tid: Optional[int] = None
         last_pos = 0
 
         def flush_all() -> None:
-            for _, cloud in clouds.items():
+            for cloud in clouds.values():
                 line = cloud.flush()
                 if line:
                     write(line)
@@ -179,19 +185,16 @@ def bx_stats_sam(distance_threshold, input):
             suffix_next.clear()   # per-contig; reset on contig boundary
 
         for read in alnfile.fetch(until_eof=True):
-            if (
-                read.is_unmapped
-                or read.is_duplicate
-                or read.is_secondary
-                or read.cigartuples is None
-                ) :
+            flag = read.flag
+            # ponytail: dropped cigartuples-None check; re-add if data has mapped reads with CIGAR '*'
+            if (flag & SKIP_FLAGS) or read.cigartuples is None:
                 continue
 
-            chrom = read.reference_name
-            if last_contig and chrom != last_contig:
+            tid = read.reference_id
+            if last_tid is not None and tid != last_tid:
                 flush_all()
                 last_pos = 0
-            last_contig = chrom
+            last_tid = tid
             pos = read.reference_start
             if pos < last_pos:
                 sys.stderr.write(
@@ -201,7 +204,7 @@ def bx_stats_sam(distance_threshold, input):
                 sys.exit(1)
             last_pos = pos
 
-            if read.is_supplementary:
+            if flag & SUPPLEMENTARY:
                 try:
                     bx = read.get_tag("BX")
                 except KeyError:
@@ -209,7 +212,7 @@ def bx_stats_sam(distance_threshold, input):
                 cloud = clouds.get(bx)
                 if cloud is not None:
                     cloud.add_supplementary(read)
-                continue  
+                continue
 
             # ── early eviction ────────────────────────────────────────────
             # Any barcode whose most-recent read ends more than `cutoff` bp
@@ -230,24 +233,30 @@ def bx_stats_sam(distance_threshold, input):
 
             # ── barcode lookup ────────────────────────────────────────────
             try:
-                tags = dict(read.get_tags())
-                bx = tags["BX"]
-                if tags.get("VX") != 1:
-                    raise KeyError
+                bx = read.get_tag("BX")
+                valid = read.get_tag("VX") == 1
             except KeyError:
-                if "invalid" not in clouds:
-                    clouds["invalid"] = ReadCloud("invalid", chrom, valid=False)
-                clouds["invalid"].add(read)
+                valid = False
+
+            if not valid:
+                cloud = clouds.get("invalid")
+                if cloud is None:
+                    cloud = clouds["invalid"] = ReadCloud("invalid", read.reference_name, valid=False)
+                cloud.add(read)
                 continue
 
-            if bx not in clouds:
-                clouds[bx] = ReadCloud(bx, chrom, initial_suffix=suffix_next.get(bx, 0), cutoff = distance_threshold)
+            cloud = clouds.get(bx)
+            if cloud is None:
+                cloud = clouds[bx] = ReadCloud(
+                    bx, read.reference_name,
+                    initial_suffix=suffix_next.get(bx, 0), cutoff=distance_threshold,
+                )
 
-            line = clouds[bx].add(read)
+            line = cloud.add(read)
             if line:
                 write(line)
 
             if distance_threshold > 0:
-                heapq.heappush(evict_heap, (clouds[bx].last_end, bx))
+                heapq.heappush(evict_heap, (cloud.last_end, bx))
 
         flush_all()

@@ -1,18 +1,28 @@
 """Module with python-click types for command-line level validations of inputs"""
 
+from multiprocessing.sharedctypes import Value
 import os
 import re
 from pathlib import Path
 
 import click
-import yaml
+from click.shell_completion import CompletionItem
 
 from harpy.common.file_ops import is_gzip, filepath
 from harpy.common.printing import HarpyPrint
+from harpy.common.system_ops import check_snakemake_hpc
 
 hp = HarpyPrint()
 
-class SAMfile(click.ParamType):
+class FileCompletion(click.ParamType):
+    """
+    Base for the file-like types below: click can't complete anything for a custom ParamType,
+    so hand shell completion over to the shell's own filename completion.
+    """
+    def shell_complete(self, ctx, param, incomplete):
+        return [CompletionItem(incomplete, type = "file")]
+
+class SAMfile(FileCompletion):
     """A CLI class to validate a BAM/SAM file as input. Checks for presence, format, and returns the absolute path"""
     name = "bam_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
@@ -29,7 +39,7 @@ class SAMfile(click.ParamType):
             self.fail(f"{value} was not found.", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with the accepted extensions for alignment files: .bam/.sam (case insensitive).")
             infiles.append(_f)
@@ -38,7 +48,7 @@ class SAMfile(click.ParamType):
                 self.fail("Alignment input cannot be a directory", param, ctx)
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         # name and permission validations
         for _file in infiles:
@@ -56,7 +66,7 @@ class SAMfile(click.ParamType):
         else:
             return infiles
 
-class FASTAfile(click.ParamType):
+class FASTAfile(FileCompletion):
     """A CLI class to validate a FASTA file as input. Checks for presence, format, and returns the absolute path"""
     name = "fasta_file"
 
@@ -71,9 +81,9 @@ class FASTAfile(click.ParamType):
         if not re_ext.search(value):
             self.fail(f"File {value} does not have any of the recognized [case insensitive] FASTA file extensions (.fa, .fas, .fasta, .fna, .ffn, .frn). Gzipping (.gz) is also permitted.", param, ctx)
 
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
-class FASTQfile(click.ParamType):
+class FASTQfile(FileCompletion):
     """
     A CLI class to validate a FASTQ file as input. Checks for presence, format, and returns the absolute path.
     Setting single to True returns a str, otherwise returns a list.
@@ -95,14 +105,14 @@ class FASTQfile(click.ParamType):
             self.fail("FASTQ input cannot be a directory", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with the accepted extensions for FASTQ files: .fq[.gz]/.fastq[.gz] (case insensitive).")
-            infiles.append(filepath.resolve().as_posix())
+            infiles.append(filepath.absolute().as_posix())
         else:
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         for _file in infiles:
             if not os.access(_file, os.R_OK):
@@ -118,7 +128,7 @@ class FASTQfile(click.ParamType):
         else:
             return infiles
 
-class IPYNBfile(click.ParamType):
+class IPYNBfile(FileCompletion):
     """A CLI class to validate an IPYNB file as input. Checks for file extension and returns the absolute path"""
     name = "ipynb_file"
     def __init__(self, dir_ok: bool = True, single: bool = False):
@@ -135,7 +145,7 @@ class IPYNBfile(click.ParamType):
             self.fail(f"{value} was not found.", param, ctx)
 
         if not filepath.is_dir():
-            _f = filepath.resolve().as_posix()
+            _f = filepath.absolute().as_posix()
             if not self.re_ext.search(_f):
                 self.fail(f"{value} does not end with .ipynb.")
             infiles.append(_f)
@@ -144,7 +154,7 @@ class IPYNBfile(click.ParamType):
                 self.fail("Input cannot be a directory", param, ctx)
             for i in filepath.glob("*"):
                 if i.is_file() and self.re_ext.search(i.name):
-                    infiles.append(i.resolve().as_posix())
+                    infiles.append(i.absolute().as_posix())
 
         # name and permission validations
         for _file in infiles:
@@ -162,7 +172,7 @@ class IPYNBfile(click.ParamType):
         else:
             return infiles
 
-class VCFfile(click.ParamType):
+class VCFfile(FileCompletion):
     """A CLI class to validate a VCF/BCF file as input. Checks for presence, format, and returns the absolute path"""
     name = "vcf_file"
     def __init__(self, gzip_ok: bool = True):
@@ -172,7 +182,7 @@ class VCFfile(click.ParamType):
 
     def convert(self, value, param, ctx):
         filepath = Path(value)
-        _file = filepath.resolve().as_posix()
+        _file = filepath.absolute().as_posix()
         if not filepath.exists():
             self.fail(f"Variant call format file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
@@ -185,7 +195,7 @@ class VCFfile(click.ParamType):
         else:
             return _file
 
-class PopulationFile(click.ParamType):
+class PopulationFile(FileCompletion):
     name = "populations_file"
 
     def convert(self, value, param, ctx):
@@ -194,9 +204,9 @@ class PopulationFile(click.ParamType):
             self.fail(f"Sample grouping file {value} was not found", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"Sample grouping file {value} does not have read permission.", param, ctx)
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
-class InputFile(click.ParamType):
+class InputFile(FileCompletion):
     """A class for a click type that verifies that a file exists and that it has an expected extension. Returns the absolute path"""
     name = "input_file"
     def __init__(self, filetype, gzip_ok):
@@ -227,9 +237,9 @@ class InputFile(click.ParamType):
                 self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility.", param, ctx)
         if not valid and self.gzip_ok:
             self.fail(f"{value} does not end with one of the expected extensions [" + ", ".join(filedict[self.filetype]) + "]. Please verify this is the correct file type and rename the extension for compatibility. Gzip compression (ending in .gz) is allowed.", param, ctx)
-        return Path(value).resolve().as_posix()
+        return Path(value).absolute().as_posix()
 
-class HPCProfile(click.ParamType):
+class HPCProfile(FileCompletion):
     """A class for a click type which accepts a file with a snakemake HPC profile. Does validations to make sure it's the config file and not the directory."""
     name = "hpc_profile"
     def convert(self, value, param, ctx):
@@ -239,14 +249,36 @@ class HPCProfile(click.ParamType):
             self.fail(f"{value} is a directory, but input should be a yaml file.", param, ctx)
         if not os.access(value, os.R_OK):
             self.fail(f"{value} is not readable. Please check file permissions and try again", param, ctx)
+        import yaml
+
         with open(value, "r") as file:
             try:
-                yaml.safe_load(file)
+                yml = yaml.safe_load(file)
             except yaml.YAMLError as exc:
                 self.fail(f"Formatting error in {value}: {exc}")
-        return Path(value).resolve().as_posix()
+        # CHECKS FOR EXECUTOR AND FILE SYSTEM PLUGINS
+        err: list[str] = []
+        exec = yml.get("executor", None)
+        if not exec:
+            self.fail("The HPC configuration requires an 'executor' field, e.g., 'executor: slurm'. The executor will also require a plugin to be installed to use it, e.g., 'snakemake-executor-plugin-slurm'", param, ctx)
+        _ex = check_snakemake_hpc(f"snakemake-executor-plugin-{exec}")
+        if _ex:
+            err.append(_ex)
+        storage = yml.get("default-storage-provider", None)
+        if storage:
+            _ex = check_snakemake_hpc(f"snakemake-storage-plugin-{storage}")
+            if _ex:
+                err.append(_ex.lstrip())
+        if err:
+            _txt = "\n  ".join(err)
+            self.fail(f'''\
+The HPC profile provided requires snakemake plugins that were not found in the current environment.\
+To install the missing plugins:
+    {_txt}\
+''')
+        return Path(value).absolute().as_posix()
 
-class DemuxSchema(click.ParamType):
+class DemuxSchema(FileCompletion):
     """A class for a click type that accepts a demultiplex schema and performs validation"""
     name = "demultiplex_schema"
 
@@ -265,27 +297,68 @@ class DemuxSchema(click.ParamType):
         samples = set()
         duplicates = False
         segment_pattern = re.compile(r'^[A-D]\d{2}$')
+        bases = ['A','T','C','G']
+        is_stitch: bool = False
+        with open(filepath, 'r') as file:
+            for line in file:
+                _splitline = line.rstrip().split()
+                if len(_splitline) == 2:
+                   break
+                if len(_splitline) == 3:
+                    is_stitch = True
+                    break
+                # never broke, doesn't have 2 or 2 cols
+                hp.error(
+                    "incorrect schema format",
+                    f"Schema file [blue]{os.path.basename(value)}[/] has no valid rows. Under default workflows, the rows should have two columns in the format sample<tab>segment, e.g. [green]sample_01[/][dim]<tab>[/][green]C75[/]. "
+                    "If using base-stitching, then a 3-column format is expected: e.g., [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/]."    
+                )
         with open(filepath, 'r') as file:
             for line in file:
                 try:
-                    sample, segment_id = line.rstrip().split()
+                    _splitline = line.rstrip().split()
+                    if is_stitch:
+                        try:
+                            sample, segment_id, stitch_base = _splitline
+                        except ValueError:
+                            hp.error(
+                                "invalid schema format",
+                                f"A 3-column format was necessary but not detected at a row.",
+                                "When using base stitching, the sample rows of the schema format must be in the format [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/].",
+                                "Line causing the error",
+                                line
+                            )
+                        if stitch_base not in bases:
+                            hp.error(
+                                "invalid schema format",
+                                f"A 3-column format was detected, suggesting you intend to use base stitching, however the third column value is not one of the ATCG bases.",
+                                "When using base stitching, the sample rows of the schema format must be in the format [green]sample_01[/][dim]<tab>[/][green]C75[/][dim]<tab>[/][green]A[/].",
+                                "Line causing the error",
+                                line
+                            )
+                    else:
+                        sample, segment_id = _splitline
                     if not segment_pattern.match(segment_id):
                         hp.error(
                             "invalid segment format",
                             f"Segment ID [green]{segment_id}[/] does not follow the expected format.",
-                            "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/], e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with a workflow appropriate for your data design."
+                            "This haplotagging design expects segments to follow the format of letter [green bold]A-D[/] followed by [bold]two digits[/]"
+                            ", e.g. [green bold]C51[/]). Check that your ID segments or formatted correctly and that you are attempting to demultiplex with "
+                            "a workflow appropriate for your data design.",
+                            "Line causing the error",
+                            line
                         )
                     code_letters.add(segment_id[0])
                     if sample in samples:
                         duplicates = True
                     samples.add(sample)
-                    if segment_id in segment_ids:
+                    if segment_id in segment_ids and not is_stitch:
                         hp.error(
                             "ambiguous segment ID",
                             "An ID segment must only be associated with a single sample.",
                             "A barcode segment can only be associated with a single sample. For example: [green bold]C05[/] cannot identify both [green]sample_01[/] and [green]sample_2[/]. In other words, a segment can only appear once.",
-                            "The segment triggering this error is",
-                            segment_id
+                            "Line causing the error",
+                            line
                         )
                     else:
                         segment_ids.add(segment_id)
@@ -304,7 +377,7 @@ class DemuxSchema(click.ParamType):
             )
         if duplicates:
             hp.notice("Sample names appear more than once, assuming this was intentional")
-        return filepath.resolve().as_posix()
+        return filepath.absolute().as_posix()
 
 class ImputeStrategy(click.ParamType):
     name = "impute_strategy"
@@ -341,7 +414,7 @@ class ImputeStrategy(click.ParamType):
 
         return value
 
-class QCAdapters(click.ParamType):
+class QCAdapters(FileCompletion):
     name = "qc_adapters"
     def convert(self, value, param, ctx):
         nuc = re.compile(r'^[ATCG]+$', re.IGNORECASE)

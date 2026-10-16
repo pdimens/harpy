@@ -27,9 +27,9 @@ bamlist           = INPUTS["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 invalid_regex = {
-    "haplotagging" : "'$4 !~ /[ABCD]00/'",
-    "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
-    "tellseq": "'$4 !~ /N/'"
+    "haplotagging" : "'{split($4,b,/-/)} b[1] !~ /[ABCD]00/'",
+    "stlfr" : "'{split($4,b,/-/)} b[1] !~ /^0_|_0_|_0$/'",
+    "tellseq": "'{split($4,b,/-/)} b[1] !~ /N/'"
 }
 
 if bc_type == "none":
@@ -78,8 +78,8 @@ rule isolate_sample:
     input: 
         variantfile
     output:
-        vcf = temp("workflow/input/original/{sample}.bcf"),
-        csi = temp("workflow/input/original/{sample}.bcf.csi")
+        vcf = temp("workflow/input/original/{sample}.bcf", group_jobs = True),
+        csi = temp("workflow/input/original/{sample}.bcf.csi", group_jobs = True)
     shell:
         "bcftools view -Ob -W -s {wildcards.sample} -o {output.vcf} {input}"
 
@@ -132,7 +132,7 @@ rule extract_hairs:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
         static = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000",
-        purge_invalid = invalid_regex.get(bc_type, "'$4 !~ /N/'")
+        purge_invalid = invalid_regex.get(bc_type, "'{split($4,b,/-/)} b[1] !~ /N/'")
     conda:
         "envs/phase.yaml"
     container:
@@ -242,25 +242,19 @@ rule summarize_blocks:
         """
 
 rule phase_report:
+    retries: 1
     input:
         data = "reports/blocks.summary.gz",
         ipynb = "workflow/hapcut.ipynb"
     output:
-        tmp = temp("reports/phase.tmp.ipynb"),
-        ipynb = "reports/phase.ipynb"
+        "reports/phase.ipynb"
     log:
         "logs/report.log"
     params:
         "-p blockfile " + os.path.abspath("reports/blocks.summary.gz"),
         f"-p contigs {plot_contigs}" if plot_contigs != "default" else ""
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-phase
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} > {output} 2> {log}"
 
 rule all:
     default_target: True

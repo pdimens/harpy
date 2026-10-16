@@ -1,0 +1,104 @@
+Assuming unrestricted shared filesystem usage.
+
+SNAKEMAKE
+=========
+  Date: 2026-10-01 12:22:47
+  Workflow ID: 41fa2763-9f8a-4e58-9b48-6639599fd822
+  Platform: Linux-6.18.44-fc-v50-x86_64-with-glibc2.39
+  Host: vm
+  User: root
+  Snakemake version: 9.27.0
+  Python version: 3.11.15 (main, Mar  3 2026, 09:26:23) [GCC 13.3.0]
+  Command: /work/venv/bin/snakemake -s Snakefile.retry --cores 2 --retries 2 --show-failed-logs --quiet reason
+  Snakefile: /work/Snakefile.retry
+  Base directory: /work
+  Run directory: /work
+  Working directory: /work
+  Config file(s): []
+  Config MD5: 99914b932bd37a50b983c5e7c90ae93b
+
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 2
+Rules claiming more threads will be scaled down.
+Job stats:
+job       count
+------  -------
+flaky         1
+steady        1
+all           1
+total         3
+
+Select jobs to execute...
+Execute 2 jobs...
+
+[Thu Oct  1 12:22:47 2026]
+localrule flaky:
+    output: out/flaky.txt
+    log: logs/flaky.log
+    jobid: 1
+    resources: tmpdir=/tmp
+[Thu Oct  1 12:22:47 2026]
+localrule steady:
+    output: out/steady.txt
+    jobid: 2
+    resources: tmpdir=/tmp
+RuleException:
+CalledProcessError in file "/work/Snakefile.retry", line 8:
+Command 'set -euo pipefail;  
+        mkdir -p out logs markers
+        n=$(ls markers | wc -l)
+        touch markers/attempt.$n.$$
+        echo "attempt marker count: $n" >> logs/flaky.log
+        if [ "$n" -lt 1 ]; then echo "Error: transient failure on first attempt" >> logs/flaky.log; exit 1; fi
+        touch out/flaky.txt' returned non-zero exit status 1.
+[Thu Oct  1 12:22:47 2026]
+Error in rule flaky:
+    message: None
+    jobid: 1
+    output: out/flaky.txt
+    log: logs/flaky.log (check log file(s) for error details)
+    shell:
+        
+        mkdir -p out logs markers
+        n=$(ls markers | wc -l)
+        touch markers/attempt.$n.$$
+        echo "attempt marker count: $n" >> logs/flaky.log
+        if [ "$n" -lt 1 ]; then echo "Error: transient failure on first attempt" >> logs/flaky.log; exit 1; fi
+        touch out/flaky.txt
+        
+        (command exited with non-zero exit code)
+Logfile logs/flaky.log:
+=========================================
+attempt marker count: 0
+Error: transient failure on first attempt
+=========================================
+Trying to restart job 1.
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Oct  1 12:22:47 2026]
+localrule flaky:
+    output: out/flaky.txt
+    log: logs/flaky.log
+    jobid: 1
+    resources: tmpdir=/tmp
+[Thu Oct  1 12:22:47 2026]
+Finished jobid: 1 (Rule: flaky)
+1 of 3 steps (33%) done
+[Thu Oct  1 12:22:50 2026]
+Finished jobid: 2 (Rule: steady)
+2 of 3 steps (67%) done
+Select jobs to execute...
+Execute 1 jobs...
+
+[Thu Oct  1 12:22:50 2026]
+localrule all:
+    input: out/flaky.txt, out/steady.txt, out/steady.txt
+    jobid: 0
+    resources: tmpdir=/tmp
+[Thu Oct  1 12:22:50 2026]
+Finished jobid: 0 (Rule: all)
+3 of 3 steps (100%) done
+Complete log(s): /work/.snakemake/log/2026-10-01T122247.408021.snakemake.log
+Elapsed time: 0:00:03.113435

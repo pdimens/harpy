@@ -7,9 +7,9 @@ import pysam
 
 from harpy.common.printing import HarpyPrint
 
-HAPLOTAGGING_RX = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
-STLFR_RX = re.compile(r"^\d+_\d+_\d+$")
-TELLSEQ_RX = re.compile(r"^[ATCGN]+$")
+HAPLOTAGGING_RX = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}(?:-\S+)?$")
+STLFR_RX = re.compile(r"^\d+_\d+_\d+(?:-\S+)?$")
+TELLSEQ_RX = re.compile(r"^[ATCGN]+(?:-\S+)?$")
 
 class XAM():
     """

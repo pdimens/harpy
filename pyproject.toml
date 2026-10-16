@@ -16,8 +16,8 @@ dependencies = [
     'ipykernel',
     'jupyter-book',
     'notebook',
+    'numpy>=2.5.3,<3',
     'papermill',
-    'pandas>=3,<4',
     'pillow',
     'polars>=1.39.2',
     'pysam>=0.23',
@@ -53,10 +53,11 @@ bcftools = ">=1.23"
 click = ">=8.2"
 conda = ">=24.8"
 djinn = ">=2.4"
-go = ">=1.26.1,<2"
+go = ">=1.26.5,<2"
 htslib = "1.23.*"
+ipykernel = ">=7.3.0,<8"
 jupyter-book = ">=2.1.0,<3"
-pandas = ">=3,<4"
+numpy = ">=2.5.3,<3"
 papermill = ">=2.6.0,<3"
 polars = ">=1.39.2,<2"
 pillow = ">=12.2.0,<13"
@@ -67,18 +68,18 @@ samtools = ">=1.23"
 seqtk = "*"
 snakemake-minimal = ">=9.19.0,<10"
 vl-convert-python = ">=2.0.0rc1,<3"
-ipykernel = ">=7.3.0,<8"
 
 [tool.pixi.pypi-dependencies]
 harpy = { path = ".", editable = true }
 
 [tool.pixi.activation]
 env = { JUPYTER_NOTARY_DB = ":memory:" }
-scripts = ["resources/register-kernel.sh"]
+scripts = ["resources/register-kernel.sh", "resources/shell_completion.sh"]
 
 [tool.pixi.tasks]
 build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}
 build-convert     = {cmd = "go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go", inputs = ["harpy/utils/convert/convert.go"], outputs = ["harpy/utils/gih-convert"]}
 build-standardize = {cmd = "go build -C harpy/utils/standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go", inputs = ["harpy/utils/standardize/standardize.go"], outputs = ["harpy/utils/djinn-standardize"]}
-install = {cmd = "chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize && mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize $CONDA_PREFIX/bin/", depends-on = ["build-stagger", "build-convert", "build-standardize"]}
-build = {depends-on = ["install"]}
+install = {cmd = "mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize $CONDA_PREFIX/bin/", depends-on = ["build-stagger", "build-convert", "build-standardize"]}
+completion = {cmd = "bash resources/generate_completion.sh $CONDA_PREFIX python"}
+build = {depends-on = ["install", "completion"]}

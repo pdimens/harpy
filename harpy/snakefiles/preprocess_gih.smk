@@ -80,7 +80,7 @@ rule pad_barcodes:
         "logs/{sample}.stagger.log"
     params:
         f'--me {me_seq}',
-        f'--max-mismatch {mismatch}',
+        f'--max-mismatch {mismatch}'
     threads:
         3
     shell:
@@ -163,23 +163,17 @@ rule quality_report:
         "multiqc --config workflow/multiqc.yaml {params} > {output} 2> {log}"
 
 rule barcode_report:
+    retries: 1
     input:
         counts = collect("reports/data/{sample}.bxcount", sample = samplenames),
         stats = collect("reports/data/{sample}.BXstats", sample = samplenames),
         me = collect("reports/data/{sample}.MEstats", sample = samplenames),
         ipynb = "workflow/preproc_stats.ipynb"
     output:
-        tmp = temp("reports/performance.tmp.ipynb"),
-        ipynb = "reports/performance.ipynb"
+        "reports/performance.ipynb"
     log:
         "logs/performance.report.log"
     params:
         indir = "-p indir " + os.path.abspath("reports/data/")
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-pre-gih
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.indir} {input.ipynb} > {output} 2> {log}"

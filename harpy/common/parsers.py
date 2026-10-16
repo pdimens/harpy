@@ -7,7 +7,7 @@ class Haplotagging(LRparser):
     '''Haplotagging data parser'''
     def __init__(self):
         self.patternFQ = re.compile(r'BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
-        self.patternBC = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}$")
+        self.patternBC = re.compile(r"^A\d{2}C\d{2}B\d{2}D\d{2}(?:-\S+)?$")
         self.patternInvalid = re.compile(r'([AaBbCcDd])00')
         self.invalidDict: dict[str, int] = {"A" : 0, "C" : 0, "B" : 0, "D" : 0}
     def process_invalid(self, barcode) -> bool:
@@ -22,7 +22,7 @@ class Stlfr(LRparser):
     '''stLFR data parser'''
     def __init__(self):
         self.patternFQ = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)')
-        self.patternBC = re.compile(r"^\d+_\d+_\d+$")
+        self.patternBC = re.compile(r"^\d+_\d+_\d+(?:-\S+)?$")
         self.invalidDict: dict[str, int] = {"1" : 0, "2" : 0, "3" : 0}
     def process_invalid(self, barcode):
             split_bc = barcode.split("_")
@@ -38,7 +38,7 @@ class Tellseq(LRparser):
     '''TELLseq data parser'''
     def __init__(self):
         self.patternFQ = re.compile(r':([ATCGN]+)')
-        self.patternBC = re.compile(r"^[ATCGN]+$")
+        self.patternBC = re.compile(r"^[ATCGN]+(?:-\S+)?$")
         self.invalidDict: dict[str, int] = dict()
         for i in range(1,19):
             self.invalidDict[str(i)] = 0

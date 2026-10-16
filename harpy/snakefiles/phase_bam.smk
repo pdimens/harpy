@@ -109,7 +109,7 @@ rule phase_alignments:
         aln = "filtered/{sample}.bam",
         ref = workflow_geno
     output:
-        bam = temp("phased/{sample}.phased.bam"),
+        bam = temp("whatshap/{sample}.phased.bam"),
         log = "logs/{sample}.phase.log"
     log:
         "logs/{sample}.phase.log"
@@ -157,31 +157,39 @@ rule log_phasing:
 if linked:
     rule restore_invalid:
         input:
-            "phased/{sample}.phased.bam",
+            "whatshap/{sample}.phased.bam",
             "filtered/{sample}.invalid.bam"
         output:
             pipe("{sample}.phased.unsort.sam")
         log:
             "logs/{sample}.restore_invalid.log"
+        resources:
+            tmpdir = lambda wc: f"phased/{wc.sample}_tmp",
         shell:
             "samtools merge -O SAM {output} {input} 2> {log}"
         
 rule sort_phased_bam:
     input:
-        "{sample}.phased.unsort.sam" if linked else "phased/{sample}.phased.bam"
+        "{sample}.phased.unsort.sam" if linked else "whatshap/{sample}.phased.bam"
     output:
-        "{sample}.phased.bam"
+        "phased/{sample}.phased.bam"
     log:
         "logs/{sample}.sort.log"
     resources:
-        mem_mb = 2000
+        tmpdir = lambda wc: f"phased/{wc.sample}_tmp",
+        mem_mb_per_thread = lambda wc, attempt: 2000 
     threads:
         2
     shell:
-        "samtools sort -@ 1 -o {output} -O BAM -m {resources.mem_mb}M {input} 2> {log}"
+        """
+        {{
+            mkdir -p {resources.tmpdir}; trap "rm -rf {resources.tmpdir}" 0
+            samtools sort -@ 1 -o {output} -T {resources.tmpdir}/{wildcards.sample} -O BAM -m {resources.mem_mb_per_thread}M {input} 2> {log}
+        }}
+        """
 
 rule all:
     default_target: True
     input:
-        bedpe = collect("{sample}.phased.bam", sample = samplenames),
+        bedpe = collect("phased/{sample}.phased.bam", sample = samplenames),
         phaselog = "logs/phasing.summary.log"

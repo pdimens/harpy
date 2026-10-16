@@ -32,9 +32,9 @@ var padSeq = [8]string{
 
 // padEntry stores raw Phred qual (not ASCII) since BAM stores raw scores.
 type padEntry struct {
+	n    int
 	seq  [7]byte
 	qual [7]byte
-	n    int
 }
 
 var pads [8]padEntry
@@ -71,7 +71,7 @@ type readPair struct {
 type fastqReader struct{ r *bufio.Reader }
 
 func newFastqReader(r io.Reader) *fastqReader {
-	return &fastqReader{r: bufio.NewReaderSize(r, 1<<19)}
+	return &fastqReader{r: bufio.NewReaderSize(r, 1<<20)}
 }
 
 // next reads one record. Returns io.EOF on clean end-of-stream (empty read
@@ -338,7 +338,7 @@ func main() {
 	header.Version = "1.6"
 	header.SortOrder = sam.Unsorted
 
-	stdoutBuf := bufio.NewWriterSize(os.Stdout, 2<<20)
+	stdoutBuf := bufio.NewWriterSize(os.Stdout, 1<<20)
 	// gzip.NoCompression -> BGZF container still valid BAM, but store blocks
 	// instead of deflating. wc = compress worker count (irrelevant at level 0
 	// but bam.NewWriterLevel still wants it).

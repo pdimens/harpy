@@ -32,3 +32,40 @@ which means you can also manually modify the `config.yaml` file (advanced, not r
 
 [!badge corners="pill" text="resume"] also requires an existing and populated `workdir/envs/` directory in the target directory, like the kind all
 main `harpy` workflows would create. If one is not present, you can use `--conda` to create one (being deprecated).
+
+## Considerations
+The snakefiles in harpy workflows are, by design, not strict for the presence/absence of `Parameter` keys in a workflow's
+corresponding `workflow.yaml` file. If a parameter key is absent, the workflow will default to using that parameter's
+CLI default value. This silent behavior can be considered both a bug and a feature. For example, here is the expected
+parameter section of `workflow.yaml` from `harpy preprocess meier2021`:
+```yaml
+Workflow:
+    ...
+Parameters:
+  qx-rx: true
+  unknown-barcodes: false
+  unknown-samples: true
+  stitch:
+    base: false
+    complementary: false
+Inputs:
+    ...
+```
+The command line defaults for each of these parameters is `false`, meaning a parameter section like this would result
+in the same workflow:
+```yaml
+Workflow:
+    ...
+Parameters:
+  qx-rx: true
+  unknown-samples: true
+Inputs:
+    ...
+```
+
+In most cases, workflows are started using standard Harpy commands like `harpy align bwa`, which guarantees correct
+`workflow.yaml` files ingested by Snakemake. The two typical use-cases of `resume` are to restart a workflow that cutoff
+midway or to initiate a modified workflow without validations, and we can't guard against one behavior without
+spamming notices or errors for the other.  We decided that hand-editing `workflow.yaml` files (or snakefiles) will be
+considered an advanced **at your own risk** use-case, and Harpy will not inform you that parameters keys are missing so as to not
+be an obstacle to customizing workflows.

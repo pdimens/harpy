@@ -9,6 +9,7 @@ from datetime import datetime
 
 from harpy.common.file_ops import purge_empty_logs
 from harpy.common.printing import HarpyPrint
+from harpy.common.progress import PanelProgress
 
 EXIT_CODE_SUCCESS = 0
 EXIT_CODE_SNAKEFILE_ERROR = 1
@@ -17,6 +18,14 @@ EXIT_CODE_RUNTIME_ERROR = 3
 # quiet = 0 : print all things, full progressbar
 # quiet = 1 : print all text, only "Total" progressbar
 # quiet = 2 : print nothing, no progressbar
+
+# snakemake logs the error of a job that has retries left, followed immediately by "Trying to restart job N."
+_RESTART_RE = re.compile(r"^Trying to restart job (\d+)\.")
+_ERROR_HEADER_RE = re.compile(r"^Error in (?:rule|group) ")
+_JOBID_RE = re.compile(r"^\s+jobid:\s*(\d+)")
+_ALL_DONE_RE = re.compile(r"^\d+ of \d+ steps \(100%\) done")
+# what snakemake prints once it has decided that the workflow failed
+_FAILED_MARKERS = ("Shutting down, this might take some time.", "Exiting because a job execution failed")
 
 class Rule:
     """A class that stores job information with the fields: name, total, ids"""
@@ -40,13 +49,21 @@ class LaunchSnakemake():
         self.outdir: str = outdir
         self.process = subprocess.Popen(self.cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         self.errorlog = []
+        # a job error whose outcome isn't known yet: snakemake retries jobs that have retries left (--retries)
+        self.pending_error: list[str] | None = None
+        self.error_line: str = ""
+        self.pending_jobs: set[int] = set()
+        self.pending_attributed: bool = False
+        self.awaiting_jobid: bool = False
+        self.retries: dict[int, int] = {}
         self.output: str = ""
         self.job_inventory: dict = {}
         self.task_ids: dict = {}
         self.total_active: int = 0
         self.print = printer
         self._setup_bg_signal_handlers()
-        self.progress = self.print.progressbar()
+        self.progress = PanelProgress(console=self.print.console, quiet=quiet, transient = quiet==2 ).bar()
+        #self.progress = self.print.progressbar()
 
         try:
             self.workflow_setup()
@@ -129,6 +146,77 @@ class LaunchSnakemake():
         '''logical check for erroring trigger words in snakemake output'''
         return "Exception" in self.output or "Error" in self.output or "MissingOutputException" in self.output
 
+    def job_failed(self) -> bool:
+        '''
+        Decide whether the line in `self.output` means the workflow has failed, tolerating retries.
+
+        Snakemake prints the error of a failed job, and then either "Trying to restart job N." if it has retries
+        left, or later "Shutting down..." when it gives up. So the first line that looks like an error only starts a
+        *pending* error: its text is kept, and the verdict comes from what follows (progress lines keep being
+        processed in the meantime, since other jobs go on and can even finish between the error and the verdict).
+        - a restart of every job with a pending error means there is nothing wrong (yet), the pending error is dropped
+        - the failure markers, or the process exiting with an error, mean it has failed. In that case `self.output`
+          and `self.errorlog` are set as if the first error line had stopped monitoring, which is what the error
+          parsing expects.
+        Assumes that the output of the jobs themselves doesn't end up in the output of snakemake, which is the case for
+        the scheduler plugins (their jobs write to log files) but not for e.g. a blocking submit command that passes it on.
+        '''
+        line = self.output
+        if self.pending_error is None:
+            if self.iserror():
+                self.pending_error = []
+                self.error_line = line
+                self.pending_jobs = set()
+                self.pending_attributed = bool(_ERROR_HEADER_RE.match(line.strip()))
+                self.awaiting_jobid = self.pending_attributed
+                return self._exited_with_error(line) and self._confirm_failure()
+            return self._exited_with_error(line)
+
+        self.pending_error.append(line)
+        if _ERROR_HEADER_RE.match(line.strip()):
+            self.pending_attributed = True
+            self.awaiting_jobid = True
+        elif self.awaiting_jobid and (m := _JOBID_RE.match(line)):
+            self.pending_jobs.add(int(m.group(1)))
+            self.awaiting_jobid = False
+        elif (m := _RESTART_RE.match(line)):
+            jobid = int(m.group(1))
+            self.retries[jobid] = self.retries.get(jobid, 0) + 1
+            self.pending_jobs.discard(jobid)
+            if self.pending_attributed and not self.pending_jobs:
+                # every failed job is being retried, forget about it
+                self.pending_error = None
+                self.error_line = ""
+                return False
+        if line.startswith(_FAILED_MARKERS) or self._exited_with_error(line):
+            return self._confirm_failure()
+        return False
+
+    def _exited_with_error(self, line: str) -> bool:
+        '''
+        Whether snakemake has exited with an error, and all of its output has been read. The exit code alone isn't a verdict:
+        snakemake can exit while there is still output in the pipe, e.g. when this is slower than snakemake is, and what is
+        left can decide the outcome (a job being retried, the last progress updates).
+        '''
+        # at the end of the output the process is done or about to be, so wait for its exit code rather than poll (which can still say None)
+        return not line and self.process.wait() != 0
+
+    def _confirm_failure(self) -> bool:
+        '''A pending error turned out to be a failure: hand its text over as if the first error line had stopped monitoring'''
+        if self.pending_error is not None:
+            self.output = self.error_line
+            self.errorlog.extend(i for i in self.pending_error if not i.strip().endswith(", in <module>"))
+            self.pending_error = None
+        return True
+
+    def eof_failed(self) -> bool:
+        '''At the end of the output, whether a pending error was a failure. Settled by the exit code of snakemake.'''
+        if self.process.wait() != 0:
+            return self._confirm_failure()
+        # exited without an error, so it was only text that looked like one
+        self.pending_error = None
+        return False
+
     def nextline(self, strip: bool = False):
         """reads the next line of stderr"""
         _ = self.process.stderr.readline()
@@ -147,6 +235,8 @@ class LaunchSnakemake():
 
     def update_finished_progress(self):
         '''Process the stderr output and update the progressbars accordingly'''
+        if self.quiet == 2:
+            return
         completed = int(re.search(r"\d+", self.output).group())
         for job, details in self.job_inventory.items():
             if completed in details.ids:
@@ -210,8 +300,8 @@ class LaunchSnakemake():
                     return
                 self.nextline()
             if self.deps:
-                progress = self.print.pulsebar()
-                with self.print.progresspanel(progress, title=self.deploy_text, refresh=8):
+                #progress = PanelProgress(self.print.console, self.quiet, title=self.deploy_text).pulse()
+                with PanelProgress(self.print.console, self.quiet, title=self.deploy_text, transient=True).pulse() as progress:
                     _taskid = progress.add_task("[dim]Working...", total=None)
                     while not self.output.startswith("Job stats:"):
                         if "Creating conda environment" in self.output:
@@ -222,7 +312,7 @@ class LaunchSnakemake():
                             self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else 2
                             break
                         self.nothing_to_do()
-                    progress.stop()
+                    #progress.stop()
             if self.process.poll() or self.exitcode >= 0:
                 return
             self.nothing_to_do()
@@ -247,7 +337,7 @@ class LaunchSnakemake():
         '''monitors the Snakemake stderr output while jobs are running'''
         if self.is_done():
             return
-        with self.print.progresspanel(self.progress):
+        with self.progress:
             self.task_ids["total_progress"] = self.progress.add_task(
                 "[bold blue]Progress",
                 total=self.job_inventory["total"].total,
@@ -255,25 +345,29 @@ class LaunchSnakemake():
             )
             while self.output:
                 self.nextline()
-                if self.iserror() or (self.process.poll() not in (None, 0)):
+                if self.job_failed():
                     self.exitcode = EXIT_CODE_RUNTIME_ERROR
                     break
-                if "(100%) done" in self.output or self.output.startswith("Nothing to be") or self.process.poll() == 0:
+                # while an error is pending, its text (error blocks, log contents) is also going through here, so be strict
+                pending = self.pending_error is not None
+                if (_ALL_DONE_RE.match(self.output) if pending else "(100%) done" in self.output) or self.output.startswith("Nothing to be"):
                     self.exitcode = EXIT_CODE_SUCCESS
                     break
-                if self.output.startswith("Complete log") or self.process.poll():
+                if self.output.startswith("Complete log") or self._exited_with_error(self.output):
                     self.exitcode = EXIT_CODE_SUCCESS if self.process.poll() == 0 else EXIT_CODE_RUNTIME_ERROR
                     break
-                if self.output.lstrip().startswith("rule ") or self.output.lstrip().startswith("localrule "):
+                # (group error blocks list their rules, indented, in the same way group jobs are started)
+                if (self.output if pending else self.output.lstrip()).startswith(("rule ", "localrule ")):
                     rule = self.output.split()[-1].replace(":", "")
                     if rule not in self.task_ids and rule != "all":
                         self.task_ids[rule] = self.progress.add_task(self.job_inventory[rule].name, total=self.job_inventory[rule].total, visible=self.quiet != 1, active=1)
                     while True:
                         self.nextline()
                         if not self.output:                              # EOF: process died
-                            self.exitcode = EXIT_CODE_RUNTIME_ERROR
+                            if self.pending_error is None or self.eof_failed():
+                                self.exitcode = EXIT_CODE_RUNTIME_ERROR
                             return
-                        if self.iserror() or self.process.poll() not in (None, 0):
+                        if self.job_failed():
                             self.exitcode = EXIT_CODE_RUNTIME_ERROR
                             return
                         if "jobid: " in self.output:
@@ -287,6 +381,9 @@ class LaunchSnakemake():
                             break
                 if self.output.startswith("Finished jobid: "):
                     self.update_finished_progress()
+            # out of output without a verdict: only a pending error is left to settle, by how snakemake exited
+            if self.exitcode < 0 and self.pending_error is not None and self.eof_failed():
+                self.exitcode = EXIT_CODE_RUNTIME_ERROR
 
     def return_or_collect(self):
         if self.exitcode <= 0:

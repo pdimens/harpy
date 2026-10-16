@@ -8,7 +8,19 @@ url: pdimens.github.io/harpy/
 meta:
   title: " | Harpy"
 footer:
-  copyright: "&copy; Copyright {{ year }}. All rights reserved."
+  copyright: |
+      This work is a collaboration between the lab of Nina Therkildsen and the Cornell Genomics Innovation Hub.
+
+      &copy; Copyright {{ year }}. All rights reserved.
+  links:
+  - text: Therkildsen Lab
+    link: https://www.therkildsenlab.org/
+    icon: https://www.therkildsenlab.org/uploads/1/4/5/5/145548022/published/new-logo-smaller.png
+    target: blank
+  - text: Cornell GIH
+    link: https://www.genomicsinnovation.cornell.edu/
+    icon: https://raw.githubusercontent.com/pdimens/harpy/refs/heads/main/docs/static/biotech.png
+    target: blank
 showSidebarFilter: false
 backlinks:
   enabled: false
@@ -38,10 +50,6 @@ links:
 - text: BLink-seq
   link: https://blinkseq.github.io/
   icon: https://blinkseq.github.io/_astro/logo.DGThwx8R_1NHPA4.webp
-  target: blank
-- text: Therkildsen Lab
-  link: https://therkildsen-lab.github.io/
-  icon: https://therkildsen-lab.github.io/images/TherkildsenLogo.png
   target: blank
 - text: Source
   link: https://github.com/pdimens/harpy

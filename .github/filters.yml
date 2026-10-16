@@ -127,6 +127,10 @@ assembly: &assembly
   - 'harpy/validation/fastq.py'
 other: &other
   - *common
+  - 'harpy/commands/completion.py'
+  - 'harpy/utils/__init__.py'
+  - 'resources/*completion*'
+  - 'test/cli/**'
   - 'harpy/commands/template.py'
   - 'harpy/commands/hpc.py'
 resume: &resume

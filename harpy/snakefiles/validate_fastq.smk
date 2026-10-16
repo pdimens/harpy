@@ -57,25 +57,19 @@ rule concat_results:
         """
 
 rule create_report:
+    retries: 1
     input:
         data = "validate.fastq.tsv",
         ipynb = "workflow/validate_fastq.ipynb"
     output:
-        tmp = temp("validate.fastq.tmp.ipynb"),
-        ipynb = "validate.fastq.ipynb"
+        "validate.fastq.ipynb"
     params:
-        lr_platform = lr_platform,
+        lr = lr_platform,
         infile = "-p infile " + os.path.abspath("validate.fastq.tsv")
     log:
         "logs/report.log"
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-validate-fastq
-        {{
-            papermill -k ipython-harpy --cwd . --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            harpy-utils process-notebook {output.tmp} {params.lr_platform} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.infile} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule all:
     default_target: True

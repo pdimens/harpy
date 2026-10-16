@@ -71,7 +71,7 @@ def qc(inputs, output, unlinked,length, trim_adapters, deduplicate, extra_params
 
     workflow.info = {
         "Samples": fastq.count,
-        "Linked-Read Type": fastq.lr_type,
+        "Data Format": fastq.lr_type,
         **({"Treatment" : ", ".join(treatment)} if treatment else {"Treatment": "None"}),
         "Output Folder": os.path.relpath(output) + "/",
     }

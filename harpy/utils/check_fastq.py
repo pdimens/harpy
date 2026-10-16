@@ -64,7 +64,7 @@ class StandardChecker(FormatChecker):
 
 class HaplotaggingChecker(FormatChecker):
     """Haplotagging: BX:Z: comment tag, ACBD-style barcode."""
-    BARCODE_RE = re.compile(r'A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}')
+    BARCODE_RE = re.compile(r'A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2}(?:-\S+)?(?:\s|$)')
     def check_read(self, fq_record):
         comment = fq_record.comment or ""
         if 'BX:Z:' not in comment:
@@ -79,7 +79,7 @@ class HaplotaggingChecker(FormatChecker):
 
 class StlfrChecker(FormatChecker):
     """stLFR: barcode embedded in the read name as #n_n_n."""
-    BARCODE_RE = re.compile(r'#\d+_\d+_\d+$')
+    BARCODE_RE = re.compile(r'#\d+_\d+_\d+(?:-\S+)?$')
     def check_read(self, fq_record):
         if not self.BARCODE_RE.search(fq_record.name):
             self.BAD_BX += 1
@@ -88,7 +88,7 @@ class StlfrChecker(FormatChecker):
 
 class TellseqChecker(FormatChecker):
     """TELL-Seq: barcode embedded in the read name as :ATCGN..."""
-    BARCODE_RE = re.compile(r':[ATCGN]+$')
+    BARCODE_RE = re.compile(r':[ATCGN]+(?:-\S+)?$')
     def check_read(self, fq_record):
         if not self.BARCODE_RE.search(fq_record.name):
             self.BAD_BX += 1

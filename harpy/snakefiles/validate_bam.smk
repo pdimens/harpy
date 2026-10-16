@@ -42,25 +42,19 @@ rule concat_results:
         """
 
 rule create_report:
+    retries: 1
     input:
         data = "validate.bam.tsv",
         ipynb = "workflow/validate_bam.ipynb"
     output:
-        tmp = temp("validate.bam.tmp.ipynb"),
-        ipynb = "validate.bam.ipynb"
+        "validate.bam.ipynb"
     params:
-        lr_platform = lr_platform,
+        lr = lr_platform,
         infile = "-p infile " + os.path.abspath("validate.bam.tsv")
     log:
         "logs/report.log"
     shell:
-        """
-        export IPYTHONDIR=/tmp/ipython-validate-xam
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.infile}
-            harpy-utils process-notebook {output.tmp} {params.lr_platform} > {output.ipynb}
-        }} 2> {log}
-        """
+        "harpy-utils run-notebook -k ipython-harpy {params.infile} {input.ipynb} {params.lr} > {output} 2> {log}"
 
 rule all:
     default_target: True

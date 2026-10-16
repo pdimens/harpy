@@ -70,6 +70,11 @@ conda activate path/to/harpy_env
 harpy
 ```
 
+!!!info tab-completion
+Tab-completion for `harpy`, `harpy-utils`, and `hv` (bash, zsh, and fish) is enabled automatically whenever the environment is activated, there is nothing to set up.
+It relies on each shell's own completion system being enabled: for bash, the `bash-completion` package (present on most Linux systems), and for zsh, `compinit` in your `~/.zshrc` (most setups already have it).
+!!!
+
 +++ 🌟 Pixi
 
 If you prefer [Pixi](https://pixi.sh/latest/) (it's pretty good, you should try it), you can
@@ -125,6 +130,10 @@ harpy
 # or prepend `pixi run` to it without activating the environment
 pixi run harpy
 ```
+
+!!!info tab-completion
+Tab-completion works the same way when you activate the environment with `pixi shell` (see the requirements above). Global installations (`pixi global`) do not activate an environment, so they do not have tab-completion.
+!!!
 
 +++ 📦 Containers
 If you didn't know, packages on Bioconda are automatically built as containers too!

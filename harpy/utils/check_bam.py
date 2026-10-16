@@ -18,13 +18,12 @@ def check_bam(platform, bamfile):
     whether BX:Z: is the last tag in the record, and the counts of: total alignments,
     alignments without an MI:i tag, a BX:Z tag, a VX:Z tag, incorrect BX:Z tag. Writes to stdout.
     """
-    #TODO this will need to be revised if/when new barcode encodings emerge
     if platform == "haplotagging":
-        bc_pattern = re.compile(r'^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9]')
+        bc_pattern = re.compile(r'^A[0-9][0-9]C[0-9][0-9]B[0-9][0-9]D[0-9][0-9](?:-\S+)?$')
     elif platform == "stlfr":
-        bc_pattern = re.compile(r'^\d+_\d+_\d+')
+        bc_pattern = re.compile(r'^\d+_\d+_\d+(?:-\S+)?$')
     else:
-        bc_pattern = re.compile(r'^[ATCGN]+')
+        bc_pattern = re.compile(r'^[ATCGN]+(?:-\S+)?$')
 
     filename = os.path.basename(bamfile)
     bam_pattern = re.compile(r"\.[bBsS][aA][mM]$", flags = re.IGNORECASE)

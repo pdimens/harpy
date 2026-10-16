@@ -1,7 +1,8 @@
 ---
-label: Reports
+label: report
 description: The report system in Harpy
 icon: graph
+order: 2
 ---
 
 # :icon-graph: Harpy Reports
@@ -11,7 +12,8 @@ characteristics of data after a given workflow (e.g. alignment or phasing), incl
 figures. The reports were originally written in R/RMarkdown, then ported to Quarto. Once the limits of Quarto
 were reached, Harpy 4.0 introduced a complete overhaul of the reporting system using Jupyter Notebooks. With
 Jupyter comes several benefits:
-- Code and output are stored in the notebook
+- Code is stored in the notebook and can be rerun
+- Outputs are recorded in the notebook
 - GitHub, JupyterLab, and VScode (and derivatives) natively render notebooks nicely
 - Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ [report webiste](https://pdimens.github.io/GIH-experiments/)
 
@@ -33,16 +35,16 @@ harpy report live <options> DIRECTORY
 ```
 
 {.compact .clean}
-| argument    |   default   | description |
-|:-----------------------|:--------------:|:--------------------------------------------------------|
-| `DIRECTORY` | `.` | Path of where to setup configs and launch server |
-| `--debug` `-d` | | Dump all of jupyterbook's output to the terminal |
-| `--headless` `-h` | |  Run the server in headless mode, with only the content server started |
-| `--md` `-m` | | Also scan for markdown files (`.md`) |
-| `--clear-cache` `-c` |  False | Remove `_build` directory prior to server launch |
-| `--port` `-p` | | Run the application server from the specified port number |
-| `--refresh` `-r` | 0 | Refresh interval, in seconds (disabled with `0`) |
-| `--server-port` `-s` | | Run the content server from the specified port number |
+| argument             | default | description                                                           |
+| :------------------- | :-----: | :-------------------------------------------------------------------- |
+| `DIRECTORY`          |   `.`   | Path of where to setup configs and launch server                      |
+| `--debug` `-d`       |         | Dump all of jupyterbook's output to the terminal                      |
+| `--headless` `-h`    |         | Run the server in headless mode, with only the content server started |
+| `--md` `-m`          |         | Also scan for markdown files (`.md`)                                  |
+| `--clear-cache` `-c` |  False  | Remove `_build` directory prior to server launch                      |
+| `--port` `-p`        |         | Run the application server from the specified port number             |
+| `--refresh` `-r`     |    0    | Refresh interval, in seconds (disabled with `0`)                      |
+| `--server-port` `-s` |         | Run the content server from the specified port number                 |
 
 
 ### Automate a report website
@@ -77,6 +79,7 @@ harpy report static <options> NOTEBOOKS
 | :---------------------- | :-----: | :------------------------------------------------------------ |
 | `NOTEBOOKS`             |         | Paths to ipynb files (expected to already have been executed) |
 | `--debug` `-d`          |  false  | Log process information to stderr                             |
+| `--quiet` `-Q`          |  false  | Don't show the progress bar                                   |
 | `--self-contained` `-s` |  false  | Store all JS and CSS within the output file                   |
 
 ### self contained reports

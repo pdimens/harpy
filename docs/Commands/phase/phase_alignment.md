@@ -105,7 +105,7 @@ Phase/bam/
 {.compact .clean}
 | item           {.whitespace-nowrap} | description                          |
 | :---------------------------------- | :----------------------------------- |
-| `*.phased.bam`                      | phased alignment file output         |
+| `phased/*.phased.bam`               | phased alignment file output         |
 | `logs/phasing.summary.log`          | consolidated output of whatshap logs |
 
 +++ :icon-code-square: Whatshap parameters

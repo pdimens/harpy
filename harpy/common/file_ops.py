@@ -11,7 +11,6 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-import pysam
 from click import echo_via_pager
 from pygments import highlight
 from pygments.formatters import get_formatter_by_name
@@ -25,12 +24,12 @@ from harpy.common.printing import HarpyPrint
 
 def filepath(infile: str) -> str:
     """returns a posix-formatted absolute path of infile"""
-    return Path(infile).resolve().as_posix()
+    return Path(infile).absolute().as_posix()
 
 def symlink(original: str, destination: str) -> None:
     """Create a symbolic link from original -> destination if the destination doesn't already exist."""
     if not (Path(destination).is_symlink() or Path(destination).exists()):
-        Path(destination).symlink_to(Path(original).resolve())
+        Path(destination).symlink_to(Path(original).absolute())
 
 def fetch_template(target: str, outfile = None) -> None:
     """
@@ -183,6 +182,8 @@ def genomic_windows(input: str, output: str, window: int = 10000, mode: int = 1)
                 for startpos,endpos in zip(starts, ends):
                     fout.write(f"{contig}\t{startpos}\t{endpos}\n")
         return
+
+    import pysam
 
     with pysam.FastxFile(input, persist = False) as FA, open(output, "w") as fout:
         for record in FA:
