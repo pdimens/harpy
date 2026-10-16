@@ -7,9 +7,9 @@ import pysam
 
 from harpy.common.printing import HarpyPrint
 
-HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})')
-STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(\s|$)')
-TELLSEQ_RX = re.compile(r':([ATCGN]+)(\s|$)')
+HAPLOTAGGING_RX = re.compile(r'\s?BX:Z:(A[0-9]{2}C[0-9]{2}B[0-9]{2}D[0-9]{2})(?:-\S+)?(?:\s|$)')
+STLFR_RX = re.compile(r'#([0-9]+_[0-9]+_[0-9]+)(?:-\S+)?(?:\s|$)')
+TELLSEQ_RX = re.compile(r':([ATCGN]+)(?:-\S+)?(?:\s|$)')
 STANDARD_RX = re.compile(r'(?=.*\b(BX:Z:\S+)\b)(?=.*\b(VX:i:[01])\b)')
 
 class FASTQ():

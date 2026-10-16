@@ -29,6 +29,8 @@
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty
+- hyphenated formats now properly respected in various places
+  - standardization during `harpy align`, fastq and sam validation, filtering invalids from `phase snp`
 - more robust snakemake error printing (again)
   - this time it's a parse-and-gather approach that uses an internal class
   - strengthened outputting snakemake missing and syntax errors

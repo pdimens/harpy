@@ -310,9 +310,9 @@ Athena ran with the config file Harpy built from the files created from the prev
         extra             = self.PARAMETERS.get("extra", "")
         variantfile       = self.INPUTS["vcf"]
         invalid_regex = {
-            "haplotagging" : "'$4 !~ /[ABCD]00/'",
-            "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
-            "tellseq": "'$4 !~ /N/'"
+            "haplotagging" : "'{split($4,b,/-/)} b[1] !~ /[ABCD]00/'",
+            "stlfr" : "'{split($4,b,/-/)} b[1] !~ /^0_|_0_|_0$/'",
+            "tellseq": "'{split($4,b,/-/)} b[1] !~ /N/'"
         }
         linkarg = "--10x 0" if bc_type == "none" else "--10x 1"
         indelarg   = "--indels 1 --ref reference.fasta" if self.INPUTS.get("reference", None) else ""
@@ -329,7 +329,7 @@ Phasing was performed using the components of HapCut2:
     extractHAIRS {hairs_params} --bam sample.bam --VCF sample.vcf --out sample.unlinked.frags
     
 If the data were linked-reads, invalid barcodes were filtered out:
-    awk {invalid_regex.get(bc_type, "'$4 !~ /N/'")} sample.unlinked.frags > sample.frags.filt
+    awk {invalid_regex.get(bc_type, "'{split($4,b,/-/)} b[1] !~ /N/'")} sample.unlinked.frags > sample.frags.filt
     LinkFragments.py --bam sample.bam --VCF sample.vcf --fragments sample.frags.filt --out sample.linked.frags -d {molecule_distance}
     HAPCUT2 --fragments sample.linked.frags --vcf sample.vcf --out sample.blocks --nf 1 --error_analysis_mode 1 --call_homozygous 1 --outvcf 1 {prune} {extra}
     

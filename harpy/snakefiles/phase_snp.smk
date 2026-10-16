@@ -27,9 +27,9 @@ bamlist           = INPUTS["alignments"]
 bamdict           = dict(zip(bamlist, bamlist))
 plot_contigs      = ",".join(plot_contigs) if isinstance(plot_contigs, list) else plot_contigs
 invalid_regex = {
-    "haplotagging" : "'$4 !~ /[ABCD]00/'",
-    "stlfr" : "'$4 !~ /^0_|_0_|_0$/'",
-    "tellseq": "'$4 !~ /N/'"
+    "haplotagging" : "'{split($4,b,/-/)} b[1] !~ /[ABCD]00/'",
+    "stlfr" : "'{split($4,b,/-/)} b[1] !~ /^0_|_0_|_0$/'",
+    "tellseq": "'{split($4,b,/-/)} b[1] !~ /N/'"
 }
 
 if bc_type == "none":
@@ -132,7 +132,7 @@ rule extract_hairs:
         "logs/extract_hairs/{sample}.unlinked.log"
     params:
         static = f"{indelarg} {linkarg} --mmq {map_qual} --mbq {base_qual} --nf 1 --maxfragments 1500000",
-        purge_invalid = invalid_regex.get(bc_type, "'$4 !~ /N/'")
+        purge_invalid = invalid_regex.get(bc_type, "'{split($4,b,/-/)} b[1] !~ /N/'")
     conda:
         "envs/phase.yaml"
     container:

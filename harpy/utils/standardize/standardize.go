@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"runtime"
+	"strings"
 
 	"github.com/biogo/hts/bam"
 	"github.com/biogo/hts/sam"
@@ -15,9 +16,15 @@ import (
 )
 
 var invalid = regexp.MustCompile("(?:N|[ABCD]00|^0_|_0_|_0$)")
-var stlfTell = regexp.MustCompile(`(?:\:([ATCGN]+)$|#(\d+_\d+_\d+$))`)
+var stlfTell = regexp.MustCompile(`(?:\:([ATCGN]+(?:-\S+)?)|#(\d+_\d+_\d+(?:-\S+)?))$`)
 var vxTag = sam.Tag{'V', 'X'}
 var bxTag = sam.Tag{'B', 'X'}
+
+// Assess the pre-hyphenated barcode for invalid characters
+func isInvalid(bc string) bool {
+	baseBC, _, _ := strings.Cut(bc, "-")
+	return invalid.MatchString(baseBC)
+}
 
 // SetBX sets a string aux tag on a record
 func SetBX(rec *sam.Record, val string) {
@@ -38,9 +45,9 @@ func SetBX(rec *sam.Record, val string) {
 }
 
 // SetVX sets an integer (0/1) auxiliary tag on a record.
-func SetVX(rec *sam.Record, val bool) {
+func SetVX(rec *sam.Record, is_invalid bool) {
 	b := byte(1)
-	if val {
+	if is_invalid {
 		b = 0
 	}
 	for i, a := range rec.AuxFields {
@@ -77,6 +84,7 @@ func main() {
 	}
 	infile := args[0]
 	threads := min(max(*nThreads, 1), runtime.NumCPU())
+	runtime.GOMAXPROCS(threads)
 	readThread := 1
 	writeThread := 1
 
@@ -132,7 +140,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// WRITES SAM OUTPUT
+	// ── create BAM writer ──────────────────────────────────────────────────────
 	w, err := bam.NewWriterLevel(os.Stdout, hdr, 4, writeThread)
 	if err != nil {
 		log.Fatal(err)
@@ -152,7 +160,8 @@ func main() {
 
 		bxVal, hasBX := GetStringTag(rec, "BX")
 		if hasBX {
-			SetVX(rec, invalid.MatchString(bxVal))
+			//fmt.Fprintf(os.Stderr, "Barcode: %s, invalid: %v\n", bxVal, isInvalid(bxVal))
+			SetVX(rec, isInvalid(bxVal))
 		} else {
 			matches := stlfTell.FindStringSubmatch(rec.Name)
 			if matches != nil {
@@ -164,7 +173,8 @@ func main() {
 					// matches[2] is the stlfr barcode e.g. "1_2_3"
 					bxVal = matches[2]
 				}
-				SetVX(rec, invalid.MatchString(bxVal))
+				//fmt.Fprintf(os.Stderr, "Barcode: %s, invalid: %v\n", bxVal, isInvalid(bxVal))
+				SetVX(rec, isInvalid(bxVal))
 				SetBX(rec, bxVal)
 			}
 			// if no barcode at all (bxVal == ""), then don't modify the read at all
