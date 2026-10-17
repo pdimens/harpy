@@ -94,11 +94,16 @@ func (f *fastqReader) next() (fastqRecord, error) {
 	}
 	nameCopy := string(name)
 
+	// ReadSlice data is only valid until the next read, so copy each line as it arrives
 	seqLine, err := f.r.ReadSlice('\n')
 	if err != nil {
 		return fastqRecord{}, fmt.Errorf("truncated seq line for %q: %w", nameCopy, err)
 	}
 	seqLine = bytes.TrimRight(seqLine, "\r\n")
+	buf := make([]byte, len(seqLine)*2)
+	seq := buf[:len(seqLine)]
+	qual := buf[len(seqLine):]
+	copy(seq, seqLine)
 
 	if _, err := f.r.ReadSlice('\n'); err != nil {
 		return fastqRecord{}, fmt.Errorf("truncated '+' line for %q: %w", nameCopy, err)
@@ -109,15 +114,9 @@ func (f *fastqReader) next() (fastqRecord, error) {
 		return fastqRecord{}, fmt.Errorf("truncated qual line for %q: %w", nameCopy, err)
 	}
 	qualLine = bytes.TrimRight(qualLine, "\r\n")
-
 	if len(seqLine) != len(qualLine) {
 		return fastqRecord{}, fmt.Errorf("seq/qual length mismatch for %q: %d vs %d", nameCopy, len(seqLine), len(qualLine))
 	}
-
-	buf := make([]byte, len(seqLine)+len(qualLine))
-	seq := buf[:len(seqLine)]
-	qual := buf[len(seqLine):]
-	copy(seq, seqLine)
 	for i, q := range qualLine {
 		qual[i] = q - 33
 	}

@@ -282,23 +282,24 @@ func (f *fastqReader) next() (fastqRecord, error) {
 		header = header[:i]
 	}
 	name := string(header)
-	var lines [3][]byte
-	for i := range lines {
+	// ReadSlice data is only valid until the next read, so copy each line as it arrives
+	buf := append(make([]byte, 0, 512), name...)
+	var ends [3]int
+	for i := range ends {
 		l, err := f.r.ReadSlice('\n')
 		if err != nil {
 			return fastqRecord{}, fmt.Errorf("truncated record %q: %w", name, err)
 		}
-		lines[i] = bytes.TrimRight(l, "\r\n")
+		if i != 1 { // skip the '+' line
+			buf = append(buf, bytes.TrimRight(l, "\r\n")...)
+		}
+		ends[i] = len(buf)
 	}
-	if len(lines[0]) != len(lines[2]) {
-		return fastqRecord{}, fmt.Errorf("seq/qual length mismatch for %q: %d vs %d", name, len(lines[0]), len(lines[2]))
+	n, sEnd := len(name), ends[0]
+	if sEnd-n != ends[2]-sEnd {
+		return fastqRecord{}, fmt.Errorf("seq/qual length mismatch for %q: %d vs %d", name, sEnd-n, ends[2]-sEnd)
 	}
-	buf := make([]byte, 0, len(name)+len(lines[0])+len(lines[2]))
-	buf = append(buf, name...)
-	buf = append(buf, lines[0]...)
-	buf = append(buf, lines[2]...)
-	n := len(name)
-	return fastqRecord{buf[:n:n], buf[n : n+len(lines[0]) : n+len(lines[0])], buf[n+len(lines[0]):]}, nil
+	return fastqRecord{buf[:n:n], buf[n:sEnd:sEnd], buf[sEnd:ends[2]:ends[2]]}, nil
 }
 
 func openFastq(path string, gzBlocks int) (io.ReadCloser, error) {
