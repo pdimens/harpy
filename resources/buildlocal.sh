@@ -16,8 +16,9 @@ pip install --no-deps --disable-pip-version-check -e . && rm -rf build
     cd harpy/utils || exit 1  
     go build -C stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
     go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
+    go build -C demux -o ../gih-demux -ldflags='-s -w' demux.go
     go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
-    chmod +x gih-stagger gih-convert djinn-standardize
-    mv gih-stagger gih-convert djinn-standardize "${CONDA_PREFIX}/bin/"
+    chmod +x gih-stagger gih-convert gih-demux djinn-standardize
+    mv gih-stagger gih-convert gih-demux djinn-standardize "${CONDA_PREFIX}/bin/"
     cd ../..
 }
