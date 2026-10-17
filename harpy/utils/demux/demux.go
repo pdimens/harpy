@@ -61,7 +61,7 @@ func init() {
 		baseCode[c+32] = uint8(i)
 	}
 	for q := 1; q < 128; q++ {
-		perr := math.Pow(10, -0.1*float64(q))
+		perr := pow10(-0.1 * float64(q))
 		for e := 0; e < 4; e++ {
 			for o := 0; o < 5; o++ {
 				switch {
@@ -77,6 +77,44 @@ func init() {
 	}
 }
 
+var ln10 = math.Log(10)
+
+// pow10 returns math.Pow(10, y) bit for bit for finite y <= 0, minus the
+// per-call Log(10) and the special-case ladder; same Modf/Exp/Frexp/Ldexp steps
+// as math.pow. demux_test.go checks it against math.Pow.
+func pow10(y float64) float64 {
+	switch y {
+	case 0:
+		return 1
+	case -0.5:
+		return 1 / math.Sqrt(10)
+	}
+	yi, yf := math.Modf(-y)
+	if yf > 0.5 {
+		yf--
+		yi++
+	}
+	a1 := 1.0
+	if yf != 0 {
+		a1 = math.Exp(yf * ln10)
+	}
+	x1, xe := 0.625, 4 // Frexp(10)
+	ae := 0
+	for i := int64(yi); i != 0; i >>= 1 {
+		if i&1 == 1 {
+			a1 *= x1
+			ae += xe
+		}
+		x1 *= x1
+		xe <<= 1
+		if x1 < .5 {
+			x1 += x1
+			xe--
+		}
+	}
+	return math.Ldexp(1/a1, -ae)
+}
+
 // kahan is a compensated running sum, as in pheniqs: c holds the low-order
 // bits lost by each add and feeds them back into the next one.
 type kahan struct{ sum, c float64 }
@@ -89,8 +127,8 @@ func (k *kahan) add(x float64) {
 }
 
 type decoder struct {
-	start, end int // segment location in the padded R1
-	codes      [][]uint8
+	start, end int               // segment location in the padded R1
+	codes      []uint8           // barcodes flattened, each end-start long
 	ids        map[string]string // barcode sequence -> codec id without '@'
 	seqs       []string
 	conc       float64 // prior, (1-noise)/n
@@ -101,27 +139,58 @@ type decoder struct {
 
 // decode returns the best barcode index and whether the call passed the PAMLD
 // noise and confidence filters (false == QC fail).
+//
+// Every float operation matches the naive per-barcode loop (same operands, same
+// order), so results are bit-identical; the speedup is only from hoisting the
+// score lookups out of the barcode loop and scoring four barcodes at a time so
+// their independent Kahan chains overlap in the CPU pipeline.
 func (d *decoder) decode(obs, qual []byte) (best int, pass bool) {
 	n := len(obs)
-	var o [64]uint8
-	var q [64]uint8
+	var sc [64][4]float64 // sc[i][e]: score of expecting base e at position i
 	for i := 0; i < n; i++ {
-		o[i] = baseCode[obs[i]]
-		q[i] = min(max(qual[i], 33)-33, 127)
+		o, q := baseCode[obs[i]], min(max(qual[i], 33)-33, 127)
+		for e := 0; e < 4; e++ {
+			sc[i][e] = score[q][e][o]
+		}
+	}
+	nb := len(d.seqs)
+	var stack [128]float64
+	cond := stack[:min(nb, len(stack))]
+	if nb > len(stack) {
+		cond = make([]float64, nb)
+	}
+	b := 0
+	for ; b+4 <= nb; b += 4 {
+		c0, c1, c2, c3 := d.codes[b*n:(b+1)*n], d.codes[(b+1)*n:(b+2)*n], d.codes[(b+2)*n:(b+3)*n], d.codes[(b+3)*n:(b+4)*n]
+		var k0, k1, k2, k3 kahan
+		for i := 0; i < n; i++ {
+			s := &sc[i]
+			k0.add(s[c0[i]])
+			k1.add(s[c1[i]])
+			k2.add(s[c2[i]])
+			k3.add(s[c3[i]])
+		}
+		cond[b] = pow10(-0.1 * k0.sum)
+		cond[b+1] = pow10(-0.1 * k1.sum)
+		cond[b+2] = pow10(-0.1 * k2.sum)
+		cond[b+3] = pow10(-0.1 * k3.sum)
+	}
+	for ; b < nb; b++ {
+		var k kahan
+		code := d.codes[b*n : (b+1)*n]
+		for i := 0; i < n; i++ {
+			k.add(sc[i][code[i]])
+		}
+		cond[b] = pow10(-0.1 * k.sum)
 	}
 	best = -1
 	var bestP, bestCond float64
 	var sigma kahan
-	for b, code := range d.codes {
-		var s kahan
-		for i, e := range code {
-			s.add(score[q[i]][e][o[i]])
-		}
-		cond := math.Pow(10, -0.1*s.sum)
-		p := cond * d.conc
+	for b, c := range cond {
+		p := c * d.conc
 		sigma.add(p)
 		if p > bestP {
-			best, bestP, bestCond = b, p, cond
+			best, bestP, bestCond = b, p, c
 		}
 	}
 	if best < 0 || bestCond <= d.randomP {
@@ -212,18 +281,16 @@ func loadConfig(path string) (decs []*decoder, r1Start int, err error) {
 			if len(bc) != d.end-d.start {
 				return nil, 0, fmt.Errorf("barcode %s (%s) is not %d bases", k, bc, d.end-d.start)
 			}
-			code := make([]uint8, len(bc))
 			for i := range bc {
-				code[i] = baseCode[bc[i]]
+				d.codes = append(d.codes, baseCode[bc[i]])
 			}
-			d.codes = append(d.codes, code)
 			d.seqs = append(d.seqs, bc)
 			d.ids[bc] = strings.TrimPrefix(k, "@")
 		}
-		if len(d.codes) == 0 {
+		if len(d.seqs) == 0 {
 			return nil, 0, fmt.Errorf("no barcodes for decoder base %q", m.Base)
 		}
-		d.conc = (1 - m.Noise) / float64(len(d.codes))
+		d.conc = (1 - m.Noise) / float64(len(d.seqs))
 		d.randomP = math.Pow(4, -float64(d.end-d.start))
 		d.noiseP = m.Noise * d.randomP
 		d.confidence = m.Confidence

@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"math"
+	"math/rand"
 	"strings"
 	"testing"
 )
@@ -82,5 +84,27 @@ func TestNoME(t *testing.T) {
 	out, st := run(t, p)
 	if out != "" || st.discarded != 1 {
 		t.Fatalf("no ME: %q %+v", out, st)
+	}
+}
+
+// pow10 must equal math.Pow(10, y) bit for bit: decode() decisions depend on it.
+func TestPow10MatchesMathPow(t *testing.T) {
+	check := func(y float64) {
+		if a, b := pow10(y), math.Pow(10, y); math.Float64bits(a) != math.Float64bits(b) {
+			t.Fatalf("pow10(%v)=%v, math.Pow=%v", y, a, b)
+		}
+	}
+	for _, y := range []float64{0, math.Copysign(0, -1), -0.5, -1, -2, -0.25, -0.75, -1.5, -10, -100, -300, -320, -400} {
+		check(y)
+	}
+	r := rand.New(rand.NewSource(1))
+	for i := 0; i < 20_000_000; i++ {
+		check(-r.Float64() * 400)
+	}
+	for s := 0.0; s < 4000; s += 0.01 { // sums of Phred scores, as decode() builds them
+		check(-0.1 * s)
+	}
+	for i := 0; i < 2_000_000; i++ {
+		check(-0.1 * (float64(r.Intn(60)*12) + float64(r.Intn(5))*10*math.Log10(4)))
 	}
 }
