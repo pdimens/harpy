@@ -77,6 +77,17 @@ func init() {
 	}
 }
 
+// kahan is a compensated running sum, as in pheniqs: c holds the low-order
+// bits lost by each add and feeds them back into the next one.
+type kahan struct{ sum, c float64 }
+
+func (k *kahan) add(x float64) {
+	y := x - k.c
+	t := k.sum + y
+	k.c = (t - k.sum) - y
+	k.sum = t
+}
+
 type decoder struct {
 	start, end int // segment location in the padded R1
 	codes      [][]uint8
@@ -99,15 +110,16 @@ func (d *decoder) decode(obs, qual []byte) (best int, pass bool) {
 		q[i] = min(max(qual[i], 33)-33, 127)
 	}
 	best = -1
-	var bestP, bestCond, sigma float64
+	var bestP, bestCond float64
+	var sigma kahan
 	for b, code := range d.codes {
-		var s float64
+		var s kahan
 		for i, e := range code {
-			s += score[q[i]][e][o[i]]
+			s.add(score[q[i]][e][o[i]])
 		}
-		cond := math.Pow(10, -0.1*s)
+		cond := math.Pow(10, -0.1*s.sum)
 		p := cond * d.conc
-		sigma += p
+		sigma.add(p)
 		if p > bestP {
 			best, bestP, bestCond = b, p, cond
 		}
@@ -115,8 +127,8 @@ func (d *decoder) decode(obs, qual []byte) (best int, pass bool) {
 	if best < 0 || bestCond <= d.randomP {
 		return -1, false
 	}
-	sigma += d.noiseP
-	return best, bestP/sigma > d.confidence
+	sigma.add(d.noiseP)
+	return best, bestP/sigma.sum > d.confidence
 }
 
 // ── config ────────────────────────────────────────────────────────────────────
