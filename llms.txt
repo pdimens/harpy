@@ -5,56 +5,56 @@
 
 ### Guides
 
-- [ Filtering SNPs](https://pdimens.github.io/harpy/getting_started/guides/filtering_snps.md): A gentle introduction to the wild world of filtering SNPs
-- [ Sort data by barcode](https://pdimens.github.io/harpy/getting_started/guides/sort_by_barcode.md): Sorting data by linked-read barcode
-- [ Harpy for (non linked-read) WGS data](https://pdimens.github.io/harpy/getting_started/guides/wgs_data.md): How to use Harpy for plain-regular WGS data
-- [ Choosing a software runtime method](https://pdimens.github.io/harpy/getting_started/guides/software_environments.md): Deciding between using Conda or Containers
-- [ Pooling samples for SV calling](https://pdimens.github.io/harpy/getting_started/guides/sv_pooling.md): Why pool samples for SV calling and when to do it
+- [ Filtering SNPs](https://blinkseq.github.io/harpy/getting_started/guides/filtering_snps.md): A gentle introduction to the wild world of filtering SNPs
+- [ Sort data by barcode](https://blinkseq.github.io/harpy/getting_started/guides/sort_by_barcode.md): Sorting data by linked-read barcode
+- [ Harpy for (non linked-read) WGS data](https://blinkseq.github.io/harpy/getting_started/guides/wgs_data.md): How to use Harpy for plain-regular WGS data
+- [ Choosing a software runtime method](https://blinkseq.github.io/harpy/getting_started/guides/software_environments.md): Deciding between using Conda or Containers
+- [ Pooling samples for SV calling](https://blinkseq.github.io/harpy/getting_started/guides/sv_pooling.md): Why pool samples for SV calling and when to do it
 
 ### Resources
 
-- [ Developing Harpy](https://pdimens.github.io/harpy/getting_started/resources/development.md): Source code structure and how to contribute to Harpy's development
-- [ Running on an HPC Cluster](https://pdimens.github.io/harpy/getting_started/resources/hpc.md): Best-practices for running on a computing cluster
-- [ Snakamake Things](https://pdimens.github.io/harpy/getting_started/resources/snakemake.md): Helpful things to understand about Snakemake
-- [ Software used in Harpy](https://pdimens.github.io/harpy/getting_started/resources/software.md): A significant debt of gratitude; we stand on the shoulders of giants
+- [ Developing Harpy](https://blinkseq.github.io/harpy/getting_started/resources/development.md): Source code structure and how to contribute to Harpy's development
+- [ Running on an HPC Cluster](https://blinkseq.github.io/harpy/getting_started/resources/hpc.md): Best-practices for running on a computing cluster
+- [ Snakamake Things](https://blinkseq.github.io/harpy/getting_started/resources/snakemake.md): Helpful things to understand about Snakemake
+- [ Software used in Harpy](https://blinkseq.github.io/harpy/getting_started/resources/software.md): A significant debt of gratitude; we stand on the shoulders of giants
 
 ### Troubleshooting
 
-- [ Basic Troubleshooting](https://pdimens.github.io/harpy/getting_started/troubleshooting/basics.md): Lots of stuff can go wrong during an analysis. The intent of this page is to guide you through navigating the inevitable errors associated with doing bioinformatics.
-- [ Common Issues](https://pdimens.github.io/harpy/getting_started/troubleshooting/common_issues.md): If you use bamutils clipOverlap on alignments that are used for the or modules, they will cause both programs to error. We don't know why, but they do.
-- [ harpy diagnose](https://pdimens.github.io/harpy/getting_started/troubleshooting/diagnose.md): Harpy includes a series of commands to faciliate troubleshooting
-- [ Install / Conda](https://pdimens.github.io/harpy/getting_started/troubleshooting/conda.md): Conda is an awesome package manager, but was slow and used a ton of memory as dependencies increased. Recent (23.10+) versions of Conda now use the libmamba solver, the super-fast and super-lightweight solver from Mamba.
-- [ Resume](https://pdimens.github.io/harpy/getting_started/troubleshooting/resume.md): When calling a workflow (e.g. ), Harpy performs various file checks and validations, sets up the Snakemake command, output folder(s), etc. In the event you want to continue a failed or manually terminated workflow without overwriting the workflow files (e.g.
-- [ View](https://pdimens.github.io/harpy/getting_started/troubleshooting/view.md): This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.
-- [ Common Harpy Options](https://pdimens.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
-- [ Input FASTQ Format](https://pdimens.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
-- [ Install Harpy](https://pdimens.github.io/harpy/getting_started/install.md): Installing Harpy on your system
-- [ Harpy Reports](https://pdimens.github.io/harpy/getting_started/reports.md): The report system in Harpy
-- [ Utilities](https://pdimens.github.io/harpy/getting_started/utilities.md): Utilities provided alongside a Harpy installation
+- [ Basic Troubleshooting](https://blinkseq.github.io/harpy/getting_started/troubleshooting/basics.md): Lots of stuff can go wrong during an analysis. The intent of this page is to guide you through navigating the inevitable errors associated with doing bioinformatics.
+- [ Common Issues](https://blinkseq.github.io/harpy/getting_started/troubleshooting/common_issues.md): If you use bamutils clipOverlap on alignments that are used for the or modules, they will cause both programs to error. We don't know why, but they do.
+- [ harpy diagnose](https://blinkseq.github.io/harpy/getting_started/troubleshooting/diagnose.md): Harpy includes a series of commands to faciliate troubleshooting
+- [ Install / Conda](https://blinkseq.github.io/harpy/getting_started/troubleshooting/conda.md): Conda is an awesome package manager, but was slow and used a ton of memory as dependencies increased. Recent (23.10+) versions of Conda now use the libmamba solver, the super-fast and super-lightweight solver from Mamba.
+- [ Resume](https://blinkseq.github.io/harpy/getting_started/troubleshooting/resume.md): When calling a workflow (e.g. ), Harpy performs various file checks and validations, sets up the Snakemake command, output folder(s), etc. In the event you want to continue a failed or manually terminated workflow without overwriting the workflow files (e.g.
+- [ View](https://blinkseq.github.io/harpy/getting_started/troubleshooting/view.md): This convenience command lets you view relevant details within a Harpy workflow directory without having to fish around for the right files. Since version 4.0, a harpy installation also aliases harpy view as hv for convenience.
+- [ Common Harpy Options](https://blinkseq.github.io/harpy/getting_started/common_options.md): Command-line options across harpy workflows
+- [ Input FASTQ Format](https://blinkseq.github.io/harpy/getting_started/inputformat.md): What FASTQ formats are compatible with Harpy
+- [ Install Harpy](https://blinkseq.github.io/harpy/getting_started/install.md): Installing Harpy on your system
+- [ Harpy Reports](https://blinkseq.github.io/harpy/getting_started/reports.md): The report system in Harpy
+- [ Utilities](https://blinkseq.github.io/harpy/getting_started/utilities.md): Utilities provided alongside a Harpy installation
 
 ## Commands
 
 ### align
 
-- [ Align Sequences to a Genome](https://pdimens.github.io/harpy/commands/align/align.md): Choosing an aligner
-- [ align without linked-read information](https://pdimens.github.io/harpy/commands/align/standard.md): Align sequences with minibwa / strobealign /minimap2
-- [ assembly](https://pdimens.github.io/harpy/commands/assembly.md): Create a genome assembly from linked reads
-- [ deconvolve](https://pdimens.github.io/harpy/commands/deconvolve.md): Resolve barcodes shared by different molecules
-- [ preprocess](https://pdimens.github.io/harpy/commands/preprocess.md): Preprocess raw sequences into haplotag barcoded samples
-- [ impute](https://pdimens.github.io/harpy/commands/impute.md): Impute genotypes for linked-read data with STITCH
-- [ metassembly](https://pdimens.github.io/harpy/commands/metassembly.md): Create a metagenome assembly from linked reads
-- [template](https://pdimens.github.io/harpy/commands/template.md): Generate extra files for analysis with Harpy
+- [ Align Sequences to a Genome](https://blinkseq.github.io/harpy/commands/align/align.md): Choosing an aligner
+- [ align without linked-read information](https://blinkseq.github.io/harpy/commands/align/standard.md): Align sequences with minibwa / strobealign /minimap2
+- [ assembly](https://blinkseq.github.io/harpy/commands/assembly.md): Create a genome assembly from linked reads
+- [ deconvolve](https://blinkseq.github.io/harpy/commands/deconvolve.md): Resolve barcodes shared by different molecules
+- [ preprocess](https://blinkseq.github.io/harpy/commands/preprocess.md): Preprocess raw sequences into haplotag barcoded samples
+- [ impute](https://blinkseq.github.io/harpy/commands/impute.md): Impute genotypes for linked-read data with STITCH
+- [ metassembly](https://blinkseq.github.io/harpy/commands/metassembly.md): Create a metagenome assembly from linked reads
+- [template](https://blinkseq.github.io/harpy/commands/template.md): Generate extra files for analysis with Harpy
 
 ### phase
 
-- [ phase bam](https://pdimens.github.io/harpy/commands/phase/phase_alignment.md): Phasing will add PS tags to alignment records using Whatshap
-- [ phase snp](https://pdimens.github.io/harpy/commands/phase/phase_snp.md): Phase SNPs and indels into haplotypes with HapCut2
-- [ validate](https://pdimens.github.io/harpy/commands/validate.md): Perform file format checks on linked-read FASTQ/BAM files
-- [ qc](https://pdimens.github.io/harpy/commands/qc.md): Quality trim haplotagged sequences with fastp
-- [ snp](https://pdimens.github.io/harpy/commands/snp.md): Call SNPs and small indels
+- [ phase bam](https://blinkseq.github.io/harpy/commands/phase/phase_alignment.md): Phasing will add PS tags to alignment records using Whatshap
+- [ phase snp](https://blinkseq.github.io/harpy/commands/phase/phase_snp.md): Phase SNPs and indels into haplotypes with HapCut2
+- [ validate](https://blinkseq.github.io/harpy/commands/validate.md): Perform file format checks on linked-read FASTQ/BAM files
+- [ qc](https://blinkseq.github.io/harpy/commands/qc.md): Quality trim haplotagged sequences with fastp
+- [ snp](https://blinkseq.github.io/harpy/commands/snp.md): Call SNPs and small indels
 
 ### sv
 
-- [ Find structural variants](https://pdimens.github.io/harpy/commands/sv/sv.md): Inversions, Deletions, Duplications
-- [ sv leviathan](https://pdimens.github.io/harpy/commands/sv/leviathan.md): Call structural variants using Leviathan
-- [ sv naibr](https://pdimens.github.io/harpy/commands/sv/naibr.md): Call structural variants using NAIBR (plus)
+- [ Find structural variants](https://blinkseq.github.io/harpy/commands/sv/sv.md): Inversions, Deletions, Duplications
+- [ sv leviathan](https://blinkseq.github.io/harpy/commands/sv/leviathan.md): Call structural variants using Leviathan
+- [ sv naibr](https://blinkseq.github.io/harpy/commands/sv/naibr.md): Call structural variants using NAIBR (plus)

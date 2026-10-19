@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://pdimens.github.io/harpy/sitemap.xml
+Sitemap: https://blinkseq.github.io/harpy/sitemap.xml
