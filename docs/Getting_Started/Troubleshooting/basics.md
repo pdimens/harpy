@@ -33,7 +33,7 @@ will be validated with all kinds of scripts and checks internally. For
 example, an input genome FASTA will be checked to be a properly formatted
 FASTA file. We do our best to include an error message that guides you
 on how to fix things and try again. If there are errors you're receiving
-that you think could use better wording or more information, [please let us know](https://github.com/pdimens/harpy/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.yml)!
+that you think could use better wording or more information, [please let us know](https://github.com/blinkseq/harpy/issues/new?assignees=&labels=enhancement&projects=&template=feature_request.yml)!
 ![Harpy file validations](/static/errormsg.png)
 
 ### snakemake validations
@@ -47,7 +47,7 @@ helpful error text is printed, then you should run the Snakemake command
 directly and explore the output. You can copy and paste the Snakemake
 command from the `config.harpy.yaml` file created by Harpy, specifically listed
 under `snakemake` (either `absolute` or `relative`). If it seems like something on our end, please
-[open an issue](https://github.com/pdimens/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml)
+[open an issue](https://github.com/blinkseq/harpy/issues/new?assignees=&labels=bug&projects=&template=bug_report.yml)
 and include the error text Snakemake provides.
 ![copy and paste this command directly to see Snakemake error text](/static/workflow_call.png)
 

@@ -27,7 +27,7 @@ def report():
     two options. 
     """
 
-@click.command(epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
+@click.command(epilog = "Documentation: https://blinkseq.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, help = 'Dump all of jupyterbook\'s output to the terminal')
 @click.option('-h', '--headless', is_flag = True, help = 'Run the server in headless mode, with only the content server started')
 @click.option('-m', '--md', is_flag = True, help = 'Also scan for markdown files (.md)')
@@ -115,7 +115,7 @@ def live(directory, debug, md, headless, clear_cache, port, server_port, refresh
         )
 
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/reports/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/reports/")
 @click.option('-d', '--debug', is_flag = True, default = False, help = 'Log process information to stderr')
 @click.option('-s', '--self-contained', is_flag = True, default = False, help = 'Store all JS and CSS within the output file')
 @click.option('-Q', '--quiet', is_flag = True, default = False, help = 'Do not print progress')

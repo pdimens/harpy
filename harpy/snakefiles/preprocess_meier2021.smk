@@ -32,9 +32,9 @@ onstart:
         "subtitle": "This report aggregates the QA results created by falco",
         "report_comment": "Generated as part of the Harpy preprocess workflow",
         "report_header_info": [
-            {"Submit an issue": "https://github.com/pdimens/harpy/issues/new/choose"},
-            {"Read the Docs": "https://pdimens.github.io/harpy/workflows/preprocess/"},
-            {"Project Homepage": "https://github.com/pdimens/harpy"}
+            {"Submit an issue": "https://github.com/blinkseq/harpy/issues/new/choose"},
+            {"Read the Docs": "https://blinkseq.github.io/harpy/workflows/preprocess/"},
+            {"Project Homepage": "https://github.com/blinkseq/harpy"}
         ]
     }
     if not skip_reports:

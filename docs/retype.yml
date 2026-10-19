@@ -4,7 +4,7 @@ nav:
   mode: stack
 input: .
 output: .retype
-url: pdimens.github.io/harpy/
+url: blinkseq.github.io/harpy/
 meta:
   title: " | Harpy"
 footer:
@@ -19,7 +19,7 @@ footer:
     target: blank
   - text: Cornell GIH
     link: https://www.genomicsinnovation.cornell.edu/
-    icon: https://raw.githubusercontent.com/pdimens/harpy/refs/heads/main/docs/static/biotech.png
+    icon: https://raw.githubusercontent.com/blinkseq/harpy/refs/heads/main/docs/static/biotech.png
     target: blank
 showSidebarFilter: false
 backlinks:
@@ -43,7 +43,7 @@ favicon: static/logo_navbar.png
 search:
   mode: partial
 edit:
-  repo: "https://github.com/pdimens/harpy/edit"
+  repo: "https://github.com/blinkseq/harpy/edit"
   base: /
   branch: "docs"
 links:
@@ -52,11 +52,11 @@ links:
   icon: https://blinkseq.github.io/_astro/logo.DGThwx8R_1NHPA4.webp
   target: blank
 - text: Source
-  link: https://github.com/pdimens/harpy
+  link: https://github.com/blinkseq/harpy
   icon: mark-github
   target: blank
 - text: Submit Issue
-  link: https://github.com/pdimens/harpy/issues/new/choose
+  link: https://github.com/blinkseq/harpy/issues/new/choose
   icon: bug
   target: blank
 actions:

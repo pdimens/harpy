@@ -1,8 +1,8 @@
-[![logo](docs/static/logo_trans.png)](https://pdimens.github.io/harpy)
+[![logo](docs/static/logo_trans.png)](https://blinkseq.github.io/harpy)
 
-[![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=anaconda&logoColor=ffffff)](https://github.com/pdimens/harpy/releases)
-[![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://pdimens.github.io/harpy)
-[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
+[![GitHub Release](https://img.shields.io/github/v/release/blinkseq/harpy?style=for-the-badge&logo=anaconda&logoColor=ffffff)](https://github.com/blinkseq/harpy/releases)
+[![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://blinkseq.github.io/harpy)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/blinkseq/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 [![Linked-Read Data Standard](https://custom-icon-badges.demolab.com/badge/-Standardized%20Data-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://blinkseq.github.io/lastq/)
 
 [Linked-read](https://doi.org/10.1073/pnas.2015005118) data processing pipeline. Getting you from raw linked reads to assemblies, genotypes, or phased haplotypes. Batteries included 🔋
@@ -12,7 +12,7 @@
 </p>
 
 ## 📥 Install
-Detailed installation instructions are described in [the documentation](https://pdimens.github.io/harpy/getting_started/install/). 
+Detailed installation instructions are described in [the documentation](https://blinkseq.github.io/harpy/getting_started/install/). 
 ### 🐍 Conda
 ```bash
 conda create -n harpy -c bioconda -c conda-forge harpy
@@ -46,7 +46,7 @@ harpy module options... args...
 ```
 
 ## 🌈 Getting Started
-No data? No problem! Use [HACk](https://davidebolo1993.github.io/visordoc/usecases/usecases.html#visor-hack) to simulate genomic variants from an existing genome and use [Mimick](https://pdimens.github.io/mimick/#/) to create linked-read data from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without investing a single cent! A real-world walkthrough of how we did this for a benchmarking experiment can be found [here](https://pdimens.github.io/LRInversionSimulations/).
+No data? No problem! Use [HACk](https://davidebolo1993.github.io/visordoc/usecases/usecases.html#visor-hack) to simulate genomic variants from an existing genome and use [Mimick](https://blinkseq.github.io/mimick/#/) to create linked-read data from an existing genome! You can see what haplotagging (or other linked read) data and Harpy are like without investing a single cent! A real-world walkthrough of how we did this for a benchmarking experiment can be found [here](https://blinkseq.github.io/LRInversionSimulations/).
 
 ## Citation
 >Dimens PV, Franckowiak RP, Iqbal A, Grenier JK, Munn PR, Therkildsen NO. Harpy: a pipeline for processing haplotagging linked-read data. Bioinform Adv. 2025 Jun 5;5(1):vbaf133. doi: [10.1093/bioadv/vbaf133](https://pubmed.ncbi.nlm.nih.gov/40575478/). PMID: 40575478; PMCID: PMC12198493.

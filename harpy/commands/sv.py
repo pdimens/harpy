@@ -38,7 +38,7 @@ def sv():
     genotype them using `svjedi-tag`.
     """
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://pdimens.github.io/harpy/workflows/sv/leviathan/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog= "Documentation: https://blinkseq.github.io/harpy/workflows/sv/leviathan/")
 @click.option('-x', '--extra-params', panel = "Parameters", type = LeviathanParams(), help = 'Additional leviathan parameters, in quotes')
 @click.option('-i', '--iterations', panel = "Parameters", show_default = True, default=50, type = click.IntRange(min = 10), help = 'Number of iterations to perform through index (reduces memory)')
 @click.option('-d', '--duplicates', panel = "Parameters", show_default = True, default=10, type = click.IntRange(min = 1), help = 'Consider SV of the same type as duplicates if their breakpoints are within this distance')
@@ -112,7 +112,7 @@ def leviathan(inputs, output, reference, min_size, min_barcodes, iterations, dup
 
     workflow.initialize(setup)
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/naibr/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/sv/naibr/")
 @click.option('-x', '--extra-params', panel = "Parameters", type = NaibrParams(), help = 'Additional naibr parameters, in quotes')
 @click.option('-b', '--min-barcodes', panel = "Parameters", show_default = True, default=2, type = click.IntRange(min = 1), help = 'Minimum number of barcode overlaps supporting candidate SV')
 @click.option('-q', '--min-quality', panel = "Parameters", show_default = True, default=30, type = click.IntRange(min = 0, max = 40), help = 'Minimum mapping quality of reads to use')
@@ -183,7 +183,7 @@ def naibr(inputs, output, reference, min_size, min_barcodes, min_quality, thread
     workflow.initialize(setup)
 
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/sv/svjeditag/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/sv/svjeditag/")
 @click.option("-r", "--region-size", panel = "Parameters", default=10000, show_default = True, type = click.IntRange(min = 50), help = "size of barcode scanning window (bp)")
 @click.option("-i", "--inaccuracy", panel = "Parameters", default=0, show_default = True, type = click.IntRange(min = 0), help = "breakpoint inaccuracy tolerance (bp)")
 @click.option("-m", "--min-diff", panel = "Parameters",  default=20, show_default = True, type = click.IntRange(min = 1), help = "minimum difference between the two best genotype likelihoods")

@@ -8,7 +8,7 @@ icon: tools
 Harpy is an open source program written using a combination of BASH, Go, R, 
 Python, and Snakemake. This page provides information on Harpy's
 development and how to contribute to it, if you were inclined to do so. If you want
-a great overview of the mechanics of the internals, [check out the DeepWiki for Harpy](https://deepwiki.com/pdimens/harpy/2-core-architecture).
+a great overview of the mechanics of the internals, [check out the DeepWiki for Harpy](https://deepwiki.com/blinkseq/harpy/2-core-architecture).
 
 === Design Philosophy
 
@@ -45,7 +45,7 @@ curl -fsSL https://pixi.sh/install.sh | sh
 
 >>> Clone the Harpy git repository:
 ```bash
-git clone https://github.com/pdimens/harpy.git
+git clone https://github.com/blinkseq/harpy.git
 ```
 
 >>> Install the environment manually or have `pixi` do it automatically when you activate the pixi shell:
@@ -115,7 +115,7 @@ table below:
 ### development workflow
 The dev workflow is reasonably standard:
 >>> Fork Harpy
-[create a fork](https://github.com/pdimens/harpy/fork) of Harpy, usually from the `main` branch
+[create a fork](https://github.com/blinkseq/harpy/fork) of Harpy, usually from the `main` branch
 >>> Create new development branch
 Within your fork, create a new branch, name it something relevant to what you intend to do (_e.g._, `naibr_bugfix`, `add_deepvariant`)
 >>> Make code changes
@@ -166,7 +166,7 @@ could not run successfully to completion. These tests do not test for accuracy,
 but test for breaking behavior. You'd be shocked to find out how many errors
 crop up this way and require more work so Harpy can be resilient to more use cases.
 ### releases
-There is [an automation](https://github.com/pdimens/harpy/blob/dev/.github/workflows/createrelease.yml)
+There is [an automation](https://github.com/blinkseq/harpy/blob/dev/.github/workflows/createrelease.yml)
 that gets triggered every time Harpy is tagged with the new version. It strips out the unnecessary files and will
 upload a cleaned tarball to the new release (reducing filesize by orders of magnitude). The automation will also
 build a new Dockerfile and tag it with the same git tag for Harpy's next release and push it to Dockerhub.

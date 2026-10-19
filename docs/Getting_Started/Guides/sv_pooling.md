@@ -89,7 +89,7 @@ quickly and easily, but **do not do this**. The [!badge corners="pill" text="har
 workflows will intelligently concatenate files and will make sure
 every individual will have unique `BX` (or `MI`) values that are not shared with any
 other individual in the pool. If you need to concatenate linked-read alignment files outside
-of a workflow, use [djinn](https://pdimens.github.io/djinn/) shipped with Harpy
+of a workflow, use [djinn](https://blinkseq.github.io/djinn/) shipped with Harpy
 instead of `samtools cat` or other similar tools.
 
 ==- technical explanation

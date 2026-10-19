@@ -75,7 +75,7 @@ def cli():
 
     **preprocess >> qc >> align >> snp >> impute >> phase >> sv**
 
-    **Documentation**: [https://pdimens.github.io/harpy/](https://pdimens.github.io/harpy/)
+    **Documentation**: [https://blinkseq.github.io/harpy/](https://blinkseq.github.io/harpy/)
     """
 
 if __name__ == "__main__":

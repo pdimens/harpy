@@ -9,14 +9,8 @@ for _program in harpy harpy-utils hv; do
 done
 
 ## build Go binaries
-{
-    cd harpy/utils
-    go build -C stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
-    go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
-    go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
-    chmod +x gih-stagger gih-convert djinn-standardize
-    mv gih-stagger gih-convert djinn-standardize ${PREFIX}/bin/
-}
+go build -C harpy/utils/demoxolotl -o $PREFIX/bin/demoxolotl -ldflags='-s -w'
+go build -C harpy/utils/standardize -o $PREFIX/bin/djinn-standardize -ldflags='-s -w' standardize.go 
 
 ## activate/deactive processes
 mkdir -p $PREFIX/etc/conda/activate.d

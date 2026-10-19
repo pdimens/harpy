@@ -33,7 +33,7 @@ def snp():
     is greater than **2**.
     """
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = FreebayesParams(), help = 'Additional freebayes parameters, in quotes')
 @click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(min=1), help = 'Ploidy of samples')
@@ -108,7 +108,7 @@ def freebayes(reference, inputs, output, threads, populations, ploidy, regions, 
 
     workflow.initialize(setup)
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/snp")
 @click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional deepvariant parameters, in quotes')
 @click.option('-n', '--ploidy', panel = "Parameters", default = 2, show_default = True, type=click.IntRange(1, 2), help = 'Ploidy of samples')
 @click.option('-p', '--populations', panel = "Parameters", type=PopulationFile(), help = 'File of `sample`\\<TAB\\>`population`')
@@ -183,7 +183,7 @@ def mpileup(reference, inputs, output, regions, threads, populations, ploidy, ex
     workflow.initialize(setup)
 
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/snp")
 #@click.option('-x', '--extra-params', panel = "Parameters", type = MpileupParams(), help = 'Additional mpileup parameters, in quotes')
 @click.option('-r', '--regions', panel = "Parameters", type=SNPRegion(), default=50000000, show_default=True, help = "Regions where to call variants")
 @click.option('-i', '--keep-invariant', panel = "Parameters", is_flag = True, default = False, help = 'Keep invariant sites in the output')

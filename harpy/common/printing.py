@@ -113,10 +113,10 @@ class HarpyPrint():
         """Print a red panel with snakefile or conda/singularity error text to stderr"""
         if exitcode == 1:
             errortype = "Snakefile Error"
-            errortext = "Something is wrong with this Snakefile. If you edited it, see the error below for troubleshooting, and if not, please submit an issue on GitHub: [bold]https://github.com/pdimens/harpy/issues"
+            errortext = "Something is wrong with this Snakefile. If you edited it, see the error below for troubleshooting, and if not, please submit an issue on GitHub: [bold]https://github.com/blinkseq/harpy/issues"
         else:
             errortype = "Software Environment Error"
-            errortext = "There was an issue creating the environment for this workflow. If you manually edited the Conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. Otherwise, it may be a bug or related to your Conda/Apptainer setup—please report it on GitHub: [bold]https://github.com/pdimens/harpy/issues[/]"
+            errortext = "There was an issue creating the environment for this workflow. If you manually edited the Conda dependencies in [blue]/workflows/envs[/], see the error below for troubleshooting. Otherwise, it may be a bug or related to your Conda/Apptainer setup—please report it on GitHub: [bold]https://github.com/blinkseq/harpy/issues[/]"
             # Check if this is the `base` conda environment
             current_env = os.environ.get('CONDA_DEFAULT_ENV')
             if current_env == 'base':

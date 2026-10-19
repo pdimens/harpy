@@ -29,7 +29,7 @@ def template():
     All commands write to `stdout`. Use hpc-* and impute without arguments.
     """
 
-@click.command(panel = "Input Files", no_args_is_help=True, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/snp/#sample-grouping-file")
+@click.command(panel = "Input Files", no_args_is_help=True, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/snp/#sample-grouping-file")
 @click.argument('inputdir', required=True, type=click.Path(exists=True, file_okay=False))
 @click.help_option('--help', hidden = True)
 def groupings(inputdir):
@@ -60,7 +60,7 @@ def groupings(inputdir):
             hp.error(
                 "no files found",
                 f"No [bold]FASTQ[/] or [bold]BAM[/] files were detected in [blue]{inputdir}[/]",
-                "Check that [bold]FASTQ[/] file endings conform to [green].[/][[green]F[/][dim]|[/dim][green]R1[/]][green].[/][[green]fastq[/][dim]|[/dim][green]fq[/]][green].gz[/]\nCheck that [bold]BAM[/] files end in [green].bam[/]\nRead the documentation for details: https://pdimens.github.io/harpy/haplotagdata/#naming-conventions"
+                "Check that [bold]FASTQ[/] file endings conform to [green].[/][[green]F[/][dim]|[/dim][green]R1[/]][green].[/][[green]fastq[/][dim]|[/dim][green]fq[/]][green].gz[/]\nCheck that [bold]BAM[/] files end in [green].bam[/]\nRead the documentation for details: https://blinkseq.github.io/harpy/haplotagdata/#naming-conventions"
            )
        samplenames = set([re.sub(bn_r, "", i, flags = re.IGNORECASE) for i in fqlist])
 
@@ -69,7 +69,7 @@ def groupings(inputdir):
         _ = sys.stdout.write(f'{i}\tpop1\n')
     hp.notice("Please review the resulting file, as all samples have been grouped into a single population")
 
-@click.command(panel = "Other", epilog = "Documentation: https://pdimens.github.io/harpy/commands/template/#report")
+@click.command(panel = "Other", epilog = "Documentation: https://blinkseq.github.io/harpy/commands/template/#report")
 @click.option('-a', '--action', is_flag = True, default = False, help = 'Add a report-building GitHub Action to the repository')
 @click.option('-u', '--update', is_flag = True, default = False, help = 'Scan the git project for reports and update `myst.yml`')
 @click.help_option('--help', hidden = True)
@@ -222,7 +222,7 @@ def hpc_googlebatch():
     package_absent("snakemake-executor-plugin-googlebatch")
 
 
-@click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/#parameter-file")
+@click.command(panel =  "Input Files", context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/impute/#parameter-file")
 @click.help_option('--help', hidden = True)
 def impute():
     """

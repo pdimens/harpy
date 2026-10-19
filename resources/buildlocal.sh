@@ -18,12 +18,5 @@ mkdir -p "${CONDA_PREFIX}/etc/conda/activate.d"
 cp resources/shell_completion.sh "${CONDA_PREFIX}/etc/conda/activate.d/harpy-completion.sh"
 cp resources/shell_completion.fish "${CONDA_PREFIX}/etc/conda/activate.d/harpy-completion.fish"
 
-{
-    cd harpy/utils || exit 1  
-    go build -C stagger -o ../gih-stagger -ldflags='-s -w' stagger.go
-    go build -C convert -o ../gih-convert -ldflags='-s -w' convert.go
-    go build -C standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go 
-    chmod +x gih-stagger gih-convert djinn-standardize
-    mv gih-stagger gih-convert djinn-standardize "${CONDA_PREFIX}/bin/"
-    cd ../..
-}
+go build -C harpy/utils/demoxolotl -o $CONDA_PREFIX/bin/demoxolotl -ldflags='-s -w'
+go build -C harpy/utils/standardize -o $CONDA_PREFIX/bin/djinn-standardize -ldflags='-s -w' standardize.go 

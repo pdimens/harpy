@@ -29,7 +29,7 @@ The most common issue we tend to see is errors during this process.
 
 ### installation into base
 It's tempting to install software into the `base` environment conda/mamba ships with, but that behavior is discouraged (by Conda itself, not just us).
-Modificatons to `base` can mess with all sorts of things in other environments ([see this issue](https://github.com/pdimens/harpy/issues/248)), so we recommend installing Harpy (or anything) into literally any other environment. If you find conda things just aren't working
+Modificatons to `base` can mess with all sorts of things in other environments ([see this issue](https://github.com/blinkseq/harpy/issues/248)), so we recommend installing Harpy (or anything) into literally any other environment. If you find conda things just aren't working
 right and you know you have at some point modified the `base` environment, you can reset your `base` environment. It's not guaranteed, but 
 doing that might just fix things:
 ```bash

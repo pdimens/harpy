@@ -12,7 +12,7 @@ from harpy.validation.impute_parameters import ImputeParams
 from harpy.validation.vcf import VCF
 from harpy.validation.xam import XAM
 
-@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://pdimens.github.io/harpy/workflows/impute/")
+@click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/impute/")
 @click.option('-x', '--extra-params', panel = "Parameters", type = StitchParams(), help = 'Additional STITCH parameters, in quotes')
 @click.option('-b', '--buffer', panel = "Parameters", default =0.1, type = click.FloatRange(min = 0, clamp = True), show_default = True, help = 'Buffer length to consider on each side of genomic `region` or `window`')
 @click.option('-g', '--grid-size', panel = "Parameters", hidden = True, show_default = True, default = 1, type = click.IntRange(min = 1), help = 'Perform imputation in windows of a specific size, instead of per-SNP (default)')

@@ -15,7 +15,7 @@ image: https://t4.ftcdn.net/jpg/07/40/71/29/360_F_740712956_dyX3F3ehpbdqjCZT0Rdq
 
 !!!tip just use Djinn
 skip this entirely and use `djinn fastq sort` or `djinn sam sort` from
-the [djinn suite](https://pdimens.github.io/djinn/sort/).
+the [djinn suite](https://blinkseq.github.io/djinn/sort/).
 !!!
 
 You would think sorting data would be a no-brainer, and in most cases it is.

@@ -13,7 +13,7 @@ without any fuss.
 
 However tempting (or functional) that may be, that is not the idomatic way of running a Harpy workflow on an HPC, and there may
 be situations where a simple job script submission won't work, like if the worker nodes do not have internet access, or have specific 
-network-mounted filesystem configurations (see [this discussion](https://github.com/pdimens/harpy/discussions/222#discussion-8113022)). All 
+network-mounted filesystem configurations (see [this discussion](https://github.com/blinkseq/harpy/discussions/222#discussion-8113022)). All 
 major Harpy workflows rely on Snakemake and, conveniently/thankfully, the Snakemake developers put a lot of effort into addressing workflow
 execution on HPC clusters.
 
@@ -105,4 +105,4 @@ for a particular executor plugin and understand what configuration options their
 very technical, so we recommend starting with a simple configuration and getting more complex if issues arise. The Snakemake
 executor plugins are admittedly not consistent in their documentation quality and it's sometimes a rapidly
 changing landscape (for example, the `HTCondor` plugin was recently and quietly deperacated). If an executor plugin exists
-that you would like `harpy template` support for, please [open an Issue](https://github.com/pdimens/harpy/issues/new?template=feature_request.yml) and we'll get it added!
+that you would like `harpy template` support for, please [open an Issue](https://github.com/blinkseq/harpy/issues/new?template=feature_request.yml) and we'll get it added!

@@ -328,7 +328,7 @@ def myst_yaml() -> dict:
         "site" : {
             "template": "book-theme",
             "actions" : [
-                {"title": "📖 Docs", "url": "https://pdimens.github.io/harpy"}
+                {"title": "📖 Docs", "url": "https://blinkseq.github.io/harpy"}
             ],
             "options" : {
                 "favicon" : ".report/favicon.ico",

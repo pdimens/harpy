@@ -15,7 +15,7 @@ Jupyter comes several benefits:
 - Code is stored in the notebook and can be rerun
 - Outputs are recorded in the notebook
 - GitHub, JupyterLab, and VScode (and derivatives) natively render notebooks nicely
-- Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ [report webiste](https://pdimens.github.io/GIH-experiments/)
+- Harpy can leverage [MyST](https://mystmd.org/) (via Jupyter Book) to render everything into a _cohesive_ [report webiste](https://blinkseq.github.io/GIH-experiments/)
 
 !!!
 Complete overhaul is not an overstatement-- all the R code was ported into Python and reformatted for Jupyter format.
@@ -48,7 +48,7 @@ harpy report live <options> DIRECTORY
 
 
 ### Automate a report website
-The report setup and system lends itself well to easily build [a persistent report website](https://pdimens.github.io/GIH-experiments/) via GitHub Pages.
+The report setup and system lends itself well to easily build [a persistent report website](https://blinkseq.github.io/GIH-experiments/) via GitHub Pages.
 This requires one additional file: a GitHub Actions workflow that is triggered on push events (or whatever
 you configure it to). This can be added using:
 ```bash

@@ -32,7 +32,7 @@ hv = "harpy.commands.view:view"
 harpy-utils = "harpy.utils:cli"
 
 [project.urls]
-Homepage = "https://github.com/pdimens/harpy"
+Homepage = "https://github.com/blinkseq/harpy"
 
 [tool.setuptools.packages.find]
 exclude = [".pixi/*", "_build/*", ".environments/*", ".vscode/*", ".report/*", "test/*", ".deprecated/*", "resources/*", ".github/*", "docs/*"]
@@ -77,9 +77,7 @@ env = { JUPYTER_NOTARY_DB = ":memory:" }
 scripts = ["resources/register-kernel.sh", "resources/shell_completion.sh"]
 
 [tool.pixi.tasks]
-build-stagger     = {cmd = "go build -C harpy/utils/stagger -o ../gih-stagger -ldflags='-s -w' stagger.go", inputs = ["harpy/utils/stagger/stagger.go"], outputs = ["harpy/utils/gih-stagger"]}
-build-convert     = {cmd = "go build -C harpy/utils/convert -o ../gih-convert -ldflags='-s -w' convert.go", inputs = ["harpy/utils/convert/convert.go"], outputs = ["harpy/utils/gih-convert"]}
-build-standardize = {cmd = "go build -C harpy/utils/standardize -o ../djinn-standardize -ldflags='-s -w' standardize.go", inputs = ["harpy/utils/standardize/standardize.go"], outputs = ["harpy/utils/djinn-standardize"]}
-install = {cmd = "mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize $CONDA_PREFIX/bin/", depends-on = ["build-stagger", "build-convert", "build-standardize"]}
+build-demux     = {cmd = "go build -C harpy/utils/demux -o $CONDA_PREFIX/bin/demuxolotl -ldflags='-s -w'"}
+build-standardize = {cmd = "go build -C harpy/utils/standardize -o $CONDA_PREFIX/djinn-standardize -ldflags='-s -w' standardize.go"}
 completion = {cmd = "bash resources/generate_completion.sh $CONDA_PREFIX python"}
-build = {depends-on = ["install", "completion"]}
+build = {depends-on = ["build-demux", "build-standardize", "completion"]}

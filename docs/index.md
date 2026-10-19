@@ -14,7 +14,7 @@ It uses all the magic of [Snakemake](https://snakemake.readthedocs.io/en/stable/
 under the hood to handle the worklfow decision-making, but as a user, you just interact with it like a normal command-line 
 program. Harpy employs both well known and niche programs to take raw linked-read sequences and process
 them to become called SNP genotypes (or haplotypes) or large structural variants (inversions, deletions, duplications).
-Feel free to open an [Issue](https://github.com/pdimens/harpy/issues/new/choose) or begin a [Discussion](https://github.com/pdimens/harpy/discussions) on GitHub.
+Feel free to open an [Issue](https://github.com/blinkseq/harpy/issues/new/choose) or begin a [Discussion](https://github.com/blinkseq/harpy/discussions) on GitHub.
 
 <center><strong>Harpy is...</strong></center>
 

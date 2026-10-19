@@ -167,12 +167,12 @@ for macOS (or Windows), meaning you won't be able to use most of Harpy.
 !!!
 
 === Download the latest release
-The latest release can be found [here](https://github.com/pdimens/harpy/releases/latest). You will want to download the latest
+The latest release can be found [here](https://github.com/blinkseq/harpy/releases/latest). You will want to download the latest
 tarball, which will be named `harpy.VERISON.tar.gz`.
 
 ```bash
 # change the version number to the latest release!
-wget https://github.com/pdimens/harpy/releases/download/4.1.1/harpy.4.1.1.tar.gz
+wget https://github.com/blinkseq/harpy/releases/download/4.1.1/harpy.4.1.1.tar.gz
 tar xvfz harpy.4.1.1.tar.gz
 cd harpy.4.1.1
 ```
@@ -215,7 +215,7 @@ chmod +x harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-stand
 # move to directory on your PATH 
 mv harpy/utils/gih-stagger harpy/utils/gih-convert harpy/utils/djinn-standardize path/to/bin/
 ```
-- [djinn](https://pdimens.github.io/djinn/install/#pip) for some of the conversions
+- [djinn](https://blinkseq.github.io/djinn/install/#pip) for some of the conversions
 
 ==- ⬆️ updating harpy
 Updating Harpy installed this way would require repeating the steps with a different Harpy version.
