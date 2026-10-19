@@ -1,7 +1,7 @@
 [![logo](docs/static/logo_trans.png)](https://pdimens.github.io/harpy)
 
 [![GitHub Release](https://img.shields.io/github/v/release/pdimens/harpy?style=for-the-badge&logo=anaconda&logoColor=ffffff)](https://github.com/pdimens/harpy/releases)
-[![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://pdimens.github.io/harpy)
+[![documentation badge](https://img.shields.io/badge/read%20the-docs-fbab3a?style=for-the-badge&logo=quicklook&logoColor=ffffff)](https://blinkseq.github.io/harpy/)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pdimens/harpy/tests.yml?style=for-the-badge&logo=cachet&logoColor=ffffff)](https://www.youtube.com/watch?v=F1qdBPlK9M4)
 [![Linked-Read Data Standard](https://custom-icon-badges.demolab.com/badge/-Standardized%20Data-8879b9?style=for-the-badge&logo=grapheneos&logoColor=ffffff)](https://blinkseq.github.io/lastq/)
 
@@ -12,7 +12,7 @@
 </p>
 
 ## 📥 Install
-Detailed installation instructions are described in [the documentation](https://pdimens.github.io/harpy/getting_started/install/). 
+Detailed installation instructions are described in [the documentation](https://blinkseq.github.io/harpy/getting_started/install/). 
 ### 🐍 Conda
 ```bash
 conda create -n harpy -c bioconda -c conda-forge harpy
