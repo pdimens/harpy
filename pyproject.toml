@@ -77,7 +77,6 @@ env = { JUPYTER_NOTARY_DB = ":memory:" }
 scripts = ["resources/register-kernel.sh", "resources/shell_completion.sh"]
 
 [tool.pixi.tasks]
-build-demux     = {cmd = "go build -C harpy/utils/demux -o $CONDA_PREFIX/bin/demuxolotl -ldflags='-s -w'"}
-build-standardize = {cmd = "go build -C harpy/utils/standardize -o $CONDA_PREFIX/djinn-standardize -ldflags='-s -w' standardize.go"}
-completion = {cmd = "bash resources/generate_completion.sh $CONDA_PREFIX python"}
-build = {depends-on = ["build-demux", "build-standardize", "completion"]}
+build-demux         = {cmd = "go build -C harpy/utils/demuxolotl -o $CONDA_PREFIX/bin/demuxolotl -ldflags='-s -w'"}
+completion          = {cmd = "bash resources/generate_completion.sh $CONDA_PREFIX python"}
+build = {depends-on = ["build-demux", "completion"]}

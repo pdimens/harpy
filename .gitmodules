@@ -1,0 +1,3 @@
+[submodule "harpy/utils/demuxolotl"]
+	path = harpy/utils/demuxolotl
+	url = https://github.com/BLinkseq/demuxolotl.git

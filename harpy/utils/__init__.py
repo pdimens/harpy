@@ -7,8 +7,6 @@ from harpy.common.lazy_group import LazyGroup, LazySpec
 # and hidden flag are repeated here so `--help` and shell completion can list them without importing
 # anything. test/cli/check_lazy_cli.py checks that this stays in sync with the commands.
 COMMANDS = {
-    "bx-stats-fq":       LazySpec("harpy.utils.bx_stats_fq:bx_stats_fq", "Parses a FASTQ file to count: total sequences, total number of linked-read barcodes, number of valid barcodes, number of invalid BX tags, and a count of positional barcode invalidations (e.g. A00, _0_, N)"),
-    "bx-stats-sam":      LazySpec("harpy.utils.bx_stats_sam:bx_stats_sam", "Linked-read metrics from alignment files"),
     "bx-to-end":         LazySpec("harpy.utils.bx_to_end:bx_to_end", "Move BX:Z tag to the end of records"),
     "check-bam":         LazySpec("harpy.utils.check_bam:check_bam", "File format validation for SAM/BAM file"),
     "check-fastq":       LazySpec("harpy.utils.check_fastq:check_fastq", "File format validation for FASTQ file"),

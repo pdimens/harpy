@@ -19,4 +19,3 @@ cp resources/shell_completion.sh "${CONDA_PREFIX}/etc/conda/activate.d/harpy-com
 cp resources/shell_completion.fish "${CONDA_PREFIX}/etc/conda/activate.d/harpy-completion.fish"
 
 go build -C harpy/utils/demoxolotl -o $CONDA_PREFIX/bin/demoxolotl -ldflags='-s -w'
-go build -C harpy/utils/standardize -o $CONDA_PREFIX/bin/djinn-standardize -ldflags='-s -w' standardize.go 

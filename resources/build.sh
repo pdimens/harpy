@@ -10,7 +10,6 @@ done
 
 ## build Go binaries
 go build -C harpy/utils/demoxolotl -o $PREFIX/bin/demoxolotl -ldflags='-s -w'
-go build -C harpy/utils/standardize -o $PREFIX/bin/djinn-standardize -ldflags='-s -w' standardize.go 
 
 ## activate/deactive processes
 mkdir -p $PREFIX/etc/conda/activate.d

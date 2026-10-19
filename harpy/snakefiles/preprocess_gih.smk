@@ -15,7 +15,7 @@ VERSION    = WORKFLOW.get('harpy-version', 'latest')
 fqlist       = INPUTS
 skip_reports = REPORTS.get("skip", False)
 me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
-mismatch     = PARAMETERS.get("ME-mismatch", 1) 
+mismatch     = PARAMETERS.get("ME-mismatch", 2) 
 qxrx         = PARAMETERS.get("qx-rx", False)
 schemafile   = INPUTS.get("schema", "")
 
