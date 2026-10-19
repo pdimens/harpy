@@ -26,6 +26,14 @@
   - `align`: final BAM outputs in `<outdir>/aligned`
   - `phase bam`: final outputs in `<outdir>/phased`
   - **a breaking change if your workflows expect output files to be in `<outdir>`**
+- `preprocess gih` demultiplexing code formalized into standalone package [demuxolotl](https://github.com/BLinkseq/demuxolotl)
+  - fixes a bug that dropped every ~5000th read
+  - no FQ -> SAM -> FQ round trip
+  - better threading model
+  - overall faster
+- `djinn` dependency got complete Go rewrite
+  - all things that called djinn are much faster
+  - barcode stats for SAM and FASTQ files moved to djinn (breaking: removed from `harpy-utils`)
 
 # Fixes
 - `harpy view envs`: simpler logic and print diagnostic text if empty
