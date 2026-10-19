@@ -4,7 +4,7 @@ nav:
   mode: stack
 input: .
 output: .retype
-url: pdimens.github.io/harpy/
+url: blinkseq.github.io/harpy/
 meta:
   title: " | Harpy"
 footer:
@@ -31,7 +31,7 @@ favicon: static/logo_navbar.png
 search:
   mode: partial
 edit:
-  repo: "https://github.com/pdimens/harpy/edit"
+  repo: "https://github.com/blinkseq/harpy/edit"
   base: /
   branch: "docs"
 links:
@@ -44,11 +44,11 @@ links:
   icon: https://therkildsen-lab.github.io/images/TherkildsenLogo.png
   target: blank
 - text: Source
-  link: https://github.com/pdimens/harpy
+  link: https://github.com/blinkseq/harpy
   icon: mark-github
   target: blank
 - text: Submit Issue
-  link: https://github.com/pdimens/harpy/issues/new/choose
+  link: https://github.com/blinkseq/harpy/issues/new/choose
   icon: bug
   target: blank
 actions:
