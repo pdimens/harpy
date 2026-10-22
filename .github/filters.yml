@@ -41,7 +41,6 @@ qc: &qc
   - *environments
   - 'harpy/commands/qc.py'
   - 'harpy/snakefiles/qc.smk'
-  - 'harpy/utils/bx_stats_fq.py'
   - 'harpy/validation/fastq.py'
   - 'test/fastq/**'
   - 'harpy/notebooks/fastp_qc.ipynb'
@@ -58,7 +57,6 @@ align: &align
   - 'harpy/notebooks/align_stats.ipynb'
   - 'harpy/notebooks/align_lrstats.ipynb'
   - 'harpy/notebooks/samtools_stats.ipynb'
-  - 'harpy/utils/bx_stats_sam.py'
   - 'harpy/utils/molecule_coverage.py'
   - 'harpy/validation/fasta.py'
   - 'harpy/validation/fastq.py'

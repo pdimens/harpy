@@ -159,7 +159,7 @@ rule molecule_stats:
     params:
         molecule_distance
     shell:
-        "harpy-utils bx-stats-sam -d {params} {input} 2> {log} | gzip > {output}"
+        "djinn sam stats -d {params} {input} 2> {log} | gzip > {output}"
 
 rule alignment_report:
     retries: 1
@@ -184,7 +184,7 @@ rule sample_reports:
         lrstats = "reports/data/lrstats/{sample}.lrstats.gz",
         coverage = "reports/data/coverage/{sample}.regions.bed.gz",
         molcov = "reports/data/coverage/{sample}.molcov.gz",
-        ipynb = f"workflow/align_stats.ipynb"
+        ipynb = f"workflow/align_sample_stats.ipynb"
     output:
         "reports/{sample}.ipynb"
     params:

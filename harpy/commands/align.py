@@ -56,7 +56,7 @@ def bwa(reference, inputs, output, depth_window, unlinked, threads, keep_unmappe
     """
     workflow = Workflow("align_bwa", "align.smk", output, container, clean, quiet)
     workflow.setup_snakemake(threads, hpc, snakemake, no_temp)
-    workflow.notebook_files = ["align_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
+    workflow.notebook_files = ["align_sample_stats.ipynb", "align_lrstats.ipynb", "samtools_stats.ipynb"]
     workflow.conda = ["align", "qc"]
 
     ## checks and validations ##
