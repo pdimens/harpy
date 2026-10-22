@@ -1,0 +1,74 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends Omit<HTMLAttributes<'a'>, 'title'> {
+	title: string;
+	description?: string;
+}
+
+const { title, description, ...attributes } = Astro.props;
+---
+
+<div class="sl-link-card">
+	<span class="sl-flex stack">
+		<a {...attributes}>
+			<span class="title" set:html={title} />
+		</a>
+		{description && <span class="description" set:html={description} />}
+	</span>
+</div>
+
+<style>
+	@layer starlight.components {
+		.sl-link-card {
+			position: relative;
+			display: flex;
+			justify-content: center;
+			border-radius: 1.5rem;
+			padding: 1.5rem;
+			box-shadow: var(--sl-shadow-sm);
+			background: linear-gradient(40deg, #3b82f6, #8b5cf6);
+			border: 4px solid transparent;
+		}
+
+		a {
+			text-decoration: none;
+			line-height: var(--sl-line-height-headings);
+			text-align: center;
+		}
+
+		a::before {
+			content: '';
+			position: absolute;
+			inset: 0;
+		}
+
+		.stack {
+			flex-direction: column;
+			align-items: center;
+			gap: 0.5rem;
+			text-align: center;
+		}
+
+		.title {
+			color: #fff;
+			font-weight: 600;
+			font-size: 36px;
+		}
+
+		.description {
+			color: #fff;
+			line-height: 1.5;
+			opacity: 1;
+			font-size: var(--sl-text-lg);
+		}
+
+		.sl-link-card:hover {
+            background:
+              linear-gradient(40deg, #3b82f6, #8b5cf6) padding-box,
+              linear-gradient(90deg, #40E0D0, #FF8C00, #FF0080) border-box;
+            background-origin: padding-box, border-box;
+            background-clip: padding-box, border-box;
+		}
+	}
+</style>

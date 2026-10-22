@@ -1,0 +1,57 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+interface Props extends HTMLAttributes<'div'> {
+	title: string;
+}
+
+const { title, ...attributes } = Astro.props;
+---
+
+<div class="sl-gradient-card" {...attributes}>
+	<span class="sl-flex stack">
+		<span class="title" set:html={title} />
+		<div class="description"><slot /></div>
+	</span>
+</div>
+
+<style>
+	@layer starlight.components {
+		.sl-gradient-card {
+			position: relative;
+			display: flex;
+			justify-content: center;
+			border-radius: 1.5rem;
+			padding: 1rem;
+			box-shadow: var(--sl-shadow-sm);
+			background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+			border: 0px solid transparent;
+		}
+
+		.stack {
+			flex-direction: column;
+			align-items: center;
+			gap: 0.5rem;
+			text-align: center;
+		}
+
+		.title {
+			color: #fff;
+			font-weight: 600;
+			font-size: 28px;
+			line-height: var(--sl-line-height-headings);
+		}
+
+		.description {
+			color: #fff;
+			line-height: 1.5;
+			font-size: var(--sl-text-lg);
+		}
+
+		.description :global(ul),
+		.description :global(ol) {
+			text-align: left;
+			padding-inline-start: 1.5rem;
+		}
+	}
+</style>

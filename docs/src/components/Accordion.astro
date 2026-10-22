@@ -1,0 +1,39 @@
+---
+// Colors use light-dark(): they follow `color-scheme` on <html>, which the theme toggle must set.
+// `badge` takes Starlight's own <Badge> props (text, variant, size), passed through as-is.
+import { Badge } from '@astrojs/starlight/components';
+import type { ComponentProps } from 'astro/types';
+interface Props { title: string; badge?: ComponentProps<typeof Badge>; open?: boolean; name?: string }
+const { title, badge, open = false, name } = Astro.props;
+---
+<details class="accordion" open={open} name={name}>
+  <summary>{title} {badge && <Badge {...badge} />}</summary>
+  <div class="panel"><slot /></div>
+</details>
+
+<style>
+  summary {
+    background-color: light-dark(#eee, #333);
+    color: light-dark(#444, #ddd);
+    cursor: pointer;
+    padding: 18px;
+    list-style: none;
+    transition: 0.4s;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary:hover,
+  [open] > summary { background-color: light-dark(#ccc, #555); }
+  summary::after {
+    content: '\02795';
+    font-size: 13px;
+    color: light-dark(#777, #aaa);
+    float: right;
+    margin-left: 5px;
+  }
+  [open] > summary::after { content: '\2796'; }
+  .panel {
+    padding: 0 18px;
+    background-color: light-dark(white, #1e1e1e);
+    color: light-dark(#222, #ddd);
+  }
+</style>

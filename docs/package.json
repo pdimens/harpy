@@ -1,0 +1,23 @@
+{
+  "name": "arachne",
+  "type": "module",
+  "version": "0.4",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.6",
+    "astro": "^7.2.10",
+    "astro-mermaid": "^2.1.0",
+    "mermaid": "^11.17.2",
+    "sharp": "^0.35.3",
+    "starlight-codeblocks": "^1.2.0",
+    "starlight-scroll-to-top": "^2.0.0",
+    "starlight-sidebar-topics": "^0.9.0",
+    "starlight-ui-tweaks": "^0.2.2"
+  }
+}

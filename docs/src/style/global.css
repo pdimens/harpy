@@ -1,0 +1,99 @@
+@import "starlight-ui-tweaks/styles";
+
+:root {
+  --gradient-start: #88a6c1ff;
+  --gradient-end: #b8e2c4ff;
+  --sl-toc-width: 16rem;
+  --sl-color-text-accent: #88a6c1ff;
+}
+
+.card {
+  border: none;
+  border-radius: 1.25rem; /* rounder corners, tune to taste */
+  box-shadow: 0 1px 6px rgb(0 0 0 / 0.2); /* light drop shadow */
+}
+
+
+.sidebar-pane a[aria-current="page"] {
+    background: linear-gradient(40deg, var(--gradient-start), var(--gradient-end));
+    color: #fff;
+}
+
+/* Force Starlight sidebar groups to behave like standard uncollapsible divs */
+nav ul li details {
+  pointer-events: none;
+}
+
+/* Keep internal links clickable */
+nav ul li details ul li a {
+  pointer-events: auto;
+}
+
+/* Hide the collapse/expand dropdown chevron arrow */
+nav ul li details summary::-webkit-details-marker,
+nav ul li details summary::marker,
+nav ul li details summary svg {
+  display: none !important;
+}
+
+/* Reset cursor on the header label */
+nav ul li details summary {
+  cursor: default !important;
+}
+
+.starlight-aside {
+  border-radius: 0.8rem;
+}
+
+/* TOC sidebar width */
+:root[data-theme='dark'] .card {
+  border: none;
+  box-shadow: 0 1px 8px rgb(0 0 0 / 0.4);
+}
+:root[data-theme='dark'] .starlight-aside {
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.4);
+}
+
+/* Remove code block border and round corners */
+/*xpressive-code pre {
+/* border: none;
+/*  border-radius: 0.5rem; */
+/*   box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+/*
+
+/* remove it from the grid flow */
+
+.right-sidebar {
+  position: fixed;
+  top: 5rem;
+  right: 1rem;
+  width: auto;
+  min-width: 200px;
+  max-width: 320px;
+  max-height: calc(100vh - 6rem);
+  height: auto !important;
+  min-height: 0 !important;
+  overflow-y: scroll;
+  overflow-x: auto;
+  background: var(--sl-color-bg);
+  border: 0px solid var(--sl-color-hairline);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+}
+:root[data-theme='dark'] .right-sidebar {
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.6);
+}
+
+.right-sidebar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  border-radius: 0.5rem 0.5rem 0 0;
+  z-index: 1;
+}
