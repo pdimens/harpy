@@ -80,7 +80,7 @@ rule barcode_stats:
     params:
         lr_type
     shell:
-        "harpy-utils bx-stats-fq {params} {input} > {output} 2> {log}"
+        "djinn fq stats {params} {input} > {output} 2> {log}"
 
 rule barcode_report:
     retries: 1
