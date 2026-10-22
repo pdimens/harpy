@@ -19,18 +19,12 @@ system to install it.
 
   Considerations: If using conda, we strongly recommend using version `23.10` or later. If using mamba, replace `conda` with `mamba` in the instructions below. 
 
-  It's best to create a new environment for a harpy installation. The first line of the code below creates a new conda/mamba environment called `harpy` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n somename` argument. 
+  It's best to create a new environment for a harpy installation. The first line of the code below creates a new conda environment called `env_name` (via `-n harpy`) and installs harpy into it. You can name this environment whatever you like using the `-n` option. 
   ```bash
-  conda create -n harpy -c bioconda -c conda-forge harpy #[!ref] create a new environment and install
+  conda create -n env_name -c bioconda -c conda-forge harpy #[!ref] create a new environment and install
   conda install -n env_name -c conda-forge bioconda::harpy #[!ref] install into existing environment
   conda update -c conda-forge bioconda::harpy #[!ref] update existing harpy installation
   ```
-
-  Once conda/mamba finishes, activate the harpy conda/mamba environment with:
-  ```bash
-  conda activate env_name
-  ```
-  where `env_name` is the name of that environment. After doing so, the `harpy` executable should be callable from your path.
 
   ### ⚡ Conda Usage
   Activate the conda environment that Harpy was installed into and call `harpy` or `harpy --help` on the command line to get started
@@ -40,8 +34,8 @@ system to install it.
   ```
 
 <Aside>
-  Tab-completion for `harpy`, `harpy-utils`, and `hv` (bash, zsh, and fish) is enabled automatically whenever the environment is activated, there is nothing to set up.
-  It relies on each shell's own completion system being enabled: for bash, the `bash-completion` package (present on most Linux systems), and for zsh, `compinit` in your `~/.zshrc` (most setups already have it).
+  Tab-completion for `harpy`, `harpy-utils`, and `hv` (bash, zsh, and fish) should be enabled automatically whenever the environment is activated.
+  Mileage may vary depending on your shell configuration.
 </Aside>
 
 </Accordion>
