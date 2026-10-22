@@ -88,7 +88,8 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.command(no_args_is_help = True, context_settings={"allow_interspersed_args" : False}, epilog = "Documentation: https://blinkseq.github.io/harpy/workflows/preprocess/")
 @click.option('-m', '--me-seq', panel = "Parameters", type = str, default = "AGATGTGTATAAGAGACAG", show_default=True, help = "ME sequence to look for")
 @click.option('-n', '--mismatch', panel = "Parameters", default = 2, show_default = True, type = click.IntRange(0,19, clamp = True), help = 'Allow N mismatches in ME sequence')
-@click.option('-s', '--schema', panel = "Workflow Options",  type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'Pheniqs-style JSON decoding schema file')
+@click.option('-q', '--qx-rx', panel = "Parameters", is_flag = True, default = False, help = 'Include the `QX:Z` and `RX:Z` tags in the read header')
+@click.option('-s', '--schema', panel = "Workflow Options", type = click.Path(exists=True, dir_okay=False, readable=True, resolve_path=True), help = 'Pheniqs-style JSON decoding schema file')
 @click.option('-@', '--threads', panel = "Workflow Options", default = 4, show_default = True, type = click.IntRange(2,999, clamp = True), help = 'Number of threads to use')
 @click.option('-O', '--output', panel = "Workflow Options", type = click.Path(exists = False, resolve_path = True), default = "Preprocess", show_default=True,  help = 'Output directory name')
 @click.option('-T', '--no-temp', hidden = True, panel = "Workflow Options", is_flag = True, default = False, help = 'Don\'t delete temporary files')
@@ -101,7 +102,7 @@ def meier2021(r12_fq, i12_fq, output, schema, qx_rx, keep_unknown_samples, keep_
 @click.option('--clean', hidden = True, panel = "Workflow Options", type = str, help = 'Delete the log (`l`), .snakemake (`s`), and/or workflow (`w`) folders when done')
 @click.argument('inputs', required=True, type=FASTQfile(), nargs=-1)
 @click.help_option('--help', hidden = True)
-def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, schema, quiet, hpc, clean, container, setup, no_temp):
+def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, schema, qx_rx, quiet, hpc, clean, container, setup, no_temp):
     """
     Preprocess FASTQ files haplotagged with the GIH protocol
 
@@ -122,7 +123,9 @@ def gih(inputs, output, me_seq, mismatch, threads, snakemake, skip_reports, sche
 
     workflow.notebooks["skip"] = skip_reports
     #fetch_template("pheniqs.config.json", os.path.join(output, "workflow", "pheniqs.config.json"))
-    workflow.input(fastq.files)
+    workflow.param(qx_rx, "qx-rx")
+    workflow.input('embedded' if not schema else schema, "schema")
+    workflow.input(fastq.files, "fastq")
     workflow.param(me_seq, "ME-sequence")
     workflow.param(mismatch, "ME-mismatch")
     #workflow.param(min_len, "min-length")

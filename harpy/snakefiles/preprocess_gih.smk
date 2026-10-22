@@ -12,12 +12,12 @@ REPORTS    = WORKFLOW.get("reports") or {}
 INPUTS     = config['Inputs']
 VERSION    = WORKFLOW.get('harpy-version', 'latest')
 
-fqlist       = INPUTS
+fqlist       = INPUTS["fastq"]
 skip_reports = REPORTS.get("skip", False)
 me_seq       = PARAMETERS.get("ME-sequence", "AGATGTGTATAAGAGACAG")
 mismatch     = PARAMETERS.get("ME-mismatch", 2) 
 qxrx         = PARAMETERS.get("qx-rx", False)
-schemafile   = INPUTS.get("schema", "")
+schemafile   = INPUTS.get("schema", "embedded")
 
 bn_r = r"([_\.][12]|[_\.][FR]|[_\.]R[12](?:\_00[0-9])*)?\.((fastq|fq)(\.gz)?)$"
 samplenames = {re.sub(bn_r, "", os.path.basename(i), flags = re.IGNORECASE) for i in fqlist}
@@ -75,18 +75,18 @@ rule demultiplex:
     input:
         FQ1 = get_fq1,
         FQ2 = get_fq2,
-        schema = schemafile if schemafile else []
+        schema = schemafile if schemafile != 'embedded' else []
     output:
         fq1 = "{sample}.R1.fq.gz",
         fq2 = "{sample}.R2.fq.gz",
-        stats = "reports/data/{sample}.preproc"
+        stats = "reports/data/{sample}.dmxstats"
     log:
-        "reports/data/{sample}.preproc"
+        "logs/{sample}.preproc"
     params:
         f'--me {me_seq}',
         f'--max-mismatch {mismatch}',
-        "--qx-rx" if qxrx else "",
-        f"-s {schemafile}" if schemafile else ""
+        '--qx-rx' if qxrx else '',
+        f'-s {schemafile}' if schemafile != 'embedded' else ''
     threads:
         4
     shell:
@@ -134,22 +134,16 @@ rule quality_report:
 
 rule barcode_report:
     input:
-        counts = collect("reports/data/{sample}.bxcount", sample = samplenames),
-        stats = collect("reports/data/{sample}.BXstats", sample = samplenames),
-        me = collect("reports/data/{sample}.MEstats", sample = samplenames),
+        collect("reports/data/{sample}.{ext}", sample = samplenames, ext = ['bxcount', 'dmxstats']),
         ipynb = "workflow/preproc_stats.ipynb"
     output:
-        tmp = temp("reports/performance.tmp.ipynb"),
-        ipynb = "reports/performance.ipynb"
+        "reports/performance.ipynb"
     log:
         "logs/performance.report.log"
     params:
-        indir = "-p indir " + os.path.abspath("reports/data/")
+        "-p indir " + os.path.abspath("reports/data/")
     shell:
         """
         export IPYTHONDIR=/tmp/ipython-pre-gih
-        {{
-            papermill -k ipython-harpy --no-progress-bar --log-level ERROR {input.ipynb} {output.tmp} {params.indir}
-            harpy-utils process-notebook {output.tmp} > {output.ipynb}
-        }} 2> {log}
+        harpy-utils run-notebook -k ipython-harpy {params} {input.ipynb} > {output} 2> {log}
         """
