@@ -1,4 +1,5 @@
 ---
+// ponytail: native <details>/<summary>, no JS. Same `name` on several = only one open at a time.
 // Colors use light-dark(): they follow `color-scheme` on <html>, which the theme toggle must set.
 // `badge` takes Starlight's own <Badge> props (text, variant, size), passed through as-is.
 import { Badge } from '@astrojs/starlight/components';
@@ -22,17 +23,19 @@ const { title, badge, open = false, name } = Astro.props;
   }
   summary::-webkit-details-marker { display: none; }
   summary:hover,
-  [open] > summary { background-color: light-dark(#ccc, #555); }
-  summary::after {
-    content: '\02795';
-    font-size: 13px;
-    color: light-dark(#777, #aaa);
-    float: right;
-    margin-left: 5px;
+  [open] > summary { background-color: light-dark(var(--sl-color-text-accent), var(--sl-color-text-accent)); }
+  details {
+    border-radius: 8px;
+    overflow: hidden;
+    /* undo Starlight's markdown <details> left border + indent; keep its leading caret (rotates on open) */
+    border: none;
+    padding: 0;
   }
-  [open] > summary::after { content: '\2796'; }
+  summary { margin: 0; }
+  /* gap between stacked entries (Starlight's default sibling spacing is 1rem) */
+  details + details { margin-top: 0.25rem; }
   .panel {
-    padding: 0 18px;
+    padding: 0 18px 1rem;
     background-color: light-dark(white, #1e1e1e);
     color: light-dark(#222, #ddd);
   }

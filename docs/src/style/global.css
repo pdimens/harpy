@@ -13,6 +13,12 @@
   box-shadow: 0 1px 6px rgb(0 0 0 / 0.2); /* light drop shadow */
 }
 
+/* Round the outer corners of code blocks, including anything attached below them 
+.sl-markdown-content .expressive-code {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+*/
 
 .sidebar-pane a[aria-current="page"] {
     background: linear-gradient(40deg, var(--gradient-start), var(--gradient-end));
