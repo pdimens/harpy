@@ -98,7 +98,7 @@ rule barcode_counts:
     output:
         "reports/data/{sample}.bxcount"
     shell:
-        "djinn fastq count {input} > {output}"
+        "djinn fq count {input} > {output}"
 
 rule assess_quality:
     input:
