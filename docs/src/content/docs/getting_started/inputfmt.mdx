@@ -1,0 +1,48 @@
+---
+title: Input Data Format
+sidebar:
+  order: 1
+  label: Input Data Format
+---
+import { Aside, Badge,Card } from '@astrojs/starlight/components';
+
+Data where linked-read information gets stored is typically either FASTQ or BAM files. Generally speaking,
+linked-read BAM files follow a format where the barcode is stored under the `BX:Z` SAM tag. If using SAM files
+that were created outside of Harpy, the barcode must be present in a `BX:Z` tag. Some modules also expect
+a `VX:i` validation tag, so it would be ideal to make sure that is there too so you avoid unexpectedly bad results.
+As far as FASTQ files go, Haplotagging, stLFR, TELLseq are valid and recognized. 
+
+<Card title="Standard Format">
+We continue to
+push for all linked-read platforms to adopt [a standard FASTQ format](https://blinkseq.github.io/lastq/).
+</Card>
+
+## Non-linked reads
+Harpy works just fine on non-linked reads like Whole Genome Sequencing (WGS). I just disables the things
+that are specific to linked-reads. Regular FASTQ files with both old (`/1`) and new (`1:N:0:ATCG`) CASAVA format are expected to work.
+
+## FASTQ Read length
+Reads must be at least 30 base pairs in length for alignment. By default, `harpy qc` will remove reads \<30bp.
+
+## Compression
+Harpy generally doesn't require the FASTQ input sequences to be in gzipped/bgzipped format, but it's good practice to compress your reads anyway.
+Compressed files are expected be compressed with either `gzip` or `bgzip` and end with the extension - <Badge text=".gz" variant="success"/>.
+
+## Naming conventions
+Unfortunately, there are many different ways of naming FASTQ files, which makes it 
+difficult to accomodate every possible variant currently in circulation.
+While Harpy tries its best to be flexible, there are limitations. 
+To that end, for `harpy preprocess`, `harpy qc`, and `harpy align`, the 
+most common FASTQ naming styles are supported:
+- **sample names**: <Badge text="a-z" variant="success"/>  <Badge text="0-9" variant="success"/>  <Badge text="." variant="success"/> <Badge text="_" variant="success"/> <Badge text="-" variant="success"/> <Badge text="case insensitive" variant="tip"/>
+    - you can mix and match special characters, but that's bad practice and not recommended
+    - examples: `Sample.001`, `Sample_001_year4`, `Sample-001_population1.year2` \<- not recommended
+- **forward**: [!badge variant="success" text="_F"] [!badge variant="success" text=".F"] [!badge variant="success" text="_1"] [!badge variant="success" text=".1"] [!badge variant="success" text="_R1_001"] [!badge variant="success" text=".R1_001"] [!badge variant="success" text="_R1"] [!badge variant="success" text=".R1"] 
+- **reverse**: [!badge variant="success" text="_R"] [!badge variant="success" text=".R"] [!badge variant="success" text="_2"] [!badge variant="success" text=".2"] [!badge variant="success" text="_R2_001"] [!badge variant="success" text=".R2_001"] [!badge variant="success" text="_R2"] [!badge variant="success" text=".R2"] 
+- **fastq extension**: [!badge variant="success" text=".fq"] [!badge variant="success" text=".fastq"] [!badge variant="secondary" text="case insensitive"]
+- **gzipped**: [!badge variant="info" icon=":thumbsup:" text="supported"] [!badge variant="info" icon=":heart:" text="recommended"]
+- **not gzipped**: [!badge variant="info" icon=":thumbsup:" text="supported"]
+
+You can also mix and match different formats and styles within a given directory, although again, **this isn't recommended**.
+As a good rule of thumb for any computational work, you should be deliberate and consistent in how you name things.
+
