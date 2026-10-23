@@ -10,31 +10,31 @@ import Accordion from '@/components/Accordion.astro';
 
 <style>{`:root { --sl-content-width: 100%; }`}</style>
 
-## With `conda` 
 
-Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy), which means you just need to have either  `conda` or `pixi` (or `docker`) on your Unix-like 
+Harpy is hosted on [Bioconda](https://anaconda.org/bioconda/harpy), which means you just need to have either  `conda` or `pixi` (or `docker`/`apptainer`) on your Unix-like 
 system to install it.
 
-
-<Accordion title="🐍 Conda" name="install" >
+<Accordion title="🐍 With conda" name="install" >
   [Conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) and [mamba](https://mamba.readthedocs.io/en/latest/installation.html) are household names in software package management. Harpy
   installs painlessly with conda (or mamba). It's best to create a new environment for a harpy installation,
   but you can also install harpy into an existing environment. Conda will complain if there will dependency incompatibilities.
 
-  **Considerations**: If using conda, we strongly recommend using version `23.10` or later. If using mamba, replace `conda` with `mamba` in the instructions below. 
+  **Considerations**: Sometimes blocked by HPC admins. If conda, use conda version `23.10` or later.
+  
+  If using mamba, replace `conda` with `mamba` in the instructions below. 
 
-  ```bash
+  ```bash annotations="side"
   # [!callout /env_name/] replace `env_name` with whatever makes sense for you
-  conda create -n env_name -c bioconda -c conda-forge harpy #[!ref] create a new environment and install
-  conda install -n env_name -c conda-forge bioconda::harpy #[!ref] install into existing environment
-  conda update -c conda-forge bioconda::harpy #[!ref] update existing harpy installation
+  conda create -n env_name -c bioconda -c conda-forge harpy #[!annotate] create a new environment and install
+  conda install -n env_name -c conda-forge bioconda::harpy #[!annotate] install into existing environment
+  conda update -c conda-forge bioconda::harpy #[!annotate] update existing harpy installation
   ```
 
   ### Usage with conda
   Activate the conda environment that Harpy was installed into and 
-  ```bash
-  conda activate env_name # [!ref] Activate the environment harpy is installed into
-  harpy # [!ref] call `harpy` or `harpy --help` to get started
+  ```bash annotations="side"
+  conda activate env_name # [!annotate] Activate the environment harpy is installed into
+  harpy # [!annotate] call `harpy` or `harpy --help` to get started
   ```
 
 <Aside>
@@ -43,13 +43,10 @@ system to install it.
 </Aside>
 
 </Accordion>
-<Accordion title="🌟 Pixi" name="install">
-Pixi is like conda and pulls from the same channels (it's pretty good, you should try it). There are several
-advantages to pixi over conda, but usage is similar.
+<Accordion title="🌟 With pixi" name="install">
+Pixi is like conda and pulls from the same channels (it's pretty good, you should try it).
 
-**Considerations**: Like conda, but more features, _lightning fast_, and very sensible to use. Slight learning curve.
-
-Likewise, you can do an installation into a local project directory:
+**Considerations**: Like conda, but more features and faster. Slight learning curve.
 
 ```bash annotations="side"
 pixi init -c conda-forge -c bioconda projectname && cd projectname # [!annotate] Create pixi project and environment. Replace `projectname` with whatever makes sense for you
@@ -84,7 +81,7 @@ Pixi has two modes of operation:
 </Accordion>
 
 
-<Accordion title="📦 Containers" name="install" >
+<Accordion title="📦 As a container" name="install" >
   All packages on Bioconda are automatically built as containers too!
   Use [docker](https://docs.docker.com/engine/install/) or 
   [apptainer](https://apptainer.org/docs/user/latest/quick_start.html#installation)
@@ -108,7 +105,7 @@ apptainer pull docker://quay.io/biocontainers/harpy:$TAG #[!annotate] replace `$
 ```
 </Accordion>
 
-<Accordion title="💣 Pip" name="install" badge = {{ text: "not recommended", variant: "caution" }}>
+<Accordion title="💣 With pip" name="install" badge = {{ text: "not recommended", variant: "caution" }}>
   This is the "all else fails" solution and generally not recommended. You can install Harpy locally via [pip](https://python.land/virtual-environments/installing-packages-with-pip), 
   however, it can only get so far as installing the Python package dependencies and not the other software, 
   which you will need to install manually if it's not already on your system.
@@ -155,7 +152,8 @@ to use most of Harpy.
 
 
       Other things you need to install include:
-      - [djinn](https://blinkseq.github.io/djinn/) and [demuxolotl](https://github.com/blinkseq/demuxolotl) 
+      - [djinn](https://blinkseq.github.io/djinn/) (download + compile)
+      - [demuxolotl](https://github.com/blinkseq/demuxolotl) (included but needs compilation)
       - [go](https://go.dev/doc/install) needs to be installed to compile both
 
       ```bash title="compile demuxolotl" annotations="side"
