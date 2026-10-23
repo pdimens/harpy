@@ -11,6 +11,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      packages: write
     strategy:
       matrix:
         env: [align, assembly, preprocess, metassembly, phase, qc, impute, variants]
@@ -31,19 +32,18 @@ jobs:
 #        uses: jlumbroso/free-disk-space@main
       - name: Recreate containers
         run: harpy containerize ${{ matrix.env }}
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
-      - name: Login to Docker Hub
+      - name: Login to GHCR
         uses: docker/login-action@v4.6.0
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v7
         with:
           context: container/${{ matrix.env }}
           push: true
-          tags: pdimens/harpy:${{ matrix.env }}_${{ github.ref_name }}
+          tags: ghcr.io/blinkseq/harpy:${{ matrix.env }}_${{ github.ref_name }}
 
   build_tarball:
     needs: build_versioned_containers
